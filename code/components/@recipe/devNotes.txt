@@ -1,0 +1,45 @@
+Developer Notes: recipe class
+Also see: +BakingTray/+settings
+
+
+Recipes are handled by the recipe class, which is incorporated into the BakingTray composite object. 
+When the recipe class reads a recipe file, such as <BAKINGTRAYROOT>/SETTINGS/default_recipe.yml it also reads the data in systemSettings.yml Since the recipe class uses readRecipe.m to load a recipe, no recipe loaded by it can have
+incorrect or dangerous values. Thus, the setters in the recipe class need only block problematic values from being set. 
+The recipe class does not need to refer back to the default recipe in the private sub-directory of +BakingTray/+settings
+
+
+The recipe class writes the recipe used for an acquisition into that acquisition's root directory. 
+This recipe contains:
+1) The information recipe YAML (e.g. default_recipe.yml) with whatever modifications were made by the user. 
+2) The information from systemSettings.yml
+3) Parameter calculated for conducting the acquisition (e.g. the number of tiles in X and Y). These can only be calculated if the scanner object is attached to BakingTray. The relevant parameters are copied into the recipe class and stored in the Scanner property structure.
+
+The above three sets of variables are distinguished based on their case. e.g.
+
+- [lower-case] These are defined by the user for setting up a sample:
+sample.ID
+sample.objectiveName
+mosaic.cutSize
+mosaic.scanMode
+
+
+- [CAPS] These are defined in the systsemSettings.yml and can only be changed my modifying that file and building a new recipe:
+SYSTEM.ID
+SYSTEM.xySpeed
+SLICER.vibrateRate
+SLICER.postCutDelay
+
+
+- [CamelCase] These are derived values that are read-only:
+VoxelSize.X
+VoxelSize.Y
+NumTiles.X
+NumTiles.Y
+TileStepSize.X
+TileStepSize.Y
+
+
+
+
+
+If you add fields to the systemSettings YAML you will need to modify BakingTray.settings.readRecipe. See ~line 65 in that function.

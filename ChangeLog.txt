@@ -1,0 +1,9 @@
+BakingTray ChangeLog
+
+Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
+When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
+
+
+4th July 2017
+- Multiple small bug fixes
+- Cody tidying. 

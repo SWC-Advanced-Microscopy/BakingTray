@@ -1,0 +1,66 @@
+Development Notes: BakingTray components and GUIs
+
+
+* What are the components?
+The class BakingTray is responsible for controlling all the hardware on the microscope.
+Methods in BakingTray perform tasks such as moving the sample using the X/Y stage, raising 
+the X/Y stage, starting and stopping the vibrotome, and performing the cutting cycle. 
+
+Acquisition sequence is orchestrated by funtions external to BakingTray. 
+
+The goal of the sofware is to maintain flexibility. The BakingTray class is responsible
+for initiating commands that will control the hardware. It contains no hardware-specific 
+commands of any sort. These commands are stored in "glue" or "bridge" classes that provide
+a consistent interface between the BakingTray class and the physical hardware. e.g. the
+BSC201 class interfaces between the ThorLabs BSC201 linear actuator controller and BakingTray. 
+To enforce consistency, the BSC201 class inherits the abstract class linearcontroller that
+declares all methods that BSC201 should define. linearcontroller also contains extensive 
+documentation as to how those methods should behave. To avoid duplication, BSC201 does not 
+contain documentation on methods declared by linnearcontroller. Exactly the same system applies
+to the C891 class that controls the PI stages responsible for X and Y motion. 
+
+For example, BakingTray might brings together the following classes in composite class:
+
+X stage
+C891 class that inherits linearcontroller. 
+The instance of the C891 class will have an instance of V551 that inherits linearstage attached 
+to it at C891.attachedStage.
+
+Y stage
+C891 class that inherits linearcontroller. 
+The instance of the C891 class will have an instance of V551 that inherits linearstage attached 
+to it at C891.attachedStage.
+
+Z stage
+BSC201 class that inherits linearcontroller. 
+The instance of the BSC201 class will have an instance of DRV014 that inherits linearstage attached 
+to it at BSC201.attachedStage.
+
+Cutter
+An instance of FaulhaberMCDC that inherits cutter.
+
+Scanner
+An instance of SIBT that inherits scanner.
+
+
+
+Classes for each component type sit in their own sub-directories grouped by type. 
+Each of these directories contains a build<Type>Component.m function that is responsible for 
+making a functioning object from any of the classes in that directory. 
+
+
+
+* The GUIs
+Each component has a "view" class that controls a GUI. Let's take the maitai laser:
+The maitai class inherits laser and can interact with a GUI that is built by the class
+laser_view. 
+
+When laser_view is run, it incorporates an instance of the maitai object (or whatever laser
+you are using) and attaches listeners to the hidden GUI properties defined in the laser class. 
+Any new class you build to control a piece of hardware must update these properties. Look in
+the associated abstract class for your component to see what needs to be updated. 
+
+Once set up, the following sort of thing happens. Say that the user runs at the command line:
+>> hBT.laser.setWavelength(880)
+This changes the value of the hidden hBT.laser.targetWavelength property so that field in the GUI
+will automatically change and the laser wavelength tracked by the GUI until the laser stops tuning. 

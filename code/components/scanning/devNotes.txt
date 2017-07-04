@@ -1,0 +1,13 @@
+
+
+ScanImage integration
+
+
+For the LUT:
+So a little confusing but you actually should monitor the properties chan1LUT - chan4LUT in hSI.hDisplay as well.
+When you push the auto buttons they update the property in hChannels but the set method in hChannels just sets that property in that particular instance of channels then calls the zprpUpdateChanLUT function in hDisplay and the set method in hDisplay for chan#LUT associated with that channels instance.
+When you change the sliders however it calls changeLut in si controller which calls changedLUT which then updates the properties chan#LUT in hDisplay directly.
+Without getting too deep into it this is done this way for modularity purposes (1 channel class, multiple instances, 1 display with all channels).
+So to summarize the auto buttons directly change properties in hChannels, and their set methods update the properties in hDisplay. When you change the sliders it directly changes properties in hDisplay and the get methods in hChannels indirectly access these values. So the listener reacts to the button pushes because there was a direct set method call for that property in hChannels. It does not react when you scroll the range sliders because that property is not directly set. It will only update if it's get method is called.
+So you will probably need to monitor both the properties in hChannels and hDisplay in order to have your listener callback respond to both the auto adjust buttons and the slider changes.
+Thanks,

@@ -1,0 +1,10 @@
+BSC201 Troubleshooting
+
+
+Q: Starting BakingTray crashes MATLAB when the BSC201_APT interface attempts to connect. 
+A: Leave MATLAB closed and attempt to start the APT user utility. If this works, close it and then try MATLAB again. 
+If this fails, cycle the power on the BSC-201 and and try MATLAB again.
+This error can happen if you reboot or power down the PC without cleanly disconnecting from the BSC-201.
+
+Q: The BSC-201 brings up a series of warning windows claiming it can't proceed but does not crash. It won't start.
+A: This is a very rare error. You might find that when the device is in this state, the APT user interface works but in MATLAB it still fails. Kinesis may fail to enter the settings. When this happened to me, I installed the latest Kinesis version and magically everything worked again. 

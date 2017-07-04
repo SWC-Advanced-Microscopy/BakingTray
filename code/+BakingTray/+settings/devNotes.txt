@@ -1,0 +1,24 @@
+
+Developer notes: settings system
+Also see: recipe class
+
+There are two sorts of "settings":
+- "recipes" (scan settings files) and associated rig hardware descriptions, like the rig name and cutting paramaters.
+- The settings needed to connect to "components" (classes that are used to control the hardware).
+
+** Recipes and scan settings
+Each acquisition is controlled by a "recipe" that is defined by a YAML file. 
+The YAML file is read by readRecipe and defines two structures: sample and mosaic. 
+These contain the settings which will be highly sample specific. 
+
+Parameters that are specific to the rig are stored in: <BAKINGTRAYROOT>/SETTINGS/systemSettings.yml
+This file is not shipped with the repository but is created by readSystemSettings based on 
+the information in default_BT_Settings.m which is in the private sub-directory in <BAKINGTRAYROOT>/+BakingTray/+settings
+
+Recipes are read by readRecipe, which ensures that a valid recipe is returned. Parameters that have
+implausible or dangerous values are coerced to values from the default recipe in the private sub-directory. 
+
+
+
+** Component settings
+TODO
