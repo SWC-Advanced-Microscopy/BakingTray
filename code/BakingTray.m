@@ -55,6 +55,7 @@ function BakingTray(varargin)
 
             fprintf('Build of BT failed\n')
             delete(hBT) %Avoids blocked hardware controllers
+            evalin('base','clear ans') %Because it sometimes makes a copy of BT in ans when it fails
             rethrow(ME)
             return
         end
@@ -101,8 +102,8 @@ function safe = isSafeToMake_hBT
     W=evalin('base','whos');
 
     if strmatch('hBT',{W.name})
-        fprintf('For access to the, API, BakingTray creates a variable called "hBT" in the base workspace.\n')
-        fprintf('A variable by this name already exists. Please remove this variable and run "BakingTray" again\n')
+        fprintf('BakingTray seems to have already started. If this is an error, remove the variable called "hBT" in the base workspace.\n')
+        fprintf('Then "%s" again.\n',mfilename)
         safe=false;
     else
         safe=true;
