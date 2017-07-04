@@ -572,7 +572,7 @@ classdef view < handle
             %TODO: this just changes directory, which is messy. Should have a sample dir field that BT respects
             thisDir = uigetdir('choose dirctory');
             if ischar(thisDir) && exist(thisDir,'dir')
-                cd(thisDir)
+                obj.model.sampleSavePath = thisDir;
                 %Escape underscores and forward slashes
                 thisDir= regexprep(thisDir,'([\\_])','\\$1');
                 obj.text_sampleDir.String=thisDir;

@@ -98,7 +98,7 @@ classdef EPS300 < linearcontroller
       function success = isControllerConnected(obj)
         success=false;
         if isempty(obj.hC)
-          bk_message.display('No attempt to connect to the controller has been made\n','fail')
+          fprintf('No attempt to connect to the controller has been made\n')
           return
         end
 

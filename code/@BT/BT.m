@@ -50,7 +50,9 @@ classdef BT < loghandler
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        currentTileSavePath     % The path to which data are being saved (see BT.defineSavePath)
+        sampleSavePath          % The absolute path in which all data related to the current sample will be saved.
+        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
+        currentTileSavePath     % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
@@ -73,6 +75,10 @@ classdef BT < loghandler
         %preview tile size. This, in combination with BT.recipe.tilePattern, can be 
         %use to determine where in the final tile grid each tile is placed. 
         downsampleTileMMperPixel %TODO: non-square images
+
+        % The following dependent properties make file paths (but don't check if the paths are valid)
+        pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
+        thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
     end
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
@@ -507,7 +513,7 @@ classdef BT < loghandler
             if ~obj.isRecipeConnected
                 acqLogFname=[];
             end
-            acqLogFname = ['acqLog_',obj.recipe.sample.ID,'.txt'];
+            acqLogFname = fullfile(obj.sampleSavePath, ['acqLog_',obj.recipe.sample.ID,'.txt']);
         end %acquisitionLogFileName
 
         function acqLogWriteLine(obj,msg,fname)
@@ -717,6 +723,17 @@ classdef BT < loghandler
             downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
             mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3; %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
         end
+
+        function out = get.pathToSectionDirs(obj)
+            % This is the full path to the sample directory
+            out = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);
+        end %get.pathToSectionDirs
+
+        function out = get.thisSectionDir(obj)
+            % This is the directory into which we will place data for this section
+            sectionDir = sprintf('%s-%04d', obj.recipe.sample.ID, obj.currentSectionNumber);
+            out = fullfile(obj.pathToSectionDirs,sectionDir);
+        end %get.thisSectionDir
 
     end % close non-motion methods
 

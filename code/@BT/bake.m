@@ -124,14 +124,15 @@ function bake(obj,varargin)
         end
 
 
-        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-        if ii==1
-            obj.recipe.writeFullRecipeForAcquisition;
-        end
-
         if ~obj.scanner.armScanner;
             disp('FAILED TO START -- COULD NOT ARM SCANNER')
             return
+        end
+
+
+        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+        if ii==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
         end
 
         obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f\n',...
@@ -215,8 +216,9 @@ function bake(obj,varargin)
 
     obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
 
-    %Create a finished file
-    fid=fopen('FINISHED', 'w');
+
+    %Create an empty finished file
+    fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
     fclose(fid);
 
 

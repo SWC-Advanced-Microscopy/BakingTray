@@ -227,6 +227,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model.scanner,'channelsToSave', 'PostSet', @obj.updateChannelsPopup);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'channelLookUpTablesChanged', 'PostSet', @obj.updateImageLUT);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
 
             obj.updateStatusText
 
@@ -316,19 +317,32 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %initialisePreviewImageData
 
 
+        function indicateCutting(obj,~,~)
+            % Changes GUI elements accordingly during cutting
+            if obj.model.isSlicing
+                obj.statusText.String=' ** CUTTING SAMPLE **';
+                % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
+                %obj.button_BakeStop.Enable='off';
+                %obj.button_Pause.Enable='off';
+            else
+                obj.updateStatusText
+                %obj.updateBakeButtonState
+                %obj.updatePauseButtonState
+            end
+        end %indicateCutting
+
         function updateStatusText(obj,~,~)
             endTime=obj.model.estimateTimeRemaining;
 
             obj.statusText.String = sprintf(['Finish time: %s\n', ...
                 'Section=%03d/%03d, X=%02d/%02d, Y=%02d/%02d'], ...
-                 endTime.expectedFinishTimeString, ...
-                 obj.model.currentSectionNumber, ...
-                 obj.model.recipe.mosaic.numSections, ...
-                 obj.model.lastTilePos.X, ...
-                 obj.model.recipe.NumTiles.X, ...
-                 obj.model.lastTilePos.Y, ...
-                 obj.model.recipe.NumTiles.Y);
-
+                    endTime.expectedFinishTimeString, ...
+                    obj.model.currentSectionNumber, ...
+                    obj.model.recipe.mosaic.numSections + obj.model.recipe.mosaic.sectionStartNum - 1, ...
+                    obj.model.lastTilePos.X, ...
+                    obj.model.recipe.NumTiles.X, ...
+                    obj.model.lastTilePos.Y, ...
+                    obj.model.recipe.NumTiles.Y);
         end %updateStatusText
 
 

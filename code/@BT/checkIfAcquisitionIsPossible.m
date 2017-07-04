@@ -98,9 +98,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
         n=0;
         for ii=1:obj.recipe.mosaic.numSections
             obj.currentSectionNumber=ii+obj.recipe.mosaic.sectionStartNum-1;
-            %TODO: abstract the following line somewhere. It also appears in BT.defineSavePath
-            saveDir = sprintf('%s-%04d', obj.recipe.sample.ID, obj.currentSectionNumber);
-            if exist(saveDir,'dir')
+            if exist(obj.thisSectionDir,'dir')
                 n=n+1;
             end
         end
@@ -110,7 +108,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
             else
                 nDirStr='ies';
             end
-            msg=sprintf(['%sConducting acquisition in this directory would write data into %d existing section directory%s.\n',...
+            msg=sprintf(['%sConducting acquisition in this directory would write data into %d existing section director%s.\n',...
                 'Acquisition will not proceed.\nSolutions:\n\t* Start a new directory.\n\t* Change the sample ID name.\n',...
                 '\t* Change the section start number.\n'],msg,n,nDirStr);
         end
@@ -129,6 +127,10 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     end
 
 
+    % Is there a valid path to which we can save data?
+    if isempty(obj.sampleSavePath)
+        msg=sprintf(['%sNo save path has been defined for this sample.\n'],msg);
+    end
 
 
     % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  

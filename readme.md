@@ -39,5 +39,8 @@ This allows for enormous flexibility in upgrading the microscope or modifying th
 
 
 ### Installation ###
-You will need a functioning ScanImage 5.2 install.
-There are no detailed install notes as yet for BakingTray.
+- You will need a functioning ScanImage 5.2 install.
+- Add to your path: `code`, 'resources`, and `components` plus its sub-directories. 
+- You will need to define your hardware in the `componentSettings.m` file (no detailed notes on this yet). 
+- Run `scanimage` 
+- Run `BakingTray`

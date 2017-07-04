@@ -391,15 +391,19 @@ classdef prepare_view < BakingTray.gui.child_view
             % Add listeners on the three stage axes in order to update the stage position should the stage move.
             % So whenever the axis position is read, that axis will have its position updated on screen. If an
             % axis is moved and the position is not read back, the screen won't update either, 
-            obj.listeners{1}=addlistener(obj.model.xAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateXaxisEditBox);
+            obj.listeners{end+1}=addlistener(obj.model.xAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateXaxisEditBox);
+            obj.listeners{end+1}=addlistener(obj.model.yAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateYaxisEditBox);
+            obj.listeners{end+1}=addlistener(obj.model.zAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateZaxisEditBox);
 
-            obj.listeners{2}=addlistener(obj.model.yAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateYaxisEditBox);
+            % Listener to update the front/left and cutting positions should they be altered at the command in the recipe object
+            obj.listeners{end+1}=addlistener(obj.model.recipe, 'FrontLeft', 'PostSet', @obj.updateCuttingConfigurationText);
+            obj.listeners{end+1}=addlistener(obj.model.recipe, 'CuttingStartPoint', 'PostSet', @obj.updateCuttingConfigurationText);
 
-            obj.listeners{3}=addlistener(obj.model.zAxis.attachedStage, 'currentPosition', 'PostSet', @obj.updateZaxisEditBox);
+            % Listener to update GUI during slicing
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateElementsDuringSlicing);
 
-            obj.listeners{4}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateElementsDuringSlicing);
-
-            obj.listeners{5}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateGUIduringAcq);
+            % GUI is rendered inactive during acquisition
+            obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateGUIduringAcq);
 
             %Call hMover_KeyPress on keypress events
             set(obj.hFig,'KeyPressFcn', {@hMover_KeyPress,obj});
@@ -592,11 +596,11 @@ classdef prepare_view < BakingTray.gui.child_view
             end
         end %updateElementsDuringSlicing
 
-        function updateCuttingConfigurationText(obj)
-            %Updates the cutting config text. This method is run once in the
-            %constructor, whenever one of the three buttons in the plan panel
-            %are pressed and is also run by BakingTray.gui.view whenever the 
-            %recipe is updated. 
+        function updateCuttingConfigurationText(obj,~,~)
+            % Updates the cutting config text. This method is run once in the
+            % constructor, whenever one of the three buttons in the plan panel
+            % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
+            % It's also a callback function run if the user edits the F/L or cut points.
             R = obj.model.recipe;
             if isempty(R)
                 return
