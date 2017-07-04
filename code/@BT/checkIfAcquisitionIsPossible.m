@@ -129,6 +129,10 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     end
 
 
+    % Is there a valid path to which we can save data?
+    if isempty(obj.sampleSavePath)
+        msg=sprintf(['%sNo save path has been defined for this sample.\n'],msg);
+    end
 
 
     % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  

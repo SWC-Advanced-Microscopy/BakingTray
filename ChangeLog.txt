@@ -5,5 +5,8 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 
 
 4th July 2017
-- Multiple small bug fixes
-- Cody tidying. 
+- Major organisation of project prior to publishing on GitHib.
+- Multiple small bug fixes.
+- Code tidying. 
+- Data no longer written into current directory.
+- Raw data go into rawData directory as mandated by StitchIt.

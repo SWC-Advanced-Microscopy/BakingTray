@@ -50,7 +50,9 @@ classdef BT < loghandler
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        currentTileSavePath     % The path to which data are being saved (see BT.defineSavePath)
+        sampleSavePath          % The absolute path in which all data related to the current sample will be saved.
+        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
+        currentTileSavePath     % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
@@ -507,7 +509,7 @@ classdef BT < loghandler
             if ~obj.isRecipeConnected
                 acqLogFname=[];
             end
-            acqLogFname = ['acqLog_',obj.recipe.sample.ID,'.txt'];
+            acqLogFname = fullfile(obj.sampleSavePath, ['acqLog_',obj.recipe.sample.ID,'.txt']);
         end %acquisitionLogFileName
 
         function acqLogWriteLine(obj,msg,fname)
