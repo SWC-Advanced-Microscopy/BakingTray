@@ -35,16 +35,7 @@ Its current feature set is as follows:
 ### Under the hood
 BakingTray is underpinned by a modular API that controls the three axis stage, laser power, vibratome, and the scanning software (ScanImage). 
 Developers can swap any of these components (even the scanning software) for new ones of their own design. 
-This allows for enormous flexibility in upgrading the microscope: faster stages, a faster laser power modulator, resonant scanners, etc.
-Furthermore, the API itself is sufficiently generic that it becomes possible to easily write custom code to perform very unusual acquisition scenarios. 
-For instance, it would be trivial to acquire tiles from a section at one wavelength then tune the laser to a different wavelength and re-image the section before slicing and moving on to the next section. 
-Another possible scenario would be to image most of the sample at a resolution of, say, 5 microns per pixel but to have one quadrant imaged at 0.5 microns per pixel. 
-
-BakingTray is composed of an object-oriented API to which the components controlling the hardware and the scanner are attached. 
-All of BakingTray's features can be accessed via the API. 
-BakingTray's GUI sits on top of the API and contains minimal logic, so it can easily be swapped out or modified. 
-The source files themselves are well commented and some more detailed documentation is also available. 
-
+This allows for enormous flexibility in upgrading the microscope or modifying the behavior of the acquisition software. 
 
 
 ### Installation ###
