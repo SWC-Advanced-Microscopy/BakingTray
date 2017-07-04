@@ -10,3 +10,4 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 - Code tidying. 
 - Data no longer written into current directory.
 - Raw data go into rawData directory as mandated by StitchIt.
+- acquisition view reports when cutting is taking place
