@@ -227,6 +227,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model.scanner,'channelsToSave', 'PostSet', @obj.updateChannelsPopup);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'channelLookUpTablesChanged', 'PostSet', @obj.updateImageLUT);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
 
             obj.updateStatusText
 
@@ -315,6 +316,20 @@ classdef acquisition_view < BakingTray.gui.child_view
             fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
         end %initialisePreviewImageData
 
+
+        function indicateCutting(obj,~,~)
+            % Changes GUI elements accordingly during cutting
+            if obj.model.isSlicing
+                obj.statusText.String=' ** CUTTING SAMPLE **';
+                % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
+                %obj.button_BakeStop.Enable='off';
+                %obj.button_Pause.Enable='off';
+            else
+                obj.updateStatusText
+                %obj.updateBakeButtonState
+                %obj.updatePauseButtonState
+            end
+        end %indicateCutting
 
         function updateStatusText(obj,~,~)
             endTime=obj.model.estimateTimeRemaining;
