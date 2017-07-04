@@ -1,0 +1,2 @@
+SYSTEM: {ID: Knodelator, xySpeed: 100.0, objectiveZSettlingDelay: 0.05}
+SLICER: {approachSpeed: 25.0, vibrateRate: 60.0, postCutDelay: 6.0, postCutVibrate: 3.0}

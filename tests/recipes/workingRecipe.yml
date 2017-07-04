@@ -1,0 +1,13 @@
+sample: {ID: sample, objectiveName: nikon 16x}
+mosaic:
+  sectionStartNum: 1.0
+  numSections: 1.0
+  cuttingSpeed: 0.35
+  cutSize: 22.0
+  sliceThickness: 0.1
+  numOpticalPlanes: 2.0
+  overlapProportion: 0.07
+  cuttingStartPoint: []
+  frontLeft: []
+  sampleSize: [0.0, 0.0]
+  scanmode: tile
