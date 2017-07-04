@@ -141,7 +141,7 @@ classdef BSC201_APT < linearcontroller
         obj.controllerID=ID;
 
         %Create a motor control ActiveX connection
-        bk_message.display('Creating Motor object for BSC201 controller.\n')
+        fprintf('Creating Motor object for BSC201 controller.\n')
         obj.hC =  actxcontrol('MGMOTOR.MGMotorCtrl.1', pos, obj.figH);
         obj.hC.StartCtrl; %TODO: we've already done this with the logging object. Does it need to be done here too?
         set(obj.hC,'HWSerialNum',obj.controllerID)
@@ -166,14 +166,14 @@ classdef BSC201_APT < linearcontroller
       function success = isControllerConnected(obj)
         success=false;
         if isempty(obj.hC)
-          bk_message.display('No attempt to connect to the controller has been made\n','fail')
+          fprintf('No attempt to connect to the controller has been made\n')
           return
         end
 
         try 
           [~,success]=obj.hC.GetHWCommsOK(0);
         catch
-          bk_message.display('Failed to communicate with BSC201 controller\n','fail')
+          fprintf('Failed to communicate with BSC201 controller\n')
         end
       end %isControllerConnected
 
@@ -337,7 +337,7 @@ classdef BSC201_APT < linearcontroller
         if abs(velocity-maxV)<1E-2
           success=true;
         else
-          bk_message.display('Failed to set maximum velocity','fail')
+          obj.logMessage(inputname(1),dbstack,6,'Failed to set maximum velocity')
           success=false;
         end
       end %getMaxVelocity

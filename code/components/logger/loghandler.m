@@ -159,7 +159,7 @@ classdef (Abstract) loghandler < handle
                 fprintf('%s%s -- %s -- [%s,%s]\n', spaces, obj.returnMSGID(msgID), msg, callerObjectName, db)
             end
 
-            %Return if no bk_logger is attached for handling logging to a file
+            %Return if no logger is attached for handling logging to a file
             if isempty(obj.loggerObject)
                 return
             end
