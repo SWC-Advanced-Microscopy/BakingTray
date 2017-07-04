@@ -75,6 +75,10 @@ classdef BT < loghandler
         %preview tile size. This, in combination with BT.recipe.tilePattern, can be 
         %use to determine where in the final tile grid each tile is placed. 
         downsampleTileMMperPixel %TODO: non-square images
+
+        % The following dependent properties make file paths (but don't check if the paths are valid)
+        pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
+        thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
     end
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
@@ -719,6 +723,17 @@ classdef BT < loghandler
             downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
             mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3; %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
         end
+
+        function out = get.pathToSectionDirs(obj)
+            % This is the full path to the sample directory
+            out = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);
+        end %get.pathToSectionDirs
+
+        function out = get.thisSectionDir(obj)
+            % This is the directory into which we will place data for this section
+            sectionDir = sprintf('%s-%04d', obj.recipe.sample.ID, obj.currentSectionNumber);
+            out = fullfile(obj.pathToSectionDirs,sectionDir);
+        end %get.thisSectionDir
 
     end % close non-motion methods
 

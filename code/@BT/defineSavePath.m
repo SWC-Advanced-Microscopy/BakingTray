@@ -15,29 +15,28 @@ function success = defineSavePath(obj)
 
 
     % Make sure the path for storing raw data exists. 
-    pathToRawData = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);
-    if ~exist(pathToRawData,'dir')
-        mkdir(pathToRawData)
-        fprintf('Made directory %s\n', pathToRawData)
+    if ~exist(obj.pathToSectionDirs,'dir')
+        mkdir(obj.pathToSectionDirs)
+        fprintf('Made directory %s\n', obj.pathToSectionDirs)
     end
+
 
     % This is the directory into which we will place data for this section
-    sectionDir = sprintf('%s-%04d', obj.recipe.sample.ID, obj.currentSectionNumber);
-    saveDir = fullfile(pathToRawData,sectionDir);
-
-    if ~exist(saveDir,'dir')
-        mkdir(saveDir)
+    if ~exist(obj.thisSectionDir,'dir')
+        mkdir(obj.thisSectionDir)
     end
 
+
     %Bail out if the save directory *still* does not exist
-    if ~exist(saveDir,'dir')
-        msg = sprintf('Save file directory %s is missing.',saveDir)
+    if ~exist(obj.thisSectionDir,'dir')
+        msg = sprintf('Save file directory %s is missing.',obj.thisSectionDir)
         obj.logMessage(inputname(1),dbstack,7,msg)
         success=false;
+        obj.currentTileSavePath='';
         return
     end
 
     %set the folder for logging TIFF files
-    obj.currentTileSavePath = saveDir;
+    obj.currentTileSavePath = obj.thisSectionDir;
 
     success=true;

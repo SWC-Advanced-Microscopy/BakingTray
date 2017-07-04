@@ -310,11 +310,12 @@ classdef SIBT < scanner
 
         function setUpTileSaving(obj)
             %TODO: add to abstract class
-             obj.hC.hScan2D.logFilePath = obj.parent.currentTileSavePath;
-             obj.hC.hScan2D.logFileCounter = 1; %Start each section with the index at 1
-             obj.hC.hScan2D.logFileStem = sprintf('%s-%04d',obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber); %TODO: replace with something better
-
-             obj.hC.hChannels.loggingEnable = true;
+            obj.hC.hScan2D.logFilePath = obj.parent.currentTileSavePath;
+            % TODO: oddly, the file counter automatically adjusts so as not to over-write existing data but 
+            % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
+            obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1. 
+            obj.hC.hScan2D.logFileStem = sprintf('%s-%04d',obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber); %TODO: replace with something better
+            obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
 
 
