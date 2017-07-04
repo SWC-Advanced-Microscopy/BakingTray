@@ -27,7 +27,7 @@ Its current feature set is as follows:
 * The PMTs and laser are automatically switched off at the end of the acquisition.
 * Support for multiple lasers via Scanimage.
 * Easy control of illumination correction as a function of depth via ScanImage. 
-* Integrates with our *StitchIt* software for assembling the stitched images from raw tiles. 
+* Integrates with our [StitchIt](https://github.com/BaselLaserMouse/StitchIt) software for assembling the stitched images from raw tiles. 
 * Resonant and linear  scanning.
 * A software "Stop" button to instantly halt motion on all stages.
 
