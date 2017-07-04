@@ -109,6 +109,13 @@ classdef (Abstract) scanner < handle & loghandler
         % Output
         % acquiring - true/false
 
+        setUpTileSaving(obj)
+        % setUpTileSaving
+        % 
+        % Behavior
+        % Conduct any operations necessary to allow for image saving. e.g.
+        % may need to tell the scanner what the path and filenames are.
+
         initiateTileScan(obj)
         % initiateTileScan
         %

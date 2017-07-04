@@ -124,6 +124,9 @@ classdef dummyScanner < scanner
         function initiateTileScan(obj)
         end
 
+        function setUpTileSaving
+        end
+        
         function maxChans=maxChannelsAvailable(obj)
             maxChans=obj.maxChans;
         end

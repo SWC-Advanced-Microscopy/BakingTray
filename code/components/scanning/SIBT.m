@@ -309,7 +309,6 @@ classdef SIBT < scanner
 
 
         function setUpTileSaving(obj)
-            %TODO: add to abstract class
             obj.hC.hScan2D.logFilePath = obj.parent.currentTileSavePath;
             % TODO: oddly, the file counter automatically adjusts so as not to over-write existing data but 
             % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
