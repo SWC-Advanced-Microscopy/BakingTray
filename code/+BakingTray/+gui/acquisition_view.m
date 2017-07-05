@@ -430,7 +430,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         function stop_callback(obj,~,~)
             % If the system has not been told to stop after the next section, pressing the 
             % button again will stop this from happening. Otherwise we proceed with the 
-            % question dialog
+            % question dialog. Also see SIBT.tileScanAbortedInScanImage
             if obj.model.abortAfterSectionComplete
                 obj.model.abortAfterSectionComplete=false;
                 return

@@ -118,6 +118,7 @@ classdef SIBT < scanner
 
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
 
@@ -532,6 +533,29 @@ classdef SIBT < scanner
             hBT.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');            
 
         end %tileAcqDone
+
+
+        function tileScanAbortedInScanImage(obj,~,~)
+            % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
+
+            % Wait for scanner to stop being in acquisition mode
+            obj.disableArmedListeners
+            obj.abortScanning
+            fprintf('Waiting to disarm')
+            for ii=1:20
+                if ~obj.isAcquiring
+                    obj.disarmScanner;
+                    obj.parent.detachLogObject;
+                    return
+                end
+                fprintf('.')
+                pause(0.25)
+            end
+
+            %If we get here we failed to disarm
+            fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
+
+        end %tileScanAbortedInScanImage
 
     end %hidden methods
 end %close classdef

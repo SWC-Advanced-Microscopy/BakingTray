@@ -4,6 +4,10 @@ Most commits and development should go in the dev branch (or a branch devoted to
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
 
 
+5th July 2017
+- Get rid of ScanImage user-functions. Everything now done in SIBT with listeners on the user-function notifiers.
+- Pressing "Abort" in ScanImage during tilescanning will now disarm SIBT
+
 4th July 2017
 - Major organisation of project prior to publishing on GitHib.
 - Multiple small bug fixes.
