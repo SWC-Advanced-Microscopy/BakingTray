@@ -5,11 +5,13 @@ classdef JaneliaLeicaController < cutter & loghandler
     %
     % Rob Campbell - Basel, 2017
 
-    
+
     properties 
 
     end %close public properties
-      
+
+
+
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

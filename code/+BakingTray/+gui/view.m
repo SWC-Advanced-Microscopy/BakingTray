@@ -569,8 +569,13 @@ classdef view < handle
         end
 
         function changeDir(obj,~,~)
-            %TODO: this just changes directory, which is messy. Should have a sample dir field that BT respects
-            thisDir = uigetdir('choose dirctory');
+            % The dir selector should open at the current save path by default
+            if ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
+                startPath = obj.model.sampleSavePath;
+            else
+                startPath = pwd;
+            end
+            thisDir = uigetdir(startPath,'choose dirctory');
             if ischar(thisDir) && exist(thisDir,'dir')
                 obj.model.sampleSavePath = thisDir;
                 %Escape underscores and forward slashes

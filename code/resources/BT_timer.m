@@ -1,5 +1,5 @@
 function BT_timer (src,event,varargin)
-    %Used to time events
+    % This is a test ScanImage UserFunction used to time events and debug the tiling cycle
 
     persistent T;
     persistent frameTimes;
