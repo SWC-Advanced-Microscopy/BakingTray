@@ -138,7 +138,11 @@ classdef view < handle
                 obj.button_chooseDir.TooltipString='Choose sample directory';
             end
 
-            cwd=strrep(pwd,'\','\\');
+            if ~isempty(obj.model.sampleSavePath)
+                cwd=strrep(obj.model.sampleSavePath,'\','\\');
+            else 
+                cwd='';
+            end
             obj.text_sampleDir = annotation(...
                  obj.basicSetupPanel, 'textbox', ...
                 'Units', 'pixels', ...
