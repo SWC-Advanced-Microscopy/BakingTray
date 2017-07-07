@@ -673,8 +673,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Size ratio between full size image and downsampled tiles
             downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
 
-            xMicsPix = obj.model.recipe.VoxelSize.X * downsampleRatio;
-            yMicsPix = obj.model.recipe.VoxelSize.Y * downsampleRatio;
+            xMMPix = obj.model.recipe.VoxelSize.X * downsampleRatio * 1E-3;
+            yMMPix = obj.model.recipe.VoxelSize.Y * downsampleRatio * 1E-3;
 
 
             % How the figure is set up:
@@ -686,18 +686,18 @@ classdef acquisition_view < BakingTray.gui.child_view
             %
             % * The front/left position is at the top left of the figure
 
-            frontLeftX = round(obj.model.recipe.FrontLeft.X * 1E3); % To convert to microns
-            frontLeftY = round(obj.model.recipe.FrontLeft.Y * 1E3); % To convert to microns
+            frontLeftX = obj.model.recipe.FrontLeft.X;
+            frontLeftY = obj.model.recipe.FrontLeft.Y;
 
 
             % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
             % Get the X stage value for y=0 (right most position) and we'll reference off that
-            frontRightX = round(frontLeftX - obj.imageAxes.YLim(2)*xMicsPix);
+            frontRightX = frontLeftX - obj.imageAxes.YLim(2)*xMMPix;
 
             obj.statusText.String = ...
-            sprintf('Stage Coordinates:\nX=%d um Y=%d um', ...
-              frontRightX+round(yAxisCoord*xMicsPix), frontLeftY-round(xAxisCoord*yMicsPix));
+            sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
+              frontRightX + yAxisCoord*xMMPix, frontLeftY- xAxisCoord*yMMPix);
 
         end % pointerReporter
     end %close hidden methods
