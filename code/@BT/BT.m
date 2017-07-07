@@ -80,6 +80,7 @@ classdef BT < loghandler
         pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
         thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
     end
+
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false

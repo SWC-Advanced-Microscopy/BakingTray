@@ -82,9 +82,9 @@ classdef acquisition_view < BakingTray.gui.child_view
                                         'Position',[0,1,260,panelHeight-4],'EdgeColor','none',...
                                         'HorizontalAlignment','left', 'VerticalAlignment','middle',...
                                         'FontSize',textFSize);
-            %Make the image axes
-            obj.imageAxes = axes('parent', obj.hFig, ...
-                'Units','pixels', 'Color', 'none',...
+
+            %Make the image axes (also see obj.setUpImageAxes)
+            obj.imageAxes = axes('parent', obj.hFig, 'Units','pixels', 'Color', 'k',...
                 'Position',[3,2,minFigSize(1)-4,minFigSize(2)-panelHeight-4]);
 
             %Set up the compass plot
@@ -95,12 +95,12 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'XLim', [-1,1], 'YLim', [-1,1],...
                 'XColor','none', 'YColor', 'none');
             hold(obj.compassAxes,'on')
-            plot([-0.8,0.64],[0,0],'-r','parent',obj.compassAxes)
+            plot([-0.4,0.64],[0,0],'-r','parent',obj.compassAxes)
             plot([0,0],[-1,1],'-r','parent',obj.compassAxes)
-            compassText(1) = text(0.05,0.95,'-x','parent',obj.compassAxes);
-            compassText(2) = text(0.05,-0.85,'+x','parent',obj.compassAxes);
-            compassText(3) = text(0.65,0.04,'+y','parent',obj.compassAxes);
-            compassText(4) = text(-1.08,0.04,'-y','parent',obj.compassAxes);
+            compassText(1) = text(0.05,0.95,'Left','parent',obj.compassAxes);
+            compassText(2) = text(0.05,-0.85,'Right','parent',obj.compassAxes);
+            compassText(3) = text(0.65,0.04,'Far','parent',obj.compassAxes);
+            compassText(4) = text(-1.08,0.04,'Near','parent',obj.compassAxes);
             set(compassText,'Color','r')
             hold(obj.compassAxes,'off')
 
@@ -185,7 +185,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             %Build a blank image
             obj.initialisePreviewImageData
-            obj.setUpImageAxes; %Build an empty image of the right size
+            obj.setUpImageAxes; %Build an empty image of the right size and place it in nicely-formatted axes
 
             % Add the depths
             opticalPlanes_str = {};
@@ -209,6 +209,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.setChannelToView %Ensure that the property is set to a valid channel (it may may not be)
 
 
+            % Report the cursor position with a callback function
+            set(obj.hFig, 'WindowButtonMotionFcn', @obj.pointerReporter)
 
 
             obj.button_previewScan=uicontrol(...
@@ -279,6 +281,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             set(obj.imageAxes,... 
                 'DataAspectRatio',[1,1,1],...
+                'Color', 'k', ...
                 'XTick',[],...
                 'YTick',[],...
                 'YDir','normal',...
@@ -410,6 +413,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
         function bake_callback(obj,~,~)
+            obj.updateStatusText
             %Check whether it's safe to begin
             [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible;
             if ~acqPossible
@@ -418,7 +422,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
                return
             end
-
             obj.initialisePreviewImageData;
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
@@ -655,6 +658,48 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.setChannelToView
         end %chooseChanToDisplay
 
+        function pointerReporter(obj,~,~)
+            % Report stage position to screen. The reported position is the 
+            % top/left tile position.
+            if obj.model.acquisitionInProgress
+                return
+            end
+
+            pos=get(obj.imageAxes, 'CurrentPoint');
+            xAxisCoord=pos(1,1);
+            yAxisCoord=pos(1,2);
+
+
+            % Size ratio between full size image and downsampled tiles
+            downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
+
+            xMicsPix = obj.model.recipe.VoxelSize.X * downsampleRatio;
+            yMicsPix = obj.model.recipe.VoxelSize.Y * downsampleRatio;
+
+
+            % How the figure is set up:
+            % * The Y axis corresponds to motion of the X stage. 
+            %   X stage values go negative as we move up the axis (where axis values become more postive)
+            % 
+            % * The X axis corresponds to motion of the Y stage
+            %   Both Y stage values and X axis values become more positive as we move to the right.
+            %
+            % * The front/left position is at the top left of the figure
+
+            frontLeftX = round(obj.model.recipe.FrontLeft.X * 1E3); % To convert to microns
+            frontLeftY = round(obj.model.recipe.FrontLeft.Y * 1E3); % To convert to microns
+
+
+            % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
+
+            % Get the X stage value for y=0 (right most position) and we'll reference off that
+            frontRightX = round(frontLeftX - obj.imageAxes.YLim(2)*xMicsPix);
+
+            obj.statusText.String = ...
+            sprintf('Stage Coordinates:\nX=%d um Y=%d um', ...
+              frontRightX+round(yAxisCoord*xMicsPix), frontLeftY-round(xAxisCoord*yMicsPix));
+
+        end % pointerReporter
     end %close hidden methods
 
 
