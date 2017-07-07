@@ -598,7 +598,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
 
                 if ~isempty(activeChannels)
-                    obj.channelSelectPopup.String = activeChannels_str{1};
+                    obj.channelSelectPopup.String = activeChannels_str;
                     obj.channelSelectPopup.Enable='on';
                 else
                     obj.channelSelectPopup.String='NONE';
