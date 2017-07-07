@@ -192,15 +192,16 @@ classdef acquisition_view < BakingTray.gui.child_view
             for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
                 opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
             end
-            if length(opticalPlanes_str)>1
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
                 obj.depthSelectPopup.String = opticalPlanes_str;
             else
+                obj.depthSelectPopup.String = 'NONE';
                 obj.depthSelectPopup.Enable='off';
             end
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-           'Position', [510, 0, 100, 30], 'String', 'channel', 'Callback', @obj.setChannelToView,...
+           'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
            'Interruptible', 'off');
             % Add the channel names. This is under the control of a listener in case the user makes a 
             % change in ScanImage after the acquisition_view GUI has opened.
@@ -244,6 +245,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end
 
     end % methods
+
 
     methods(Hidden)
         function updateGUIonResize(obj,~,~)
@@ -585,31 +587,33 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function updateChannelsPopup(obj,~,~)
             if obj.model.isScannerConnected
-                activeChannels = obj.model.scanner.channelsToAcquire;
+                % Active channels are those being displayed, since with resonant scanning
+                % if it's not displayed we have no access to the image data. This isn't
+                % the case with galvo/galvo, unfortunately, but we'll just proceed like this
+                % and hope galvo/galvo works OK.
+                activeChannels = obj.model.scanner.channelsToDisplay;
                 activeChannels_str = {};
                 for ii=1:length(activeChannels)
                     activeChannels_str{end+1} = sprintf('Channel %d',activeChannels(ii));
                 end
-                if isempty(activeChannels_str)
-                    activeChannels_str='NONE';
-                    %Also disable the start button (TODO: this is fine so long as nowhere else in the class we enable or disable the button)
-                    obj.button_BakeStop.Enable='off';
-                else 
-                    obj.button_BakeStop.Enable='on';
-                end
 
-                obj.channelSelectPopup.String = activeChannels_str;
-
-                if length(activeChannels_str)>1
-                    obj.channelSelectPopup.String = activeChannels_str;
+                if ~isempty(activeChannels)
+                    obj.channelSelectPopup.String = activeChannels_str{1};
                     obj.channelSelectPopup.Enable='on';
                 else
+                    obj.channelSelectPopup.String='NONE';
                     obj.channelSelectPopup.Enable='off';
                 end
             end
         end %updateChannelsPopup
 
         function setDepthToView(obj,~,~)
+            % This callback runs when the user ineracts with the depth popup.
+            % The callback sets which depth will be displayed
+            if isempty(obj.model.scanner.channelsToDisplay)
+                %Don't do anything if no channels are being viewed
+                return
+            end
             if strcmp(obj.depthSelectPopup.Enable,'off')
                 return
             end
@@ -620,6 +624,12 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function setChannelToView(obj,~,~)
+            % This callback runs when the user ineracts with the channel popup.
+            % The callback sets which channel will be displayed
+            if isempty(obj.model.scanner.channelsToDisplay)
+                %Don't do anything if no channels are being viewed
+                return
+            end
             thisSelection = obj.channelSelectPopup.String{obj.channelSelectPopup.Value};
             thisChannelIndex = str2double(regexprep(thisSelection,'\w+ ',''));
             if isempty(thisChannelIndex)
@@ -631,17 +641,17 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function chooseChanToDisplay(obj)
-            %Choose a channel to display as a default
-            %By default display the channel shown in ScanImage
+            % Choose a channel to display as a default: the first saved and displayed channel
             channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
             channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
-            if ~isempty(channelsScannerDisplays)
-                channelDisplay=channelsScannerDisplays(1);
-            else
-                channelDisplay=channelsBeingAcquired(1);
+
+            if isempty(channelsScannerDisplays)
+                % Then we can't display anything
+                return
             end
-            %TODO: bug here if channel to display is not being saved
-            obj.channelSelectPopup.Value=find(channelsBeingAcquired==channelDisplay);
+
+            f=find(channelsScannerDisplays == channelsBeingAcquired);
+            obj.channelSelectPopup.Value=f(1);
             obj.setChannelToView
         end %chooseChanToDisplay
 
