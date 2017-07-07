@@ -83,14 +83,6 @@ classdef SIBT < scanner
             %Log default state of settings so we return to these when disarming
             obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
 
-            switch obj.scannerType
-                case 'resonant'
-                    %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
-                    obj.hC.hScan2D.trigAcqInTerm='PFI1';
-                case 'linear'
-                    obj.hC.hScan2D.trigAcqInTerm='PFI0';
-            end
-
 
             % Add ScanImage-specific listeners
 
@@ -154,6 +146,17 @@ classdef SIBT < scanner
                 obj.logMessage(inputname(1) ,dbstack,7,'SIBT is not attached to a BT object with a recipe')
                 return
             end
+
+            % We'll need to enable external triggering on the correct terminal line. 
+            % Safest to instruct ScanImage of this each time. 
+            switch obj.scannerType
+                case 'resonant'
+                    %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
+                    obj.hC.hScan2D.trigAcqInTerm='PFI1';
+                case 'linear'
+                    obj.hC.hScan2D.trigAcqInTerm='PFI0';
+            end
+
 
             obj.enableArmedListeners
 
@@ -222,8 +225,6 @@ classdef SIBT < scanner
 
 
         function success = disarmScanner(obj)
-            %TODO: how to abort a loop?
-            %TODO: use the listeners to run this method if the user presses "Abort"
             if obj.hC.active
                 obj.logMessage(inputname(1),dbstack,7,'Scanner still in acquisition mode. Can not disarm.')
                 success=false;
