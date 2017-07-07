@@ -174,8 +174,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             if isempty(tp)
                 obj.button_BakeStop.Enable='off';
                 obj.button_previewScan.Enable='off';
-                warndlg(sprintf(['Your tile pattern likely includes positions that are out of bounds.\n',...
-                'Acuisition will fail. Close this window. Fix the problem. Then try again.\n']),'');
+                msg = sprintf(['Your tile pattern likely includes positions that are out of bounds.\n',...
+                    'Acuisition will fail. Close this window. Fix the problem. Then try again.\n']);
+                if isempty(obj.model.scanner)
+                    msg = sprintf('%sLikely cause: no scanner connected\n',msg)
+                end
+                warndlg(msg,'');
             end
 
 
@@ -636,6 +640,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             else
                 channelDisplay=channelsBeingAcquired(1);
             end
+            %TODO: bug here if channel to display is not being saved
             obj.channelSelectPopup.Value=find(channelsBeingAcquired==channelDisplay);
             obj.setChannelToView
         end %chooseChanToDisplay
