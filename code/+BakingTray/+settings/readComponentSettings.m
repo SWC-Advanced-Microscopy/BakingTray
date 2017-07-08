@@ -26,15 +26,14 @@ function [settings,pathToFile] = readComponentSettings
         return
     end
 
-    settings=[];
-
     pathToFile = fullfile(settingsDir,'componentSettings.m');
 
     if ~exist(pathToFile,'file')
-        fprintf('Can not find a component settings file in %s%s\n', settingsDir,filesep)
-        fprintf('Copying an empty file to this location...\n')
+        fprintf('\n **** Can not find a component settings file in %s%s\n', settingsDir,filesep)
+        fprintf(' **** Copying an empty file to this location but you will need to edit it ****\n\n')
         defaultFile=which('componentSettings_empty.m');
         copyfile(defaultFile,pathToFile)
+        [settings,pathToFile] = BakingTray.settings.readComponentSettings;
         return
     end
 
