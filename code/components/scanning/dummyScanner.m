@@ -121,41 +121,16 @@ classdef dummyScanner < scanner
         end % acquireTile
 
 
-        function initiateTileScan(obj)
-        end
-
         function setUpTileSaving
         end
-        
-        function maxChans=maxChannelsAvailable(obj)
-            maxChans=obj.maxChans;
-        end
 
-        function chans=channelsToAcquire(obj)
-            chans=1:obj.maxChans;
+        function initiateTileScan(obj)
         end
-
-        function chans=channelsToDisplay(obj)
-            chans=obj.channelsToAcquire;
-            chans=chans(1);
-        end
-
-        function scannerType = scannerType(obj)
-            scannerType = 'linear';
-        end %scannerType
 
         function acquiring = isAcquiring(obj)
             acquiring=obj.inAcquiringMode;
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
-
-        function pauseAcquisition(obj)
-            obj.acquisitionPaused=true;
-        end
-
-        function resumeAcquisition(obj)
-            obj.acquisitionPaused=false;
-        end
 
         function OUT = returnScanSettings(obj)
             %TODO: return something useful
@@ -176,6 +151,44 @@ classdef dummyScanner < scanner
             OUT.activeChannels = 1:4;
             OUT.beamPower= 10; %percent
         end
+
+        function pauseAcquisition(obj)
+            obj.acquisitionPaused=true;
+        end
+
+        function resumeAcquisition(obj)
+            obj.acquisitionPaused=false;
+        end
+
+        function maxChans=maxChannelsAvailable(obj)
+            maxChans=obj.maxChans;
+        end
+
+        function chans=channelsToAcquire(obj)
+            chans=1:obj.maxChans;
+        end
+
+        function chans=channelsToDisplay(obj)
+            chans=obj.channelsToAcquire;
+            chans=chans(1);
+        end
+
+        function scannerType = scannerType(obj)
+            scannerType = 'linear';
+        end %scannerType
+
+        function setImageSize(obj,imSize)
+        end
+
+        function pixPerLine=getPixelsPerLine(obj)
+            S=obj.returnScanSettings;
+            pixelsPerLine=S.pixelsPerLine;
+        end
+
+        function LUT=getChannelLUT(obj,chanToReturn)
+            LUT=[0,5E3];
+        end
+
 
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
