@@ -1,16 +1,19 @@
 function settings = readSystemSettings
-    % Read BakingTray system settings
+    % Read BakingTray system settings from SETTINGS/systemSettings.yml 
     %
     % function settings = BakingTray.settings.readSystemSettings
     %
+    %
     % Purpose
-    % The system settings are those that describe parameters of the rig that are unlikely to 
+    % This function parses SETTINGS/systemSettings.yml and creates it if does not already exist.
+    %
+    % The "system settings" are those that describe parameters of the rig that are unlikely to 
     % change between sessions. If no settings have been created then the settings directory 
     % made and a default settings file is created. The user is prompted to edit it and nothing
     % is returned. If a settings file is present and looks identical to the default on, the user 
     % is prompted to edit it and nothing is returned. Otherwise the settings file is read and 
     % returned as a structure. 
-    % 
+    %
     %
     % Rob Campbell - Basel 2017
 
@@ -25,10 +28,8 @@ function settings = readSystemSettings
 
     DEFAULT_SETTINGS = default_BT_Settings;
     if ~exist(settingsFile)
-        fprintf('Can not find system settings file. Making default file at %s\n', settingsFile)
-        fprintf('Edit this file and try again\n')
+        fprintf('Can not find system settings file: making default file at %s\n', settingsFile)
         BakingTray.yaml.WriteYaml(settingsFile,DEFAULT_SETTINGS);
-        return
     end
 
 
@@ -37,8 +38,14 @@ function settings = readSystemSettings
 
     %Check if the loaded settings are the same as the default settings
     if isequal(settings,DEFAULT_SETTINGS)
-        fprintf('\nFound settings file at %s\nThis settings file has not been edited! Edit file for your system and try again.\n', settingsFile)
-        settings=[];
+        fprintf('\n\n *** The settings file at %s has never been edited\n *** Press RETURN then edit the file for your system.\n', settingsFile)
+        fprintf(' *** For help editing the file see: https://github.com/BaselLaserMouse/BakingTray/wiki/The-Settings-Files\n\n')
+        pause
+        edit(settingsFile)
+        fprintf('\n\n *** Once you have finished editing the file, save it and press RETURN\n')
+
+        pause
+        settings = BakingTray.settings.readSystemSettings;
         return
     end
 
