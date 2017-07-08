@@ -3,6 +3,10 @@ BakingTray ChangeLog
 Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
 
+5th July 2017
+- Get rid of ScanImage user-functions. Everything now done in SIBT with listeners on the user-function notifiers.
+- Pressing "Abort" in ScanImage during tilescanning will now disarm SIBT
+- Stage coords shown in acq window
 
 4th July 2017
 - Major organisation of project prior to publishing on GitHib.

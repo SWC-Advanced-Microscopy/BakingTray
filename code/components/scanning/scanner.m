@@ -184,7 +184,7 @@ classdef (Abstract) scanner < handle & loghandler
         % Behavior
         % Returns a string describing the type of scanner. Should be either 'linear' or 'resonant'
 
-        setImageSize(obj)
+        setImageSize(obj,imSize)
         % setImageSize
         % 
         % Behavior

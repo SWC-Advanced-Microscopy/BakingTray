@@ -80,6 +80,7 @@ classdef BT < loghandler
         pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
         thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
     end
+
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false
@@ -111,7 +112,7 @@ classdef BT < loghandler
             %Parse optional arguments
             params = inputParser;
             params.CaseSensitive = false;
-            params.addParamValue('componentSettings',[], @(x) isstruct(x) || isempty(X))
+            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(X))
             params.parse(varargin{:});
 
             %Read the component settings found by BakingTray.settings.readComponentSettings

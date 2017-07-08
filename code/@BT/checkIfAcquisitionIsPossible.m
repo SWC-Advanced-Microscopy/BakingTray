@@ -30,12 +30,6 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
         msg=sprintf('%sNo recipe.\n',msg);
     end
 
-    if obj.isRecipeConnected && ~obj.recipe.acquisitionPossible
-        msg=sprintf(['%sAcquisition is not currently possible.\n', ...
-            'Did you define the cutting position and front/left positions?\n'], msg);
-    end
-
-
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
         msg=sprintf('%sNo scanner is connected.\n',msg);
@@ -44,6 +38,15 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     if obj.isScannerConnected && ~obj.scanner.isReady
         msg=sprintf('Scanner is not ready to acquire data\n');
     end
+
+
+    if obj.isRecipeConnected && ~obj.recipe.acquisitionPossible
+        msg=sprintf(['%sAcquisition is not currently possible.\n', ...
+            'Did you define the cutting position and front/left positions?\n'], msg);
+    end
+
+
+
 
     %If a laser is connected, check it is ready
     if obj.isLaserConnected

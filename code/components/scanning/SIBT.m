@@ -30,6 +30,7 @@ classdef SIBT < scanner
         defaultShutterIDs %The default shutter IDs used by the scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
+        armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
         allowedSampleRates=[1.25E6,2.5E6]; %TODO: for now, because the 6124 is not working as it should
     end
 
@@ -49,6 +50,7 @@ classdef SIBT < scanner
         %destructor
         function delete(obj)
             cellfun(@delete,obj.listeners)
+            cellfun(@delete,obj.armedListeners)
             obj.hC=[];
         end %destructor
 
@@ -81,39 +83,8 @@ classdef SIBT < scanner
             %Log default state of settings so we return to these when disarming
             obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
 
-            %Set up a user frame-acquired callback.
-            U(1).EventName='frameAcquired';
-            U(1).UserFcnName='BT_SI_userFunction';
-            U(1).Arguments={};
-            U(1).Enable=0;
 
-            U(2).EventName='acqDone';
-            U(2).UserFcnName='BT_SI_userFunction';
-            U(2).Arguments={};
-            U(2).Enable=0;
-
-            U(3).EventName='acqModeStart';
-            U(3).UserFcnName='BT_SI_userFunction';
-            U(3).Arguments={};
-            U(3).Enable=0;
-
-            U(4).EventName='acqModeDone';
-            U(4).UserFcnName='BT_SI_userFunction';
-            U(4).Arguments={};
-            U(4).Enable=0;
-
-            obj.hC.hUserFunctions.userFunctionsCfg=U; %TODO: BUG!! This will wipe the existing user functions
-
-            switch obj.scannerType
-                case 'resonant'
-                    %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
-                    obj.hC.hScan2D.trigAcqInTerm='PFI1';
-                case 'linear'
-                    obj.hC.hScan2D.trigAcqInTerm='PFI0';
-            end
-
-
-            %Add ScanImage-specific listeners
+            % Add ScanImage-specific listeners
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
@@ -136,6 +107,11 @@ classdef SIBT < scanner
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
 
+
+            % Add "armedListeners" that are used during tiled acquisition only.
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
+            obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
 
             %We now set some values to optimal settings for proceeding, but these are not critical.
@@ -171,8 +147,18 @@ classdef SIBT < scanner
                 return
             end
 
-            %TODO: add checks to confirm that all of the following happened
-            obj.toggleUserFunction('BT_SI_userFunction',true);
+            % We'll need to enable external triggering on the correct terminal line. 
+            % Safest to instruct ScanImage of this each time. 
+            switch obj.scannerType
+                case 'resonant'
+                    %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
+                    obj.hC.hScan2D.trigAcqInTerm='PFI1';
+                case 'linear'
+                    obj.hC.hScan2D.trigAcqInTerm='PFI0';
+            end
+
+
+            obj.enableArmedListeners
 
             if obj.hC.hDisplay.displayRollingAverageFactor>1
                 fprintf('Setting display rolling average to 1\n')
@@ -239,8 +225,6 @@ classdef SIBT < scanner
 
 
         function success = disarmScanner(obj)
-            %TODO: how to abort a loop?
-            %TODO: use the listeners to run this method if the user presses "Abort"
             if obj.hC.active
                 obj.logMessage(inputname(1),dbstack,7,'Scanner still in acquisition mode. Can not disarm.')
                 success=false;
@@ -253,7 +237,7 @@ classdef SIBT < scanner
 
             obj.hC.extTrigEnable=0;  
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
-            obj.toggleUserFunction('BT_SI_userFunction',false);
+            obj.disableArmedListeners;
             obj.hC.hChannels.loggingEnable=false;
 
             fprintf('Turning on fly-back blanking\n')
@@ -425,33 +409,20 @@ classdef SIBT < scanner
 
         end
 
-        function success=toggleUserFunction(obj,UserFcnName,toggleStateTo)
-            %find userfunction with UserFcnName and tioggle its Enable state to toggleStateTo
-            success=false;
-            if isempty(obj.hC.hUserFunctions.userFunctionsCfg)
-                obj.logMessage(inputname(1),dbstack,7,'ScanImage contains no user functions')
-                return
+        function enableArmedListeners(obj)
+            % Loop through all armedListeners and enable each
+            for ii=1:length(obj.armedListeners)
+                obj.armedListeners{ii}.Enabled=true;
             end
+        end % enableArmedListeners
 
-            names={obj.hC.hUserFunctions.userFunctionsCfg.UserFcnName};
-            ind=strmatch(UserFcnName,names,'exact');
-
-            if isempty(ind)
-                msg=sprintf('Can not find user function names %s',UserFcnName);
-                obj.logMessage(inputname(1),dbstack,7,msg)
-                return
+        function disableArmedListeners(obj)
+            % Loop through all armedListeners and disable each
+            for ii=1:length(obj.armedListeners)
+                obj.armedListeners{ii}.Enabled=false;
             end
+        end % disableArmedListeners
 
-            if length(ind)>1
-                msg=sprintf('Disabling %d user functions with name %s', length(ind),UserFcnName);
-                obj.logMessage(inputname(1),dbstack,2,msg)
-            end
-
-            for ii=1:length(ind)
-                obj.hC.hUserFunctions.userFunctionsCfg(ind(ii)).Enable=toggleStateTo;
-            end
-            success=true;
-        end %toggleUserFunction
 
 
         %Listener callback functions
@@ -464,6 +435,7 @@ classdef SIBT < scanner
 
         end %keepSampleRateWithinBounds
 
+
         function enforceImportantSettings(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
             if obj.hC.hRoiManager.forceSquarePixels==false
@@ -474,9 +446,117 @@ classdef SIBT < scanner
             end
         end %enforceImportantSettings
 
+        
         function LUTchanged(obj,~,~)
             obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; %Just flip it so listeners on other classes notice the change
         end %LUTchanged
+
+
+        function tileAcqDone(obj,~,~)
+            % This callback function is VERY IMPORTANT it constitutes part of the implicit loop
+            % that performs the tile scanning. It is an "implicit" loop, since it is called 
+            % repeatedly until all tiles have been acquired.
+
+
+            %Move stage at the end of a volume or tile acquisition
+            hBT = obj.parent;
+            %Log theX and Y positions in the grid associated with these tile data
+            hBT.lastTilePos.X = hBT.positionArray(hBT.currentTilePosition,1);
+            hBT.lastTilePos.Y = hBT.positionArray(hBT.currentTilePosition,2);
+            hBT.lastTileIndex = hBT.currentTilePosition;
+            verbose=false;
+
+            if hBT.importLastFrames
+                msg='';
+                for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
+                    % scanimage stores image data in a data structure called 'stripeData'
+                    %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
+                    lastStripe = obj.hC.hDisplay.stripeDataBuffer{z};
+                    if isempty(lastStripe)
+                        msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} is empty. ',z);
+                    elseif ~isprop(lastStripe,'roiData')
+                        msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} has no field "roiData"',z);
+                    elseif ~iscell(lastStripe.roiData)
+                        msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell. It is a %s.',z, class(lastStripe.roiData));
+                    elseif length(lastStripe.roiData)<1
+                        msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell with length >1',z);
+                    end
+
+                    if ~isempty(msg)
+                        msg = [msg, 'NOT EXTRACTING TILE DATA IN SIBT.tileAcqDone'];
+                        hBT.logMessage('acqDone',dbstack,6,msg);
+                        break
+                    end
+
+                    for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
+                        hBT.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
+                             int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},-1),...
+                                [size(hBT.downSampledTileBuffer,1),size(hBT.downSampledTileBuffer,2)],'bicubic'));
+                    end
+
+                    if verbose
+                        fprintf('Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
+                            lastStripe.frameNumberAcq, ...
+                            lastStripe.frameNumberAcqMode, ...
+                            lastStripe.frameTimestamp)
+                    end
+                end % z=1:length...
+            end % if hBT.importLastFrames
+
+
+            %Increement the counter and make the new position the current one
+            hBT.currentTilePosition = hBT.currentTilePosition+1;
+            pos=hBT.recipe.tilePattern;
+
+            if hBT.currentTilePosition>size(pos,1)
+                return
+            end
+
+            % Blocking motion
+            hBT.moveXYto(pos(hBT.currentTilePosition,1),pos(hBT.currentTilePosition,2),1); 
+
+            %store stage positions. this is done after all tiles in the z-stack have been acquired
+            hBT.logPositionToPositionArray
+            positionArray=hBT.positionArray;
+
+            if obj.hC.hChannels.loggingEnable==true
+                save(fullfile(hBT.currentTileSavePath,'tilePositions.mat'),'positionArray')
+            end
+
+            if obj.hC.active % Could have a smarter check here. e.g. stop only when all volumes 
+                              % are in so we generate an error if there's a failure
+
+                while hBT.scanner.acquisitionPaused
+                    pause(0.5)
+                end
+                obj.hC.hScan2D.trigIssueSoftwareAcq; %Acquire all depths and channeLs at this X/Y position
+            end
+            hBT.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');            
+
+        end %tileAcqDone
+
+
+        function tileScanAbortedInScanImage(obj,~,~)
+            % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
+
+            % Wait for scanner to stop being in acquisition mode
+            obj.disableArmedListeners
+            obj.abortScanning
+            fprintf('Waiting to disarm')
+            for ii=1:20
+                if ~obj.isAcquiring
+                    obj.disarmScanner;
+                    obj.parent.detachLogObject;
+                    return
+                end
+                fprintf('.')
+                pause(0.25)
+            end
+
+            %If we get here we failed to disarm
+            fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
+
+        end %tileScanAbortedInScanImage
 
     end %hidden methods
 end %close classdef

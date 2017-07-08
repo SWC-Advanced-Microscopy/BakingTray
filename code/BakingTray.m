@@ -22,8 +22,8 @@ function BakingTray(varargin)
     %Parse optional arguments
     params = inputParser;
     params.CaseSensitive = false;
-    params.addParamValue('useExisting', false, @(x) islogical(x) || x==0 || x==1);
-    params.addParamValue('dummyMode', false, @(x) islogical(x) || x==0 || x==1);
+    params.addParameter('useExisting', false, @(x) islogical(x) || x==0 || x==1);
+    params.addParameter('dummyMode', false, @(x) islogical(x) || x==0 || x==1);
     params.parse(varargin{:});
 
     useExisting=params.Results.useExisting;

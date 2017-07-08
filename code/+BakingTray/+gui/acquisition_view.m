@@ -82,9 +82,9 @@ classdef acquisition_view < BakingTray.gui.child_view
                                         'Position',[0,1,260,panelHeight-4],'EdgeColor','none',...
                                         'HorizontalAlignment','left', 'VerticalAlignment','middle',...
                                         'FontSize',textFSize);
-            %Make the image axes
-            obj.imageAxes = axes('parent', obj.hFig, ...
-                'Units','pixels', 'Color', 'none',...
+
+            %Make the image axes (also see obj.setUpImageAxes)
+            obj.imageAxes = axes('parent', obj.hFig, 'Units','pixels', 'Color', 'k',...
                 'Position',[3,2,minFigSize(1)-4,minFigSize(2)-panelHeight-4]);
 
             %Set up the compass plot
@@ -95,12 +95,12 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'XLim', [-1,1], 'YLim', [-1,1],...
                 'XColor','none', 'YColor', 'none');
             hold(obj.compassAxes,'on')
-            plot([-0.8,0.64],[0,0],'-r','parent',obj.compassAxes)
+            plot([-0.4,0.64],[0,0],'-r','parent',obj.compassAxes)
             plot([0,0],[-1,1],'-r','parent',obj.compassAxes)
-            compassText(1) = text(0.05,0.95,'-x','parent',obj.compassAxes);
-            compassText(2) = text(0.05,-0.85,'+x','parent',obj.compassAxes);
-            compassText(3) = text(0.65,0.04,'+y','parent',obj.compassAxes);
-            compassText(4) = text(-1.08,0.04,'-y','parent',obj.compassAxes);
+            compassText(1) = text(0.05,0.95,'Left','parent',obj.compassAxes);
+            compassText(2) = text(0.05,-0.85,'Right','parent',obj.compassAxes);
+            compassText(3) = text(0.65,0.04,'Far','parent',obj.compassAxes);
+            compassText(4) = text(-1.08,0.04,'Near','parent',obj.compassAxes);
             set(compassText,'Color','r')
             hold(obj.compassAxes,'off')
 
@@ -174,29 +174,34 @@ classdef acquisition_view < BakingTray.gui.child_view
             if isempty(tp)
                 obj.button_BakeStop.Enable='off';
                 obj.button_previewScan.Enable='off';
-                warndlg(sprintf(['Your tile pattern likely includes positions that are out of bounds.\n',...
-                'Acuisition will fail. Close this window. Fix the problem. Then try again.\n']),'');
+                msg = sprintf(['Your tile pattern likely includes positions that are out of bounds.\n',...
+                    'Acuisition will fail. Close this window. Fix the problem. Then try again.\n']);
+                if isempty(obj.model.scanner)
+                    msg = sprintf('%sLikely cause: no scanner connected\n',msg)
+                end
+                warndlg(msg,'');
             end
 
 
             %Build a blank image
             obj.initialisePreviewImageData
-            obj.setUpImageAxes; %Build an empty image of the right size
+            obj.setUpImageAxes; %Build an empty image of the right size and place it in nicely-formatted axes
 
             % Add the depths
             opticalPlanes_str = {};
             for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
                 opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
             end
-            if length(opticalPlanes_str)>1
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
                 obj.depthSelectPopup.String = opticalPlanes_str;
             else
+                obj.depthSelectPopup.String = 'NONE';
                 obj.depthSelectPopup.Enable='off';
             end
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-           'Position', [510, 0, 100, 30], 'String', 'channel', 'Callback', @obj.setChannelToView,...
+           'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
            'Interruptible', 'off');
             % Add the channel names. This is under the control of a listener in case the user makes a 
             % change in ScanImage after the acquisition_view GUI has opened.
@@ -204,6 +209,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.setChannelToView %Ensure that the property is set to a valid channel (it may may not be)
 
 
+            % Report the cursor position with a callback function
+            set(obj.hFig, 'WindowButtonMotionFcn', @obj.pointerReporter)
 
 
             obj.button_previewScan=uicontrol(...
@@ -241,6 +248,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
     end % methods
 
+
     methods(Hidden)
         function updateGUIonResize(obj,~,~)
             figPos=obj.hFig.Position;
@@ -273,6 +281,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             set(obj.imageAxes,... 
                 'DataAspectRatio',[1,1,1],...
+                'Color', 'k', ...
                 'XTick',[],...
                 'YTick',[],...
                 'YDir','normal',...
@@ -404,6 +413,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
         function bake_callback(obj,~,~)
+            obj.updateStatusText
             %Check whether it's safe to begin
             [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible;
             if ~acqPossible
@@ -412,7 +422,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
                return
             end
-
             obj.initialisePreviewImageData;
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
@@ -430,7 +439,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         function stop_callback(obj,~,~)
             % If the system has not been told to stop after the next section, pressing the 
             % button again will stop this from happening. Otherwise we proceed with the 
-            % question dialog
+            % question dialog. Also see SIBT.tileScanAbortedInScanImage
             if obj.model.abortAfterSectionComplete
                 obj.model.abortAfterSectionComplete=false;
                 return
@@ -581,31 +590,33 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function updateChannelsPopup(obj,~,~)
             if obj.model.isScannerConnected
-                activeChannels = obj.model.scanner.channelsToAcquire;
+                % Active channels are those being displayed, since with resonant scanning
+                % if it's not displayed we have no access to the image data. This isn't
+                % the case with galvo/galvo, unfortunately, but we'll just proceed like this
+                % and hope galvo/galvo works OK.
+                activeChannels = obj.model.scanner.channelsToDisplay;
                 activeChannels_str = {};
                 for ii=1:length(activeChannels)
                     activeChannels_str{end+1} = sprintf('Channel %d',activeChannels(ii));
                 end
-                if isempty(activeChannels_str)
-                    activeChannels_str='NONE';
-                    %Also disable the start button (TODO: this is fine so long as nowhere else in the class we enable or disable the button)
-                    obj.button_BakeStop.Enable='off';
-                else 
-                    obj.button_BakeStop.Enable='on';
-                end
 
-                obj.channelSelectPopup.String = activeChannels_str;
-
-                if length(activeChannels_str)>1
+                if ~isempty(activeChannels)
                     obj.channelSelectPopup.String = activeChannels_str;
                     obj.channelSelectPopup.Enable='on';
                 else
+                    obj.channelSelectPopup.String='NONE';
                     obj.channelSelectPopup.Enable='off';
                 end
             end
         end %updateChannelsPopup
 
         function setDepthToView(obj,~,~)
+            % This callback runs when the user ineracts with the depth popup.
+            % The callback sets which depth will be displayed
+            if isempty(obj.model.scanner.channelsToDisplay)
+                %Don't do anything if no channels are being viewed
+                return
+            end
             if strcmp(obj.depthSelectPopup.Enable,'off')
                 return
             end
@@ -616,6 +627,12 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function setChannelToView(obj,~,~)
+            % This callback runs when the user ineracts with the channel popup.
+            % The callback sets which channel will be displayed
+            if isempty(obj.model.scanner.channelsToDisplay)
+                %Don't do anything if no channels are being viewed
+                return
+            end
             thisSelection = obj.channelSelectPopup.String{obj.channelSelectPopup.Value};
             thisChannelIndex = str2double(regexprep(thisSelection,'\w+ ',''));
             if isempty(thisChannelIndex)
@@ -627,19 +644,62 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function chooseChanToDisplay(obj)
-            %Choose a channel to display as a default
-            %By default display the channel shown in ScanImage
+            % Choose a channel to display as a default: the first saved and displayed channel
             channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
             channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
-            if ~isempty(channelsScannerDisplays)
-                channelDisplay=channelsScannerDisplays(1);
-            else
-                channelDisplay=channelsBeingAcquired(1);
+
+            if isempty(channelsScannerDisplays)
+                % Then we can't display anything
+                return
             end
-            obj.channelSelectPopup.Value=find(channelsBeingAcquired==channelDisplay);
+
+            f=find(channelsScannerDisplays == channelsBeingAcquired);
+            obj.channelSelectPopup.Value=f(1);
             obj.setChannelToView
         end %chooseChanToDisplay
 
+        function pointerReporter(obj,~,~)
+            % Report stage position to screen. The reported position is the 
+            % top/left tile position.
+            if obj.model.acquisitionInProgress
+                return
+            end
+
+            pos=get(obj.imageAxes, 'CurrentPoint');
+            xAxisCoord=pos(1,1);
+            yAxisCoord=pos(1,2);
+
+
+            % Size ratio between full size image and downsampled tiles
+            downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
+
+            xMMPix = obj.model.recipe.VoxelSize.X * downsampleRatio * 1E-3;
+            yMMPix = obj.model.recipe.VoxelSize.Y * downsampleRatio * 1E-3;
+
+
+            % How the figure is set up:
+            % * The Y axis corresponds to motion of the X stage. 
+            %   X stage values go negative as we move up the axis (where axis values become more postive)
+            % 
+            % * The X axis corresponds to motion of the Y stage
+            %   Both Y stage values and X axis values become more positive as we move to the right.
+            %
+            % * The front/left position is at the top left of the figure
+
+            frontLeftX = obj.model.recipe.FrontLeft.X;
+            frontLeftY = obj.model.recipe.FrontLeft.Y;
+
+
+            % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
+
+            % Get the X stage value for y=0 (right most position) and we'll reference off that
+            frontRightX = frontLeftX - obj.imageAxes.YLim(2)*xMMPix;
+
+            obj.statusText.String = ...
+            sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
+              frontRightX + yAxisCoord*xMMPix, frontLeftY- xAxisCoord*yMMPix);
+
+        end % pointerReporter
     end %close hidden methods
 
 
