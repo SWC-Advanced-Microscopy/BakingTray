@@ -112,7 +112,7 @@ classdef BT < loghandler
             %Parse optional arguments
             params = inputParser;
             params.CaseSensitive = false;
-            params.addParamValue('componentSettings',[], @(x) isstruct(x) || isempty(X))
+            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(X))
             params.parse(varargin{:});
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
