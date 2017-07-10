@@ -163,32 +163,32 @@ classdef dummyScanner < scanner
             obj.acquisitionPaused=false;
         end
 
-        function maxChans=maxChannelsAvailable(obj)
+        function maxChans = maxChannelsAvailable(obj)
             maxChans=obj.maxChans;
         end
 
-        function chans=channelsToAcquire(obj)
+        function chans = channelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
 
-        function chans=channelsToDisplay(obj)
+        function chans = channelsToDisplay(obj)
             chans=obj.channelsToAcquire;
             chans=chans(1);
         end
 
-        function = scannerType(obj)
+        function scannerType = scannerType(obj)
             scannerType = 'linear';
         end %scannerType
 
-        function setImageSize(obj,imSize)
+        function setImageSize(~,~)
         end
 
-        function pixPerLine=getPixelsPerLine(obj)
+        function pixPerLine = getPixelsPerLine(obj)
             S=obj.returnScanSettings;
             pixelsPerLine=S.pixelsPerLine;
         end
 
-        function LUT=getChannelLUT(obj,chanToReturn)
+        function LUT = getChannelLUT(~,~)
             LUT=[0,5E3];
         end
 
