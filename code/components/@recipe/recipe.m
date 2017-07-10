@@ -47,9 +47,9 @@ classdef recipe < handle
         %These properties are set by the recipe class. see: 
         %  - recipe.recordScannerSettings
         %  - recipe.tilePattern
-        NumTiles=struct('X', 0, 'Y', 0)
+        NumTiles % Number of tiles in the grid. Calculated with an external class of the same name
         Tile=struct('nRows',0, 'nColumns',0)
-        TileStepSize    %How far the stage moves in mm between tiles to four decimal places. 
+        TileStepSize  % How far the stage moves in mm between tiles to four decimal places. Calculated by an external class of the same name
         VoxelSize=struct('X',0, 'Y', 0, 'Z',0);
         ScannerSettings=struct;
 
@@ -110,7 +110,9 @@ classdef recipe < handle
                 end
             end
 
+            % Build classes that will calculate these properties using dependent variables
             obj.TileStepSize = TileStepSize(obj);
+            obj.NumTiles = NumTiles(obj);
 
             %Add these recipe parameters as properties
             obj.sample = params.sample;
@@ -143,6 +145,8 @@ classdef recipe < handle
         function delete(obj)
             delete(obj.TileStepSize);
             obj.TileStepSize=[];
+            delete(obj.NumTiles);
+            obj.NumTiles=[];
             for ii=1:length(obj.listeners)
                 delete(obj.listeners{ii})
                 obj.listeners=[];

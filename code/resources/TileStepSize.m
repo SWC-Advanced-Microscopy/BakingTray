@@ -1,9 +1,10 @@
 classdef TileStepSize < handle
     % TileStepSize
     % 
-    % Used to created a dependent property with two field in the recipe class
-    % This class is incorporated as a property into the recipe class. It serves
-    % no use outside of this context
+    % Used to create a dependent property with two fields in the recipe class.
+    % Here it calculates the step size of the stages in X and Y.
+    % So TileStepSize is incorporated as a property into the recipe class. It serves
+    % no use outside of this context.
 
 
     properties (Hidden)
@@ -11,8 +12,8 @@ classdef TileStepSize < handle
     end
 
     properties (Dependent)
-        X=0 % Which the user will see as recipe.TileStepSize.X
-        Y=0 % Which the user will see as recipe.TileStepSize.Y
+        X=0 % Which the user will see as recipe.TileStepSize.X in the recipe class
+        Y=0 % Which the user will see as recipe.TileStepSize.Y in the recipe class
     end
 
 
@@ -34,7 +35,7 @@ classdef TileStepSize < handle
             end
             obj.recipe.tilePattern(true); %refresh everything
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-            X = round(fov_x_MM * (1-obj.recipe.mosaic.overlapProportion),4);
+            X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
         end
 
         function Y = get.Y(obj)
@@ -45,7 +46,7 @@ classdef TileStepSize < handle
             end
             obj.recipe.tilePattern(true); %refresh everything
             fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-            y = round(fov_y_MM * (1-obj.recipe.mosaic.overlapProportion),4);
+            Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
         end
 
     end % Methods
@@ -54,7 +55,7 @@ classdef TileStepSize < handle
         function isReady = isReadyToCalcProperties(obj)
             % Return true if we are able to calculate the step size without crashing
             isReady=false;
-            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent)
+            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent) && obj.recipe.recordScannerSettings
                 isReady=true;
             end
         end

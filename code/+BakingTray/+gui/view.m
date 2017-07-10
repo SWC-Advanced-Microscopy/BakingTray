@@ -614,12 +614,8 @@ classdef view < handle
                     scnSet=[];
                 end
 
-                %Attempt to generate a tile pattern. 
-                %TODO: this is a non-elegant and poorly thought through. May not work how user
-                %expects. Also see BT.estimateTimeRemaining
-                TP=obj.model.recipe.tilePattern(true);
-                if obj.model.isScannerConnected && isempty(TP)
-                    warndlg('Can not generate tile positions. Check command line for warnings.','')
+                if obj.model.isScannerConnected
+                    warndlg('Can not generate tile positions: no scanner connected.','')
                 end
 
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;

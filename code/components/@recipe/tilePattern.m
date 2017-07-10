@@ -6,8 +6,8 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
     %
     % Purpose
     % Calculate the position grid needed to tile a sample of a given size, with a given
-    % field of view, and a given overlap between adjacent tiles. Once run, this method
-    % modifies the NumTiles. TileStepSize is modified on the fly properties of recipe.
+    % field of view, and a given overlap between adjacent tiles. TileStepSize and 
+    % NumTiles are dependent properties of recipe and are based on external helper classes.
     %
     %
     % Outputs
@@ -56,14 +56,6 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
     fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
     fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
-
-    % Calculate the number of tiles. The code is written with the following assumption:
-    % The fast scan axis (or the columns of the image) extend along the direction of the X stage (which moves left/right WRT to the user standing in front of the system)
-    % The slow scan axis (or the rows of the image) extend along the direction of the Y stage (which moves front/back WRT to the user standing in front of the system)
-    % These conventions will be most important if we are are working with non-square images, as failing to adhere to the conventions will lead to images that can't be
-    % stitched.
-    obj.NumTiles.X = ceil(obj.mosaic.sampleSize.X / ((1-obj.mosaic.overlapProportion) * fov_x_MM) );
-    obj.NumTiles.Y = ceil(obj.mosaic.sampleSize.Y / ((1-obj.mosaic.overlapProportion) * fov_y_MM) );
 
     if obj.verbose
         fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...

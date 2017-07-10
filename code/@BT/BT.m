@@ -556,12 +556,6 @@ classdef BT < loghandler
                 out.timeLeftInSeconds = sectionsRemaining * mu;
 
             elseif obj.isScannerConnected 
-                TP=obj.recipe.tilePattern(true); %To force NumTiles to update *TODO: I don't like this
-
-                if isempty(TP)
-                    return
-                end
-
                 scnSet = obj.scanner.returnScanSettings;
                 nMoves = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
                 approxTimePerSection = scnSet.framePeriodInSeconds * nMoves * obj.recipe.mosaic.numOpticalPlanes;
