@@ -7,7 +7,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
     % Purpose
     % Calculate the position grid needed to tile a sample of a given size, with a given
     % field of view, and a given overlap between adjacent tiles. Once run, this method
-    % modifies the NumTiles and TileStepSize properties of recipe.
+    % modifies the NumTiles. TileStepSize is modified on the fly properties of recipe.
     %
     %
     % Outputs
@@ -52,7 +52,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
         return
     end
 
-
+    % These lines also appear in TileStepSize.m
     fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
     fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
@@ -127,10 +127,5 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
         tilePosArray=[];
         tileIndexArray=[];
     end
-
-
-    %Update the tile step size (how far the stage moves between tiles) in mm to four decimal places
-    obj.TileStepSize.X = round(fov_x_MM * (1-obj.mosaic.overlapProportion),4);
-    obj.TileStepSize.Y = round(fov_y_MM * (1-obj.mosaic.overlapProportion),4);
 
 end

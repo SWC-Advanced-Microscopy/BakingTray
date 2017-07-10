@@ -49,7 +49,7 @@ classdef recipe < handle
         %  - recipe.tilePattern
         NumTiles=struct('X', 0, 'Y', 0)
         Tile=struct('nRows',0, 'nColumns',0)
-        TileStepSize=struct('X', 0, 'Y', 0);     %How far the stage moves in mm between tiles to four decimal places. 
+        TileStepSize    %How far the stage moves in mm between tiles to four decimal places. 
         VoxelSize=struct('X',0, 'Y', 0, 'Z',0);
         ScannerSettings=struct;
 
@@ -110,12 +110,16 @@ classdef recipe < handle
                 end
             end
 
+            obj.TileStepSize = TileStepSize(obj);
+
             %Add these recipe parameters as properties
             obj.sample = params.sample;
             obj.mosaic = params.mosaic;
 
             %Add the system settings from the settings file. 
             sysSettings = BakingTray.settings.readSystemSettings;
+
+
 
             if isempty(sysSettings)
                 error('Reading of system settings by BakingTray.settings.readSystemSettings seems to have failed')
@@ -137,6 +141,8 @@ classdef recipe < handle
 
 
         function delete(obj)
+            delete(obj.TileStepSize);
+            obj.TileStepSize=[];
             for ii=1:length(obj.listeners)
                 delete(obj.listeners{ii})
                 obj.listeners=[];
