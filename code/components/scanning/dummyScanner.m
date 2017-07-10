@@ -36,6 +36,7 @@ classdef dummyScanner < scanner
         %constructor
         function obj=dummy_scanner(imageSource)
             obj.channelsToSave=1;
+            obj.scannerID='dummyScanner';
         end %constructor
 
 
@@ -150,6 +151,8 @@ classdef dummyScanner < scanner
             OUT.bidirectionalScan = true;
             OUT.activeChannels = 1:4;
             OUT.beamPower= 10; %percent
+            OUT.scannerType='simulated';
+            OUT.scannerID=obj.scannerID;
         end
 
         function pauseAcquisition(obj)
@@ -173,7 +176,7 @@ classdef dummyScanner < scanner
             chans=chans(1);
         end
 
-        function scannerType = scannerType(obj)
+        function = scannerType(obj)
             scannerType = 'linear';
         end %scannerType
 

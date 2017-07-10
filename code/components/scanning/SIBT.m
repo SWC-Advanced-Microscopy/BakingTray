@@ -43,7 +43,7 @@ classdef SIBT < scanner
                 API=[];
             end
             obj.connect(API);
-
+            obj.scannerID='ScanImage via SIBT';
         end %constructor
 
 
@@ -289,6 +289,7 @@ classdef SIBT < scanner
             scanSettings.activeChannels = obj.channelsToAcquire;
             scanSettings.beamPower= obj.hC.hBeams.powers;
             scanSettings.scanMode= obj.scannerType;
+            scanSettings.scannerID=obj.scannerID;
         end %returnScanSettings
 
 
