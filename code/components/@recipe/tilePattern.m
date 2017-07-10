@@ -1,20 +1,28 @@
 function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
-    % Calculate the tile pattern for imaging
-    % 
-    % function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
-    % 
+    % Calculate a tile grid for imaging. The imaging will proceed in an "S" over the sample.
     %
-    % Note
-    % We define obj.NumTiles.Y and obj.NumTiles.X with respect to the user's
-    % view standing in front of the scope. 
+    % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet)
+    %
+    %
+    % Purpose
+    % Calculate the position grid needed to tile a sample of a given size, with a given
+    % field of view, and a given overlap between adjacent tiles. Once run, this method
+    % modifies the NumTiles and TileStepSize properties of recipe.
+    %
     %
     % Outputs
-    % tilePosArray - One row per position. first column is X stage positions 
-    % second Y stage positions. These are in mm.
+    % tilePosArray   - One row per position. first column is X stage positions 
+    %                  second Y stage positions. These are in mm.
     % tileIndexArray - The index of each tile on the grid. Columns as in tilePosArray.
     %
-    % 
     %
+    % Note:
+    % We define X and Y (e.g. obj.NumTiles.Y and obj.NumTiles.X) with respect to the user's
+    % view standing in front of the scope. So X is the stage that translates left/right and
+    % Y is the stage that translated toward and away from the user. 
+    %
+    % 
+    % Rob Campbell - Basel
 
     if nargin<2
         quiet=false;
@@ -62,7 +70,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
             obj.NumTiles.X, obj.NumTiles.Y, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
     end
 
-    %first column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
+    % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
     tilePosArray = zeros(obj.NumTiles.Y*obj.NumTiles.X, 2);
     R=repmat(1:obj.NumTiles.Y,obj.NumTiles.X,1);
     tilePosArray(:,2)=R(:);
@@ -73,7 +81,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
         theseCols=fliplr(theseCols);
     end
 
-    %subtract 1 because we want offsets from zero (i.e. how much to move)
+    % Subtract 1 because we want offsets from zero (i.e. how much to move)
     tileIndexArray = tilePosArray; %Store the tile indexes in the grid
 
     tilePosArray = tilePosArray-1;

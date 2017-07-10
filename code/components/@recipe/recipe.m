@@ -18,9 +18,9 @@ classdef recipe < handle
     % This directory is created the first time a recipe is built.
 
     properties (SetObservable, AbortSet)
-        %Define legal default values for all parameters. This way it will be possible
-        %to use the recipe to do *something*, even if that something isn't especially 
-        %useful. 
+        % Define legal default values for all parameters. This way it will be possible
+        % to use the recipe to do *something*, even if that something isn't especially 
+        % useful. 
 
         sample=struct('ID', '', ...           % String defining the sample name
                      'objectiveName', '16x')     % String defining the objective name
@@ -47,30 +47,30 @@ classdef recipe < handle
         %These properties are set by the recipe class. see: 
         %  - recipe.recordScannerSettings
         %  - recipe.tilePattern
-        NumTiles=struct('X',0, 'Y',0)
+        NumTiles=struct('X', 0, 'Y', 0)
         Tile=struct('nRows',0, 'nColumns',0)
-        TileStepSize=struct('X',0, 'Y',0);     %How far the stage moves in mm between tiles to four decimal places. 
-        VoxelSize=struct('X',0,'Y', 0,'Z',0);
-        ScannerSettings=struct('type','') %TODO - SIBT should return. It should contain the scanner name. 
+        TileStepSize=struct('X', 0, 'Y', 0);     %How far the stage moves in mm between tiles to four decimal places. 
+        VoxelSize=struct('X',0, 'Y', 0, 'Z',0);
+        ScannerSettings=struct;
 
-        %These properties are populated by structures that can be set by the user only by editing 
-        %SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
+        % These properties are populated by structures that can be set by the user only by editing 
+        % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
         SYSTEM
         SLICER
     end %close protected properties
 
     properties (Hidden)
-        %The acquisition property is set by other functions and isn't important to the user, so we hide it
-        %NOTE: hidden properties we want to write to the recipe YAML need to be listed explicitly in 
-        %recipe.writeFullRecipeForAcquisition
+        % The acquisition property is set by other functions and isn't important to the user, so we hide it
+        % NOTE: hidden properties we want to write to the recipe YAML need to be listed explicitly in 
+        % recipe.writeFullRecipeForAcquisition
         Acquisition=struct('acqStartTime','')
         verbose=0;
         fname %The file name of the recipe
         parent  %A copy of the parent object (likely BakingTray) to which this component is attached
 
-        %When the system slices, it keeps a copy in the recipe of the last slice thickness and the
-        %last cutting speed. This is used as an aid in set up by the GUI to ensure that the user
-        %took the last preparatory slices with the same specs as those they will image at.
+        % When the system slices, it keeps a copy in the recipe of the last slice thickness and the
+        % last cutting speed. This is used as an aid in set up by the GUI to ensure that the user
+        % took the last preparatory slices with the same specs as those they will image at.
         lastSliceThickness=[]
         lastCuttingSpeed=[]
     end %close hidden properties
@@ -81,19 +81,19 @@ classdef recipe < handle
     end
 
 
-    %The following properties are for tasks such as GUI updating and broadasting the state of the 
-    %recipe to other components
+    % The following properties are for tasks such as GUI updating and broadasting the state of the 
+    % recipe to other components.
     properties (SetObservable, AbortSet, Hidden)
-        acquisitionPossible=false %set to true if all settings indicate an acquisition is likely possible (e.g. front/left is set and so forth)
+        acquisitionPossible=false % Set to true if all settings indicate an acquisition is likely possible (e.g. front/left is set and so forth)
     end
 
 
 
     methods
         function obj=recipe(recipeFname) %Constructor
-            %Optionally return the error/warning message that might have been produced during reading of the recipe
+            % Optionally return the error/warning message that might have been produced during reading of the recipe
 
-            %Import the parameter (recipe) file
+            % Import the parameter (recipe) file
             msg='';
             if nargin<1 || isempty(recipeFname)
                 [params,recipeFname] = BakingTray.settings.readDefaultRecipe;
@@ -105,8 +105,8 @@ classdef recipe < handle
                     [params,recipeFname] = BakingTray.settings.readDefaultRecipe;
                 end
                 if ~isempty(msg)
-                    %If we're here, there was an warning and we can carry on with the the desired recipe file
-                    fprintf(msg) %Otherwise just report the error
+                    % If we're here, there was an warning and we can carry on with the the desired recipe file
+                    fprintf(msg) % Report the error
                 end
             end
 
@@ -172,12 +172,12 @@ classdef recipe < handle
         end
 
         function numTiles = numTilesInOpticalSection(obj)
-            %Return the number of tiles to be imaged in one plane
+            % Return the number of tiles to be imaged in one plane
             numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
         end
 
         function numTiles = numTilesInPhysicalSection(obj)
-            %Return the number of tiles to be imaged in one physical section
+            % Return the number of tiles to be imaged in one physical section
             numTiles = obj.NumTiles.X * obj.NumTiles.Y * obj.mosaic.numOpticalPlanes ;
         end
 
@@ -185,7 +185,7 @@ classdef recipe < handle
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         % Methods for setting up the imaging scene
         function setCurrentPositionAsFrontLeft(obj)
-            %TODO: add error checks
+            % TODO: add error checks
             if isempty(obj.parent)
                 success=false;
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
@@ -198,7 +198,7 @@ classdef recipe < handle
         end
 
         function setCurrentPositionAsCuttingPosition(obj)
-            %TODO: add error checks
+            % TODO: add error checks
             if isempty(obj.parent)
                 success=false;
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
@@ -265,7 +265,7 @@ classdef recipe < handle
 
             for fn = theseFields(:)' % loop through fields to check what has changed
                 if ~isstruct(val)
-                    %The user is trying to assign something directly to sample
+                    % The user is trying to assign something directly to sample
                     return
                 end
 
@@ -290,7 +290,7 @@ classdef recipe < handle
                                 end
                             end
 
-                            %If the sample name is not a string or empty then we just make one up
+                            % If the sample name is not a string or empty then we just make one up
                             if ~ischar(fieldValue) || length(fieldValue)==0
                                 fieldValue=['sample_',datestr(now,'yy-mm-dd_HHMMSS')];
                                 fprintf('Setting sample name to: %s\n',fieldValue)
@@ -303,8 +303,8 @@ classdef recipe < handle
                             else
                                 fprintf('ERROR: sample.objectiveName must be a string!\n')
                             end
-                    end %switch
-               end %if isfield
+                    end % switch
+               end % if isfield
             end
         end % set.sample
 
@@ -316,7 +316,7 @@ classdef recipe < handle
             oldVal = obj.mosaic; % store the previous values
             theseFields = fields(oldVal);
 
-            %If we're acquiring data, don't change anything
+            % If we're acquiring data, don't change anything
             if ~isempty(obj.parent) && obj.parent.acquisitionInProgress
                 return
             end
@@ -325,7 +325,7 @@ classdef recipe < handle
             for fn = theseFields(:)' % loop through fields to check what has changed
                 field2check = fn{1};
                 if ~isstruct(val)
-                    %The user is trying to assign something directly to mosaic
+                    % The user is trying to assign something directly to mosaic
                     return
                 end
                 fieldValue=val.(field2check);
@@ -334,14 +334,14 @@ classdef recipe < handle
 
                         case 'scanmode'
                             if ischar(fieldValue)
-                                %Pass - the value will be assigned at the end of the method
+                                % Pass - the value will be assigned at the end of the method
                             else
                                 fprintf('ERROR: mosaic.scanmode must be a string!\n')
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
                             if ~strcmp(fieldValue,'tile')
                                 fprintf('ERROR: mosaic.scanmode can currently only be set to "tile"\n')
-                                fieldValue=[]; %As above, will stop the assignment.
+                                fieldValue=[]; % As above, will stop the assignment.
                             end
 
                         case 'sectionStartNum'
@@ -359,11 +359,11 @@ classdef recipe < handle
                         case 'overlapProportion'
                             fieldValue = obj.checkFloat(fieldValue,0,0.5); %Overlap allowed up to 50%
                         case 'sampleSize'
-                            %TODO: in fact, this should be larger than the tile size but we carry on like this for now
+                            % TODO: in fact, this should be larger than the tile size but we carry on like this for now
                             if ~isstruct(fieldValue)
                                 fieldValue=[];
                             else 
-                                %Do not allow the sample size to be smaller than the tile size
+                                % Do not allow the sample size to be smaller than the tile size
                                 if obj.TileStepSize.X==0
                                     minSampleSizeX=0.05;
                                 else
@@ -385,9 +385,9 @@ classdef recipe < handle
                         otherwise
                             fprintf('ERROR in recipe class: unknown field: %s\n',field2check)
                             fieldValue=[];
-                    end %switch
+                    end % switch
 
-                    %Values that aren't empty are deemed valid and assigned
+                    % Values that aren't empty are deemed valid and assigned
                     if ~isempty(fieldValue)
                         obj.mosaic.(field2check) = fieldValue;
                     end
@@ -403,12 +403,11 @@ classdef recipe < handle
     end %methods: getters/setters
 
     methods (Hidden)
-        %Convenience methods that aren't methods
+        % Convenience methods that aren't methods
         function value=checkInteger(~,value)
-            %Confirm that an input is a positive integer
-            %Coerce floats to ints. 
-            %Returns empty if the input is not valid. 
-            %Empty values aren't assigned to a property by the setters
+            % Confirm that an input is a positive integer
+            % Returns empty if the input is not valid. 
+            % Empty values aren't assigned to a property by the setters
             if ~isnumeric(value) || ~isscalar(value)
                 value=[];
                 return
@@ -423,9 +422,9 @@ classdef recipe < handle
         end %checkInteger
 
         function value=checkFloat(~,value,minVal,maxVal)
-            %Confirm that an input is a positive float no smaller than minVal and 
-            %no larger than maxVal. Returns empty if the input is not valid. 
-            %Empty values aren't assigned to a property by the setters
+            % Confirm that an input is a positive float no smaller than minVal and 
+            % no larger than maxVal. Returns empty if the input is not valid. 
+            % Empty values aren't assigned to a property by the setters
             if nargin<3
                 maxVal=inf;
             end
@@ -442,10 +441,10 @@ classdef recipe < handle
                 value=maxVal;
                 return
             end
-        end %checkFloat
+        end % checkFloat
 
         function checkIfAcquisitionIsPossible(obj,~,~)
-            %Check if it will be possible to acquire data based on the current recipe settings
+            % Check if it will be possible to acquire data based on the current recipe settings
             if isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y) || ...
                 isempty(obj.CuttingStartPoint.X) || isempty(obj.CuttingStartPoint.Y) || ...
                 isempty(obj.mosaic.sampleSize.X) || isempty(obj.mosaic.sampleSize.Y)
@@ -458,9 +457,9 @@ classdef recipe < handle
                 return
             end
 
-            %The front left position needs to be *at least* the thickness of a cut from the 
-            %blade plus half the X width of the specimen. This doesn't even account for
-            %the agar, etc. So it's a very relaxed criterion. 
+            % The front left position needs to be *at least* the thickness of a cut from the 
+            % blade plus half the X width of the specimen. This doesn't even account for
+            % the agar, etc. So it's a very relaxed criterion. 
             if obj.SYSTEM.cutterSide==1
                 if (obj.FrontLeft.X+obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
                     obj.acquisitionPossible=true;
@@ -468,7 +467,7 @@ classdef recipe < handle
                     obj.acquisitionPossible=false;
                 end
             elseif obj.SYSTEM.cutterSide==-1
-                %This scenario has never been tested with physical hardware
+                % This scenario has never been tested with physical hardware
                 if obj.FrontLeft.X>obj.CuttingStartPoint.X
                     obj.acquisitionPossible=true;
                 else
@@ -476,9 +475,9 @@ classdef recipe < handle
                 end
             end
 
-        end %checkIfAcquisitionIsPossible
+        end % checkIfAcquisitionIsPossible
 
 
-    end %Hidden methods
+    end % Hidden methods
 
 end

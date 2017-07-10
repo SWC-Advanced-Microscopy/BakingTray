@@ -1,10 +1,11 @@
 classdef BT < loghandler
 % BT
 % 
-% This the master microscope control class. It inherits loghandler.
-% It does not inherit an abstract class as do the objects attached to it.
-% in a fairly abstract manner. 
-% 
+% Purpose
+% BT is the master microscope control class. This is where most of the awesome stuff
+% happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
+% an abstract class.
+%
 % e.g.
 %  B=buildDummyControllers;
 %  hBT=BT(B);
@@ -545,7 +546,7 @@ classdef BT < loghandler
             if ~obj.isRecipeConnected
                 return
             end
-            
+
 
             if ~isempty(obj.sectionCompletionTimes) && obj.acquisitionInProgress
                 %If we determine how long the acquisition will take using the actual section times. 
@@ -556,7 +557,7 @@ classdef BT < loghandler
 
             elseif obj.isScannerConnected 
                 TP=obj.recipe.tilePattern(true); %To force NumTiles to update *TODO: I don't like this
-     
+
                 if isempty(TP)
                     return
                 end

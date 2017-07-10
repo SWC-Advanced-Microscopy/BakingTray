@@ -39,6 +39,7 @@ function logData = readAcqLogFile(fname)
         logData.sections(ii).Z = str2num( Zdepth{ii}{1}{2} );
     end
 
+
     % Did the laser turn off?
     if regexp(txt,'Attempting to turn off laser')
         logData.attemptedLaserShutdown=true;
@@ -51,7 +52,4 @@ function logData = readAcqLogFile(fname)
     else
         logData.laserTurnedOff=false;
     end
-
-    % What laser was used?
-
 
