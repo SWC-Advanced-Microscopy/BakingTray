@@ -1,6 +1,6 @@
 classdef BT < loghandler
-% BT
-% 
+% BT - This is the master BakingTray class for control of automated serial-section 2p tomography
+%
 % Purpose
 % BT is the master microscope control class. This is where most of the awesome stuff
 % happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
@@ -113,7 +113,7 @@ classdef BT < loghandler
             %Parse optional arguments
             params = inputParser;
             params.CaseSensitive = false;
-            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(X))
+            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(x))
             params.parse(varargin{:});
 
             %Read the component settings found by BakingTray.settings.readComponentSettings

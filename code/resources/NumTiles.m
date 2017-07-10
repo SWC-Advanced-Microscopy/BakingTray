@@ -1,6 +1,6 @@
 classdef NumTiles < handle
-    % NumTiles
-    % 
+    % NumTiles - Calculate the number of tiles in the sample for the recipe class
+    %
     % Used to create a dependent property with two fields in the recipe class.
     % Here it calculates the number of tiles in X and Y given the overlap and
     % the requested sample size. This class is incorporated as a property into 

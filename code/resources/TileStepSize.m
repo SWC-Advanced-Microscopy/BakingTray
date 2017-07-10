@@ -1,6 +1,6 @@
 classdef TileStepSize < handle
-    % TileStepSize
-    % 
+    % TileStepSize - calculate tile step size for recipe class
+    %
     % Used to create a dependent property with two fields in the recipe class.
     % Here it calculates the step size of the stages in X and Y.
     % So TileStepSize is incorporated as a property into the recipe class. It serves

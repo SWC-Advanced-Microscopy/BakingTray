@@ -1,7 +1,52 @@
 classdef recipe < handle
-    % recipe
+    % recipe - The recipe class handles the settings that define an acquisition.
     %
-    % The recipe class handles the settings that define an acquisition.
+    % Purpose
+    % The recipe class stores the settings used to coordinate the acquisition of
+    % a particular sample. For example, the size of the sample in X and Y, the
+    % thickness of the sections, how many sections to take, the image resolution.
+    % and so forth.
+    %
+    % The recipe class is mainly used by the BT class, to which it is attached 
+    % at BT.recipe. 
+    %
+    %
+    % Example Usage
+    % Standalone usage of the recipe class is not useful for much. Nonetheless, 
+    % the following are valid command-line examples:
+    %
+    % ONE - read the default recipe from BakingTray/SETTINGS/default_recipe.yml
+    % >> R=recipe
+    %  Setting sample name to: sample_17-07-10_173116
+    %  R = 
+    %  recipe with properties:
+    %               sample: [1x1 struct]
+    %               mosaic: [1x1 struct]
+    %    CuttingStartPoint: [1x1 struct]
+    %            FrontLeft: [1x1 struct]
+    %             NumTiles: [1x1 NumTiles]
+    %                 Tile: [1x1 struct]
+    %         TileStepSize: [1x1 TileStepSize]
+    %            VoxelSize: [1x1 struct]
+    %      ScannerSettings: [1x1 struct]
+    %               SYSTEM: [1x1 struct]
+    %               SLICER: [1x1 struct]
+    %
+    % TWO - read a non-default recipe
+    % >> R = recipe('Path/To/myRecipe.yml');
+    %
+    %
+    % THREE - read an existing recipe in order to resume an acquisition
+    % >> R = recipe('Path/To/myRecipe.yml', 'resume', true);
+    % The difference between this and TWO is that here we re-read whatever
+    % is stored in the FrontLeft and CuttingStartPoint fields (see below). 
+    % Normally this is discarded. 
+    %
+    %
+    %
+    % -----------------------------------------------------------------------
+    % DETAILS
+    % The following information is aimed mainly at developers.
     %
     % The recipe is composed of three sets of variables:
     % 1) System-specific settings represented by upper case characters: 
@@ -9,13 +54,55 @@ classdef recipe < handle
     %
     % 2) Derived properties that can't be edited by the user indicated by CamelCase
     %    e.g. recipe.NumTiles and recipe.TileStepSize
+    %    These derived properties are handled by external helper classes. 
     %
     % 3) Settings that can be edited by the user: lower case
     %    recipe.sample and recipe.mosaic 
     %
     % If no input arguments are provided the class instantiates an object that is
-    % populated by the defaults found in BakingTray/SETTINGS
+    % populated by the defaults found in BakingTray/SETTINGS/default_recipe.yml
     % This directory is created the first time a recipe is built.
+    %
+    %
+    % The default recipe YAML file contains these fields:
+    %
+    % sample.ID (string defining sample name)
+    % sample.objectiveName (string defining objective name)
+    %
+    % mosaic.sectionStartNum (Integer defining the number of the first section)
+    % mosaic.numSections (Integer defining the number of sections to take)
+    % mosaic.cuttingSpeed (Cutting speed in mm/s)
+    % mosaic.cutSize (Size of sample to cut in mm)
+    % mosaic.sliceThickness (The thickness of the slice in mm)
+    % mosaic.numOpticalPlanes (Integer defining the number of optical planes into which to divide each section)
+    % mosaic.overlapProportion (The proportion of overlap between adjacent tiles)
+    % mosaic.sampleSize.X (The extent of the sample along X in mm)
+    % mosaic.sampleSize.Y (The extent of the sample along Y in mm)
+    % mosaic.scanmode: (string defining the scanning mode. e.g. "tile")
+    %
+    % Once the sample is set up, the method recipe.writeFullRecipeForAcquisition is used
+    % to record the acquisition settings as a "full" recipe file in the sample directory. 
+    % This contains the above fields and also the following additional fields:
+    %
+    % FrontLeft.[XY] (The starting point--front left position--of the tile grid: x and y stage positions)
+    % The FrontLeft is defined by the user
+    %
+    % CuttingStartPoint.[XY] (The point at which blade is placed in X and Y before starting to cut)
+    % The CuttingStartPoint is defined by the user
+    %
+    % NumTiles.[XY] (The number of tiles required to cover the sample in X and Y)
+    % The recipe class calculates NumTiles
+    %
+    % Tile.nRows - Number of image rows in each tile
+    % Tile.nColumns - Number of pixels per tile
+    %
+    % TileStepSize.[XY] (How far the stage moves in X and Y between each tile)
+    % The TileStepSize is calculated by the recipe class
+    %
+    % The following are records of various parameters used for the acquisition. 
+    % ScannerSettings (A structure that stores a variety of information about how the scanner is configured)
+    % SYSTEM and SLICER (Two structures contain the information found in the systemSettings.yml)
+
 
     properties (SetObservable, AbortSet)
         % Define legal default values for all parameters. This way it will be possible
@@ -90,14 +177,25 @@ classdef recipe < handle
 
 
     methods
-        function obj=recipe(recipeFname) %Constructor
-            % Optionally return the error/warning message that might have been produced during reading of the recipe
+        function obj=recipe(recipeFname,varargin) %Constructor
+
+            %Parse optional arguments
+            inputArgs = inputParser;
+            inputArgs.CaseSensitive = false;
+            inputArgs.addParameter('resume',false, @(x) islogical(x) || x==0 || x==1)
+            inputArgs.parse(varargin{:});
+
+
 
             % Import the parameter (recipe) file
             msg='';
             if nargin<1 || isempty(recipeFname)
+
+                % Use default recipe if the user provided none
                 [params,recipeFname] = BakingTray.settings.readDefaultRecipe;
+
             elseif nargin>0 && ~isempty(recipeFname)
+
                 [params,msg]=BakingTray.settings.readRecipe(recipeFname);
                 if isempty(params)
                     msg=sprintf(['*** Reading of recipe %s by BakingTray.settings.readRecipe seems to have failed.\n', ...
@@ -108,7 +206,9 @@ classdef recipe < handle
                     % If we're here, there was an warning and we can carry on with the the desired recipe file
                     fprintf(msg) % Report the error
                 end
-            end
+
+            end % if nargin<1
+
 
             % Build classes that will calculate these properties using dependent variables
             obj.TileStepSize = TileStepSize(obj);
@@ -118,22 +218,31 @@ classdef recipe < handle
             obj.sample = params.sample;
             obj.mosaic = params.mosaic;
 
+            if inputArgs.Results.resume
+                fprintf('Retaining front/left and cutting start-point from %s\n', recipeFname)
+                obj.CuttingStartPoint.X = params.CuttingStartPoint.X;
+                obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
+                obj.FrontLeft.X = params.FrontLeft.X;
+                obj.FrontLeft.Y = params.FrontLeft.Y;
+            end %if inputArgs.Results.resume
+
+
             %Add the system settings from the settings file. 
             sysSettings = BakingTray.settings.readSystemSettings;
-
 
 
             if isempty(sysSettings)
                 error('Reading of system settings by BakingTray.settings.readSystemSettings seems to have failed')
             end
 
+            % We do not want to ever read these settings from the recipe file. 
             obj.SYSTEM = sysSettings.SYSTEM;
             obj.SLICER = sysSettings.SLICER;
 
             obj.fname=recipeFname;
 
 
-            %Put listeners on some of the properties and use these to update the acquisitionPossible porperty
+            %Put listeners on some of the properties and use these to update the acquisitionPossible property
             listeners{1}=addlistener(obj,'sample', 'PostSet', @obj.checkIfAcquisitionIsPossible);
             listeners{2}=addlistener(obj,'mosaic', 'PostSet', @obj.checkIfAcquisitionIsPossible);
             listeners{3}=addlistener(obj,'CuttingStartPoint', 'PostSet', @obj.checkIfAcquisitionIsPossible);
