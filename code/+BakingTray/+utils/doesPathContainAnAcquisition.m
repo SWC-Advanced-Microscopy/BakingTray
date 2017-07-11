@@ -44,4 +44,6 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     if length(acqLogFile)>1
         fprintf('BakingTray.utils.doesPathContainAnAcquisition finds multiple acquisition log files in %s\n',thisPath)
     end
-    details = BakingTray.utils.readAcqLogFile(acqLogFile(1).name);
+
+    thisAcqLogFile = fullfile(thisPath,acqLogFile(1).name);
+    details = BakingTray.utils.readAcqLogFile(thisAcqLogFile);

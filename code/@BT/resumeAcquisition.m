@@ -24,8 +24,8 @@ function success=resumeAcquisition(obj,fname)
         fname=[];
     end
 
+    success=false;
     if ~exist(fname,'file')
-        success=false;
         fprintf('No recipe found at %s - BT.resumeAcquisition is quitting\n', fname)
         return
     end
@@ -35,17 +35,16 @@ function success=resumeAcquisition(obj,fname)
 
     if ~containsAcquisition
         fprintf(['No existing acquisition found in in directory %s.', ...
-            'BT.resumeAcquisition will just load the recipe as normal\n', pathToRecipe)
-        succuess = obj.attachRecipe(fname);
+            'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe) %NOTE: the square bracket here was missing and MATLAB didn't spot the syntax error. When this methd was run it would hard-crash due to this
+        success = obj.attachRecipe(fname);
         return
     end
-
 
     % If we're here, then the path exists and acquisition should exist in the path. 
     % Attempt to set up for resuming the acquisition:
 
     % Finally we attempt to load the recipe
-    success = obj.attachRecipe(fullPath,true); % sets resume flag to true
+    success = obj.attachRecipe(fname,true); % sets resume flag to true
 
     if ~success
         fprintf('Failed to resume recipe %s. Loading default.\n', fname)
