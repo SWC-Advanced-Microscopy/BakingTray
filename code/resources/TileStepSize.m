@@ -33,9 +33,9 @@ classdef TileStepSize < handle
                 X=0;
                 return
             end
-            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-            X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
+            X = round(fov_x_MM * (1-obj.recipe.mosaic.overlapProportion),4);
         end
 
         function Y = get.Y(obj)
@@ -44,9 +44,9 @@ classdef TileStepSize < handle
                 Y=0;
                 return
             end
-            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-            Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+            Y = round(fov_y_MM * (1-obj.recipe.mosaic.overlapProportion),4);
         end
 
     end % Methods

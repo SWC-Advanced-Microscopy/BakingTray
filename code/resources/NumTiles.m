@@ -33,25 +33,25 @@ classdef NumTiles < handle
         end
 
         function X = get.X(obj)
-            % Return X step size
+            % Return the number of tiles in X
             if ~obj.isReadyToCalcProperties
                 X=0;
                 return
             end
-            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-            X = round(fov_x_MM * (1-obj.recipe.mosaic.overlapProportion),4);
+            X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
         end
 
         function Y = get.Y(obj)
-            % Return Y step size
+            % Return the number of tiles in Y
             if ~obj.isReadyToCalcProperties
                 Y=0;
                 return
             end
-            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-            y = round(fov_y_MM * (1-obj.recipe.mosaic.overlapProportion),4);
+            Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
         end
 
     end % Methods
