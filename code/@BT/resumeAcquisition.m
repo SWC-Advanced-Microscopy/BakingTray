@@ -53,6 +53,7 @@ function success=resumeAcquisition(obj,fname)
         return
     end
 
+    obj.sampleSavePath = pathToRecipe;
 
     % Set the section start number and num sections
     originalNumberOfRequestedSections = obj.recipe.mosaic.numSections;
@@ -65,8 +66,12 @@ function success=resumeAcquisition(obj,fname)
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
 
     % TODO: Look in the final section and check whether all tiles were acquired
+    if 1
+        extraZMove = obj.recipe.mosaic.sliceThickness;
+    else
+        extraZMove=0;
+    end
 
-
-    % So now we are safe to move the system to the last z-position
+    % So now we are safe to move the system to the last z-position plus one section
     blocking=true;
-    obj.moveZto(details.sections(end).Z, blocking)
+    obj.moveZto(details.sections(end).Z + extraZMove, blocking);
