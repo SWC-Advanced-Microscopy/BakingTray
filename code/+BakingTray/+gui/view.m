@@ -34,7 +34,12 @@ classdef view < handle
     properties(Hidden)
         timerUpdateInterval=0.33 %Any timers will update the GUI every so many seconds
         fSize=12;
+
         listeners={}
+        recipeListeners={}
+        scannerListeners={}
+
+
 
         %These properties are used to build and populate the recipe fields
         %The property is split by "||" to handle nesting
@@ -138,13 +143,9 @@ classdef view < handle
                 obj.button_chooseDir.TooltipString='Choose sample directory';
             end
 
-            if ~isempty(obj.model.sampleSavePath)
-                cwd=strrep(obj.model.sampleSavePath,'\','\\');
-            else 
-                cwd='';
-            end
+
             obj.text_sampleDir = annotation(...
-                 obj.basicSetupPanel, 'textbox', ...
+                obj.basicSetupPanel, 'textbox', ...
                 'Units', 'pixels', ...
                 'Position', [50,28,240,19] , ...
                 'EdgeColor', [1,1,1]*0.5, ...
@@ -152,7 +153,11 @@ classdef view < handle
                 'VerticalAlignment', 'middle',...
                 'FontSize', obj.fSize, ...
                 'FitBoxToText','off', ...
-                'String', strrep(cwd,'_','\_'));
+                'String', '');
+            obj.updateSampleSavePathBox
+            % Add a listener to the sampleSavePath property of the BT model
+            obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
+
 
             obj.button_recipe = uicontrol(...
                 commonButtonSettings{:}, ...
@@ -287,6 +292,7 @@ classdef view < handle
                 end
 
             end
+
             if obj.suppressToolTips
                 %just wipe them all
                 p=fields(obj.recipeEntryBoxes);
@@ -316,6 +322,8 @@ classdef view < handle
         function delete(obj,~,~)
             fprintf('BakingTray.gui.view is cleaning up\n')
             cellfun(@delete,obj.listeners)
+            cellfun(@delete,obj.recipeListeners)
+            cellfun(@delete,obj.scannerListeners)
 
             %Delete all attached views
             delete(obj.view_laser)
@@ -597,10 +605,7 @@ classdef view < handle
             end
             thisDir = uigetdir(startPath,'choose dirctory');
             if ischar(thisDir) && exist(thisDir,'dir')
-                obj.model.sampleSavePath = thisDir;
-                %Escape underscores and forward slashes
-                thisDir= regexprep(thisDir,'([\\_])','\\$1');
-                obj.text_sampleDir.String=thisDir;
+                obj.model.sampleSavePath = thisDir; % The GUI itself is changed via a listener defeined in the constructor
             end
         end
 
@@ -609,6 +614,15 @@ classdef view < handle
                 [~,recipeFname,ext]=fileparts(obj.model.recipe.fname);
                 recipeFname = [strrep(recipeFname,'_','\_'),ext]; %escape underscores
                 set(obj.text_recipeFname,'String', recipeFname)
+            end
+        end
+
+        function updateSampleSavePathBox(obj,~,~)
+            % Runs via a listener when BT.sampleSavePath changes
+            savePath = obj.model.sampleSavePath;
+            if ~isempty(savePath) && ischar(savePath)
+                % Escape underscores and forward slashes
+                obj.text_sampleDir.String = regexprep(savePath,'([\\_])','\\$1');
             end
         end
 
@@ -723,24 +737,23 @@ classdef view < handle
         %Below are methods that handle the listeners
         function connectRecipeListeners(obj)
             % Add listeners to update the values on screen should they change
-            obj.listeners{1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.listeners{2}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
 
             %If the recipe signals a change in recipe.acquisitionPossible, we update the start button etc
-            obj.listeners{3}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
         end %connectRecipeListeners
 
         function detachRecipeListeners(obj)
-            for ii=1:3
-                delete(obj.listeners{ii})
-            end
+            % Detach all listeners related to the recipe
+            cellfun(@delete,obj.recipeListeners)
         end %detachRecipeListeners
 
         function connectScanImageListeners(obj)
             %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff
             hSI=obj.model.scanner.hC;
-            obj.listeners{4}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.listeners{5}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
         end %connectScanImageListeners
 
 

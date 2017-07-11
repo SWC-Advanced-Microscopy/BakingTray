@@ -34,7 +34,6 @@ classdef BT < loghandler
         xAxis
         yAxis
         zAxis
-        mylistener
     end
 
     properties (SetAccess=immutable,Hidden)
@@ -51,9 +50,9 @@ classdef BT < loghandler
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        sampleSavePath          % The absolute path in which all data related to the current sample will be saved.
+        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
-        currentTileSavePath     % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
+        currentTileSavePath=''  % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
