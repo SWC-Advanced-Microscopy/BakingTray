@@ -271,6 +271,7 @@ classdef SIBT < scanner
             scanSettings.pixelsPerLine = obj.hC.hRoiManager.pixelsPerLine;
             scanSettings.linesPerFrame = obj.hC.hRoiManager.linesPerFrame;
             scanSettings.micronsBetweenOpticalPlanes = obj.hC.hStackManager.stackZStepSize;
+            scanSettings.numOpticalSlices = obj.hC.hStackManager.numSlices;
             scanSettings.zoomFactor = obj.hC.hRoiManager.scanZoomFactor;
 
             scanSettings.scannerMechanicalAnglePP_fast_axis = round(range(obj.hC.hRoiManager.imagingFovDeg(:,1)),3);
@@ -278,18 +279,26 @@ classdef SIBT < scanner
 
             scanSettings.FOV_alongColsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,1)),3);
             scanSettings.FOV_alongRowsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,2)),3);
-           
+
             scanSettings.micronsPerPixel_cols = round(scanSettings.FOV_alongColsinMicrons/scanSettings.pixelsPerLine,3);
             scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
-            
+
             scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
             scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
             scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
             scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
             scanSettings.activeChannels = obj.channelsToAcquire;
+
+            % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
+            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
             scanSettings.scanMode= obj.scannerType;
             scanSettings.scannerID=obj.scannerID;
+
+            %Record the detailed image settings to allow for things like acquisition resumption
+            scanSettings.pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
+            scanSettings.slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
+            scanSettings.fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
         end %returnScanSettings
 
 
@@ -396,6 +405,43 @@ classdef SIBT < scanner
                     orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
             end
         end %setImageSize
+
+        function applyScanSettings(obj,scanSettings)
+            % Applies a saved set of scanSettings in order to return ScanImage to a 
+            % a previous state. e.g. used to resume an acquisition following a crash.
+            if ~isstruct(scanSettings)
+                return
+            end
+
+            % The following z-stack-related settings don't strictly need to be set, 
+            % since they are applied when the scanner is armed.
+            obj.hC.hStackManager.stackZStepSize = scanSettings.micronsBetweenOpticalPlanes;
+            obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
+
+            % Set the laser power and changing power with depth
+            obj.hC.hBeams.powers = scanSettings.beamPower;            
+            obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
+            % TODO : add the drop-down 
+
+            % Which channels to acquire
+            obj.hC.hChannels.channelSave = scanSettings.activeChannels;
+
+
+            % We set the scan parameters. The order in which these are set matters            
+            obj.hC.hRoiManager.scanZoomFactor = scanSettings.zoomFactor;
+            obj.hC.hScan2D.bidirectional = scanSettings.bidirectionalScan;
+            obj.hC.hRoiManager.forceSquarePixelation = scanSettings.pixEqLinCheckBox;
+
+            obj.hC.hRoiManager.pixelsPerLine = scanSettings.pixelsPerLine;
+            if ~scanSettings.pixEqLinCheckBox
+                obj.hC.hRoiManager.linesPerFrame = scanSettings.linesPerFrame;
+            end
+
+            % Set the scan angle multipliers. This is likely only critical if 
+            % acquiring rectangular scans.
+            obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
+            obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
+        end %applyScanSettings
 
     end %close methods
 

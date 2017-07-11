@@ -77,3 +77,6 @@ function success=resumeAcquisition(obj,fname)
     % So now we are safe to move the system to the last z-position plus one section
     blocking=true;
     obj.moveZto(details.sections(end).Z + extraZMove, blocking);
+
+    % Set up the scanner as it was before
+    obj.scanner.applyScanSettings(obj.recipe.ScannerSettings)

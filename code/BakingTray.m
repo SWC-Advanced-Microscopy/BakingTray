@@ -12,6 +12,9 @@ function BakingTray(varargin)
     %                 base workspace is used to start BakingTray
     % 'dummyMode' - [false by default] if true we run BakingTray in dummy mode, 
     %               which simulates the hardware.
+    %
+    %
+    % Rob Campbell - 2016
 
 
     if ~isSafeToMake_hBT
