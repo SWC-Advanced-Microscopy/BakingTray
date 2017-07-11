@@ -43,6 +43,7 @@ function BakingTray(varargin)
     %      bring up a blocking warning/instruction dialog then quit without building anything. 
 
     %Does a BT object exist in the base workspace?
+    evalin('base','clear ans') %Because it sometimes makes a copy of BT in ans when it fails
     hBT=BakingTray.getObject(true);
 
     if isempty(hBT)
