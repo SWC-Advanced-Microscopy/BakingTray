@@ -321,6 +321,7 @@ classdef BT < loghandler
         end
 
         function success=stopXY(obj)
+            % Stop motion of the X and Y stages
             success = obj.xAxis.stopAxis & obj.yAxis.stopAxis;
         end
 
@@ -446,9 +447,11 @@ classdef BT < loghandler
         % ----------------------------------------------------------------------
         % Convenience methods to query axis position 
         function pos = getXpos(obj)
+            % Return the position of the X stage in mm
             pos=obj.xAxis.axisPosition;
         end
         function pos = getYpos(obj)
+            % Return the position of the Y stage in mm
             pos=obj.yAxis.axisPosition;
         end
         function varargout = getZpos(obj)
@@ -483,12 +486,15 @@ classdef BT < loghandler
         % Convenience methods to get or set properties of the stage motions:
         % maxSpeed and acceleration
         function vel = getXvelocity(obj)
+            % Get the target speed of the X stage in mm/s
             vel=obj.xAxis.getMaxVelocity;
         end
         function vel = getYvelocity(obj)
+            % Get the target speed of the Y stage in mm/s
             vel=obj.yAxis.getMaxVelocity;
         end
         function vel = getZvelocity(obj)
+            % Get the target speed of the Z stage in mm/s
             vel=obj.zAxis.getMaxVelocity;
         end
 
