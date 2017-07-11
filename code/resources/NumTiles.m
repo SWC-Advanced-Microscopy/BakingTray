@@ -38,7 +38,7 @@ classdef NumTiles < handle
                 X=0;
                 return
             end
-            obj.recipe.tilePattern(true); %refresh everything
+            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
             X = round(fov_x_MM * (1-obj.recipe.mosaic.overlapProportion),4);
         end
@@ -49,7 +49,7 @@ classdef NumTiles < handle
                 Y=0;
                 return
             end
-            obj.recipe.tilePattern(true); %refresh everything
+            obj.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
             y = round(fov_y_MM * (1-obj.recipe.mosaic.overlapProportion),4);
         end

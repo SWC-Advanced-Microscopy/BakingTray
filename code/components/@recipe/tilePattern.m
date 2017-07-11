@@ -28,9 +28,8 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
         quiet=false;
     end
 
-    % The following line is a bit horrible (TODO: fix this schema) 
-    % What it's doing is calling recipe.recordScannerSettings to populate the imaging parameter
-    % fields such as recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
+    % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
+    % recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
     % to build up the tile scan pattern.
     success=obj.recordScannerSettings;
 
