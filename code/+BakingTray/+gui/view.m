@@ -491,12 +491,10 @@ classdef view < handle
 
 
         function START(obj,~,~)
-            %TODO: handle the scenario where the user is resuming an old acquisition and 
-            %has not gone through the preparation phase
             if isempty(obj.view_prepare)
-                %THe user must be resuming since they never prepared anything
-                 warndlg('You prepared nothing. Resuming an acquisition is not yet supported via the GUI','');
-                 return
+                % The user must be resuming since they never prepared anything
+                warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
+                return
             end
 
             % Raise a warning if it appears the user prepared the sample with cutting parameters

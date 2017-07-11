@@ -397,7 +397,7 @@ classdef recipe < handle
                                 % Generate a base file name for the sample, replacing or removing unusual characters
                                 % This is to ensure the user can't make up silly names that cause problems down the line.
                                 fieldValue = regexprep(fieldValue, ' ', '_');
-                                fieldValue = regexprep(fieldValue, '[^0-9a-z_A-Z]', '');
+                                fieldValue = regexprep(fieldValue, '[^0-9a-z_A-Z-]', '');
                                 if length(fieldValue)>0
                                     if regexp(fieldValue(1),'\d')
                                         %Do not allow sample name to start with a number

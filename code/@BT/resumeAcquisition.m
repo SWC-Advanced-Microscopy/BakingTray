@@ -40,6 +40,7 @@ function success=resumeAcquisition(obj,fname)
         return
     end
 
+
     % If we're here, then the path exists and acquisition should exist in the path. 
     % Attempt to set up for resuming the acquisition:
 
@@ -64,6 +65,7 @@ function success=resumeAcquisition(obj,fname)
 
     obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
+
 
     % TODO: Look in the final section and check whether all tiles were acquired
     if 1
