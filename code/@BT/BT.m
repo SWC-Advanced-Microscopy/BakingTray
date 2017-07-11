@@ -396,6 +396,13 @@ classdef BT < loghandler
         end
 
         function success = moveZto(obj,position,blocking)
+            % Absolute z-stage motion
+            %
+            % function success = moveZto(obj,position,blocking)
+            %
+            % position - value in mm
+            % blocking - if true block until motion complete
+
             if nargin<3, blocking=1; end %blocking by default. Otherwise it homes if it gets a command whilst executing another
             success=obj.zAxis.absoluteMove(position);
             if ~success, return, end
@@ -409,6 +416,13 @@ classdef BT < loghandler
         end %moveZto
 
         function moveZby(obj,distanceToMove,blocking)
+            % Relative z-stage motion
+            %
+            % function success = moveZby(obj,position,blocking)
+            %
+            % position - value in mm
+            % blocking - if true block until motion complete
+
             if nargin<3, blocking=1; end %blocking by default. Otherwise it homes if it gets a command whilst executing another
             success=obj.zAxis.relativeMove(distanceToMove);
             if ~success, return, end
@@ -422,6 +436,7 @@ classdef BT < loghandler
         end %moveZby
 
         function success=stopZ(obj)
+            % stops z motion
             success = obj.zAxis.stopAxis;
         end
 

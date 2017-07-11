@@ -19,7 +19,7 @@ function success=attachRecipe(obj,fname,resume)
     %
     %
     % Outputs
-    % success - Returns true if  recipe was added. 
+    % success - Returns true if the recipe was added.
     %
 
     if nargin<2

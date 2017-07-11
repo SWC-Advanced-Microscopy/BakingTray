@@ -469,11 +469,8 @@ classdef view < handle
                 % Just load as normal
                 success = obj.model.attachRecipe(fullPath);
             else
-                % Attempt to set up for resuming the acquisition
-                success = obj.model.attachRecipe(fullPath,true); % sets resume flag to true
-                % TODO: set the section start number and num sections
-                % TODO: decide if we need to move in Z
-                % TODO: get the last x/y tile so start from there
+                % Attempt to resume the acquisition 
+                success = obj.model.resumeAcquisition(fullPath);
             end
 
             if success
