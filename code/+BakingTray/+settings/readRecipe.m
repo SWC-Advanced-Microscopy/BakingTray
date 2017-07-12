@@ -35,11 +35,12 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         return
     end
 
-    if ~exist(recipeFname,'file')
-        msg=sprintf('BakingTray.settings.readRecipe tried to load a non-existent file at %s\n',recipeFname);
+    if exist(recipeFname,'file')~=2
+        msg=sprintf('BakingTray.settings.readRecipe tried to load a non-existent recipe file at %s\n',recipeFname);
         fprintf(msg)
         return
     end
+
 
     try
         tRecipe = BakingTray.yaml.ReadYaml(recipeFname);
@@ -154,7 +155,7 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         msg=sprintf('%smosaic.sliceThickness was zero. Setting it to %0.1f\n', msg, D.mosaic.sliceThickness)
         thisRecipe.mosaic.sliceThickness = D.mosaic.sliceThickness;
     end
-    
+
 
     if mod(thisRecipe.mosaic.numOpticalPlanes,1)>0
         msg=sprintf('%smosaic.numOpticalPlanes was not an integer. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes)

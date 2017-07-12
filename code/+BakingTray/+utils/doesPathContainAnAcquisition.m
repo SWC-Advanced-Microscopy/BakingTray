@@ -23,7 +23,9 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
 
     acqPresent=false;
     details=struct;
-
+    if isempty(thisPath)
+        return
+    end
     if ~exist(thisPath,'dir')
         fprintf('BakingTray.utils.doesPathContainAnAcquisition finds directory %s does not exist. \n', thisPath)
         return

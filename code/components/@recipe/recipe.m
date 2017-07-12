@@ -219,7 +219,7 @@ classdef recipe < handle
             obj.mosaic = params.mosaic;
 
             if inputArgs.Results.resume
-                fprintf('Retaining front/left and cutting start-point from %s\n', recipeFname)
+                fprintf('Retaining front/left and cutting start-point from %s\n', strrep(recipeFname,'\','\\'))
                 obj.CuttingStartPoint.X = params.CuttingStartPoint.X;
                 obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
                 obj.FrontLeft.X = params.FrontLeft.X;

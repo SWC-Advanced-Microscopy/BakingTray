@@ -1,7 +1,7 @@
-function success=resumeAcquisition(obj,fname)
+function success=resumeAcquisition(obj,recipeFname)
     % Attach recipe  BT
     %
-    % function success=resumeAcquisition(obj,fname)
+    % function success=resumeAcquisition(obj,recipeFname)
     %
     % Purpose
     % Attempts to resume an existing acquisition, by appropriately setting
@@ -12,7 +12,7 @@ function success=resumeAcquisition(obj,fname)
     %
     %
     % Inputs
-    % fname - The path to the recipe file of the acquisition we hope to 
+    % recipeFname - The path to the recipe file of the acquisition we hope to 
     %         resume. name of
     %
     % Outputs
@@ -21,22 +21,22 @@ function success=resumeAcquisition(obj,fname)
     %
 
     if nargin<2
-        fname=[];
+        recipeFname=[];
     end
 
     success=false;
-    if ~exist(fname,'file')
-        fprintf('No recipe found at %s - BT.resumeAcquisition is quitting\n', fname)
+    if ~exist(recipeFname,'file')
+        fprintf('No recipe found at %s - BT.resumeAcquisition is quitting\n', recipeFname)
         return
     end
 
-    pathToRecipe = fileparts(fname);
+    pathToRecipe = fileparts(recipeFname);
     [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
     if ~containsAcquisition
         fprintf(['No existing acquisition found in in directory %s.', ...
             'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe) %NOTE: the square bracket here was missing and MATLAB didn't spot the syntax error. When this methd was run it would hard-crash due to this
-        success = obj.attachRecipe(fname);
+        success = obj.attachRecipe(recipeFname);
         return
     end
 
@@ -45,10 +45,10 @@ function success=resumeAcquisition(obj,fname)
     % Attempt to set up for resuming the acquisition:
 
     % Finally we attempt to load the recipe
-    success = obj.attachRecipe(fname,true); % sets resume flag to true
+    success = obj.attachRecipe(recipeFname,true); % sets resume flag to true
 
     if ~success
-        fprintf('Failed to resume recipe %s. Loading default.\n', fname)
+        fprintf('Failed to resume recipe %s. Loading default.\n', recipeFname)
         obj.sampleSavePath=''; % So the user is forced to enter this before proceeding 
         obj.attachRecipe; % To load the default
         return
@@ -61,11 +61,16 @@ function success=resumeAcquisition(obj,fname)
     sectionsCompleted = length(details.sections);
 
     newSectionStartNumber = sectionsCompleted+1;
-    newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber;
+    newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
 
     obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
 
+    % Delete the FINISHED file if it exists
+    if exist(fullfile(pathToRecipe,'FINISHED'),'file')
+        fprintf('Deleting FINISHED file\n')
+        delete(fullfile(pathToRecipe,'FINISHED'))
+    end
 
     % TODO: Look in the final section and check whether all tiles were acquired
     if 1
@@ -78,5 +83,13 @@ function success=resumeAcquisition(obj,fname)
     blocking=true;
     obj.moveZto(details.sections(end).Z + extraZMove, blocking);
 
-    % Set up the scanner as it was before
-    obj.scanner.applyScanSettings(obj.recipe.ScannerSettings)
+    % Set up the scanner as it was before. We have to manually read the scanner
+    % field from the recipe, as the "live" version in the object be overwritten
+    % with the current scanner settings.
+    tmp=BakingTray.settings.readRecipe(recipeFname);
+    if isempty(tmp)
+        fprintf('BT.resumeAcquisition failed to load recipe file for applying scanner settings\n')
+        return
+    end
+    obj.scanner.applyScanSettings(tmp.ScannerSettings)
+
