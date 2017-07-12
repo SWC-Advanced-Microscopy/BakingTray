@@ -305,12 +305,14 @@ classdef acquisition_view < BakingTray.gui.child_view
             tp(:,1) = tp(:,1) - tp(1,1);
             tp(:,2) = tp(:,2) - tp(1,2);
 
+
             tp=abs(tp);
-            tp=round(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images
+            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images
             obj.previewTilePositions=tp;
 
-            imCols = range(tp(:,1)) + size(obj.model.downSampledTileBuffer,2);
-            imRows = range(tp(:,2)) + size(obj.model.downSampledTileBuffer,1);
+            stepSizes = max(abs(diff(tp)));
+            imCols = range(tp(:,1)) + stepSizes(1);
+            imRows = range(tp(:,2)) + stepSizes(2);
 
             obj.previewImageData = zeros([imRows,imCols, ...
                 obj.model.recipe.mosaic.numOpticalPlanes, ...
@@ -399,7 +401,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             %Raise a console warning if it looks like the image has grown in size
             %TODO: this check can be removed eventually, once we're sure this does not happen ever.
             if numel(obj.sectionImage.CData) < numel(squeeze(obj.previewImageData(:,:,obj.depthToShow, obj.chanToShow)))
-                fprintf('The preview image data in the acquisition GUI grew in size\n')
+                fprintf('The preview image data in the acquisition GUI grew in size from %d x %d to %d x %d\n', ...
+                    size(obj.sectionImage.CData,1), size(obj.sectionImage.CData,2), ...
+                    size(obj.previewImageData,1), size(obj.previewImageData,2) )
             end
 
             if obj.rotateSectionImage90degrees
