@@ -90,16 +90,12 @@ classdef SIBT < scanner
             % Update channels to save property whenever the user makes changes in scanImage
             obj.listeners{end+1}=addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
 
-            %Set up a listener on the sample rate to ensure it's a safe value
-            obj.listeners{end+1} = addlistener(obj.hC.hScan2D, 'sampleRate', 'PostSet', @obj.keepSampleRateWithinBounds);
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
             obj.enforceImportantSettings
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
-            obj.listeners{end+1} = addlistener(obj.hC.hScan2D, 'bidirectional', 'PostSet', @obj.enforceImportantSettings);
-
 
             obj.LUTchanged
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
@@ -476,23 +472,12 @@ classdef SIBT < scanner
 
 
         %Listener callback functions
-        function keepSampleRateWithinBounds(obj,~,~)
-            if ~any(obj.allowedSampleRates == obj.hC.hScan2D.sampleRate)
-                obj.hC.hScan2D.sampleRate=obj.allowedSampleRates(1);
-                %TODO: SHORT TERM HACK!
-                fprintf('Setting sample rate to a safe value. Only some rates work currently with the PXIe-6124\n')
-            end
-
-        end %keepSampleRateWithinBounds
 
 
         function enforceImportantSettings(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
             if obj.hC.hRoiManager.forceSquarePixels==false
                 obj.hC.hRoiManager.forceSquarePixels=true;
-            end
-            if obj.hC.hScan2D.bidirectional==false
-                obj.hC.hScan2D.bidirectional=true;
             end
         end %enforceImportantSettings
 
