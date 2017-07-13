@@ -135,7 +135,7 @@ function bake(obj,varargin)
 
         obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
             currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
-            obj.currentTileSavePath))
+            strrep(obj.currentTileSavePath,'\','\\') ))
         startAcq=now;
 
 

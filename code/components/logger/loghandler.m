@@ -19,8 +19,8 @@ classdef (Abstract) loghandler < handle
         %Setting the following to 1 would cause everything to be logged.
         %Setting to 5 would cause only the most serious errors to be logged.
 
-        logMessageThreshFile = 2 %Display threshold for file
-        logMessageThreshScreen = 3   %Display threshold for screen
+        logMessageThreshFile = 2     % Display threshold for file
+        logMessageThreshScreen = 4   % Display threshold for screen
     end
 
 
