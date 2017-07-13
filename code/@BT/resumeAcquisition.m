@@ -56,9 +56,44 @@ function success=resumeAcquisition(obj,recipeFname)
 
     obj.sampleSavePath = pathToRecipe;
 
+    % Delete the FINISHED file if it exists
+    if exist(fullfile(pathToRecipe,'FINISHED'),'file')
+        fprintf('Deleting FINISHED file\n')
+        delete(fullfile(pathToRecipe,'FINISHED'))
+    end
+
+    % Find the last section. Did it complete and did it cut?
+    lastSection = details.sections(end);
+    fprintf('The last acquired section was number %d and was taken at z=%0.3f\n', ...
+         lastSection.sectionNumber, lastSection.Z)
+
+    lastSectionLogFile = fullfile(lastSection.savePath,'acquisition_log.txt');
+
+    % If we can't find the last section directory or its log file we will proceed anyway and assume that the
+    % last section was cut. So the block will be moved upwards.
+    if ~exist(lastSection.savePath,'dir')
+        fprintf('The last section directory is not in %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
+            lastSection.savePath)
+        extraZMove = obj.recipe.mosaic.sliceThickness;
+    elseif ~exist(lastSectionLogFile,'file')
+        fprintf('The last section log file at %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
+            lastSectionLogFile)
+        extraZMove = obj.recipe.mosaic.sliceThickness;
+    else
+        % If we're here, we can read the log file. We read it and determine if the lst section was cut. 
+        % If it was, then we should ensure that the Z-stage is at the depth of the last completed section
+        % plus one section thickness. 
+
+        % TODO: The slicing isn't being logged for some reason. Bug in the logger? Until then: 
+        extraZMove = obj.recipe.mosaic.sliceThickness;
+        % TODO: It it was not we need to check if the tile scan needs finishing then cut. 
+    end
+
+
+
     % Set the section start number and num sections
     originalNumberOfRequestedSections = obj.recipe.mosaic.numSections;
-    sectionsCompleted = length(details.sections);
+    sectionsCompleted = details.sections(end).sectionNumber;
 
     newSectionStartNumber = sectionsCompleted+1;
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
@@ -66,18 +101,8 @@ function success=resumeAcquisition(obj,recipeFname)
     obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
 
-    % Delete the FINISHED file if it exists
-    if exist(fullfile(pathToRecipe,'FINISHED'),'file')
-        fprintf('Deleting FINISHED file\n')
-        delete(fullfile(pathToRecipe,'FINISHED'))
-    end
 
-    % TODO: Look in the final section and check whether all tiles were acquired
-    if 1
-        extraZMove = obj.recipe.mosaic.sliceThickness;
-    else
-        extraZMove=0;
-    end
+
 
     % So now we are safe to move the system to the last z-position plus one section
     blocking=true;

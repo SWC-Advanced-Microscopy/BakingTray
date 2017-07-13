@@ -424,6 +424,9 @@ classdef SIBT < scanner
             % TODO : add the drop-down 
 
             % Which channels to acquire
+            if iscell(scanSettings.activeChannels)
+                scanSettings.activeChannels = cell2mat(scanSettings.activeChannels);
+            end
             obj.hC.hChannels.channelSave = scanSettings.activeChannels;
 
 

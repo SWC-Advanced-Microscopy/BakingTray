@@ -417,8 +417,6 @@ classdef view < handle
 
         %-----------
         % Button callbacks
-        %send vars to base workspace
-
 
         function startLaserGUI(obj,~,~)
             %Present error dialog if no laser is connected (button should be disabled anyway)
@@ -460,6 +458,12 @@ classdef view < handle
         function loadRecipe(obj,~,~)
             % Load recipe button callback -- loads a new recipe from disk
             [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
+
+            if fname==0
+                % if the user hits cancel
+                return
+            end
+
             fullPath = fullfile(absPath,fname);
 
             %Does this path already contain an acquisition?

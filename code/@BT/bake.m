@@ -133,8 +133,9 @@ function bake(obj,varargin)
             obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
         end
 
-        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f\n',...
-            currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos))
+        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
+            currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
+            obj.currentTileSavePath))
         startAcq=now;
 
 

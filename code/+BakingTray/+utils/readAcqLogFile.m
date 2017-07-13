@@ -18,7 +18,7 @@ function logData = readAcqLogFile(fname)
 
 
     if ~exist(fname)
-        fprintf('BakingTray.utils.readAcqLogFile failed to open file %s for reading\n', fname)
+        fprintf('BakingTray.utils.%s failed to open file %s for reading\n', mfilename, fname)
         logData=struct;
         return
 	end
@@ -30,13 +30,15 @@ function logData = readAcqLogFile(fname)
     txtSplit = txtSplit{1};
 
     % Read Z and section in the form: 2017/06/30 17:30:53 -- STARTING section number 1 (1 of 1) at z=28.7000
-    Zdepth = cellfun(@(x) regexp(x,'.*STARTING section number (\d).*z=([\d\.]+)','tokens'), txtSplit,'UniformOutput', false);
-    Zdepth(cellfun(@isempty,Zdepth))=[];
+    sectionDetails = cellfun(@(x) regexp(x,'.*STARTING section number (\d+).*z=([\d\.]+) in directory (.*)','tokens'), txtSplit,'UniformOutput', false);
+    sectionDetails(cellfun(@isempty,sectionDetails))=[]; %Wipe any empty lines
 
 
-    for ii=1:length(Zdepth)
-        logData.sections(ii).sectionNumber = str2num( Zdepth{ii}{1}{1} );
-        logData.sections(ii).Z = str2num( Zdepth{ii}{1}{2} );
+    for ii=1:length(sectionDetails)
+        thisSection = sectionDetails{ii}{1};
+        logData.sections(ii).sectionNumber = str2num( thisSection{1} );
+        logData.sections(ii).Z = str2num( thisSection{2} );
+        logData.sections(ii).savePath = thisSection{3};
     end
 
 
