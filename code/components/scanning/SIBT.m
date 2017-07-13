@@ -32,7 +32,6 @@ classdef SIBT < scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
-        allowedSampleRates=[1.25E6,2.5E6]; %TODO: for now, because the 6124 is not working as it should
     end
 
 
@@ -478,9 +477,7 @@ classdef SIBT < scanner
 
 
 
-        %Listener callback functions
-
-
+        %Listener callback methods
         function enforceImportantSettings(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
             if obj.verbose
@@ -491,7 +488,7 @@ classdef SIBT < scanner
             end
         end %enforceImportantSettings
 
-        
+
         function LUTchanged(obj,~,~)
             if obj.verbose
                 fprintf('Hit SIBT.LUTchanged\n')
@@ -505,15 +502,13 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
-            %Move stage at the end of a volume or tile acquisition
-            hBT = obj.parent;
             %Log theX and Y positions in the grid associated with these tile data
-            hBT.lastTilePos.X = hBT.positionArray(hBT.currentTilePosition,1);
-            hBT.lastTilePos.Y = hBT.positionArray(hBT.currentTilePosition,2);
-            hBT.lastTileIndex = hBT.currentTilePosition;
+            obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
+            obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
+            obj.parent.lastTileIndex = obj.parent.currentTilePosition;
 
 
-            if hBT.importLastFrames
+            if obj.parent.importLastFrames
                 msg='';
                 for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
                     % scanimage stores image data in a data structure called 'stripeData'
@@ -531,56 +526,57 @@ classdef SIBT < scanner
 
                     if ~isempty(msg)
                         msg = [msg, 'NOT EXTRACTING TILE DATA IN SIBT.tileAcqDone'];
-                        hBT.logMessage('acqDone',dbstack,6,msg);
+                        obj.logMessage('acqDone',dbstack,6,msg);
                         break
                     end
 
                     for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
-                        hBT.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
+                        obj.parent.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
                              int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},-1),...
-                                [size(hBT.downSampledTileBuffer,1),size(hBT.downSampledTileBuffer,2)],'bicubic'));
+                                [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bicubic'));
                     end
 
                     if obj.verbose
                         fprintf('%d - Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
-                            hBT.currentTilePosition, ...
+                            obj.parent.currentTilePosition, ...
                             lastStripe.frameNumberAcq, ...
                             lastStripe.frameNumberAcqMode, ...
                             lastStripe.frameTimestamp)
                     end
                 end % z=1:length...
-            end % if hBT.importLastFrames
+            end % if obj.parent.importLastFrames
 
 
             %Increement the counter and make the new position the current one
-            hBT.currentTilePosition = hBT.currentTilePosition+1;
-            pos=hBT.recipe.tilePattern;
+            obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+            pos=obj.parent.recipe.tilePattern;
 
-            if hBT.currentTilePosition>size(pos,1)
+            if obj.parent.currentTilePosition>size(pos,1)
+                fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
                 return
             end
 
             % Blocking motion
-            hBT.moveXYto(pos(hBT.currentTilePosition,1),pos(hBT.currentTilePosition,2),1); 
+            blocking=true;
+            obj.parent.moveXYto(pos(obj.parent.currentTilePosition,1), pos(obj.parent.currentTilePosition,2), blocking); 
 
             %store stage positions. this is done after all tiles in the z-stack have been acquired
-            hBT.logPositionToPositionArray
-            positionArray=hBT.positionArray;
+            obj.parent.logPositionToPositionArray
+            positionArray=obj.parent.positionArray;
 
             if obj.hC.hChannels.loggingEnable==true
-                save(fullfile(hBT.currentTileSavePath,'tilePositions.mat'),'positionArray')
+                save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
             end
 
             if obj.hC.active % Could have a smarter check here. e.g. stop only when all volumes 
                               % are in so we generate an error if there's a failure
 
-                while hBT.scanner.acquisitionPaused
+                while obj.acquisitionPaused
                     pause(0.5)
                 end
                 obj.hC.hScan2D.trigIssueSoftwareAcq; %Acquire all depths and channeLs at this X/Y position
             end
-            hBT.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');            
-
+            obj.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');
         end %tileAcqDone
 
 

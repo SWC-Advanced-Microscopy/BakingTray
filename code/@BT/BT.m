@@ -47,10 +47,12 @@ classdef BT < loghandler
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
 
+    properties (SetObservable,AbortSet,Transient)
+        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
+    end
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
         currentTileSavePath=''  % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
