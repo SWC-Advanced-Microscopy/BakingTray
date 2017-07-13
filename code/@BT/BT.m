@@ -192,6 +192,9 @@ classdef BT < loghandler
             if obj.isLaserConnected
                 obj.laser.delete
             end
+            if obj.isScannerConnected
+                obj.scanner.delete
+            end
 
         end  %Destructor
 
