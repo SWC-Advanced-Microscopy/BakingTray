@@ -151,7 +151,7 @@ classdef stressTestTilePreviewBuffer < handle
             % This callback function constitutes part of an implicit loop that causes it to be
             % run repeatedly until all images have been acquired. It is run each time an acquisition
             % completes. 
-            obj.hC.hScan2D.trigIssueSoftwareAcq; %Acquire all depths and channeLs at this X/Y position
+
             for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
                 % scanimage stores image data in a data structure called 'stripeData'
                 %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
