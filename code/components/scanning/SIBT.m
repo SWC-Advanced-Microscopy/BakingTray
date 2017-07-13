@@ -88,24 +88,24 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-            obj.listeners{end+1}=addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
+%TODO WE COMMENT OUT UNTIL WE SEE WHAT'S SPAMMING THIS  %obj.listeners{end+1}=addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
 
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
-            obj.enforceImportantSettings
+           % obj.enforceImportantSettings
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
 
             obj.LUTchanged
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan2LUT', 'PostSet', @obj.LUTchanged);
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
+            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
+            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan2LUT', 'PostSet', @obj.LUTchanged);
+            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
+            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
 
 
             % Add "armedListeners" that are used during tiled acquisition only.
-            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone_minimal);
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
@@ -579,6 +579,13 @@ classdef SIBT < scanner
             obj.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');
         end %tileAcqDone
 
+
+        function tileAcqDone_minimal(obj,~,~)
+            % Minimal acq done for testing and de-bugging
+            obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+            pause(0.5)
+            obj.hC.hScan2D.trigIssueSoftwareAcq; 
+        end % tileAcqDone_minimal(obj,~,~)
 
         function tileScanAbortedInScanImage(obj,~,~)
             % This is similar to what happens in the acquisition_view GUI in the "stop_callback"

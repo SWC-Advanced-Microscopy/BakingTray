@@ -126,7 +126,7 @@ classdef stressTestTilePreviewBuffer < handle
                 return
             end
 
-            fprintf('Scanimage armed\n')
+            fprintf('Scanimage armed: %s\n', datestr(now))
 
         end %armScanner
 
@@ -140,7 +140,7 @@ classdef stressTestTilePreviewBuffer < handle
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
 
-            fprintf('ScanImage disarmed\n')
+            fprintf('ScanImage disarmed: %s\n', datestr(now))
         end %disarmScanner
 
 
