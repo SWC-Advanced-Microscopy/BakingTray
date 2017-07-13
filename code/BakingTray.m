@@ -16,11 +16,6 @@ function BakingTray(varargin)
     %
     % Rob Campbell - 2016
 
-
-    if ~isSafeToMake_hBT
-        return
-    end
-
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     %Parse optional arguments
     params = inputParser;
@@ -32,7 +27,6 @@ function BakingTray(varargin)
     useExisting=params.Results.useExisting;
     dummyMode=params.Results.dummyMode;
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
 
     % Build optional arguments to feed to BT during its construction
     BTargs={};
@@ -69,9 +63,8 @@ function BakingTray(varargin)
         %If it does exist, we only re-use it if the user explicitly asked for this and there
         if useExisting
             assignin('base','hBT',hBT);
-        else
+        elseif ~isSafeToMake_hBT
             %TODO: run delete ourselves?
-            fprintf('BakingTray has already started. Not starting. delete BakingTray object from base workspace and try again\n')
             return
         end
 
