@@ -39,14 +39,13 @@ function runSuccess = runTileScan(obj)
 
 
     obj.scanner.initiateTileScan; %acquires a stack and triggers scanimage to acquire the rest of the stacks
-    
+
     %block until done
     while 1
         if ~obj.scanner.isAcquiring
             break
         end
-        
-        pause(1)
+        pause(0.25)
     end
 
 
