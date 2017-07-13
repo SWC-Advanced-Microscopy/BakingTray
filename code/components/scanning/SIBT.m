@@ -18,7 +18,8 @@ classdef SIBT < scanner
 % TODO: what does  hSI.hScan2D.scannerToRefTransform do?
 
     properties
-
+        % If true you get debug messages printed during scanning and when listener callbacks are hit
+        verbose=true;
     end
 
     properties(Hidden,SetObservable)
@@ -250,6 +251,9 @@ classdef SIBT < scanner
         function acquiring = isAcquiring(obj,~,~)
             %Returns true if a focus, loop, or grab is in progress even if the system is not
             %currently acquiring a frame
+            if obj.verbose
+                fprintf('Hit SIBT.isAcquiring\n')
+            end
             acquiring = ~strcmp(obj.hC.acqState,'idle');
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
@@ -283,7 +287,7 @@ classdef SIBT < scanner
             scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
             scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
             scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
-            scanSettings.activeChannels = obj.channelsToAcquire;
+            scanSettings.activeChannels = obj.hC.hChannels.channelSave;
 
             % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
@@ -330,6 +334,9 @@ classdef SIBT < scanner
 
         function theseChans = channelsToAcquire(obj,~,~)
             % This is also a listener callback function
+            if obj.verbose
+                fprintf('Hit SIBT.channelsToAcquire\n')
+            end
             theseChans = obj.hC.hChannels.channelSave;
             obj.channelsToSave = theseChans; %store the currently selected channels to save
         end %channelsToAcquire
@@ -476,6 +483,9 @@ classdef SIBT < scanner
 
         function enforceImportantSettings(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
+            if obj.verbose
+                fprintf('Hit SIBT.enforceImportantSettings\n')
+            end
             if obj.hC.hRoiManager.forceSquarePixels==false
                 obj.hC.hRoiManager.forceSquarePixels=true;
             end
@@ -483,6 +493,9 @@ classdef SIBT < scanner
 
         
         function LUTchanged(obj,~,~)
+            if obj.verbose
+                fprintf('Hit SIBT.LUTchanged\n')
+            end
             obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; %Just flip it so listeners on other classes notice the change
         end %LUTchanged
 
@@ -492,14 +505,13 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
-
             %Move stage at the end of a volume or tile acquisition
             hBT = obj.parent;
             %Log theX and Y positions in the grid associated with these tile data
             hBT.lastTilePos.X = hBT.positionArray(hBT.currentTilePosition,1);
             hBT.lastTilePos.Y = hBT.positionArray(hBT.currentTilePosition,2);
             hBT.lastTileIndex = hBT.currentTilePosition;
-            verbose=false;
+
 
             if hBT.importLastFrames
                 msg='';
@@ -529,8 +541,9 @@ classdef SIBT < scanner
                                 [size(hBT.downSampledTileBuffer,1),size(hBT.downSampledTileBuffer,2)],'bicubic'));
                     end
 
-                    if verbose
-                        fprintf('Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
+                    if obj.verbose
+                        fprintf('%d - Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
+                            hBT.currentTilePosition, ...
                             lastStripe.frameNumberAcq, ...
                             lastStripe.frameNumberAcqMode, ...
                             lastStripe.frameTimestamp)
@@ -573,7 +586,9 @@ classdef SIBT < scanner
 
         function tileScanAbortedInScanImage(obj,~,~)
             % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
-
+            if obj.verbose
+                fprintf('Hit obj.tileScanAbortedInScanImage\n')
+            end
             % Wait for scanner to stop being in acquisition mode
             obj.disableArmedListeners
             obj.abortScanning
