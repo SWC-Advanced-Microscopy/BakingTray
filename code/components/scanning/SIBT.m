@@ -216,7 +216,7 @@ classdef SIBT < scanner
             success=true;
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
-
+            fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
 
 
@@ -236,9 +236,11 @@ classdef SIBT < scanner
             obj.disableArmedListeners;
             obj.hC.hChannels.loggingEnable=false;
 
+            % TODO: this should be an option
             fprintf('Turning on fly-back blanking\n')
             obj.hC.hBeams.flybackBlanking=true;
             success=true;
+            fprintf('Disarmed scanner: %s\n', datestr(now))
         end %disarmScanner
 
 
@@ -583,9 +585,9 @@ classdef SIBT < scanner
         function tileAcqDone_minimal(obj,~,~)
             % Minimal acq done for testing and de-bugging
             obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-            pause(0.5)
-            obj.hC.hScan2D.trigIssueSoftwareAcq; 
+            obj.hC.hScan2D.trigIssueSoftwareAcq;
         end % tileAcqDone_minimal(obj,~,~)
+
 
         function tileScanAbortedInScanImage(obj,~,~)
             % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
