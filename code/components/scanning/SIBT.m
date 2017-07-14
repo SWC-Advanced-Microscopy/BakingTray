@@ -569,14 +569,15 @@ classdef SIBT < scanner
             obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition,1), ...
                 obj.currentTilePattern(obj.parent.currentTilePosition,2), blocking); 
 
-            %store stage positions. this is done after all tiles in the z-stack have been acquired
-            obj.parent.logPositionToPositionArray
-            positionArray=obj.parent.positionArray;
+            % Store stage positions. this is done after all tiles in the z-stack have been acquired
+            doFakeLog=true; % Takes about 50 ms each time it talks to the PI stages. so we can skip this if we trust them
+            obj.parent.logPositionToPositionArray(doFakeLog) 
 
             if obj.hC.hChannels.loggingEnable==true
+                positionArray = obj.parent.positionArray;
                 save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
             end
- 
+
             while obj.acquisitionPaused
                 pause(0.5)
             end
