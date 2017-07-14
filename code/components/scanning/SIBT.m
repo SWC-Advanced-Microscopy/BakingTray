@@ -89,8 +89,7 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-%TODO WE COMMENT OUT UNTIL WE SEE WHAT'S SPAMMING THIS  %obj.listeners{end+1}=addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
-
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
            % obj.enforceImportantSettings
@@ -116,7 +115,7 @@ classdef SIBT < scanner
             obj.hC.hFastZ.waveformType='step'; %Enforced anyway when arming the scanner
 
             %Supply a reasonable default for the illumination with depth adjustment and report to the command line 
-            Lz=180;
+            Lz=210; %TODO: this should be a user setting not in here
             fprintf(' - Setting up power/depth correction using Lz=%d.\n   You may change this value in "POWER CONTROLS". (Smaller numbers will increase the power more with depth.)\n',Lz)
             obj.hC.hBeams.pzAdjust=true;
             obj.hC.hBeams.lengthConstants=Lz;
@@ -179,7 +178,6 @@ classdef SIBT < scanner
 
                 fprintf('Setting PIFOC settling time to %0.3f ms\n',...
                     obj.parent.recipe.SYSTEM.objectiveZSettlingDelay);
-                obj.hC.hFastZ.flybackTime = obj.parent.recipe.SYSTEM.objectiveZSettlingDelay;
 
                 if obj.parent.recipe.SYSTEM.enableFlyBackBlanking==false
                     fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
