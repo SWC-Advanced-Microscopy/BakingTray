@@ -19,7 +19,7 @@ classdef SIBT < scanner
 
     properties
         % If true you get debug messages printed during scanning and when listener callbacks are hit
-        verbose=true;
+        verbose=false;
     end
 
     properties(Hidden,SetObservable)
@@ -32,6 +32,7 @@ classdef SIBT < scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
+        currentTilePattern
     end
 
 
@@ -98,14 +99,14 @@ classdef SIBT < scanner
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
 
             obj.LUTchanged
-            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
-            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan2LUT', 'PostSet', @obj.LUTchanged);
-            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
-            %obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan2LUT', 'PostSet', @obj.LUTchanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
 
 
             % Add "armedListeners" that are used during tiled acquisition only.
-            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone_minimal);
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
@@ -181,14 +182,14 @@ classdef SIBT < scanner
                 obj.hC.hFastZ.flybackTime = obj.parent.recipe.SYSTEM.objectiveZSettlingDelay;
 
                 if obj.parent.recipe.SYSTEM.enableFlyBackBlanking==false
-                    fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
-                    obj.hC.hBeams.flybackBlanking=false;
+                 %   fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
+                 %   obj.hC.hBeams.flybackBlanking=false;
                 end
 
                 if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
                     %The number of channel window updates per second
-                    fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
-                    obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
+               %     fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
+                %    obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
                 end
 
                 if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
@@ -216,6 +217,11 @@ classdef SIBT < scanner
             success=true;
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
+
+            % Store the current tile pattern, as it's generated on the fly and 
+            % and this is time-consuming to put into the tile acq callback. 
+            obj.currentTilePattern=obj.parent.recipe.tilePattern;
+
             fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
 
@@ -504,12 +510,13 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
-            %Log theX and Y positions in the grid associated with these tile data
+            %Log theX and Y positions in the grid associated with the tile data from the last acquired position
             obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
             obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
             obj.parent.lastTileIndex = obj.parent.currentTilePosition;
 
 
+            % Import the last frames and downsample them
             if obj.parent.importLastFrames
                 msg='';
                 for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
@@ -551,16 +558,16 @@ classdef SIBT < scanner
 
             %Increement the counter and make the new position the current one
             obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-            pos=obj.parent.recipe.tilePattern;
 
-            if obj.parent.currentTilePosition>size(pos,1)
+            if obj.parent.currentTilePosition>size(obj.currentTilePattern,1)
                 fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
                 return
             end
 
             % Blocking motion
             blocking=true;
-            obj.parent.moveXYto(pos(obj.parent.currentTilePosition,1), pos(obj.parent.currentTilePosition,2), blocking); 
+            obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition,1), ...
+                obj.currentTilePattern(obj.parent.currentTilePosition,2), blocking); 
 
             %store stage positions. this is done after all tiles in the z-stack have been acquired
             obj.parent.logPositionToPositionArray
@@ -569,15 +576,12 @@ classdef SIBT < scanner
             if obj.hC.hChannels.loggingEnable==true
                 save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
             end
-
-            if obj.hC.active % Could have a smarter check here. e.g. stop only when all volumes 
-                              % are in so we generate an error if there's a failure
-
-                while obj.acquisitionPaused
-                    pause(0.5)
-                end
-                obj.hC.hScan2D.trigIssueSoftwareAcq; %Acquire all depths and channeLs at this X/Y position
+ 
+            while obj.acquisitionPaused
+                pause(0.5)
             end
+            obj.hC.hScan2D.trigIssueSoftwareAcq; % Start the next position
+
             obj.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');
         end %tileAcqDone
 

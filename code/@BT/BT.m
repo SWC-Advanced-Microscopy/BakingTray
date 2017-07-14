@@ -307,7 +307,7 @@ classdef BT < loghandler
             tic
 
             while obj.isXYmoving
-                pause(0.05)
+                pause(0.01)
                 if toc>timeOut
                     obj.logMessage(inputname(1),dbstack,4,'Timed out waiting for motion to complete')
                     break
