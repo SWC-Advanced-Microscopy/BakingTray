@@ -24,6 +24,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         channelSelectPopup
 
         button_previewScan
+
+        verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
     end
 
     properties (SetObservable,Transient)
@@ -34,6 +36,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     properties (Hidden,SetAccess=private)
         chanToShow=1
         depthToShow=1
+        cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
         rotateSectionImage90degrees=true; %Ensure the axis along which the blade cuts is is the image x axis. 
     end %close hidden private properties
 
@@ -177,7 +180,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 msg = sprintf(['Your tile pattern likely includes positions that are out of bounds.\n',...
                     'Acuisition will fail. Close this window. Fix the problem. Then try again.\n']);
                 if isempty(obj.model.scanner)
-                    msg = sprintf('%sLikely cause: no scanner connected\n',msg)
+                    msg = sprintf('%sLikely cause: no scanner connected\n',msg);
                 end
                 warndlg(msg,'');
             end
@@ -330,6 +333,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function indicateCutting(obj,~,~)
             % Changes GUI elements accordingly during cutting
+            if obj.verbose, fprintf('In acquisition_view.indicateCutting callback\n'), end
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
@@ -343,17 +347,17 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %indicateCutting
 
         function updateStatusText(obj,~,~)
-            endTime=obj.model.estimateTimeRemaining;
+            if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
-            obj.statusText.String = sprintf(['Finish time: %s\n', ...
-                'Section=%03d/%03d, X=%02d/%02d, Y=%02d/%02d'], ...
-                    endTime.expectedFinishTimeString, ...
+            if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
+                if obj.verbose, fprintf('Caching end time in acquisition_view object\n'), end
+                obj.cachedEndTimeStructure=obj.model.estimateTimeRemaining;
+            end
+
+            obj.statusText.String = sprintf(['Finish time: %s\nSection=%03d/%03d'], ...
+                    obj.cachedEndTimeStructure.expectedFinishTimeString, ...
                     obj.model.currentSectionNumber, ...
-                    obj.model.recipe.mosaic.numSections + obj.model.recipe.mosaic.sectionStartNum - 1, ...
-                    obj.model.lastTilePos.X, ...
-                    obj.model.recipe.NumTiles.X, ...
-                    obj.model.lastTilePos.Y, ...
-                    obj.model.recipe.NumTiles.Y);
+                    obj.model.recipe.mosaic.numSections + obj.model.recipe.mosaic.sectionStartNum - 1);
         end %updateStatusText
 
 
@@ -361,6 +365,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             % When new tiles are acquired they are placed into the correct location in
             % the obj.previewImageData array. This is run when the tile position increments
             % So it only runs once per X/Y position. 
+            obj.updateStatusText
+
+            if obj.verbose, fprintf('In acquisition_view.placeNewTilesInPreviewData callback\n'), end
+
             obj.updateStatusText
             if obj.model.processLastFrames==false
                 return
@@ -393,6 +401,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         function updateSectionImage(obj,~,~)
             % This callback function updates when the listener on obj.previewImageData fires or if the user 
             % updates the popup boxes for depth or channel
+            if obj.verbose, fprintf('In acquisition_view.updateSectionImage callback\n'), end
 
             if ~obj.doSectionImageUpdate
                 return
@@ -417,6 +426,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
         function bake_callback(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.bake callback\n'), end
+
             obj.updateStatusText
             %Check whether it's safe to begin
             [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible;
@@ -444,6 +455,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             % If the system has not been told to stop after the next section, pressing the 
             % button again will stop this from happening. Otherwise we proceed with the 
             % question dialog. Also see SIBT.tileScanAbortedInScanImage
+
+            if obj.verbose, fprintf('In acquisition_view.stop callback\n'), end
+
             if obj.model.abortAfterSectionComplete
                 obj.model.abortAfterSectionComplete=false;
                 return
@@ -507,6 +521,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             %       the acquisition proceed if data already exist in the sample directory. Once this
             %       is fixed somehow the dialog creation will come here. 
 
+            if obj.verbose, fprintf('In acquisition_view.pause callback\n'), end
+
             %Disable depth selector since we have just one depth
             depthEnableState=obj.depthSelectPopup.Enable;
             obj.depthSelectPopup.Enable='off';
@@ -526,6 +542,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %startPreviewScan
 
         function updatePauseButtonState(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.updatePauseButtonState callback\n'), end
+
             if ~obj.model.acquisitionInProgress
                 set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
             elseif obj.model.acquisitionInProgress && ~obj.model.scanner.acquisitionPaused
@@ -538,6 +556,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateBakeButtonState(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.updateBakeButtonState callback\n'), end
 
             if obj.model.acquisitionInProgress && ~obj.model.scanner.isAcquiring 
                 obj.button_BakeStop.Enable='off';
@@ -585,6 +604,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateImageLUT(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.updateImageLUT callback\n'), end
+
             %TODO: update with SIBT properties
             if obj.model.isScannerConnected
                 thisLut=obj.model.scanner.getChannelLUT(obj.chanToShow);
@@ -593,6 +614,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateImageLUT
 
         function updateChannelsPopup(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.updateChannelsPopup callback\n'), end
+
             if obj.model.isScannerConnected
                 % Active channels are those being displayed, since with resonant scanning
                 % if it's not displayed we have no access to the image data. This isn't
@@ -615,6 +638,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateChannelsPopup
 
         function setDepthToView(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.setDepthToView callback\n'), end
+
             % This callback runs when the user ineracts with the depth popup.
             % The callback sets which depth will be displayed
             if isempty(obj.model.scanner.channelsToDisplay)
@@ -631,6 +656,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function setChannelToView(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.setChannelToView callback\n'), end
+
             % This callback runs when the user ineracts with the channel popup.
             % The callback sets which channel will be displayed
             if isempty(obj.model.scanner.channelsToDisplay)
@@ -648,6 +675,8 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function chooseChanToDisplay(obj)
+            if obj.verbose, fprintf('In acquisition_view.chooseChanToDisplay callback\n'), end
+
             % Choose a channel to display as a default: the first saved and displayed channel
             channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
             channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
@@ -663,6 +692,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %chooseChanToDisplay
 
         function pointerReporter(obj,~,~)
+            if obj.verbose, fprintf('In acquisition_view.pointerReporter callback\n'), end
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
             if obj.model.acquisitionInProgress
