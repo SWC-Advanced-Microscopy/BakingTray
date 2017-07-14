@@ -365,7 +365,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             % When new tiles are acquired they are placed into the correct location in
             % the obj.previewImageData array. This is run when the tile position increments
             % So it only runs once per X/Y position. 
-            obj.updateStatusText
 
             if obj.verbose, fprintf('In acquisition_view.placeNewTilesInPreviewData callback\n'), end
 

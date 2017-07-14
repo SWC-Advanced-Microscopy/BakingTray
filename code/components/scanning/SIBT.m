@@ -182,14 +182,14 @@ classdef SIBT < scanner
                 obj.hC.hFastZ.flybackTime = obj.parent.recipe.SYSTEM.objectiveZSettlingDelay;
 
                 if obj.parent.recipe.SYSTEM.enableFlyBackBlanking==false
-                 %   fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
-                 %   obj.hC.hBeams.flybackBlanking=false;
+                    fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
+                    obj.hC.hBeams.flybackBlanking=false;
                 end
 
                 if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
                     %The number of channel window updates per second
-               %     fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
-                %    obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
+                    fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
+                    obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
                 end
 
                 if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
@@ -233,11 +233,7 @@ classdef SIBT < scanner
                 return
             end
 
-            %Disable z sectioning
-            obj.hC.hFastZ.enable=0;
-            hSI.hStackManager.numSlices = 1;
-
-            obj.hC.extTrigEnable=0;  
+            obj.hC.extTrigEnable=0;
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
             obj.hC.hChannels.loggingEnable=false;
@@ -511,9 +507,18 @@ classdef SIBT < scanner
             % repeatedly until all tiles have been acquired.
 
             %Log theX and Y positions in the grid associated with the tile data from the last acquired position
-            obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
-            obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
-            obj.parent.lastTileIndex = obj.parent.currentTilePosition;
+            if ~isempty(obj.parent.positionArray)
+                obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
+                obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
+                obj.parent.lastTileIndex = obj.parent.currentTilePosition;
+            else
+                fprintf('BT.positionArray is empty. Not logging last tile positions. Likely hBT.runTileScan was not run.\n')
+            end
+
+            % Blocking motion
+            blocking=true;
+            obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+                obj.currentTilePattern(obj.parent.currentTilePosition+1,2), blocking); 
 
 
             % Import the last frames and downsample them
@@ -542,7 +547,7 @@ classdef SIBT < scanner
                     for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
                         obj.parent.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
                              int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},-1),...
-                                [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bicubic'));
+                                [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
                     end
 
                     if obj.verbose
@@ -564,10 +569,7 @@ classdef SIBT < scanner
                 return
             end
 
-            % Blocking motion
-            blocking=true;
-            obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition,1), ...
-                obj.currentTilePattern(obj.parent.currentTilePosition,2), blocking); 
+
 
             % Store stage positions. this is done after all tiles in the z-stack have been acquired
             doFakeLog=true; % Takes about 50 ms each time it talks to the PI stages. so we can skip this if we trust them
@@ -579,9 +581,10 @@ classdef SIBT < scanner
             end
 
             while obj.acquisitionPaused
-                pause(0.5)
+                pause(0.25)
             end
-            obj.hC.hScan2D.trigIssueSoftwareAcq; % Start the next position
+
+            obj.initiateTileScan  % Start the next position
 
             obj.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');
         end %tileAcqDone
