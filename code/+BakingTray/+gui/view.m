@@ -647,7 +647,7 @@ classdef view < handle
                 end
 
                 if ~obj.model.isScannerConnected
-                    warndlg('Can not generate tile positions: no scanner connected.','')
+                    fprintf('Can not generate tile positions: no scanner connected.\n')
                 end
 
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;

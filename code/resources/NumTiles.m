@@ -60,7 +60,8 @@ classdef NumTiles < handle
         function isReady = isReadyToCalcProperties(obj)
             % Return true if we are able to calculate the step size without crashing
             isReady=false;
-            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent)
+            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent) &&  obj.recipe.parent.isScannerConnected && obj.recipe.recordScannerSettings
+
                 isReady=true;
             end
         end
