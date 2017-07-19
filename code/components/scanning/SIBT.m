@@ -570,7 +570,9 @@ classdef SIBT < scanner
 
 
             % Store stage positions. this is done after all tiles in the z-stack have been acquired
-            doFakeLog=true; % Takes about 50 ms each time it talks to the PI stages. so we can skip this if we trust them
+            doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+            % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
+            % You won't get the real stage positions
             obj.parent.logPositionToPositionArray(doFakeLog) 
 
             if obj.hC.hChannels.loggingEnable==true
