@@ -678,9 +678,10 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setDepthToView
 
         function chooseChanToDisplay(obj)
+            % Choose a channel to display as a default: For now just the first channel
+
             if obj.verbose, fprintf('In acquisition_view.chooseChanToDisplay callback\n'), end
 
-            % Choose a channel to display as a default: the first saved and displayed channel
             channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
             channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
 
@@ -689,8 +690,9 @@ classdef acquisition_view < BakingTray.gui.child_view
                 return
             end
 
-            f=find(channelsScannerDisplays == channelsBeingAcquired);
-            obj.channelSelectPopup.Value=f(1);
+            %TODO: we can choose this more cleverly in future
+            obj.channelSelectPopup.Value=1;
+
             obj.setChannelToView
         end %chooseChanToDisplay
 
