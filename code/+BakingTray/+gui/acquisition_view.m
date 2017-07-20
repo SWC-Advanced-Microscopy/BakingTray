@@ -392,6 +392,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.previewImageData(y,x,:,:) = obj.model.downSampledTileBuffer;
 
                 %Only update the section image every so often to avoid slowing down the acquisition
+                n=obj.model.currentTilePosition;
                 if n==1 || mod(n,10)==0 || n==length(obj.model.positionArray)
                     obj.updateSectionImage
                 end
@@ -410,7 +411,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 return
             end
 
-            n=obj.model.currentTilePosition;
 
 
             %Raise a console warning if it looks like the image has grown in size
