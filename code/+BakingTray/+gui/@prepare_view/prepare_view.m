@@ -510,26 +510,52 @@ classdef prepare_view < BakingTray.gui.child_view
             %edits one of the step size values. 
 
             thisValue=str2double(event.String);
-            %Check the value we have extracted is numeric (since this the box itself accepts strings)
-            if isnan(thisValue)
-                thisValue=0;
-                set(event,'String',thisValue);
-            end
 
-            %Now set the fields
+            % Find which axis (XY or Z) and jog type (coarse or fine) and step size (small or large)
+            % TODO: The coarse/fine option does not work right now: July 2017
             jogType = strsplit(event.Tag,'||');
-            jogAxis=jogType{1};
-            jogSmallOrLarge=jogType{2};
+            jogAxis = jogType{1};
+            jogSmallOrLarge = jogType{2};
 
             switch jogAxis
                 case 'XY'
-                    obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    % Check the value we have extracted is numeric (since this the box itself accepts strings)
+                    % Reset the value if it was not a number
+                    if isnan(thisValue) || thisValue==0
+                        set(event, 'String', obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) );
+                    else
+                        obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    end
                 case 'Z'
-                    obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    % Reset the value if it was not a number
+                    if isnan(thisValue) || thisValue==0
+                        set(event, 'String', obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) )
+                    else
+                        obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    end
                 otherwise
                     %This can only happen if the user edits the tag properties in the source code.
                     error('YOU HAVE MODIFIED THE EDIT BOX TAGS IN PREPARE_VIEW. THE GUI CAN NO LONGER FUNCTION.')
             end
+
+            % Switch the values in the small and large step boxes if the small step is larger than the large step
+            if str2num(obj.editBox.smallStepSizeXY.String) > str2num(obj.editBox.largeStepSizeXY.String)
+                L = obj.editBox.largeStepSizeXY.String;
+                S = obj.editBox.smallStepSizeXY.String;
+                obj.editBox.smallStepSizeXY.String = L;
+                obj.editBox.largeStepSizeXY.String = S;
+                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
+                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+            end
+            if str2num(obj.editBox.smallStepSizeZ.String) > str2num(obj.editBox.largeStepSizeZ.String)
+                L = obj.editBox.largeStepSizeZ.String;
+                S = obj.editBox.smallStepSizeZ.String;
+                obj.editBox.smallStepSizeZ.String = L;
+                obj.editBox.largeStepSizeZ.String = S;
+                obj.zJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
+                obj.zJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+            end
+
         end %updateJogProperties
 
         function checkNumSlices(obj,src,~)

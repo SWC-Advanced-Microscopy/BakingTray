@@ -449,12 +449,12 @@ classdef SIBT < scanner
             if isempty(objRes)
                 % Don't issue the warning if we might change the objective resolution 
                 if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
-                    fprintf('WARNING: FOV along rows changed from %d microns to %d microns\n',...
+                    fprintf('WARNING: FOV along rows changed from %0.3f microns to %0.3f microns\n',...
                         orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)
                 end
 
                 if after.FOV_alongColsinMicrons ~= orig.FOV_alongColsinMicrons
-                    fprintf('WARNING: FOV along cols changed from %d microns to %d microns\n',...
+                    fprintf('WARNING: FOV along cols changed from %0.3f microns to %0.3f microns\n',...
                         orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
                 end
             end
