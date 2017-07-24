@@ -120,6 +120,26 @@ classdef view < handle
             settings=BakingTray.settings.readComponentSettings;
             if strcmp(settings.scanner.type,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
+                frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'scanImageFrameSizes.csv');
+                if exist(frameSizeFname, 'file')
+                    [objective,pixelsPerLine,linePerFrame,zoomValue,micsPix,fastM,slowM,objRes] = ...
+                        textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
+                    obj.menu.frameSize = uimenu(obj.menu.scanner,'Label','Frame Size');
+                    for ii=1:length(objRes)
+                        obj.menu.frameRes(ii) = uimenu(obj.menu.frameSize,'Label', ...
+                            sprintf('%dx%d %0.3f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii)) );
+                        thisStruct.objective=objective{ii};
+                        thisStruct.pixelsPerLine=pixelsPerLine(ii);
+                        thisStruct.linePerFrame=linePerFrame(ii);
+                        thisStruct.micsPix=micsPix(ii);
+                        thisStruct.fastMult=fastM(ii);
+                        thisStruct.slowMult=slowM(ii);
+                        thisStruct.objRes=objRes(ii);
+                        obj.menu.frameRes(ii).UserData=thisStruct;
+                        obj.menu.frameRes(ii).Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
+                    end
+                end
+
             end
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);

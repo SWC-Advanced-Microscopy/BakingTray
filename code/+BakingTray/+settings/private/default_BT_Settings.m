@@ -15,8 +15,6 @@ function settings=default_BT_Settings
 
     settings.SYSTEM.ID='SYSTEM_NAME';
     settings.SYSTEM.xySpeed=100.0;
-    settings.SYSTEM.objectiveZSettlingDelay=0.05;
-    settings.SYSTEM.enableFlyBackBlanking=false;
     settings.SYSTEM.cutterSide=1;
 
     settings.SLICER.approachSpeed=25.0;

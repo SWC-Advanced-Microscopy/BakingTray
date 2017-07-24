@@ -176,14 +176,6 @@ classdef SIBT < scanner
                 obj.hC.hStackManager.stackReturnHome = 1;
 
 
-                fprintf('Setting PIFOC settling time to %0.3f ms\n',...
-                    obj.parent.recipe.SYSTEM.objectiveZSettlingDelay);
-
-                if obj.parent.recipe.SYSTEM.enableFlyBackBlanking==false
-                    fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
-                    obj.hC.hBeams.flybackBlanking=false;
-                end
-
                 if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
                     %The number of channel window updates per second
                     fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
@@ -236,9 +228,7 @@ classdef SIBT < scanner
             obj.disableArmedListeners;
             obj.hC.hChannels.loggingEnable=false;
 
-            % TODO: this should be an option
-            fprintf('Turning on fly-back blanking\n')
-            obj.hC.hBeams.flybackBlanking=true;
+
             success=true;
             fprintf('Disarmed scanner: %s\n', datestr(now))
         end %disarmScanner
@@ -363,11 +353,60 @@ classdef SIBT < scanner
         end %getChannelLUT
 
 
-        function setImageSize(obj,pixelsPerLine)
-            % Change the per pixels line and ensure that the number of lines per frame changes 
-            % accordingly to maintain the FOV and ensure pixels are square. This is a bit
-            % harder than it needs to be because we allow for non-square images and the way
-            % ScanImage deals with this is clunky. 
+        function setImageSize(obj,pixelsPerLine,evnt)
+            % Set image size
+            %
+            % Purpose
+            % Change the number of pixels per line and ensure that the number of lines per frame changes 
+            % accordingly to maintain the FOV and ensure pixels are square. This is a bit harder than it 
+            % needs to be because we allow for non-square images and the way ScanImage deals with this is 
+            % clunky. 
+            % 
+            % Inputs
+            % If pixelsPerLine is an integer, this method applies it to ScanImage and ensures that the
+            % scan angle multipliers remain the same after the setting was applied. It doesn't alter
+            % the objective resolution value.
+            %
+            % This method can also be run as a callback function, in which case pixelsPerLine is a is
+            % the source structure (matlab.ui.container.Menu) and should contain a field called 
+            % "UserData" which is a structure that looks like this:
+            %
+            %       objective: 'nikon16x'
+            %   pixelsPerLine: 512
+            %    linePerFrame: 1365
+            %         micsPix: 0.7850
+            %        fastMult: 0.7500
+            %        slowMult: 2
+            %          objRes: 59.5500
+            %
+            % This information is then used to apply the scan settings. 
+
+            if isa(pixelsPerLine,'matlab.ui.container.Menu')
+                if ~isprop(pixelsPerLine,'UserData')
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+                if isempty(pixelsPerLine.UserData)
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds empty field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+
+                settings=pixelsPerLine.UserData;
+                if ~isfield(settings,'pixelsPerLine')
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "pixelsPerLine". NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+
+                pixelsPerLine = settings.pixelsPerLine;
+
+                fastMult = settings.fastMult;
+                slowMult = settings.slowMult;
+                objRes = settings.objRes;
+            else
+                fastMult = [];
+                slowMult = [];
+                objRes = [];
+            end
 
             %Let's record the image size
             orig = obj.returnScanSettings;
@@ -386,27 +425,38 @@ classdef SIBT < scanner
 
                 else
                     % Handle changes in image size if we have rectangular images
-                    slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
-                    fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
+                    if isempty(slowMult)
+                        slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
+                    end
+                    if isempty(fastMult)
+                        fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
+                    end
 
                     obj.hC.hRoiManager.pixelsPerLine=pixelsPerLine;
 
                     obj.hC.hRoiManager.scanAngleMultiplierFast=fastMult;
                     obj.hC.hRoiManager.scanAngleMultiplierSlow=slowMult;
 
+                    if ~isempty(objRes)
+                        obj.hC.objectiveResolution = objRes;
+                    end
+
             end
 
             % Issue a warning if the FOV of the image has changed after changing the number of pixels. 
             after = obj.returnScanSettings;
 
-            if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
-                fprintf('WARNING: FOV along rows changed from %d microns to %d microns\n',...
-                    orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)
-            end
+            if isempty(objRes)
+                % Don't issue the warning if we might change the objective resolution 
+                if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
+                    fprintf('WARNING: FOV along rows changed from %d microns to %d microns\n',...
+                        orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)
+                end
 
-            if after.FOV_alongColsinMicrons ~= orig.FOV_alongColsinMicrons
-                fprintf('WARNING: FOV along cols changed from %d microns to %d microns\n',...
-                    orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
+                if after.FOV_alongColsinMicrons ~= orig.FOV_alongColsinMicrons
+                    fprintf('WARNING: FOV along cols changed from %d microns to %d microns\n',...
+                        orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
+                end
             end
         end %setImageSize
 

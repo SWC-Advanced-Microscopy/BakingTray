@@ -5,6 +5,12 @@
 BakingTray is a [ScanImage 5.2](https://vidriotechnologies.com/) wrapper that performs serial section 2-photon tomography (STP) within [MATLAB](http://www.mathworks.com/). 
 The software is inspired the Svoboda lab's [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project but runs on NI hardware. 
 
+### Who is it for?
+Technically-minded people who want an open source STP solution. 
+You'll need MATLAB programming skills and know how to set up and run a 2-photon microscope. 
+BakingTray is not a turn-key solution. 
+
+
 ### How does it work?
 BakingTray combines ScanImage and an existing ScanImage [tile-scanner](https://github.com/BaselLaserMouse/ScanImageTileScan) extension to perform 2-photon tomography.
 ScanImage is freely available MATLAB-based software for running 2-photon microscopes with resonant or linear scanners. 

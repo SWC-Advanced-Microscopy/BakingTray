@@ -598,7 +598,10 @@ classdef BT < loghandler
 
             out.timePerSectionString = prettyTime(out.timePerSectionInSeconds);
             out.timeForSampleString = prettyTime(out.timeLeftInSeconds);
-            out.expectedFinishTimeString = datestr(now+(out.timeLeftInSeconds/(24*60^2)), 'dd-mm-yyyy, HH:MM');
+            timeToConvertToString = now+(out.timeLeftInSeconds/(24*60^2));
+            if ~isnan(timeToConvertToString)
+                out.expectedFinishTimeString = datestr(now+(out.timeLeftInSeconds/(24*60^2)), 'dd-mm-yyyy, HH:MM');
+            end
         end %estimateTimeRemaining
 
     end %close methods

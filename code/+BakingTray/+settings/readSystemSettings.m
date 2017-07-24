@@ -73,16 +73,6 @@ function settings = readSystemSettings
         allValid=false;
     end
 
-    if ~isnumeric(settings.SYSTEM.objectiveZSettlingDelay)
-        fprintf('SYSTEM.objectiveZSettlingDelay should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay)
-        settings.SYSTEM.objectiveZSettlingDelay = DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay;
-        allValid=false;
-    elseif settings.SYSTEM.objectiveZSettlingDelay<0
-        fprintf('SYSTEM.objectiveZSettlingDelay should not be <0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay)
-        settings.SYSTEM.objectiveZSettlingDelay = DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay;
-        allValid=false;
-    end
-
     if ~isnumeric(settings.SLICER.approachSpeed)
         fprintf('SLICER.approachSpeed should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.approachSpeed)
         settings.SLICER.approachSpeed = DEFAULT_SETTINGS.SLICER.approachSpeed;
