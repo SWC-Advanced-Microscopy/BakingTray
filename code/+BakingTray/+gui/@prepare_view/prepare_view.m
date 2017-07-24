@@ -324,18 +324,22 @@ classdef prepare_view < BakingTray.gui.child_view
 
             obj.editBox.cut_X = uicontrol(commonXYEditBoxProps{:}, ...
                 'ToolTipString', 'X cutting position', ...
-                'Position', [159,64,39,17], 'Tag', 'Cut||X');
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159,64,39,17], 'Tag', 'CuttingStartPoint||X');
 
             obj.editBox.cut_Y = uicontrol(commonXYEditBoxProps{:}, ...
                 'ToolTipString', 'Y cutting position', ...
-                'Position', [159+63,64,39,17], 'Tag', 'Cut||Y');
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159+63,64,39,17], 'Tag', 'CuttingStartPoint||Y');
 
             obj.editBox.frontLeft_X = uicontrol(commonXYEditBoxProps{:}, ...
                 'ToolTipString', 'X front/left position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
                 'Position', [159,39,39,17], 'Tag', 'FrontLeft||X');
 
             obj.editBox.frontLeft_Y = uicontrol(commonXYEditBoxProps{:}, ...
                 'ToolTipString', 'Y front/left position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
                 'Position', [159+63,39,39,17], 'Tag', 'FrontLeft||Y');
 
             obj.updateCuttingConfigurationText
@@ -650,7 +654,7 @@ classdef prepare_view < BakingTray.gui.child_view
         end %updateElementsDuringSlicing
 
         function updateCuttingConfigurationText(obj,~,~)
-            % Updates the cutting config text. This method is run once in the
+            % Updates the cutting config edit boxes. This method is run once in the
             % constructor, whenever one of the three buttons in the plan panel
             % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
             % It's also a callback function run if the user edits the F/L or cut points.
@@ -704,19 +708,28 @@ classdef prepare_view < BakingTray.gui.child_view
         end
 
         function setCuttingPos_callback(obj,~,~)
+            % Runs when the set cutting start point button is pressed
             obj.model.recipe.setCurrentPositionAsCuttingPosition;
             obj.updateCuttingConfigurationText;
         end % setCuttingPos_callback
 
         function setVentralMidline_callback(obj,~,~)
+            % Runs when the set ventral midline button is pressed
             obj.model.recipe.setFrontLeftFromVentralMidLine;
             obj.updateCuttingConfigurationText;
         end % setVentralMidline_callback
 
         function setFrontLeft_callback(obj,~,~)
+            % Runs when the set front/left button is pressed
             obj.model.recipe.setCurrentPositionAsFrontLeft;
             obj.updateCuttingConfigurationText;
         end % setFrontLeft_callback
+
+        function updateRecipeFrontLeftOrCutPointOnEditBoxChange(obj,src,~)
+            tokens = strsplit(src.Tag,'||');
+            obj.model.recipe.(tokens{1}).(tokens{2}) = str2num(src.String);
+        end % updateRecipeFrontLeftOrCutPointOnEditBoxChange
+
 
 
         %Update methods for motion axis boxes and the timer update method
