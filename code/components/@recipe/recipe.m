@@ -516,7 +516,72 @@ classdef recipe < handle
         end % set.mosaic
 
 
+        % Setter for the recipe.FrontLeft structure. 
+        % This is used to ensure that the values entered by the user are valid
+        function obj = set.FrontLeft(obj,val)
 
+            % If we're acquiring data, don't change anything
+            if ~isempty(obj.parent) && obj.parent.acquisitionInProgress
+                return
+            end
+
+            % If the recipe is attached to nothing we just set the values to whatever the user asked for
+            if isempty(obj.parent)
+                obj.FrontLeft.X = val.X;
+                obj.FrontLeft.Y = val.Y;
+                return
+            end
+
+            oldVal = obj.FrontLeft; % store the previous values
+
+            val.X = obj.checkFloat(val.X, obj.parent.xAxis.attachedStage.minPos, obj.parent.xAxis.attachedStage.maxPos);
+            val.Y = obj.checkFloat(val.Y, obj.parent.yAxis.attachedStage.minPos, obj.parent.yAxis.attachedStage.maxPos);
+
+            if isempty(val.X)
+                val.X = oldVal.X;
+            end
+
+            if isempty(val.Y)
+                val.Y = oldVal.Y;
+            end
+
+            obj.FrontLeft.X = val.X;
+            obj.FrontLeft.Y = val.Y;
+        end % set.FrontLeft
+
+
+        % Setter for the recipe.CuttingStartPoint structure. 
+        % This is used to ensure that the values entered by the user are valid
+        function obj = set.CuttingStartPoint(obj,val)
+
+            % If we're acquiring data, don't change anything
+            if ~isempty(obj.parent) && obj.parent.acquisitionInProgress
+                return
+            end
+
+            % If the recipe is attached to nothing we just set the values to whatever the user asked for
+            if isempty(obj.parent)
+                obj.CuttingStartPoint.X = val.X;
+                obj.CuttingStartPoint.Y = val.Y;
+                return
+            end
+
+            oldVal = obj.CuttingStartPoint; % store the previous values
+
+            val.X = obj.checkFloat(val.X, obj.parent.xAxis.attachedStage.minPos, obj.parent.xAxis.attachedStage.maxPos);
+            val.Y = obj.checkFloat(val.Y, obj.parent.yAxis.attachedStage.minPos, obj.parent.yAxis.attachedStage.maxPos);
+
+            if isempty(val.X)
+                val.X = oldVal.X;
+            end
+
+            if isempty(val.Y)
+                val.Y = oldVal.Y;
+            end
+
+            obj.CuttingStartPoint.X = val.X;
+            obj.CuttingStartPoint.Y = val.Y;
+        end % set.FrontLeft
 
 
     end %methods: getters/setters
