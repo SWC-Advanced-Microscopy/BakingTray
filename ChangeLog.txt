@@ -3,6 +3,21 @@ BakingTray ChangeLog
 Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
 
+
+25th July 2017
+- USER: Basic resumption of previous acquisition now works but is not well tested yet.
+- USER: Substantial speed improvements save about 3 hours off a typical acquisition.
+- USER: Front/Left and Cutting Start Point in the Prepare GUI can now be manually edited.
+- USER: Fast Z flyback time and turn-around blanking are now set via ScanImage CFG files not the SYSTEM settings YML.
+- DEVELOPER: recipe.TileStepSize and recipe.NumTiles are now separate classes.
+- Stage position corresponding to mouse location in preview image is shown. 
+- Improve the way default files are created on first startup of a fresh install.
+- Pressing ScanImage "Abort" button during scanning disarms SIBT.
+- Fewer messages displayed to screen during acquisition.
+- It is no longer possible for the small jog size in the Prepare GUI to be larger in value than the large jog size.
+- Many significant bug fixes.
+
+
 5th July 2017
 - Get rid of ScanImage user-functions. Everything now done in SIBT with listeners on the user-function notifiers.
 - Pressing "Abort" in ScanImage during tilescanning will now disarm SIBT

@@ -19,7 +19,7 @@ function settings = readSystemSettings
 
     settings=[];
     systemType='bakingtray'; %This isn't in the YAML because the user should not change it
-    systemVersion=0.5; %This isn't in the YAML because the user should not change it
+    systemVersion=0.55; %This isn't in the YAML because the user should not change it
 
     settingsDir = BakingTray.settings.settingsLocation;
 
