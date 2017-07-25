@@ -121,7 +121,7 @@ classdef SIBT < scanner
             obj.hC.hBeams.lengthConstants=Lz;
 
 
-
+            obj.enforceImportantSettings
             success=true;
         end %connect
 
