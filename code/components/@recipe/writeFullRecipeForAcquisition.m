@@ -27,14 +27,24 @@ function writeFullRecipeForAcquisition(obj,dirName)
 
     thisRecipe = struct;
     for ii=1:length(theseFields)
+
+        % We have to manually add the NumTiles and TileStepSize fields because they're classes 
+        % and WriteYaml can't handle this. 
+        if isa(obj.(theseFields{ii}), theseFields{ii}) % sorry, I know it's naughty but can't help myself
+            thisRecipe.(theseFields{ii}).X = obj.(theseFields{ii}).X;
+            thisRecipe.(theseFields{ii}).Y = obj.(theseFields{ii}).Y;
+            continue
+        end
+
         thisRecipe.(theseFields{ii}) = obj.(theseFields{ii});
     end
-
 
     recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd'));
 
     %We call tile pattern to ensure that the recipe parameters are up to date. This may no longer be needed.
     obj.tilePattern; %TODO: ensure we no longer need this explicit call here. 
 
-    BakingTray.yaml.WriteYaml(fullfile(dirName,recipeFname),thisRecipe);
+    writePath = fullfile(dirName,recipeFname);
+    fprintf('Writing recipe to %s\n',writePath);
+    BakingTray.yaml.WriteYaml(writePath,thisRecipe);
 

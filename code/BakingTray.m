@@ -12,11 +12,9 @@ function BakingTray(varargin)
     %                 base workspace is used to start BakingTray
     % 'dummyMode' - [false by default] if true we run BakingTray in dummy mode, 
     %               which simulates the hardware.
-
-
-    if ~isSafeToMake_hBT
-        return
-    end
+    %
+    %
+    % Rob Campbell - 2016
 
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     %Parse optional arguments
@@ -30,7 +28,6 @@ function BakingTray(varargin)
     dummyMode=params.Results.dummyMode;
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-
     % Build optional arguments to feed to BT during its construction
     BTargs={};
     if dummyMode
@@ -43,6 +40,7 @@ function BakingTray(varargin)
     %      bring up a blocking warning/instruction dialog then quit without building anything. 
 
     %Does a BT object exist in the base workspace?
+    evalin('base','clear ans') %Because it sometimes makes a copy of BT in ans when it fails
     hBT=BakingTray.getObject(true);
 
     if isempty(hBT)
@@ -65,9 +63,8 @@ function BakingTray(varargin)
         %If it does exist, we only re-use it if the user explicitly asked for this and there
         if useExisting
             assignin('base','hBT',hBT);
-        else
+        elseif ~isSafeToMake_hBT
             %TODO: run delete ourselves?
-            fprintf('BakingTray has already started. Not starting. delete BakingTray object from base workspace and try again\n')
             return
         end
 

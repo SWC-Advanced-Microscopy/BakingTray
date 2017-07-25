@@ -18,7 +18,8 @@ classdef SIBT < scanner
 % TODO: what does  hSI.hScan2D.scannerToRefTransform do?
 
     properties
-
+        % If true you get debug messages printed during scanning and when listener callbacks are hit
+        verbose=false;
     end
 
     properties(Hidden,SetObservable)
@@ -31,7 +32,7 @@ classdef SIBT < scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
-        allowedSampleRates=[1.25E6,2.5E6]; %TODO: for now, because the 6124 is not working as it should
+        currentTilePattern
     end
 
 
@@ -43,7 +44,7 @@ classdef SIBT < scanner
                 API=[];
             end
             obj.connect(API);
-
+            obj.scannerID='ScanImage via SIBT';
         end %constructor
 
 
@@ -88,18 +89,13 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-            obj.listeners{end+1}=addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
-
-            %Set up a listener on the sample rate to ensure it's a safe value
-            obj.listeners{end+1} = addlistener(obj.hC.hScan2D, 'sampleRate', 'PostSet', @obj.keepSampleRateWithinBounds);
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
-            obj.enforceImportantSettings
+           % obj.enforceImportantSettings
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
-            obj.listeners{end+1} = addlistener(obj.hC.hScan2D, 'bidirectional', 'PostSet', @obj.enforceImportantSettings);
-
 
             obj.LUTchanged
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
@@ -119,13 +115,13 @@ classdef SIBT < scanner
             obj.hC.hFastZ.waveformType='step'; %Enforced anyway when arming the scanner
 
             %Supply a reasonable default for the illumination with depth adjustment and report to the command line 
-            Lz=180;
+            Lz=210; %TODO: this should be a user setting not in here
             fprintf(' - Setting up power/depth correction using Lz=%d.\n   You may change this value in "POWER CONTROLS". (Smaller numbers will increase the power more with depth.)\n',Lz)
             obj.hC.hBeams.pzAdjust=true;
             obj.hC.hBeams.lengthConstants=Lz;
 
 
-
+            obj.enforceImportantSettings
             success=true;
         end %connect
 
@@ -180,15 +176,6 @@ classdef SIBT < scanner
                 obj.hC.hStackManager.stackReturnHome = 1;
 
 
-                fprintf('Setting PIFOC settling time to %0.3f ms\n',...
-                    obj.parent.recipe.SYSTEM.objectiveZSettlingDelay);
-                obj.hC.hFastZ.flybackTime = obj.parent.recipe.SYSTEM.objectiveZSettlingDelay;
-
-                if obj.parent.recipe.SYSTEM.enableFlyBackBlanking==false
-                    fprintf('Switching off beam fly-back blanking. This reduces amplifier ringing artifacts\n')
-                    obj.hC.hBeams.flybackBlanking=false;
-                end
-
                 if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
                     %The number of channel window updates per second
                     fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
@@ -221,6 +208,11 @@ classdef SIBT < scanner
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
 
+            % Store the current tile pattern, as it's generated on the fly and 
+            % and this is time-consuming to put into the tile acq callback. 
+            obj.currentTilePattern=obj.parent.recipe.tilePattern;
+
+            fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
 
 
@@ -231,18 +223,14 @@ classdef SIBT < scanner
                 return
             end
 
-            %Disable z sectioning
-            obj.hC.hFastZ.enable=0;
-            hSI.hStackManager.numSlices = 1;
-
-            obj.hC.extTrigEnable=0;  
+            obj.hC.extTrigEnable=0;
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
             obj.hC.hChannels.loggingEnable=false;
 
-            fprintf('Turning on fly-back blanking\n')
-            obj.hC.hBeams.flybackBlanking=true;
+
             success=true;
+            fprintf('Disarmed scanner: %s\n', datestr(now))
         end %disarmScanner
 
 
@@ -254,6 +242,9 @@ classdef SIBT < scanner
         function acquiring = isAcquiring(obj,~,~)
             %Returns true if a focus, loop, or grab is in progress even if the system is not
             %currently acquiring a frame
+            if obj.verbose
+                fprintf('Hit SIBT.isAcquiring\n')
+            end
             acquiring = ~strcmp(obj.hC.acqState,'idle');
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
@@ -271,6 +262,7 @@ classdef SIBT < scanner
             scanSettings.pixelsPerLine = obj.hC.hRoiManager.pixelsPerLine;
             scanSettings.linesPerFrame = obj.hC.hRoiManager.linesPerFrame;
             scanSettings.micronsBetweenOpticalPlanes = obj.hC.hStackManager.stackZStepSize;
+            scanSettings.numOpticalSlices = obj.hC.hStackManager.numSlices;
             scanSettings.zoomFactor = obj.hC.hRoiManager.scanZoomFactor;
 
             scanSettings.scannerMechanicalAnglePP_fast_axis = round(range(obj.hC.hRoiManager.imagingFovDeg(:,1)),3);
@@ -278,17 +270,26 @@ classdef SIBT < scanner
 
             scanSettings.FOV_alongColsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,1)),3);
             scanSettings.FOV_alongRowsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,2)),3);
-           
+
             scanSettings.micronsPerPixel_cols = round(scanSettings.FOV_alongColsinMicrons/scanSettings.pixelsPerLine,3);
             scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
-            
+
             scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
             scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
             scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
             scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
-            scanSettings.activeChannels = obj.channelsToAcquire;
+            scanSettings.activeChannels = obj.hC.hChannels.channelSave;
+
+            % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
+            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
             scanSettings.scanMode= obj.scannerType;
+            scanSettings.scannerID=obj.scannerID;
+
+            %Record the detailed image settings to allow for things like acquisition resumption
+            scanSettings.pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
+            scanSettings.slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
+            scanSettings.fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
         end %returnScanSettings
 
 
@@ -324,6 +325,9 @@ classdef SIBT < scanner
 
         function theseChans = channelsToAcquire(obj,~,~)
             % This is also a listener callback function
+            if obj.verbose
+                fprintf('Hit SIBT.channelsToAcquire\n')
+            end
             theseChans = obj.hC.hChannels.channelSave;
             obj.channelsToSave = theseChans; %store the currently selected channels to save
         end %channelsToAcquire
@@ -349,11 +353,60 @@ classdef SIBT < scanner
         end %getChannelLUT
 
 
-        function setImageSize(obj,pixelsPerLine)
-            % Change the per pixels line and ensure that the number of lines per frame changes 
-            % accordingly to maintain the FOV and ensure pixels are square. This is a bit
-            % harder than it needs to be because we allow for non-square images and the way
-            % ScanImage deals with this is clunky. 
+        function setImageSize(obj,pixelsPerLine,evnt)
+            % Set image size
+            %
+            % Purpose
+            % Change the number of pixels per line and ensure that the number of lines per frame changes 
+            % accordingly to maintain the FOV and ensure pixels are square. This is a bit harder than it 
+            % needs to be because we allow for non-square images and the way ScanImage deals with this is 
+            % clunky. 
+            % 
+            % Inputs
+            % If pixelsPerLine is an integer, this method applies it to ScanImage and ensures that the
+            % scan angle multipliers remain the same after the setting was applied. It doesn't alter
+            % the objective resolution value.
+            %
+            % This method can also be run as a callback function, in which case pixelsPerLine is a is
+            % the source structure (matlab.ui.container.Menu) and should contain a field called 
+            % "UserData" which is a structure that looks like this:
+            %
+            %       objective: 'nikon16x'
+            %   pixelsPerLine: 512
+            %    linePerFrame: 1365
+            %         micsPix: 0.7850
+            %        fastMult: 0.7500
+            %        slowMult: 2
+            %          objRes: 59.5500
+            %
+            % This information is then used to apply the scan settings. 
+
+            if isa(pixelsPerLine,'matlab.ui.container.Menu')
+                if ~isprop(pixelsPerLine,'UserData')
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+                if isempty(pixelsPerLine.UserData)
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds empty field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+
+                settings=pixelsPerLine.UserData;
+                if ~isfield(settings,'pixelsPerLine')
+                    fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "pixelsPerLine". NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
+                    return
+                end
+
+                pixelsPerLine = settings.pixelsPerLine;
+
+                fastMult = settings.fastMult;
+                slowMult = settings.slowMult;
+                objRes = settings.objRes;
+            else
+                fastMult = [];
+                slowMult = [];
+                objRes = [];
+            end
 
             %Let's record the image size
             orig = obj.returnScanSettings;
@@ -372,29 +425,80 @@ classdef SIBT < scanner
 
                 else
                     % Handle changes in image size if we have rectangular images
-                    slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
-                    fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
+                    if isempty(slowMult)
+                        slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
+                    end
+                    if isempty(fastMult)
+                        fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
+                    end
 
                     obj.hC.hRoiManager.pixelsPerLine=pixelsPerLine;
 
                     obj.hC.hRoiManager.scanAngleMultiplierFast=fastMult;
                     obj.hC.hRoiManager.scanAngleMultiplierSlow=slowMult;
 
+                    if ~isempty(objRes)
+                        obj.hC.objectiveResolution = objRes;
+                    end
+
             end
 
             % Issue a warning if the FOV of the image has changed after changing the number of pixels. 
             after = obj.returnScanSettings;
 
-            if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
-                fprintf('WARNING: FOV along rows changed from %d microns to %d microns\n',...
-                    orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)
-            end
+            if isempty(objRes)
+                % Don't issue the warning if we might change the objective resolution 
+                if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
+                    fprintf('WARNING: FOV along rows changed from %0.3f microns to %0.3f microns\n',...
+                        orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)
+                end
 
-            if after.FOV_alongColsinMicrons ~= orig.FOV_alongColsinMicrons
-                fprintf('WARNING: FOV along cols changed from %d microns to %d microns\n',...
-                    orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
+                if after.FOV_alongColsinMicrons ~= orig.FOV_alongColsinMicrons
+                    fprintf('WARNING: FOV along cols changed from %0.3f microns to %0.3f microns\n',...
+                        orig.FOV_alongColsinMicrons, after.FOV_alongColsinMicrons)
+                end
             end
         end %setImageSize
+
+        function applyScanSettings(obj,scanSettings)
+            % Applies a saved set of scanSettings in order to return ScanImage to a 
+            % a previous state. e.g. used to resume an acquisition following a crash.
+            if ~isstruct(scanSettings)
+                return
+            end
+
+            % The following z-stack-related settings don't strictly need to be set, 
+            % since they are applied when the scanner is armed.
+            obj.hC.hStackManager.stackZStepSize = scanSettings.micronsBetweenOpticalPlanes;
+            obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
+
+            % Set the laser power and changing power with depth
+            obj.hC.hBeams.powers = scanSettings.beamPower;            
+            obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
+            % TODO : add the drop-down 
+
+            % Which channels to acquire
+            if iscell(scanSettings.activeChannels)
+                scanSettings.activeChannels = cell2mat(scanSettings.activeChannels);
+            end
+            obj.hC.hChannels.channelSave = scanSettings.activeChannels;
+
+
+            % We set the scan parameters. The order in which these are set matters            
+            obj.hC.hRoiManager.scanZoomFactor = scanSettings.zoomFactor;
+            obj.hC.hScan2D.bidirectional = scanSettings.bidirectionalScan;
+            obj.hC.hRoiManager.forceSquarePixelation = scanSettings.pixEqLinCheckBox;
+
+            obj.hC.hRoiManager.pixelsPerLine = scanSettings.pixelsPerLine;
+            if ~scanSettings.pixEqLinCheckBox
+                obj.hC.hRoiManager.linesPerFrame = scanSettings.linesPerFrame;
+            end
+
+            % Set the scan angle multipliers. This is likely only critical if 
+            % acquiring rectangular scans.
+            obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
+            obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
+        end %applyScanSettings
 
     end %close methods
 
@@ -425,29 +529,22 @@ classdef SIBT < scanner
 
 
 
-        %Listener callback functions
-        function keepSampleRateWithinBounds(obj,~,~)
-            if ~any(obj.allowedSampleRates == obj.hC.hScan2D.sampleRate)
-                obj.hC.hScan2D.sampleRate=obj.allowedSampleRates(1);
-                %TODO: SHORT TERM HACK!
-                fprintf('Setting sample rate to a safe value. Only some rates work currently with the PXIe-6124\n')
-            end
-
-        end %keepSampleRateWithinBounds
-
-
+        %Listener callback methods
         function enforceImportantSettings(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
+            if obj.verbose
+                fprintf('Hit SIBT.enforceImportantSettings\n')
+            end
             if obj.hC.hRoiManager.forceSquarePixels==false
                 obj.hC.hRoiManager.forceSquarePixels=true;
             end
-            if obj.hC.hScan2D.bidirectional==false
-                obj.hC.hScan2D.bidirectional=true;
-            end
         end %enforceImportantSettings
 
-        
+
         function LUTchanged(obj,~,~)
+            if obj.verbose
+                fprintf('Hit SIBT.LUTchanged\n')
+            end
             obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; %Just flip it so listeners on other classes notice the change
         end %LUTchanged
 
@@ -457,16 +554,23 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
+            %Log theX and Y positions in the grid associated with the tile data from the last acquired position
+            if ~isempty(obj.parent.positionArray)
+                obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
+                obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
+                obj.parent.lastTileIndex = obj.parent.currentTilePosition;
+            else
+                fprintf('BT.positionArray is empty. Not logging last tile positions. Likely hBT.runTileScan was not run.\n')
+            end
 
-            %Move stage at the end of a volume or tile acquisition
-            hBT = obj.parent;
-            %Log theX and Y positions in the grid associated with these tile data
-            hBT.lastTilePos.X = hBT.positionArray(hBT.currentTilePosition,1);
-            hBT.lastTilePos.Y = hBT.positionArray(hBT.currentTilePosition,2);
-            hBT.lastTileIndex = hBT.currentTilePosition;
-            verbose=false;
+            % Blocking motion
+            blocking=true;
+            obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+                obj.currentTilePattern(obj.parent.currentTilePosition+1,2), blocking); 
 
-            if hBT.importLastFrames
+
+            % Import the last frames and downsample them
+            if obj.parent.importLastFrames
                 msg='';
                 for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
                     % scanimage stores image data in a data structure called 'stripeData'
@@ -484,61 +588,70 @@ classdef SIBT < scanner
 
                     if ~isempty(msg)
                         msg = [msg, 'NOT EXTRACTING TILE DATA IN SIBT.tileAcqDone'];
-                        hBT.logMessage('acqDone',dbstack,6,msg);
+                        obj.logMessage('acqDone',dbstack,6,msg);
                         break
                     end
 
                     for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
-                        hBT.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
+                        obj.parent.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
                              int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},-1),...
-                                [size(hBT.downSampledTileBuffer,1),size(hBT.downSampledTileBuffer,2)],'bicubic'));
+                                [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
                     end
 
-                    if verbose
-                        fprintf('Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
+                    if obj.verbose
+                        fprintf('%d - Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
+                            obj.parent.currentTilePosition, ...
                             lastStripe.frameNumberAcq, ...
                             lastStripe.frameNumberAcqMode, ...
                             lastStripe.frameTimestamp)
                     end
                 end % z=1:length...
-            end % if hBT.importLastFrames
+            end % if obj.parent.importLastFrames
 
 
             %Increement the counter and make the new position the current one
-            hBT.currentTilePosition = hBT.currentTilePosition+1;
-            pos=hBT.recipe.tilePattern;
+            obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
-            if hBT.currentTilePosition>size(pos,1)
+            if obj.parent.currentTilePosition>size(obj.currentTilePattern,1)
+                fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
                 return
             end
 
-            % Blocking motion
-            hBT.moveXYto(pos(hBT.currentTilePosition,1),pos(hBT.currentTilePosition,2),1); 
 
-            %store stage positions. this is done after all tiles in the z-stack have been acquired
-            hBT.logPositionToPositionArray
-            positionArray=hBT.positionArray;
+
+            % Store stage positions. this is done after all tiles in the z-stack have been acquired
+            doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+            % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
+            % You won't get the real stage positions
+            obj.parent.logPositionToPositionArray(doFakeLog) 
 
             if obj.hC.hChannels.loggingEnable==true
-                save(fullfile(hBT.currentTileSavePath,'tilePositions.mat'),'positionArray')
+                positionArray = obj.parent.positionArray;
+                save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
             end
 
-            if obj.hC.active % Could have a smarter check here. e.g. stop only when all volumes 
-                              % are in so we generate an error if there's a failure
-
-                while hBT.scanner.acquisitionPaused
-                    pause(0.5)
-                end
-                obj.hC.hScan2D.trigIssueSoftwareAcq; %Acquire all depths and channeLs at this X/Y position
+            while obj.acquisitionPaused
+                pause(0.25)
             end
-            hBT.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');            
 
+            obj.initiateTileScan  % Start the next position
+
+            obj.logMessage('acqDone',dbstack,2,'->Completed acqDone<-');
         end %tileAcqDone
+
+
+        function tileAcqDone_minimal(obj,~,~)
+            % Minimal acq done for testing and de-bugging
+            obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+            obj.hC.hScan2D.trigIssueSoftwareAcq;
+        end % tileAcqDone_minimal(obj,~,~)
 
 
         function tileScanAbortedInScanImage(obj,~,~)
             % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
-
+            if obj.verbose
+                fprintf('Hit obj.tileScanAbortedInScanImage\n')
+            end
             % Wait for scanner to stop being in acquisition mode
             obj.disableArmedListeners
             obj.abortScanning

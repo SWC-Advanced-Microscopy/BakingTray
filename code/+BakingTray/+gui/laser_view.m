@@ -71,7 +71,7 @@ classdef laser_view < BakingTray.gui.child_view
 
 
             %Add some listeners to monitor properties on the laser component
-            fprintf('Setting up laser GUI listners\n')
+            fprintf('Setting up laser GUI listeners\n')
             obj.listeners{1}=addlistener(obj.model.laser, 'targetWavelength', 'PostSet', @obj.setWavelengthEditPanelToNewTargetWaveLength);
             obj.listeners{2}=addlistener(obj.model.laser, 'currentWavelength','PostSet', @obj.setReadWavelengthTextPanel);
             obj.listeners{3}=addlistener(obj.model.laser, 'isLaserShutterOpen','PostSet', @obj.updateGUI);

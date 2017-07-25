@@ -52,8 +52,6 @@ function bake(obj,varargin)
     %Define an anonymous function to nicely print the current time
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
 
-    %% TODO: close all file handles in a cleanup function
-
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake. 
@@ -135,8 +133,9 @@ function bake(obj,varargin)
             obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
         end
 
-        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f\n',...
-            currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos))
+        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
+            currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
+            strrep(obj.currentTileSavePath,'\','\\') ))
         startAcq=now;
 
 

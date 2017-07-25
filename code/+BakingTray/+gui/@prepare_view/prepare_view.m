@@ -1,5 +1,7 @@
 classdef prepare_view < BakingTray.gui.child_view
-
+    % bakingtray.gui.prepare_view handles motion commands, cutting, setting of start position
+    %
+    % obj=bakingtray.gui.prepare_view(hBT,hBTview)
     properties
 
         %Buttons
@@ -227,38 +229,38 @@ classdef prepare_view < BakingTray.gui.child_view
 
             buttonRowPos=25; 
             absPosSize=[45,20];
-            commmonProps={'Parent', obj.absMove_panel, 'Style','edit'};
+            commonEditBoxProps={'Parent', obj.absMove_panel, 'Style','edit'};
 
-            obj.editBox.xPos=uicontrol(commmonProps{:}, ...
+            obj.editBox.xPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 55 absPosSize], ...
                 'TooltipString','Current X position and absolute move command', ...
                 'String', sprintf('%0.3f',obj.model.xAxis.axisPosition),...
                 'Tag','xAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
-            obj.editBox.yPos=uicontrol(commmonProps{:}, ...
+            obj.editBox.yPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 30 absPosSize], ...
                 'TooltipString','Current Y position and absolute move command', ...
                 'String', sprintf('%0.3f',obj.model.yAxis.axisPosition),...
                 'Tag','yAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
-            obj.editBox.zPos=uicontrol(commmonProps{:}, ...
+            obj.editBox.zPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 5 absPosSize], ...
                 'TooltipString','Current Z position and absolute move command', ...
                 'String', sprintf('%0.3f',obj.model.zAxis.axisPosition),...
                 'Tag','zAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
 
-            commonProps={obj.absMove_panel, 'textbox', 'EdgeColor', 'none', ...
+            commonEditBoxProps={obj.absMove_panel, 'textbox', 'EdgeColor', 'none', ...
                 'HorizontalAlignment', 'Center', 'Units','Pixels', ...
                 'Color', 'w','FontSize', obj.fSize, 'FitBoxToText','off'};
             labelSize=[15,20];
-            obj.labels.xAbs=annotation(commonProps{:}, ...
+            obj.labels.xAbs=annotation(commonEditBoxProps{:}, ...
                 'Position', [5,55,labelSize], ...
                 'String', 'X');
-            obj.labels.yAbs=annotation(commonProps{:}, ...
+            obj.labels.yAbs=annotation(commonEditBoxProps{:}, ...
                 'Position', [5,30,labelSize], ...
                 'String', 'Y');
-            obj.labels.zAbs=annotation(commonProps{:}, ...
+            obj.labels.zAbs=annotation(commonEditBoxProps{:}, ...
                 'Position', [5,5,labelSize], ...
                 'String', 'Z');
 
@@ -286,31 +288,60 @@ classdef prepare_view < BakingTray.gui.child_view
             % ----------------------------
             % cutting and start position buttons
             obj.plan_panel = BakingTray.gui.newGenericGUIPanel([5,97,270,89], obj.hFig);
-            commonProps={'Parent',obj.plan_panel,'FontSize',obj.fSize};
-            obj.setCuttingPos_button=uicontrol(commonProps{:}, ...
+            commonButtonProps={'Parent',obj.plan_panel,'FontSize',obj.fSize};
+            obj.setCuttingPos_button=uicontrol(commonButtonProps{:}, ...
                 'Position',[3,59,130,25], ...
                 'String','Set blade position', ...
                 'Callback', @obj.setCuttingPos_callback );
-            obj.setVentralMidline_button=uicontrol(commonProps{:}, ...
+
+            obj.setFrontLeft_button=uicontrol(commonButtonProps{:}, ...
                 'Position',[3,31,130,25], ...
-                'String','Set ventral midline', ...
-                'Callback', @obj.setVentralMidline_callback );
-            obj.setFrontLeft_button=uicontrol(commonProps{:}, ...
-                'Position',[3,3,130,25], ...
                 'String','Set front/left', ...
                 'Callback', @obj.setFrontLeft_callback );
 
-            % Text box to display the current cutting configuration
-            % The text in this pannel updates whenever one of the three
-            % buttons in the panel are pressed or whenever the recipe
-            % if updated in the main view (BakingTray.gui.view)
-            % The method that does the update is obj.updateCuttingConfigurationText
-            obj.labels.cuttingConfiguration=annotation(obj.plan_panel,...
-                'textbox', 'EdgeColor', 'none', ...
-                'HorizontalAlignment', 'Left', 'Units','Pixels', ...
-                'Color', 'w','FontSize', obj.fSize, 'FitBoxToText','off', ...
-                'Position', [133,3,140,83], ...
-                'String', '');
+            obj.setVentralMidline_button=uicontrol(commonButtonProps{:}, ...
+                'Position',[3,3,130,25], ...
+                'String','Set ventral midline', ...
+                'Callback', @obj.setVentralMidline_callback );
+
+
+            % Text exit boxes for the cutting start point and position
+            commonXYtextProps={'Color','w', 'FontSize', obj.fSize, 'Units','Pixels'};
+            obj.labels.cut_X = annotation(obj.plan_panel, 'textbox', commonXYtextProps{:}, ...
+                'Position', [135, 65, 10, 18], 'String', 'X=');
+
+            obj.labels.cut_Y = annotation(obj.plan_panel, 'textbox', commonXYtextProps{:}, ...
+                'Position', [135+63, 65, 10, 18], 'String', 'Y=');
+
+            obj.labels.frontLeft_X = annotation(obj.plan_panel, 'textbox', commonXYtextProps{:}, ...
+                'Position', [135, 40, 10, 18], 'String', 'X=');
+
+            obj.labels.frontLeft_Y = annotation(obj.plan_panel, 'textbox', commonXYtextProps{:}, ...
+                'Position', [135+63, 40, 10, 18], 'String', 'Y=');
+
+
+            commonXYEditBoxProps={'Parent', obj.plan_panel, 'Style','edit'};
+
+            obj.editBox.cut_X = uicontrol(commonXYEditBoxProps{:}, ...
+                'ToolTipString', 'X cutting position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159,64,39,17], 'Tag', 'CuttingStartPoint||X');
+
+            obj.editBox.cut_Y = uicontrol(commonXYEditBoxProps{:}, ...
+                'ToolTipString', 'Y cutting position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159+63,64,39,17], 'Tag', 'CuttingStartPoint||Y');
+
+            obj.editBox.frontLeft_X = uicontrol(commonXYEditBoxProps{:}, ...
+                'ToolTipString', 'X front/left position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159,39,39,17], 'Tag', 'FrontLeft||X');
+
+            obj.editBox.frontLeft_Y = uicontrol(commonXYEditBoxProps{:}, ...
+                'ToolTipString', 'Y front/left position', ...
+                'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
+                'Position', [159+63,39,39,17], 'Tag', 'FrontLeft||Y');
+
             obj.updateCuttingConfigurationText
 
 
@@ -510,26 +541,52 @@ classdef prepare_view < BakingTray.gui.child_view
             %edits one of the step size values. 
 
             thisValue=str2double(event.String);
-            %Check the value we have extracted is numeric (since this the box itself accepts strings)
-            if isnan(thisValue)
-                thisValue=0;
-                set(event,'String',thisValue);
-            end
 
-            %Now set the fields
+            % Find which axis (XY or Z) and jog type (coarse or fine) and step size (small or large)
+            % TODO: The coarse/fine option does not work right now: July 2017
             jogType = strsplit(event.Tag,'||');
-            jogAxis=jogType{1};
-            jogSmallOrLarge=jogType{2};
+            jogAxis = jogType{1};
+            jogSmallOrLarge = jogType{2};
 
             switch jogAxis
                 case 'XY'
-                    obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    % Check the value we have extracted is numeric (since this the box itself accepts strings)
+                    % Reset the value if it was not a number
+                    if isnan(thisValue) || thisValue==0
+                        set(event, 'String', obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) );
+                    else
+                        obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    end
                 case 'Z'
-                    obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    % Reset the value if it was not a number
+                    if isnan(thisValue) || thisValue==0
+                        set(event, 'String', obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) )
+                    else
+                        obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                    end
                 otherwise
                     %This can only happen if the user edits the tag properties in the source code.
                     error('YOU HAVE MODIFIED THE EDIT BOX TAGS IN PREPARE_VIEW. THE GUI CAN NO LONGER FUNCTION.')
             end
+
+            % Switch the values in the small and large step boxes if the small step is larger than the large step
+            if str2num(obj.editBox.smallStepSizeXY.String) > str2num(obj.editBox.largeStepSizeXY.String)
+                L = obj.editBox.largeStepSizeXY.String;
+                S = obj.editBox.smallStepSizeXY.String;
+                obj.editBox.smallStepSizeXY.String = L;
+                obj.editBox.largeStepSizeXY.String = S;
+                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
+                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+            end
+            if str2num(obj.editBox.smallStepSizeZ.String) > str2num(obj.editBox.largeStepSizeZ.String)
+                L = obj.editBox.largeStepSizeZ.String;
+                S = obj.editBox.smallStepSizeZ.String;
+                obj.editBox.smallStepSizeZ.String = L;
+                obj.editBox.largeStepSizeZ.String = S;
+                obj.zJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
+                obj.zJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+            end
+
         end %updateJogProperties
 
         function checkNumSlices(obj,src,~)
@@ -597,7 +654,7 @@ classdef prepare_view < BakingTray.gui.child_view
         end %updateElementsDuringSlicing
 
         function updateCuttingConfigurationText(obj,~,~)
-            % Updates the cutting config text. This method is run once in the
+            % Updates the cutting config edit boxes. This method is run once in the
             % constructor, whenever one of the three buttons in the plan panel
             % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
             % It's also a callback function run if the user edits the F/L or cut points.
@@ -605,14 +662,15 @@ classdef prepare_view < BakingTray.gui.child_view
             if isempty(R)
                 return
             end
-            msg='';
+
             C=R.CuttingStartPoint;
-            msg = sprintf('%sCutting start point:\n X=%0.1f Y=%0.1f\n', msg, round(C.X,1), round(C.Y,1));
+            obj.editBox.cut_X.String = sprintf('%0.2f', round(C.X,2));
+            obj.editBox.cut_Y.String = sprintf('%0.2f', round(C.Y,2));
 
             F=R.FrontLeft;
-            msg = sprintf('%sFront/Left point:\n X=%0.1f Y=%0.1f\n', msg, round(F.X,1), round(F.Y,1));
+            obj.editBox.frontLeft_X.String = sprintf('%0.2f', round(F.X,2));
+            obj.editBox.frontLeft_Y.String = sprintf('%0.2f', round(F.Y,2));
 
-            obj.labels.cuttingConfiguration.String=msg;
         end %updateCuttingConfigurationText
 
         function executeAbsoluteMotion(obj,event,~)
@@ -650,19 +708,28 @@ classdef prepare_view < BakingTray.gui.child_view
         end
 
         function setCuttingPos_callback(obj,~,~)
+            % Runs when the set cutting start point button is pressed
             obj.model.recipe.setCurrentPositionAsCuttingPosition;
-            obj.updateCuttingConfigurationText; %TODO: we need a listener on this or it doesn't update when changes are made via the API
+            obj.updateCuttingConfigurationText;
         end % setCuttingPos_callback
 
         function setVentralMidline_callback(obj,~,~)
+            % Runs when the set ventral midline button is pressed
             obj.model.recipe.setFrontLeftFromVentralMidLine;
             obj.updateCuttingConfigurationText;
         end % setVentralMidline_callback
 
         function setFrontLeft_callback(obj,~,~)
+            % Runs when the set front/left button is pressed
             obj.model.recipe.setCurrentPositionAsFrontLeft;
-            obj.updateCuttingConfigurationText; %TODO: we need a listener on this or it doesn't update when changes are made via the API
+            obj.updateCuttingConfigurationText;
         end % setFrontLeft_callback
+
+        function updateRecipeFrontLeftOrCutPointOnEditBoxChange(obj,src,~)
+            tokens = strsplit(src.Tag,'||');
+            obj.model.recipe.(tokens{1}).(tokens{2}) = str2num(src.String);
+        end % updateRecipeFrontLeftOrCutPointOnEditBoxChange
+
 
 
         %Update methods for motion axis boxes and the timer update method

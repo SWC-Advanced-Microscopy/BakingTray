@@ -100,7 +100,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     if obj.isRecipeConnected
         n=0;
         for ii=1:obj.recipe.mosaic.numSections
-            obj.currentSectionNumber=ii+obj.recipe.mosaic.sectionStartNum-1;
+            obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1; % Sets obj.thisSectionDir
             if exist(obj.thisSectionDir,'dir')
                 n=n+1;
             end
@@ -113,7 +113,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
             end
             msg=sprintf(['%sConducting acquisition in this directory would write data into %d existing section director%s.\n',...
                 'Acquisition will not proceed.\nSolutions:\n\t* Start a new directory.\n\t* Change the sample ID name.\n',...
-                '\t* Change the section start number.\n'],msg,n,nDirStr);
+                '\t* Change the section start number.\n'], msg, n, nDirStr);
         end
     end
 

@@ -1,7 +1,7 @@
-function success=attachRecipe(obj,fname)
+function success=attachRecipe(obj,fname,resume)
     % Attach recipe  BT
     %
-    % function success=attachRecipe(obj,fname)
+    % function success=attachRecipe(obj,fname,resume)
     %
     % Purpose
     % Adds a "recipe" to the BT object. The recipe is the file which desfines
@@ -13,14 +13,21 @@ function success=attachRecipe(obj,fname)
     %
     % Inputs
     % fname - The name of the recipe to load. If missing it loads the built-in default 
-    %         recipe that is present in the SETTINGS folder. 
+    %         recipe that is present in the SETTINGS folder.
+    % resume - False by default. If true we load the full settings of the resip to
+    %          to attempt to resume it. See help recipe.
+    %
     %
     % Outputs
-    % success - Returns true if  recipe was added. 
+    % success - Returns true if the recipe was added.
     %
 
     if nargin<2
         fname=[];
+    end
+
+    if nargin<3
+        resume=false;
     end
 
     %If recipe was not a valid recipe name just exit and indicate failure
@@ -50,7 +57,7 @@ function success=attachRecipe(obj,fname)
 
     if success
         %Return false if the attachment of the recipe failed
-        obj.recipe=recipe(fname);
+        obj.recipe=recipe(fname,'resume', resume);
 
         %Set the stage speeds
         obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed);

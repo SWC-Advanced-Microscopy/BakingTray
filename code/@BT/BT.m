@@ -1,10 +1,11 @@
 classdef BT < loghandler
-% BT
-% 
-% This the master microscope control class. It inherits loghandler.
-% It does not inherit an abstract class as do the objects attached to it.
-% in a fairly abstract manner. 
-% 
+% BT - This is the master BakingTray class for control of automated serial-section 2p tomography
+%
+% Purpose
+% BT is the master microscope control class. This is where most of the awesome stuff
+% happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
+% an abstract class.
+%
 % e.g.
 %  B=buildDummyControllers;
 %  hBT=BT(B);
@@ -33,7 +34,6 @@ classdef BT < loghandler
         xAxis
         yAxis
         zAxis
-        mylistener
     end
 
     properties (SetAccess=immutable,Hidden)
@@ -47,12 +47,14 @@ classdef BT < loghandler
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
 
+    properties (SetObservable,AbortSet,Transient)
+        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
+    end
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        sampleSavePath          % The absolute path in which all data related to the current sample will be saved.
         rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
-        currentTileSavePath     % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
+        currentTileSavePath=''  % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
@@ -112,7 +114,7 @@ classdef BT < loghandler
             %Parse optional arguments
             params = inputParser;
             params.CaseSensitive = false;
-            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(X))
+            params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(x))
             params.parse(varargin{:});
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
@@ -191,6 +193,9 @@ classdef BT < loghandler
             end
             if obj.isLaserConnected
                 obj.laser.delete
+            end
+            if obj.isScannerConnected
+                obj.scanner.delete
             end
 
         end  %Destructor
@@ -302,7 +307,7 @@ classdef BT < loghandler
             tic
 
             while obj.isXYmoving
-                pause(0.05)
+                pause(0.01)
                 if toc>timeOut
                     obj.logMessage(inputname(1),dbstack,4,'Timed out waiting for motion to complete')
                     break
@@ -320,6 +325,7 @@ classdef BT < loghandler
         end
 
         function success=stopXY(obj)
+            % Stop motion of the X and Y stages
             success = obj.xAxis.stopAxis & obj.yAxis.stopAxis;
         end
 
@@ -395,6 +401,13 @@ classdef BT < loghandler
         end
 
         function success = moveZto(obj,position,blocking)
+            % Absolute z-stage motion
+            %
+            % function success = moveZto(obj,position,blocking)
+            %
+            % position - value in mm
+            % blocking - if true block until motion complete
+
             if nargin<3, blocking=1; end %blocking by default. Otherwise it homes if it gets a command whilst executing another
             success=obj.zAxis.absoluteMove(position);
             if ~success, return, end
@@ -408,6 +421,13 @@ classdef BT < loghandler
         end %moveZto
 
         function moveZby(obj,distanceToMove,blocking)
+            % Relative z-stage motion
+            %
+            % function success = moveZby(obj,position,blocking)
+            %
+            % position - value in mm
+            % blocking - if true block until motion complete
+
             if nargin<3, blocking=1; end %blocking by default. Otherwise it homes if it gets a command whilst executing another
             success=obj.zAxis.relativeMove(distanceToMove);
             if ~success, return, end
@@ -421,6 +441,7 @@ classdef BT < loghandler
         end %moveZby
 
         function success=stopZ(obj)
+            % stops z motion
             success = obj.zAxis.stopAxis;
         end
 
@@ -430,9 +451,11 @@ classdef BT < loghandler
         % ----------------------------------------------------------------------
         % Convenience methods to query axis position 
         function pos = getXpos(obj)
+            % Return the position of the X stage in mm
             pos=obj.xAxis.axisPosition;
         end
         function pos = getYpos(obj)
+            % Return the position of the Y stage in mm
             pos=obj.yAxis.axisPosition;
         end
         function varargout = getZpos(obj)
@@ -467,12 +490,15 @@ classdef BT < loghandler
         % Convenience methods to get or set properties of the stage motions:
         % maxSpeed and acceleration
         function vel = getXvelocity(obj)
+            % Get the target speed of the X stage in mm/s
             vel=obj.xAxis.getMaxVelocity;
         end
         function vel = getYvelocity(obj)
+            % Get the target speed of the Y stage in mm/s
             vel=obj.yAxis.getMaxVelocity;
         end
         function vel = getZvelocity(obj)
+            % Get the target speed of the Z stage in mm/s
             vel=obj.zAxis.getMaxVelocity;
         end
 
@@ -545,7 +571,7 @@ classdef BT < loghandler
             if ~obj.isRecipeConnected
                 return
             end
-            
+
 
             if ~isempty(obj.sectionCompletionTimes) && obj.acquisitionInProgress
                 %If we determine how long the acquisition will take using the actual section times. 
@@ -555,12 +581,6 @@ classdef BT < loghandler
                 out.timeLeftInSeconds = sectionsRemaining * mu;
 
             elseif obj.isScannerConnected 
-                TP=obj.recipe.tilePattern(true); %To force NumTiles to update *TODO: I don't like this
-     
-                if isempty(TP)
-                    return
-                end
-
                 scnSet = obj.scanner.returnScanSettings;
                 nMoves = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
                 approxTimePerSection = scnSet.framePeriodInSeconds * nMoves * obj.recipe.mosaic.numOpticalPlanes;
@@ -578,7 +598,10 @@ classdef BT < loghandler
 
             out.timePerSectionString = prettyTime(out.timePerSectionInSeconds);
             out.timeForSampleString = prettyTime(out.timeLeftInSeconds);
-            out.expectedFinishTimeString = datestr(now+(out.timeLeftInSeconds/(24*60^2)), 'dd-mm-yyyy, HH:MM');
+            timeToConvertToString = now+(out.timeLeftInSeconds/(24*60^2));
+            if ~isnan(timeToConvertToString)
+                out.expectedFinishTimeString = datestr(now+(out.timeLeftInSeconds/(24*60^2)), 'dd-mm-yyyy, HH:MM');
+            end
         end %estimateTimeRemaining
 
     end %close methods

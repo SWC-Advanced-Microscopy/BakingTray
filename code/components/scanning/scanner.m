@@ -18,6 +18,11 @@ classdef (Abstract) scanner < handle & loghandler
         parent  %A copy of the parent object (likely BakingTray) to which this component is attached
     end
 
+    properties (SetAccess=protected)
+        scannerID='' % This string should identify the scanner. e.g. "ScanImage via SIBT", "SpinningDisk", "DummyScanner"
+    end
+
+
     % These are GUI-related properties. The view class that comprises the GUI listens to changes in these
     % properties to know when to update the GUI. It is therefore necessary for these to be updated as 
     % appropriate by classes which inherit scanner. e.g. the isAcquiring method should update isScannerAcquiring

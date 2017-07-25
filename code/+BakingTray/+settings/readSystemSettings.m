@@ -19,7 +19,7 @@ function settings = readSystemSettings
 
     settings=[];
     systemType='bakingtray'; %This isn't in the YAML because the user should not change it
-    systemVersion=0.5; %This isn't in the YAML because the user should not change it
+    systemVersion=0.55; %This isn't in the YAML because the user should not change it
 
     settingsDir = BakingTray.settings.settingsLocation;
 
@@ -70,16 +70,6 @@ function settings = readSystemSettings
     elseif settings.SYSTEM.xySpeed<=0
         fprintf('SYSTEM.xySpeed should be >0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.xySpeed)
         settings.SYSTEM.xySpeed = DEFAULT_SETTINGS.SYSTEM.xySpeed;
-        allValid=false;
-    end
-
-    if ~isnumeric(settings.SYSTEM.objectiveZSettlingDelay)
-        fprintf('SYSTEM.objectiveZSettlingDelay should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay)
-        settings.SYSTEM.objectiveZSettlingDelay = DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay;
-        allValid=false;
-    elseif settings.SYSTEM.objectiveZSettlingDelay<0
-        fprintf('SYSTEM.objectiveZSettlingDelay should not be <0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay)
-        settings.SYSTEM.objectiveZSettlingDelay = DEFAULT_SETTINGS.SYSTEM.objectiveZSettlingDelay;
         allValid=false;
     end
 

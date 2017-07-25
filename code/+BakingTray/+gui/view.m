@@ -34,7 +34,12 @@ classdef view < handle
     properties(Hidden)
         timerUpdateInterval=0.33 %Any timers will update the GUI every so many seconds
         fSize=12;
+
         listeners={}
+        recipeListeners={}
+        scannerListeners={}
+
+
 
         %These properties are used to build and populate the recipe fields
         %The property is split by "||" to handle nesting
@@ -115,6 +120,26 @@ classdef view < handle
             settings=BakingTray.settings.readComponentSettings;
             if strcmp(settings.scanner.type,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
+                frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'scanImageFrameSizes.csv');
+                if exist(frameSizeFname, 'file')
+                    [objective,pixelsPerLine,linePerFrame,zoomValue,micsPix,fastM,slowM,objRes] = ...
+                        textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
+                    obj.menu.frameSize = uimenu(obj.menu.scanner,'Label','Frame Size');
+                    for ii=1:length(objRes)
+                        obj.menu.frameRes(ii) = uimenu(obj.menu.frameSize,'Label', ...
+                            sprintf('%dx%d %0.3f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii)) );
+                        thisStruct.objective=objective{ii};
+                        thisStruct.pixelsPerLine=pixelsPerLine(ii);
+                        thisStruct.linePerFrame=linePerFrame(ii);
+                        thisStruct.micsPix=micsPix(ii);
+                        thisStruct.fastMult=fastM(ii);
+                        thisStruct.slowMult=slowM(ii);
+                        thisStruct.objRes=objRes(ii);
+                        obj.menu.frameRes(ii).UserData=thisStruct;
+                        obj.menu.frameRes(ii).Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
+                    end
+                end
+
             end
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
@@ -138,13 +163,9 @@ classdef view < handle
                 obj.button_chooseDir.TooltipString='Choose sample directory';
             end
 
-            if ~isempty(obj.model.sampleSavePath)
-                cwd=strrep(obj.model.sampleSavePath,'\','\\');
-            else 
-                cwd='';
-            end
+
             obj.text_sampleDir = annotation(...
-                 obj.basicSetupPanel, 'textbox', ...
+                obj.basicSetupPanel, 'textbox', ...
                 'Units', 'pixels', ...
                 'Position', [50,28,240,19] , ...
                 'EdgeColor', [1,1,1]*0.5, ...
@@ -152,7 +173,11 @@ classdef view < handle
                 'VerticalAlignment', 'middle',...
                 'FontSize', obj.fSize, ...
                 'FitBoxToText','off', ...
-                'String', strrep(cwd,'_','\_'));
+                'String', '');
+            obj.updateSampleSavePathBox
+            % Add a listener to the sampleSavePath property of the BT model
+            obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
+
 
             obj.button_recipe = uicontrol(...
                 commonButtonSettings{:}, ...
@@ -287,6 +312,7 @@ classdef view < handle
                 end
 
             end
+
             if obj.suppressToolTips
                 %just wipe them all
                 p=fields(obj.recipeEntryBoxes);
@@ -316,6 +342,8 @@ classdef view < handle
         function delete(obj,~,~)
             fprintf('BakingTray.gui.view is cleaning up\n')
             cellfun(@delete,obj.listeners)
+            cellfun(@delete,obj.recipeListeners)
+            cellfun(@delete,obj.scannerListeners)
 
             %Delete all attached views
             delete(obj.view_laser)
@@ -409,8 +437,6 @@ classdef view < handle
 
         %-----------
         % Button callbacks
-        %send vars to base workspace
-
 
         function startLaserGUI(obj,~,~)
             %Present error dialog if no laser is connected (button should be disabled anyway)
@@ -450,12 +476,34 @@ classdef view < handle
         end
 
         function loadRecipe(obj,~,~)
-            %Load new recipe from disk
+            % Load recipe button callback -- loads a new recipe from disk
             [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
+
+            if fname==0
+                % if the user hits cancel
+                return
+            end
+
             fullPath = fullfile(absPath,fname);
 
+            %Does this path already contain an acquisition?
+            [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(absPath);
+            doResume=false;
+            if containsAcquisition
+                reply=questdlg('Resume acquisition in this directory?','');
+                if strcmpi(reply,'yes')
+                    doResume=true;
+                end
+            end
+
             obj.detachRecipeListeners;
-            success=obj.model.attachRecipe(fullPath);
+            if ~doResume
+                % Just load as normal
+                success = obj.model.attachRecipe(fullPath);
+            else
+                % Attempt to resume the acquisition 
+                success = obj.model.resumeAcquisition(fullPath);
+            end
 
             if success
                 obj.connectRecipeListeners
@@ -467,12 +515,10 @@ classdef view < handle
 
 
         function START(obj,~,~)
-            %TODO: handle the scenario where the user is resuming an old acquisition and 
-            %has not gone through the preparation phase
             if isempty(obj.view_prepare)
-                %THe user must be resuming since they never prepared anything
-                 warndlg('You prepared nothing. Resuming an acquisition is not yet supported via the GUI','');
-                 return
+                % The user must be resuming since they never prepared anything
+                warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
+                return
             end
 
             % Raise a warning if it appears the user prepared the sample with cutting parameters
@@ -581,10 +627,7 @@ classdef view < handle
             end
             thisDir = uigetdir(startPath,'choose dirctory');
             if ischar(thisDir) && exist(thisDir,'dir')
-                obj.model.sampleSavePath = thisDir;
-                %Escape underscores and forward slashes
-                thisDir= regexprep(thisDir,'([\\_])','\\$1');
-                obj.text_sampleDir.String=thisDir;
+                obj.model.sampleSavePath = thisDir; % The GUI itself is changed via a listener defeined in the constructor
             end
         end
 
@@ -593,6 +636,15 @@ classdef view < handle
                 [~,recipeFname,ext]=fileparts(obj.model.recipe.fname);
                 recipeFname = [strrep(recipeFname,'_','\_'),ext]; %escape underscores
                 set(obj.text_recipeFname,'String', recipeFname)
+            end
+        end
+
+        function updateSampleSavePathBox(obj,~,~)
+            % Runs via a listener when BT.sampleSavePath changes
+            savePath = obj.model.sampleSavePath;
+            if ~isempty(savePath) && ischar(savePath)
+                % Escape underscores and forward slashes
+                obj.text_sampleDir.String = regexprep(savePath,'([\\_])','\\$1');
             end
         end
 
@@ -614,27 +666,14 @@ classdef view < handle
                     scnSet=[];
                 end
 
-                %Attempt to generate a tile pattern. 
-                %TODO: this is a non-elegant and poorly thought through. May not work how user
-                %expects. Also see BT.estimateTimeRemaining
-                TP=obj.model.recipe.tilePattern(true);
-                if obj.model.isScannerConnected && isempty(TP)
-                    warndlg('Can not generate tile positions. Check command line for warnings.','')
+                if ~obj.model.isScannerConnected
+                    fprintf('Can not generate tile positions: no scanner connected.\n')
                 end
 
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;
 
-                if isempty(TP) && ~isempty(scnSet)
-                    msg = sprintf(['System ID: %s ; Scanner: %s\n', ...
-                        'Voxel Size: %0.1f x %0.1f x %0.1f \\mum ;', ...
-                        ' FOV: %d \\mum \n'], ...
-                        R.SYSTEM.ID, scannerID, scnSet.micronsPerPixel, ...
-                        scnSet.micronsPerPixel, micronsBetweenOpticalPlanes, ...
-                        round(scnSet.scannedFOVinMicrons)); 
-
-                elseif ~isempty(TP) && ~isempty(scnSet)
-                    endTime=obj.model.estimateTimeRemaining;
-
+                if ~isempty(scnSet)
+                    endTime = obj.model.estimateTimeRemaining;
                     msg = sprintf(['System: %s ; Scanner: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm\n',...
@@ -720,24 +759,23 @@ classdef view < handle
         %Below are methods that handle the listeners
         function connectRecipeListeners(obj)
             % Add listeners to update the values on screen should they change
-            obj.listeners{1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.listeners{2}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
 
             %If the recipe signals a change in recipe.acquisitionPossible, we update the start button etc
-            obj.listeners{3}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
         end %connectRecipeListeners
 
         function detachRecipeListeners(obj)
-            for ii=1:3
-                delete(obj.listeners{ii})
-            end
+            % Detach all listeners related to the recipe
+            cellfun(@delete,obj.recipeListeners)
         end %detachRecipeListeners
 
         function connectScanImageListeners(obj)
             %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff
             hSI=obj.model.scanner.hC;
-            obj.listeners{4}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.listeners{5}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
         end %connectScanImageListeners
 
 
