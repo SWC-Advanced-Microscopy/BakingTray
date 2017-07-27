@@ -352,6 +352,10 @@ classdef SIBT < scanner
             LUT = obj.hC.hChannels.channelLUT{chanToReturn};
         end %getChannelLUT
 
+        function tearDown(obj)
+            % Turn off PMTs
+            obj.hC.hPmts.powersOn = zeros(1,length(obj.hC.hPmts.powersOn));
+        end
 
         function setImageSize(obj,pixelsPerLine,evnt)
             % Set image size

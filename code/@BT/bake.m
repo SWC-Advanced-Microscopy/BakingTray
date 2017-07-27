@@ -264,5 +264,7 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=false;
     end
 
+    obj.scanner.tearDown
+    
 end %bakeCleanupFun
 
