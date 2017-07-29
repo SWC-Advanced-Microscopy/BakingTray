@@ -84,6 +84,20 @@ function bake(obj,varargin)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
 
+    % Report to the acquisition log whether we will attempt to turn off the laser at the end
+    if obj.leaveLaserOn
+        obj.acqLogWriteLine('Laser set to stay on at the end of acquisition\n')
+    else
+        obj.acqLogWriteLine('Laser set to switch off at the end of acquisition\n')
+    end
+
+    % Report to the acquisition log whether we will attempt to slice the last section
+    if obj.sliceLastSection
+        obj.acqLogWriteLine('BakingTray will slice the final imaged section off the block\n')
+    else
+        obj.acqLogWriteLine('BakingTray will NOT slice the final imaged section off the block\n')
+    end
+
 
     %pre-allocate the tile buffer
     obj.preAllocateTileBuffer
@@ -200,6 +214,7 @@ function bake(obj,varargin)
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
+            obj.acqLogWriteLine(sprintf('%s -- BT.bake received "abortAfterSectionComplete". Not turning off the laser.\n',currentTimeStr() ));
             obj.leaveLaserOn=true;
             break
         end
@@ -209,7 +224,9 @@ function bake(obj,varargin)
 
     fprintf('Finished data acquisition\n')
     if obj.scanner.isAcquiring
-        disp('FORCING ABORT: SOMETHING WENT WRONG--too many tiles were defined for some reason or data were not acquired.')
+        msg = ('FORCING ABORT: SOMETHING WENT WRONG--too many tiles were defined for some reason or data were not acquired.');
+        disp(msg)
+        obj.acqLogWriteLine( sprintf('%s -- %s\n',currentTimeStr(), msg) );
         obj.scanner.abortScanning;
     end
 
@@ -229,6 +246,8 @@ function bakeCleanupFun(obj)
 
     %So we don't turn off laser if acqusition failed right away
     if obj.currentTilePosition==1
+        fprintf(['Acquisition seems to have failed right away since BT.bake has finished with currentTilePosition==1.\n',...
+            'Not turning off laser.\n'])
         obj.leaveLaserOn=true; 
     end
 
@@ -252,17 +271,18 @@ function bakeCleanupFun(obj)
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             obj.acqLogWriteLine(msg);
         end
-    end
-
-    obj.abortAfterSectionComplete=false; %Reset this
-
-    if obj.leaveLaserOn %So we can report to screen if this is reset
-        %  We do the reset otherwise a subsequent run will have the laser on when it completes (but this means we have to set this each time)
-        %  
+    else 
+        % So we can report to screen if this is reset
+        % We do the reset otherwise a subsequent run will have the laser on when it completes 
+        % (but this means we have to set this each time)
         fprintf(['Acquisition finished and Laser will NOT be turned off.\n',...
-            'Setting "leaveLaserOn" flag to false: laser will attempt to turn off next time.\n'])
+            'BT.bake is setting the "leaveLaserOn" flag to false: laser will attempt to turn off next time.\n'])
+        obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));        
         obj.leaveLaserOn=false;
     end
+    end
+
+    obj.abortAfterSectionComplete=false; %Reset this flag or the acquisition will not complete next time
 
     obj.scanner.tearDown
     
