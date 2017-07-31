@@ -41,6 +41,8 @@ classdef maitai < laser & loghandler
             %Report connection and humidity
             fprintf(['Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n'], ...
              serialComms, obj.readHumidity)
+            
+            obj.friendlyName = 'MaiTai';
         end %constructor
 
 
