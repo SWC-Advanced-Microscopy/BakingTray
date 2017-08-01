@@ -284,10 +284,10 @@ function bakeCleanupFun(obj)
         obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));        
         obj.leaveLaserOn=false;
     end
-    end
 
     obj.abortAfterSectionComplete=false; %Reset this flag or the acquisition will not complete next time
 
+    % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
     
 end %bakeCleanupFun

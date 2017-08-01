@@ -128,7 +128,7 @@ classdef view < handle
                             sprintf('%dx%d %0.3f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii)) );
                         thisStruct.objective=objective{ii};
                         thisStruct.pixelsPerLine=pixelsPerLine(ii);
-                        thisStruct.linePerFrame=linePerFrame(ii);
+                        thisStruct.linesPerFrame=linePerFrame(ii);
                         thisStruct.micsPix=micsPix(ii);
                         thisStruct.fastMult=fastM(ii);
                         thisStruct.slowMult=slowM(ii);
