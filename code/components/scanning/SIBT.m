@@ -402,11 +402,12 @@ classdef SIBT < scanner
                 end
 
                 pixelsPerLine = settings.pixelsPerLine;
-
+                pixEqLin = settings.pixelsPerLine==settings.linesPerFrame; % Is the setting asking for a square frame?
                 fastMult = settings.fastMult;
                 slowMult = settings.slowMult;
                 objRes = settings.objRes;
             else
+                pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
                 fastMult = [];
                 slowMult = [];
                 objRes = [];
@@ -417,7 +418,7 @@ classdef SIBT < scanner
 
             % Do we have square images?
             pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
-            pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame;
+
 
             if pixEqLin
                 % It's pretty easy to change the image size if we have square images. 
