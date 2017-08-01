@@ -154,7 +154,7 @@ function bake(obj,varargin)
 
 
         if ~isempty(obj.laser)
-            %Store laser status if this is possible
+            % Record laser status before section
             obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats)) 
         end
 
@@ -205,6 +205,10 @@ function bake(obj,varargin)
         obj.detachLogObject
 
 
+        if ~isempty(obj.laser)
+            % Record laser status after section
+            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats)) 
+        end
 
         elapsedTimeInSeconds=(now-startAcq)*24*60^2;
         obj.acqLogWriteLine(sprintf('%s -- FINISHED section number %d, section completed in %s\n',...
