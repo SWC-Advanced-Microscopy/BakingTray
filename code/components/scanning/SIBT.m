@@ -226,8 +226,7 @@ classdef SIBT < scanner
             obj.hC.extTrigEnable=0;
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
-            obj.hC.hChannels.loggingEnable=false;
-
+            obj.disableTileSaving
 
             success=true;
             fprintf('Disarmed scanner: %s\n', datestr(now))
@@ -302,6 +301,9 @@ classdef SIBT < scanner
             obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
 
+        function disableTileSaving(obj)
+            obj.hC.hChannels.loggingEnable=false;
+        end
 
         function initiateTileScan(obj)
             obj.hC.hScan2D.trigIssueSoftwareAcq;

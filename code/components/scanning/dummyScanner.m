@@ -122,10 +122,13 @@ classdef dummyScanner < scanner
         end % acquireTile
 
 
-        function setUpTileSaving
+        function setUpTileSaving(~)
+        end
+        
+        function disableTileSaving(~)
         end
 
-        function initiateTileScan(obj)
+        function initiateTileScan(~)
         end
 
         function acquiring = isAcquiring(obj)
