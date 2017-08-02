@@ -53,19 +53,6 @@ function bake(obj,varargin)
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
 
 
-    % Set the watchdog timer on the laser to 40 minutes. The laser
-    % will switch off after this time if it heard nothing back from bake. 
-    % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later. 
-    %
-    % TODO: for this to work, we must ensure that the return info method is doing something.
-    %       users need to be careful here if writing code for different lasers.
-    % The GUI will close the laser view so it's impossible it will continue to poll the 
-    % laser with a timer, which could disrupt the intended behavior of the watchdog timer. 
-    if ~isempty(obj.laser)
-        obj.laser.setWatchDogTimer(40*60);
-    end
-
-
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
 
 
@@ -96,6 +83,19 @@ function bake(obj,varargin)
         obj.acqLogWriteLine('BakingTray will slice the final imaged section off the block\n')
     else
         obj.acqLogWriteLine('BakingTray will NOT slice the final imaged section off the block\n')
+    end
+
+
+    % Set the watchdog timer on the laser to 40 minutes. The laser
+    % will switch off after this time if it heard nothing back from bake. 
+    % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later. 
+    %
+    % TODO: for this to work, we must ensure that the return info method is doing something.
+    %       users need to be careful here if writing code for different lasers.
+    if ~isempty(obj.laser)
+        wDogSeconds = 40*60;
+        obj.laser.setWatchDogTimer(wDogSeconds);
+        obj.acqLogWriteLine(sprintf('Setting laser watchdog timer to %d seconds\n', wDogSeconds)
     end
 
 
