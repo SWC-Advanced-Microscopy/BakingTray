@@ -198,7 +198,7 @@ classdef view < handle
                 'FontSize', obj.fSize, ...
                 'FitBoxToText','off', ...
                 'String', '');
-            %TODO: add a listener to this updates when the user loads a new recipe
+            %TODO: add a listener to this so it updates when the user loads a new recipe
             obj.updateRecipeFname 
 
 

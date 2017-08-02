@@ -750,6 +750,48 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord=pos(1,1);
             yAxisCoord=pos(1,2);
 
+            stagePos = obj.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
+            obj.statusText.String = sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', stagePos);
+
+        end % pointerReporter
+
+        function areaSelector(obj,~,~)
+            k = waitforbuttonpress;
+            if k==1
+                return
+            end
+            rect_pos = rbbox; % output is [x y width height]
+            disp('rectangle drawn at coords')
+            disp(rect_pos)
+
+            [rectBottomLeft,xMMpix,yMMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
+
+            frontPos = rectBottomLeft(2);
+            leftPos  = rectBottomLeft(1) + yMMpix*rect_pos(4);
+
+            fprintf('Front left of rectangle is X=%0.2f mm Y=%0.2f mm area is  %0.2f by %0.2f mm\n', ...
+                leftPos, frontPos, rect_pos(3)*xMMpix, rect_pos(4)*yMMpix );
+
+
+            % Flash a rectangle
+            a=annotation('rectangle',r,'Color','red'); drawnow; pause(0.5); delete(a) 
+        end % areaSelector
+
+        function [stagePos,xMMpix,yMMpix] = convertImageCoordsToStagePosition(obj, coords)
+            % Convert a position in the preview image to a stage position in mm
+            %
+            % Inputs
+            % coords is [x coord, y coord]
+            % 
+            % Outputs
+            % stagePos is [x stage pos, y stage pos]
+            % xMMPix - number of mm per pixel in X
+            % yMMPix - number of mm per pixel in Y
+            %
+            % Note that the Y axis of the plot is motion of the X stage.
+
+            xAxisCoord = coords(1);
+            yAxisCoord = coords(2);
 
             % Size ratio between full size image and downsampled tiles
             downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
@@ -772,11 +814,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Get the X stage value for y=0 (right most position) and we'll reference off that
             frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*xMMPix;
 
-            obj.statusText.String = ...
-            sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
-              frontRightX + yAxisCoord*xMMPix, obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix);
+            xPosInMM = frontRightX + yAxisCoord*xMMPix;
+            yPosInMM = obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix;
 
-        end % pointerReporter
+            stagePos = [xPosInMM,yPosInMM];
+        end % convertImageCoordsToStagePosition
+
     end %close hidden methods
 
 
