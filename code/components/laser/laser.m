@@ -28,6 +28,7 @@ classdef (Abstract) laser < handle
                      % e.g. COM port ID string
         maxWavelength=0 %The longest wavelength the laser can be tuned to in nm
         minWavelength=0 %The longest wavelength the laser can be tuned to in nm
+        friendlyName = '' % This string is displayed in the GUI window title. Shouldn't be too long. e.g. could be "MaiTai"
     end %close public properties
 
     properties (Hidden)

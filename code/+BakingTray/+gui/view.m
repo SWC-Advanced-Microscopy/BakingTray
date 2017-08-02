@@ -3,29 +3,29 @@ classdef view < handle
 
     properties
         hFig
-        model %The BT model object goes here
+        model % The BT model object goes here
 
-        %Buttons attach to these properties
+        % Buttons attach to these properties
         button_chooseDir
         button_laser
         button_recipe
         button_prepare
         button_start
 
-        view_laser      %The laser GUI object is stored here
-        view_prepare    %The prepare GUI object is stored here
-        view_acquire    %The acquisition GUI object is stored here
+        view_laser      % The laser GUI object is stored here
+        view_prepare    % The prepare GUI object is stored here
+        view_acquire    % The acquisition GUI object is stored here
 
-        %Text display boxes
+        % Text display boxes
         text_sampleDir
         text_recipeFname
 
         text_status
 
-        recipeTextLabels=struct %annotation text boxes with labels of recipe fields
-        recipeEntryBoxes=struct %the user enters recipe values here
+        recipeTextLabels=struct % Annotation text boxes with labels of recipe fields
+        recipeEntryBoxes=struct % The user enters recipe values here
 
-        %Top menu
+        % Top menu
         menu
     end
 
@@ -73,8 +73,6 @@ classdef view < handle
         recipePanel %recipe editing goes here
 
         suppressToolTips=true
-
-
 
     end
 
@@ -130,7 +128,7 @@ classdef view < handle
                             sprintf('%dx%d %0.3f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii)) );
                         thisStruct.objective=objective{ii};
                         thisStruct.pixelsPerLine=pixelsPerLine(ii);
-                        thisStruct.linePerFrame=linePerFrame(ii);
+                        thisStruct.linesPerFrame=linePerFrame(ii);
                         thisStruct.micsPix=micsPix(ii);
                         thisStruct.fastMult=fastM(ii);
                         thisStruct.slowMult=slowM(ii);

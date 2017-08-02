@@ -38,6 +38,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         depthToShow=1
         cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
         rotateSectionImage90degrees=true; %Ensure the axis along which the blade cuts is is the image x axis. 
+
+        % Cached/stored settings
+        % Log front/left pos when preview is taken so we don't change coords if user updates front/left after imaging
+        frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
+
     end %close hidden private properties
 
 
@@ -298,7 +303,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function initialisePreviewImageData(obj)
-            %Calculate where the tiles will go in the preview image
+            % Calculate where the tiles will go in the preview image the create the image
+            % 
 
             tp=obj.model.recipe.tilePattern; %Stage positions in mm (x,y)
             if isempty(tp)
@@ -326,6 +332,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             if ~isempty(obj.sectionImage)
                 obj.sectionImage.CData(:)=0;
             end
+
+            % Log the current front/left position
+            obj.frontLeftWhenPreviewWasTaken.X = obj.model.getXpos;
+            obj.frontLeftWhenPreviewWasTaken.Y = obj.model.getYpos;
 
             fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
         end %initialisePreviewImageData
@@ -731,18 +741,14 @@ classdef acquisition_view < BakingTray.gui.child_view
             %
             % * The front/left position is at the top left of the figure
 
-            frontLeftX = obj.model.recipe.FrontLeft.X;
-            frontLeftY = obj.model.recipe.FrontLeft.Y;
-
-
             % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
             % Get the X stage value for y=0 (right most position) and we'll reference off that
-            frontRightX = frontLeftX - obj.imageAxes.YLim(2)*xMMPix;
+            frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*xMMPix;
 
             obj.statusText.String = ...
             sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
-              frontRightX + yAxisCoord*xMMPix, frontLeftY- xAxisCoord*yMMPix);
+              frontRightX + yAxisCoord*xMMPix, obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix);
 
         end % pointerReporter
     end %close hidden methods

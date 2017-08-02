@@ -122,10 +122,13 @@ classdef dummyScanner < scanner
         end % acquireTile
 
 
-        function setUpTileSaving
+        function setUpTileSaving(~)
+        end
+        
+        function disableTileSaving(~)
         end
 
-        function initiateTileScan(obj)
+        function initiateTileScan(~)
         end
 
         function acquiring = isAcquiring(obj)
@@ -192,6 +195,8 @@ classdef dummyScanner < scanner
             LUT=[0,5E3];
         end
 
+        function tearDown(~)
+        end
 
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner

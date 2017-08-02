@@ -47,6 +47,8 @@ classdef dummyLaser < laser %& loghandler
 
             %Set the target wavelength to equal the current wavelength
             obj.targetWavelength=obj.currentWavelength;
+
+            obj.friendlyName = 'Dummy Laser';
         end %constructor
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

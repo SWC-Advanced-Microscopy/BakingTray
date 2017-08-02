@@ -52,7 +52,11 @@ classdef laser_view < BakingTray.gui.child_view
             %Resize the figure window
             pos=get(obj.hFig, 'Position');
             pos(3:4)=[220,250]; %Set the window size
-            set(obj.hFig, 'Position',pos, 'Name', 'Laser Control')
+            if isempty(obj.model.laser.friendlyName)
+                set(obj.hFig, 'Position',pos, 'Name', 'Laser Control')
+            else
+                set(obj.hFig, 'Position',pos, 'Name', obj.model.laser.friendlyName)
+            end
 
             %This timer runs when the wavelength is changed and updates the screen until the reading stabilizes
             fprintf('Setting up laser GUI timers\n')
@@ -265,6 +269,12 @@ classdef laser_view < BakingTray.gui.child_view
             if ~obj.model.laser.isControllerConnected
                 return
             end
+            %TODO: let's see if this improves stability of the serial comms
+            if obj.model.laser.hC.BytesAvailable>0
+                fprintf('Skipping updateCurrentWavelength timer callback due to bytes still present for reading in serial buffer\n')
+                return
+            end
+
             W=obj.model.laser.readWavelength; %updates obj.model.laser.currentWavelength
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
         end
@@ -371,6 +381,12 @@ classdef laser_view < BakingTray.gui.child_view
             if ~isvalid(obj.model.laser)
                 return
             end
+            %TODO: let's see if this improves stability of the serial comms
+            if obj.model.laser.hC.BytesAvailable>0
+                fprintf('Skipping updateCurrentWavelength timer callback due to bytes still present for reading in serial buffer\n')
+                return
+            end
+
             try
                 obj.updateModeLockElements
                 obj.updatePowerText

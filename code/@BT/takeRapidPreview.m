@@ -62,6 +62,7 @@ function takeRapidPreview(obj)
     obj.detachLogObject
     obj.acquisitionInProgress=true;
 
+    obj.scanner.disableTileSaving
     obj.currentTileSavePath=[];
 
 

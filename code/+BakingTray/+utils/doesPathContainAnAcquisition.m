@@ -32,7 +32,7 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     end
 
 
-    % Look for a recipe file an acquisition log file and a rawData directory
+    % Look for a recipe file, an acquisition log file, and a rawData directory
     acqLogFile = dir(fullfile(thisPath,'acqLog_*.txt'));
     recipeFile = dir(fullfile(thisPath,'recipe_*.yml'));
     rawDataDirPresent = exist(fullfile(thisPath,'rawData'),'dir');
@@ -43,7 +43,9 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
         return
     end
 
+
     if length(acqLogFile)>1
+        % Multiple acquisitions in one directory will likely cause problems and isn't supported.
         fprintf('BakingTray.utils.doesPathContainAnAcquisition finds multiple acquisition log files in %s\n',thisPath)
     end
 

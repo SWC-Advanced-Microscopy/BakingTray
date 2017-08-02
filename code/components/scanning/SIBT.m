@@ -226,8 +226,7 @@ classdef SIBT < scanner
             obj.hC.extTrigEnable=0;
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
-            obj.hC.hChannels.loggingEnable=false;
-
+            obj.disableTileSaving
 
             success=true;
             fprintf('Disarmed scanner: %s\n', datestr(now))
@@ -302,6 +301,9 @@ classdef SIBT < scanner
             obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
 
+        function disableTileSaving(obj)
+            obj.hC.hChannels.loggingEnable=false;
+        end
 
         function initiateTileScan(obj)
             obj.hC.hScan2D.trigIssueSoftwareAcq;
@@ -352,6 +354,10 @@ classdef SIBT < scanner
             LUT = obj.hC.hChannels.channelLUT{chanToReturn};
         end %getChannelLUT
 
+        function tearDown(obj)
+            % Turn off PMTs
+            obj.hC.hPmts.powersOn = zeros(1,length(obj.hC.hPmts.powersOn));
+        end
 
         function setImageSize(obj,pixelsPerLine,evnt)
             % Set image size
@@ -398,11 +404,12 @@ classdef SIBT < scanner
                 end
 
                 pixelsPerLine = settings.pixelsPerLine;
-
+                pixEqLin = settings.pixelsPerLine==settings.linesPerFrame; % Is the setting asking for a square frame?
                 fastMult = settings.fastMult;
                 slowMult = settings.slowMult;
                 objRes = settings.objRes;
             else
+                pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
                 fastMult = [];
                 slowMult = [];
                 objRes = [];
@@ -413,7 +420,7 @@ classdef SIBT < scanner
 
             % Do we have square images?
             pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
-            pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame;
+
 
             if pixEqLin
                 % It's pretty easy to change the image size if we have square images. 

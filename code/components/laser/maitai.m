@@ -41,6 +41,8 @@ classdef maitai < laser & loghandler
             %Report connection and humidity
             fprintf(['Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n'], ...
              serialComms, obj.readHumidity)
+            
+            obj.friendlyName = 'MaiTai';
         end %constructor
 
 
@@ -58,7 +60,7 @@ classdef maitai < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',9600);
+            obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME       

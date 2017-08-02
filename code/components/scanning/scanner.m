@@ -121,6 +121,15 @@ classdef (Abstract) scanner < handle & loghandler
         % Conduct any operations necessary to allow for image saving. e.g.
         % may need to tell the scanner what the path and filenames are.
 
+        disableTileSaving(obj)
+        % disableTileSaving
+        % 
+        % Behavior
+        % Conduct any operations necessary to disable saving of image data. This
+        % may not be necessary on all scanners or it may involve simply unchecking
+        % a checkbox.
+
+
         initiateTileScan(obj)
         % initiateTileScan
         %
@@ -213,6 +222,13 @@ classdef (Abstract) scanner < handle & loghandler
         % the smallest displayed value and the first number indicating the largest 
         % displayed value.
 
+        tearDown(obj)
+        % tearDown(obj)
+        %
+        % Behavior
+        % The tearDown method is called at the end of an acquisition to perform whatever
+        % operations might be necessasry for the scanner at the end of acquisition. 
+        % e.g. turn off the PMTS .
 
      end %close methods
 

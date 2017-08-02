@@ -50,7 +50,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
         %Timer-related properties. These are involved in keeping the GUI up to date
         prepareViewUpdateTimer
-        prepareViewUpdateInterval=0.5 %Update select GUI elements every this many seconds (e.g. axis position)
+        prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
         lastXpos=0
         lastYpos=0
         lastZpos=0
@@ -527,6 +527,14 @@ classdef prepare_view < BakingTray.gui.child_view
             for ii=1:length(editBoxes)
                 obj.editBox.(editBoxes{ii}).Enable=toggleState;
             end
+
+            switch toggleState
+            case 'on'
+                start(obj.prepareViewUpdateTimer);
+            case 'off'
+                stop(obj.prepareViewUpdateTimer);
+            end
+
         end %toggleEnable
 
     end %Methods

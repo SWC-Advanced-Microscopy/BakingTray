@@ -4,6 +4,12 @@ Most commits and development should go in the dev branch (or a branch devoted to
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
 
 
+2nd August 2017 
+- PMTs turn off automatically at the end of acquisition. 
+- Various bug fixes including to on-line preview image display.
+- Tweaks to laser control that should fix some latency issues and error messages.
+
+
 25th July 2017
 - USER: Basic resumption of previous acquisition now works but is not well tested yet.
 - USER: Substantial speed improvements save about 3 hours off a typical acquisition.
@@ -20,7 +26,7 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 
 5th July 2017
 - Get rid of ScanImage user-functions. Everything now done in SIBT with listeners on the user-function notifiers.
-- Pressing "Abort" in ScanImage during tilescanning will now disarm SIBT
+- Pressing "Abort" in ScanImage during tile-scanning will now disarm SIBT
 - Stage coords shown in acq window
 
 4th July 2017
