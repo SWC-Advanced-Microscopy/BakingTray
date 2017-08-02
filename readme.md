@@ -5,7 +5,7 @@
 </a>
 
 ### What is it?
-BakingTray is a [ScanImage 5.2](https://vidriotechnologies.com/) wrapper that performs serial section 2-photon tomography (STP) within [MATLAB](http://www.mathworks.com/). 
+BakingTray is a [ScanImage](https://vidriotechnologies.com/) wrapper that performs serial section 2-photon tomography (STP) within [MATLAB](http://www.mathworks.com/). 
 The software is inspired the Svoboda lab's [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project but runs on NI hardware. 
 
 ### Who is it for?
@@ -47,7 +47,7 @@ This allows for enormous flexibility in upgrading the microscope or modifying th
 
 
 ### Installation ###
-- You will need a functioning ScanImage 5.2 install.
+- You will need a functioning ScanImage install.
 - Add to your path: `code`, `resources`, and `components` plus its sub-directories. 
 - You will need to define your hardware in the `componentSettings.m` file (no detailed notes on this yet). 
 - Run `scanimage` 
