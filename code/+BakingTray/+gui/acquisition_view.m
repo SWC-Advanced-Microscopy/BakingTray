@@ -250,6 +250,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.updateStatusText
 
+            % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
+            % TODO: in future we might wish to make this more elegant, but for now it should work
+            if isa(obj.model.scanner,'SIBT')
+                obj.model.scanner.applyZstackSettingsFromRecipe;
+            end
         end
 
         function delete(obj)
@@ -465,7 +470,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % since the preview was last taken.
             obj.initialisePreviewImageData;
             obj.setUpImageAxes;
-            
+
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
             set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
