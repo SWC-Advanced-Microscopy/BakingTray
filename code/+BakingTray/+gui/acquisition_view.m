@@ -64,7 +64,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
             if ~isempty(obj.parentView)
-                obj.parentView.enableDisableThisView('off');
+                % obj.parentView.enableDisableThisView('off'); % TODO: delete if all goes well
             end
 
             obj.hFig = BakingTray.gui.newGenericGUIFigureWindow('BakingTray_acquisition');
@@ -95,7 +95,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.imageAxes = axes('parent', obj.hFig, 'Units','pixels', 'Color', 'k',...
                 'Position',[3,2,minFigSize(1)-4,minFigSize(2)-panelHeight-4]);
 
-            %Set up the compass plot
+
+            %Set up the "compass plot" in the bottom left of the preview axis
             pos=plotboxpos(obj.imageAxes);
             obj.compassAxes = axes('parent', obj.hFig,...
                 'Units', 'pixels', 'Color', 'none', ...
@@ -136,10 +137,11 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'ForegroundColor','k', ...
                 'FontWeight', 'bold');
 
-            %Ensure the back button reflects what is currently happening
+            %Ensure the bake button reflects what is currently happening
             if ~obj.model.acquisitionInProgress
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.bake{:})
             else obj.model.acquisitionInProgress
+                fprintf('Acquisition already in progress when acquisition view starts. Setting Bake button to "Stop".\n')
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
             end
 
@@ -209,12 +211,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-           'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
-           'Interruptible', 'off');
+                'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
+                'Interruptible', 'off');
+
             % Add the channel names. This is under the control of a listener in case the user makes a 
             % change in ScanImage after the acquisition_view GUI has opened.
             obj.updateChannelsPopup
-            obj.setChannelToView %Ensure that the property is set to a valid channel (it may may not be)
+            obj.setChannelToView % Ensure that the property is set to a valid channel
 
 
             % Report the cursor position with a callback function
@@ -249,7 +252,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end
 
         function delete(obj)
-            obj.parentView.enableDisableThisView('on');
+            %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
             obj.parentView.updateStatusText; %Resets the approx time for sample indicator
             delete@BakingTray.gui.child_view(obj);
         end
@@ -279,7 +282,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function setUpImageAxes(obj)
-
+            % Add a blank images to the image axes
             blankImage = squeeze(obj.previewImageData(:,:,obj.depthToShow,obj.chanToShow));
             if obj.rotateSectionImage90degrees
                 blankImage = rot90(blankImage);
@@ -298,7 +301,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'XColor','w',...
                 'YColor','w')
             set(obj.hFig,'Colormap', gray(256))
-
         end %setUpImageAxes
 
 
@@ -351,12 +353,14 @@ classdef acquisition_view < BakingTray.gui.child_view
                 %obj.button_Pause.Enable='off';
             else
                 obj.updateStatusText
-                %obj.updateBakeButtonState
-                %obj.updatePauseButtonState
+                %obj.updateBakeButtonState  % TODO: why is this here?
+                %obj.updatePauseButtonState % TODO: why is this here?
             end
         end %indicateCutting
 
+
         function updateStatusText(obj,~,~)
+            % Update the text in the top left of the acquisition view
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
             if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
@@ -443,6 +447,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
         function bake_callback(obj,~,~)
+            % Run when the bake button is pressed
             if obj.verbose, fprintf('In acquisition_view.bake callback\n'), end
 
             obj.updateStatusText
@@ -469,6 +474,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function stop_callback(obj,~,~)
+            % Run when the stop button is pressed
             % If the system has not been told to stop after the next section, pressing the 
             % button again will stop this from happening. Otherwise we proceed with the 
             % question dialog. Also see SIBT.tileScanAbortedInScanImage
@@ -511,6 +517,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function pause_callback(obj,~,~)
+            % Run when the pause button is pressed
             % Pauses or resumes the acquisition according to the state of the observable property in scanner.acquisitionPaused
             % This will not pause cutting. It will only pause the system when it's acquiring data. If you press this during
             % cutting the acquisition of the next section will not begin until pause is disabled. 
@@ -623,7 +630,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         function updateImageLUT(obj,~,~)
             if obj.verbose, fprintf('In acquisition_view.updateImageLUT callback\n'), end
 
-            %TODO: update with SIBT properties
             if obj.model.isScannerConnected
                 thisLut=obj.model.scanner.getChannelLUT(obj.chanToShow);
                 obj.imageAxes.CLim=thisLut;
@@ -713,6 +719,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %chooseChanToDisplay
 
         function pointerReporter(obj,~,~)
+            % Runs when the mouse is moved over the axis to report its position in stage coordinates. 
             if obj.verbose, fprintf('In acquisition_view.pointerReporter callback\n'), end
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
