@@ -71,7 +71,18 @@ function bake(obj,varargin)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
 
+    % Print the version number and name of the scanning software 
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
+
+
+    % Report to screen and the log file how much disk space is currently available
+    volumeToWrite = strplit(obj.sampleSavePath,filesep);
+    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
+    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
+        volumeToWrite, round(out.freeGB), round(out.totalGB));
+    fprintf(msg)
+    obj.acqLogWriteLine(msg)
+
 
     % Report to the acquisition log whether we will attempt to turn off the laser at the end
     if obj.leaveLaserOn
