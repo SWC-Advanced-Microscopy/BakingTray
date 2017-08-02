@@ -466,6 +466,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
             %This timer updates select GUI elements
             obj.prepareViewUpdateTimer = timer;
+            obj.prepareViewUpdateTimer.Name = 'prepare view regular updater';
             obj.prepareViewUpdateTimer.Period = obj.prepareViewUpdateInterval;
             obj.prepareViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
             obj.prepareViewUpdateTimer.StopFcn = @(~,~) [];
