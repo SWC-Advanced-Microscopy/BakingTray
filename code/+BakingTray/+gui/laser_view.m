@@ -61,7 +61,7 @@ classdef laser_view < BakingTray.gui.child_view
             %This timer runs when the wavelength is changed and updates the screen until the reading stabilizes
             fprintf('Setting up laser GUI timers\n')
             obj.currentWavelengthTimer = timer;
-            obj.currentWavelengthTimer.Name 'update current wavelength updater';
+            obj.currentWavelengthTimer.Name = 'update current wavelength updater';
             obj.currentWavelengthTimer.StartDelay = obj.wavelengthWatcherUpdateInterval;
             obj.currentWavelengthTimer.TimerFcn = @(~,~) [] ;
             obj.currentWavelengthTimer.StopFcn = @(~,~) obj.updateCurrentWavelength;

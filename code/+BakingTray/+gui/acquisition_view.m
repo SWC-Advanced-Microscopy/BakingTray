@@ -193,9 +193,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
 
-            %Build a blank image
+            % Build a blank image then insert it (nicely formatted) into the axes. 
+            % We'll repeat this before acquisition too, so recipe can be altered at any time
             obj.initialisePreviewImageData
-            obj.setUpImageAxes; %Build an empty image of the right size and place it in nicely-formatted axes
+            obj.setUpImageAxes;
 
             % Add the depths
             opticalPlanes_str = {};
@@ -318,7 +319,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
             tp=abs(tp);
-            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images
+            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images?
             obj.previewTilePositions=tp;
 
             stepSizes = max(abs(diff(tp)));
@@ -459,15 +460,18 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
                return
             end
-            obj.initialisePreviewImageData;
-            obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+            % Update the preview image in case the recipe has altered since the GUI was opened or
+            % since the preview was last taken.
+            obj.initialisePreviewImageData;
+            obj.setUpImageAxes;
+            
+            obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
             set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
             obj.button_BakeStop.Enable='off'; %This gets re-enabled when the scanner starts imaging
 
             obj.updateImageLUT;
-
             obj.model.bake;
 
         end %bake_callback
@@ -554,10 +558,16 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+            % Update the preview image in case the recipe has altered since the GUI was opened or
+            % since the preview was last taken.
+            obj.initialisePreviewImageData;
+            obj.setUpImageAxes;
+
             if size(obj.previewImageData,3)>1
                 %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)
                 obj.previewImageData(:,:,2:end,:)=[];
             end
+            
             obj.model.takeRapidPreview
 
             %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
