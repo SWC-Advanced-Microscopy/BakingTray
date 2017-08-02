@@ -71,6 +71,8 @@ function bake(obj,varargin)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
 
+    obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
+
     % Report to the acquisition log whether we will attempt to turn off the laser at the end
     if obj.leaveLaserOn
         obj.acqLogWriteLine('Laser set to stay on at the end of acquisition\n')

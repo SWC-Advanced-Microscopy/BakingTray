@@ -282,8 +282,11 @@ classdef SIBT < scanner
             % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
             scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
+
+            % Scanner type and version
             scanSettings.scanMode= obj.scannerType;
             scanSettings.scannerID=obj.scannerID;
+            scanSettings.version=obj.getVersion;
 
             %Record the detailed image settings to allow for things like acquisition resumption
             scanSettings.pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
@@ -507,6 +510,12 @@ classdef SIBT < scanner
             obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
         end %applyScanSettings
 
+
+        function verStr=getVersion(obj)
+            verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
+        end
+
+
     end %close methods
 
 
@@ -675,7 +684,6 @@ classdef SIBT < scanner
 
             %If we get here we failed to disarm
             fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
-
         end %tileScanAbortedInScanImage
 
     end %hidden methods
