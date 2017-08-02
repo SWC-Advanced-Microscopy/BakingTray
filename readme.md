@@ -10,19 +10,26 @@ The software is inspired the Svoboda lab's [TeraVoxel](https://github.com/Teravo
 
 ### Who is it for?
 Technically-minded people who want an open source STP solution. 
-You'll need MATLAB programming skills and know how to set up and run a 2-photon microscope. 
-BakingTray is not a turn-key solution. 
+You'll need MATLAB programming skills and the know how to set up and run a 2-photon microscope. 
+This is not a turn-key solution. 
+
+
+### What hardware does it run on?
+BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
+You can use either a linear or resonant scanner for the fast axis, but resonant is recommended for speed and is better supported by BakingTray.
+Control of the 3-axis stage is done from within BakingTray, not ScanImage. 
+Use a [supported device](https://github.com/BaselLaserMouse/BakingTray) or write your own controller class using the provided instructions. 
 
 
 ### How does it work?
 BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/BaselLaserMouse/ScanImageTileScan).
 BakingTray simply slices off the top of the sample after each tile-scan is complete, exposing fresh tissue for imaging. 
-Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes with resonant or linear scanners. 
+Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes. 
 The ScanImage API [allows the software to be controlled progamatically](https://github.com/tenss/ScanImageAPI_Examples). 
 
 
 ### Current features
-This software is under heavy development but it has been used to produce real data and has been stress-tested.
+Whilst this software is under development, it has been thoroughly stress-tested and is capable of generating production-quality data.
 Its current feature set is as follows:
 
 * Easy sample set up: no need for the user to calculate the number of tiles.
