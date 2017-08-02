@@ -720,10 +720,14 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function pointerReporter(obj,~,~)
             % Runs when the mouse is moved over the axis to report its position in stage coordinates. 
+            % This is printed as text to the top left of the plot. The callback does not run if an
+            % acquisition is in progress or if the plotted image contains only zeros.
+
             if obj.verbose, fprintf('In acquisition_view.pointerReporter callback\n'), end
+
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
-            if obj.model.acquisitionInProgress
+            if obj.model.acquisitionInProgress || all(obj.sectionImage.CData(:)==0)
                 return
             end
 
