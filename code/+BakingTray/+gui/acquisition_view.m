@@ -744,7 +744,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
             % Get the X stage value for y=0 (right most position) and we'll reference off that
-            frontRightX = obj.frontLeftWhenPreviewWasTaken.X - obj.imageAxes.YLim(2)*xMMPix;
+            frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*xMMPix;
 
             obj.statusText.String = ...
             sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
