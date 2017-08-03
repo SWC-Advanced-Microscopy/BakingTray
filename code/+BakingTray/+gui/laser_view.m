@@ -20,10 +20,10 @@ classdef laser_view < BakingTray.gui.child_view
     end
 
     properties(Hidden)
-        wavelengthWatcherUpdateInterval=0.33 %If the laser is tuning, the GUI is updated with this period (in seconds)
+        wavelengthWatcherUpdateInterval=0.5 %If the laser is tuning, the GUI is updated with this period (in seconds)
         currentWavelengthTimer %Regularly reads wavelength until settled
         currentWavelengthString='Current Wavelength: %d nm' %Used in the sprintf for the current wavelength
-        laserViewUpdateInterval=1 %Update select GUI elements every this many seconds (e.g. modelock state)
+        laserViewUpdateInterval=2 %Update select GUI elements every this many seconds (e.g. modelock state)
         laserViewUpdateTimer
         setWavelengthLabel
     end
