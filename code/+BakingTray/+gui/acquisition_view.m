@@ -756,7 +756,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end % pointerReporter
 
         function areaSelector(obj,~,~)
-            k = waitforbuttonpress;
+            k = waitforbuttonpress; %TODO: this is not honored for the GUI window.
             if k==1
                 return
             end
@@ -774,10 +774,10 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
             % Flash a rectangle
-            a=annotation('rectangle',r,'Color','red'); drawnow; pause(0.5); delete(a) 
+            a=annotation('rectangle',rect_pos,'Color','red'); drawnow; pause(0.5); delete(a) 
         end % areaSelector
 
-        function [stagePos,xMMpix,yMMpix] = convertImageCoordsToStagePosition(obj, coords)
+        function [stagePos,xMMPix,yMMPix] = convertImageCoordsToStagePosition(obj, coords)
             % Convert a position in the preview image to a stage position in mm
             %
             % Inputs

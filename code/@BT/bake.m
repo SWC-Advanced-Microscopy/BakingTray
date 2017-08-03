@@ -18,6 +18,8 @@ function bake(obj,varargin)
     %
     % Rob Campbell - Basel, Feb, 2017
 
+
+    obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
         return
@@ -76,7 +78,8 @@ function bake(obj,varargin)
 
 
     % Report to screen and the log file how much disk space is currently available
-    volumeToWrite = strplit(obj.sampleSavePath,filesep);
+    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
+    volumeToWrite = volumeToWrite{1};
     out = BakingTray.utils.returnDiskSpace(volumeToWrite);
     msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
         volumeToWrite, round(out.freeGB), round(out.totalGB));
@@ -108,7 +111,7 @@ function bake(obj,varargin)
     if ~isempty(obj.laser)
         wDogSeconds = 40*60;
         obj.laser.setWatchDogTimer(wDogSeconds);
-        obj.acqLogWriteLine(sprintf('Setting laser watchdog timer to %d seconds\n', wDogSeconds)
+        obj.acqLogWriteLine(sprintf('Setting laser watchdog timer to %d seconds\n', wDogSeconds))
     end
 
 
