@@ -7,7 +7,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         statusPanel %The buttons and panals at the top of the window are kept here
         statusText  %The progress text
-        sectionImage %Reference to the Image object (the imageAxis child which displays the image)
+        sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
 
@@ -24,6 +24,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         channelSelectPopup
 
         button_previewScan
+
+        button_zoomIn
+        button_zoomOut
+        button_zoomNative
+        button_drawBox
 
         verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
     end
@@ -234,6 +239,41 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'String', 'Preview Scan', ...
                 'BackgroundColor', [1,0.75,0.25], ...
                 'Callback', @obj.startPreviewScan);
+
+
+            % Add buttons for zooming in and out and drawing the boundary box
+            obj.button_zoomIn = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [615 19 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '+', ...
+                'Tag', 'zoomin', ... 
+                'Callback', @obj.imageZoomHandler);
+
+            obj.button_zoomOut = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [615 2 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '-', ...
+                'Tag', 'zoomout', ... 
+                'Callback', @obj.imageZoomHandler);
+
+
+            obj.button_zoomNative = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [633 2 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '0', ...
+                'Tag', 'zerozoom', ...
+                'Callback', @obj.imageZoomHandler);
+
+            obj.button_drawBox = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [633 19 15 15], ...
+                'Units', 'Pixels', ...
+                'String', 'B', ...
+                'Callback', @obj.areaSelector);
+
 
             %Add some listeners to monitor properties on the scanner component
             obj.listeners{1}=addlistener(obj.model, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
@@ -767,16 +807,18 @@ classdef acquisition_view < BakingTray.gui.child_view
             frontPos = rectBottomLeft(2);
             leftPos  = rectBottomLeft(1) + yMMpix*rect_pos(4);
 
+            extentAlongX = round(rect_pos(4)*xMMpix,2);
+            extentAlongY = round(rect_pos(3)*yMMpix,2);
             msg = sprintf('Set the front/left position to X=%0.2f mm Y=%0.2f mm and the area to X=%0.2f by Y=%0.2f mm?',...
-                leftPos, frontPos, rect_pos(4)*xMMpix, rect_pos(3)*yMMpix);
+                leftPos, frontPos, extentAlongX, extentAlongY);
 
             A=questdlg(msg);
 
             if strcmpi(A,'yes')
                 obj.model.recipe.FrontLeft.X = leftPos;
                 obj.model.recipe.FrontLeft.Y = frontPos;
-                obj.model.recipe.mosaic.sampleSize.X = rect_pos(4)*xMMpix;
-                obj.model.recipe.mosaic.sampleSize.Y = rect_pos(3)*yMMpix;
+                obj.model.recipe.mosaic.sampleSize.X = extentAlongX;
+                obj.model.recipe.mosaic.sampleSize.Y = extentAlongY;
                 fprintf('\nRECIPE UPDATED\n')
             end
 
@@ -824,6 +866,47 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             stagePos = [xPosInMM,yPosInMM];
         end % convertImageCoordsToStagePosition
+
+
+        function imageZoomHandler(obj,src,~)
+            % This callback function is run when the user presses the zoom out, in, or zero zoom
+            % buttons in the control bar at the top of the GUI.
+
+            zoomProp=0.15; % How much to zoom in and out each time the button is pressed
+
+            switch src.Tag
+            case 'zoomin'
+                % Determine first if zooming in is possible
+                YLim =[obj.imageAxes.YLim(1) + size(obj.previewImageData,2)*zoomProp, ... 
+                    obj.imageAxes.YLim(2) - size(obj.previewImageData,2)*zoomProp];
+
+                XLim = [obj.imageAxes.XLim(1) + size(obj.previewImageData,1)*zoomProp, ...
+                    obj.imageAxes.XLim(2) - size(obj.previewImageData,1)*zoomProp];
+
+                if diff(YLim)<1 || diff(XLim)<1
+                    % Then we've tried to zoom in too far, disable the zoom in button
+                    obj.button_zoomIn.Enable='off';
+                    return
+                end
+                obj.imageAxes.YLim(1) = obj.imageAxes.YLim(1) + size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.YLim(2) = obj.imageAxes.YLim(2) - size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.XLim(1) = obj.imageAxes.XLim(1) + size(obj.previewImageData,1)*zoomProp;
+                obj.imageAxes.XLim(2) = obj.imageAxes.XLim(2) - size(obj.previewImageData,1)*zoomProp;
+            case 'zoomout'
+                obj.button_zoomIn.Enable='on'; %In case it was previously disabled
+                obj.imageAxes.YLim(1) = obj.imageAxes.YLim(1) - size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.YLim(2) = obj.imageAxes.YLim(2) + size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.XLim(1) = obj.imageAxes.XLim(1) - size(obj.previewImageData,1)*zoomProp;
+                obj.imageAxes.XLim(2) = obj.imageAxes.XLim(2) + size(obj.previewImageData,1)*zoomProp;
+            case 'zerozoom'
+                obj.button_zoomIn.Enable='on'; %In case it was previously disabled
+                obj.imageAxes.YLim = [0,size(obj.previewImageData,2)];
+                obj.imageAxes.XLim = [0,size(obj.previewImageData,1)];
+            otherwise 
+                fprintf('bakingtray.gui.acquisition_view.imageZoomHandler encounters unknown source tag: "%s"\n',src.Tag)
+            end
+
+        end
 
     end %close hidden methods
 
