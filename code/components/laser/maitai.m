@@ -1,5 +1,9 @@
 classdef maitai < laser & loghandler
-%%  maitai
+%%  maitai - control class for maitai lasers
+%
+%
+% Example
+% M = maitai('COM1');
 %
 % Laser control component for MaiTai lasers from SpectraPhysics. 
 % IMPORTANT: In the SpectraPhysics GUI you should set the baudrate
@@ -17,6 +21,9 @@ classdef maitai < laser & loghandler
         function obj = maitai(serialComms,logObject)
         % function obj = maitai(serialComms,logObject)
 
+            if nargin<1
+                error('maitai requires at least one input argument: you must supply the laser COM port as a string')
+            end
             %Attach log object if it is supplied
             if nargin>1
                 obj.attachLogObject(logObject);
@@ -41,7 +48,7 @@ classdef maitai < laser & loghandler
             %Report connection and humidity
             fprintf(['Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n'], ...
              serialComms, obj.readHumidity)
-            
+
             obj.friendlyName = 'MaiTai';
         end %constructor
 
@@ -63,7 +70,7 @@ classdef maitai < laser & loghandler
             obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
-            catch ME       
+            catch ME
                 fprintf(' * ERROR: Failed to connect to MaiTai:\n%s\n\n', ME.message)
                 success=false;
                 return
@@ -190,7 +197,7 @@ classdef maitai < laser & loghandler
             if ~success
                 shutterState=[];
                 return
-            end            
+            end
             shutterState = str2double(reply); %if open the command returns 1
             obj.isLaserShutterOpen=shutterState;
         end
@@ -213,7 +220,7 @@ classdef maitai < laser & loghandler
             if length(wavelengthInNM)>1
                 fprintf('wavelength should be a scalar')
                 return
-            end            
+            end
             if ~obj.isTargetWavelengthInRange(wavelengthInNM)
                 return
             end
@@ -247,10 +254,10 @@ classdef maitai < laser & loghandler
             end
 
         end
-        
+
 
         function laserPower = readPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:POWER?');            
+            [success,laserPower]=obj.sendAndReceiveSerial('READ:POWER?');
             if ~success
                 laserPower=[];
                 return
@@ -261,7 +268,7 @@ classdef maitai < laser & loghandler
 
 
         function laserID = readLaserID(obj)
-            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');            
+            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');
             if ~success
                 laserID=[];
                 return
@@ -284,7 +291,7 @@ classdef maitai < laser & loghandler
 
         % MaiTai specific
         function laserPower = readPumpPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');            
+            [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');
             if ~success
                 laserPower=[];
                 return
@@ -294,7 +301,7 @@ classdef maitai < laser & loghandler
         end
 
         function pLasI = readPumpLaserCurrent(obj)
-            [success,pLasI]=obj.sendAndReceiveSerial('READ:PLASER:PCURRENT?');            
+            [success,pLasI]=obj.sendAndReceiveSerial('READ:PLASER:PCURRENT?');
             if ~success
                 pLasI=[];
                 return
@@ -314,7 +321,7 @@ classdef maitai < laser & loghandler
         function warmedUpValue = readWarmedUp(obj)
             %Return a scalar that defines whether the laser is warmed up
             %100 means warmed up. Returns empty if nothing was read back.
-            [success,warmedUpValue]=obj.sendAndReceiveSerial('READ:PCTWarmedup?');            
+            [success,warmedUpValue]=obj.sendAndReceiveSerial('READ:PCTWarmedup?');
             if ~success
                 warmedUpValue=[];
                 return
@@ -384,10 +391,18 @@ classdef maitai < laser & loghandler
             end
 
             reply=fgets(obj.hC);
+            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do. 
             if obj.hC.BytesAvailable>0
-                fprintf('Read in from the MaiTai buffer but there are still %d BytesAvailable. Flushing.\n',obj.hC.BytesAvailable)
-                flushinput(obj.hC)
+                if doFlush
+                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
+                        commandString, obj.hC.BytesAvailable)
+                    flushinput(obj.hC)
+                else
+                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
+                        commandString, obj.hC.BytesAvailable)
+                end
             end
+
             if ~isempty(reply)
                 reply(end)=[];
             else
@@ -401,7 +416,7 @@ classdef maitai < laser & loghandler
             %TODO: improve check of success?
             success=true;
         end
-        
+
     end %close methods
 
 end %close classdef 

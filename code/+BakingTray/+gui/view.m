@@ -198,7 +198,7 @@ classdef view < handle
                 'FontSize', obj.fSize, ...
                 'FitBoxToText','off', ...
                 'String', '');
-            %TODO: add a listener to this updates when the user loads a new recipe
+            %TODO: add a listener to this so it updates when the user loads a new recipe
             obj.updateRecipeFname 
 
 
@@ -557,7 +557,7 @@ classdef view < handle
                 obj.view_acquire=BakingTray.gui.acquisition_view(obj.model,obj);
             else
                 %otherwise raise it (TODO: currently not possible since button is disabled when acq GUI starts)
-                figure(obj.view_acquire.hFIg)
+                figure(obj.view_acquire.hFig)
             end
         end %START
 

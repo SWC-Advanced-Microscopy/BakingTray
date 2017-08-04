@@ -198,6 +198,10 @@ classdef dummyScanner < scanner
         function tearDown(~)
         end
 
+        function verStr=getVersion(~)
+            verStr='dummy scanner';
+        end
+
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
         % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 

@@ -230,6 +230,15 @@ classdef (Abstract) scanner < handle & loghandler
         % operations might be necessasry for the scanner at the end of acquisition. 
         % e.g. turn off the PMTS .
 
+        getVersion(obj)
+        % getVersion(obj)
+        %
+        % Behavior
+        % Return a string describing the scanner version. This should be one line so it 
+        % can be written to an acquisition log file as part of an sprintf command. Don't
+        % add formatting characters like new lines.
+
+
      end %close methods
 
 end %close classdef

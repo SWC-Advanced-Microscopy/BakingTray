@@ -20,10 +20,10 @@ classdef laser_view < BakingTray.gui.child_view
     end
 
     properties(Hidden)
-        wavelengthWatcherUpdateInterval=0.33 %If the laser is tuning, the GUI is updated with this period (in seconds)
+        wavelengthWatcherUpdateInterval=0.5 %If the laser is tuning, the GUI is updated with this period (in seconds)
         currentWavelengthTimer %Regularly reads wavelength until settled
         currentWavelengthString='Current Wavelength: %d nm' %Used in the sprintf for the current wavelength
-        laserViewUpdateInterval=1 %Update select GUI elements every this many seconds (e.g. modelock state)
+        laserViewUpdateInterval=2 %Update select GUI elements every this many seconds (e.g. modelock state)
         laserViewUpdateTimer
         setWavelengthLabel
     end
@@ -61,13 +61,16 @@ classdef laser_view < BakingTray.gui.child_view
             %This timer runs when the wavelength is changed and updates the screen until the reading stabilizes
             fprintf('Setting up laser GUI timers\n')
             obj.currentWavelengthTimer = timer;
+            obj.currentWavelengthTimer.Name = 'update current wavelength updater';
             obj.currentWavelengthTimer.StartDelay = obj.wavelengthWatcherUpdateInterval;
             obj.currentWavelengthTimer.TimerFcn = @(~,~) [] ;
             obj.currentWavelengthTimer.StopFcn = @(~,~) obj.updateCurrentWavelength;
             obj.currentWavelengthTimer.ExecutionMode = 'singleShot';
 
+
             %This timer updates select GUI elements
             obj.laserViewUpdateTimer = timer;
+            obj.laserViewUpdateTimer.Name = 'laser view regular updater';
             obj.laserViewUpdateTimer.Period = obj.laserViewUpdateInterval;
             obj.laserViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
             obj.laserViewUpdateTimer.StopFcn = @(~,~) [];

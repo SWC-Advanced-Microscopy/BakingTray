@@ -7,7 +7,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         statusPanel %The buttons and panals at the top of the window are kept here
         statusText  %The progress text
-        sectionImage %Reference to the Image object (the imageAxis child which displays the image)
+        sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
 
@@ -24,6 +24,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         channelSelectPopup
 
         button_previewScan
+
+        button_zoomIn
+        button_zoomOut
+        button_zoomNative
+        button_drawBox
 
         verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
     end
@@ -64,7 +69,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
             if ~isempty(obj.parentView)
-                obj.parentView.enableDisableThisView('off');
+                % obj.parentView.enableDisableThisView('off'); % TODO: delete if all goes well
             end
 
             obj.hFig = BakingTray.gui.newGenericGUIFigureWindow('BakingTray_acquisition');
@@ -95,7 +100,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.imageAxes = axes('parent', obj.hFig, 'Units','pixels', 'Color', 'k',...
                 'Position',[3,2,minFigSize(1)-4,minFigSize(2)-panelHeight-4]);
 
-            %Set up the compass plot
+
+            %Set up the "compass plot" in the bottom left of the preview axis
             pos=plotboxpos(obj.imageAxes);
             obj.compassAxes = axes('parent', obj.hFig,...
                 'Units', 'pixels', 'Color', 'none', ...
@@ -136,10 +142,11 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'ForegroundColor','k', ...
                 'FontWeight', 'bold');
 
-            %Ensure the back button reflects what is currently happening
+            %Ensure the bake button reflects what is currently happening
             if ~obj.model.acquisitionInProgress
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.bake{:})
             else obj.model.acquisitionInProgress
+                fprintf('Acquisition already in progress when acquisition view starts. Setting Bake button to "Stop".\n')
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
             end
 
@@ -191,9 +198,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
 
-            %Build a blank image
+            % Build a blank image then insert it (nicely formatted) into the axes. 
+            % We'll repeat this before acquisition too, so recipe can be altered at any time
             obj.initialisePreviewImageData
-            obj.setUpImageAxes; %Build an empty image of the right size and place it in nicely-formatted axes
+            obj.setUpImageAxes;
 
             % Add the depths
             opticalPlanes_str = {};
@@ -209,12 +217,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-           'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
-           'Interruptible', 'off');
+                'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
+                'Interruptible', 'off');
+
             % Add the channel names. This is under the control of a listener in case the user makes a 
             % change in ScanImage after the acquisition_view GUI has opened.
             obj.updateChannelsPopup
-            obj.setChannelToView %Ensure that the property is set to a valid channel (it may may not be)
+            obj.setChannelToView % Ensure that the property is set to a valid channel
 
 
             % Report the cursor position with a callback function
@@ -231,6 +240,41 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'BackgroundColor', [1,0.75,0.25], ...
                 'Callback', @obj.startPreviewScan);
 
+
+            % Add buttons for zooming in and out and drawing the boundary box
+            obj.button_zoomIn = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [615 19 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '+', ...
+                'Tag', 'zoomin', ... 
+                'Callback', @obj.imageZoomHandler);
+
+            obj.button_zoomOut = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [615 2 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '-', ...
+                'Tag', 'zoomout', ... 
+                'Callback', @obj.imageZoomHandler);
+
+
+            obj.button_zoomNative = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [633 2 15 15], ...
+                'Units', 'Pixels', ...
+                'String', '0', ...
+                'Tag', 'zerozoom', ...
+                'Callback', @obj.imageZoomHandler);
+
+            obj.button_drawBox = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Position', [633 19 15 15], ...
+                'Units', 'Pixels', ...
+                'String', 'B', ...
+                'Callback', @obj.areaSelector);
+
+
             %Add some listeners to monitor properties on the scanner component
             obj.listeners{1}=addlistener(obj.model, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'acquisitionPaused', 'PostSet', @obj.updatePauseButtonState);
@@ -246,10 +290,15 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.updateStatusText
 
+            % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
+            % TODO: in future we might wish to make this more elegant, but for now it should work
+            if isa(obj.model.scanner,'SIBT')
+                obj.model.scanner.applyZstackSettingsFromRecipe;
+            end
         end
 
         function delete(obj)
-            obj.parentView.enableDisableThisView('on');
+            %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
             obj.parentView.updateStatusText; %Resets the approx time for sample indicator
             delete@BakingTray.gui.child_view(obj);
         end
@@ -279,7 +328,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function setUpImageAxes(obj)
-
+            % Add a blank images to the image axes
             blankImage = squeeze(obj.previewImageData(:,:,obj.depthToShow,obj.chanToShow));
             if obj.rotateSectionImage90degrees
                 blankImage = rot90(blankImage);
@@ -298,7 +347,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'XColor','w',...
                 'YColor','w')
             set(obj.hFig,'Colormap', gray(256))
-
         end %setUpImageAxes
 
 
@@ -316,7 +364,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
             tp=abs(tp);
-            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images
+            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images?
             obj.previewTilePositions=tp;
 
             stepSizes = max(abs(diff(tp)));
@@ -351,14 +399,17 @@ classdef acquisition_view < BakingTray.gui.child_view
                 %obj.button_Pause.Enable='off';
             else
                 obj.updateStatusText
-                %obj.updateBakeButtonState
-                %obj.updatePauseButtonState
+                %obj.updateBakeButtonState  % TODO: why is this here?
+                %obj.updatePauseButtonState % TODO: why is this here?
             end
         end %indicateCutting
 
+
         function updateStatusText(obj,~,~)
+            % Update the text in the top left of the acquisition view
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
+            % We only want to run this on the first tile of each section. Faster this way.
             if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
                 if obj.verbose, fprintf('Caching end time in acquisition_view object\n'), end
                 obj.cachedEndTimeStructure=obj.model.estimateTimeRemaining;
@@ -443,6 +494,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - 
         function bake_callback(obj,~,~)
+            % Run when the bake button is pressed
             if obj.verbose, fprintf('In acquisition_view.bake callback\n'), end
 
             obj.updateStatusText
@@ -454,21 +506,25 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
                return
             end
-            obj.initialisePreviewImageData;
-            obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+            % Update the preview image in case the recipe has altered since the GUI was opened or
+            % since the preview was last taken.
+            obj.initialisePreviewImageData;
+            obj.setUpImageAxes;
+
+            obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
             set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
             obj.button_BakeStop.Enable='off'; %This gets re-enabled when the scanner starts imaging
 
             obj.updateImageLUT;
-
             obj.model.bake;
 
         end %bake_callback
 
 
         function stop_callback(obj,~,~)
+            % Run when the stop button is pressed
             % If the system has not been told to stop after the next section, pressing the 
             % button again will stop this from happening. Otherwise we proceed with the 
             % question dialog. Also see SIBT.tileScanAbortedInScanImage
@@ -511,6 +567,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function pause_callback(obj,~,~)
+            % Run when the pause button is pressed
             % Pauses or resumes the acquisition according to the state of the observable property in scanner.acquisitionPaused
             % This will not pause cutting. It will only pause the system when it's acquiring data. If you press this during
             % cutting the acquisition of the next section will not begin until pause is disabled. 
@@ -547,10 +604,16 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+            % Update the preview image in case the recipe has altered since the GUI was opened or
+            % since the preview was last taken.
+            obj.initialisePreviewImageData;
+            obj.setUpImageAxes;
+
             if size(obj.previewImageData,3)>1
                 %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)
                 obj.previewImageData(:,:,2:end,:)=[];
             end
+            
             obj.model.takeRapidPreview
 
             %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
@@ -623,7 +686,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         function updateImageLUT(obj,~,~)
             if obj.verbose, fprintf('In acquisition_view.updateImageLUT callback\n'), end
 
-            %TODO: update with SIBT properties
             if obj.model.isScannerConnected
                 thisLut=obj.model.scanner.getChannelLUT(obj.chanToShow);
                 obj.imageAxes.CLim=thisLut;
@@ -713,10 +775,15 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %chooseChanToDisplay
 
         function pointerReporter(obj,~,~)
+            % Runs when the mouse is moved over the axis to report its position in stage coordinates. 
+            % This is printed as text to the top left of the plot. The callback does not run if an
+            % acquisition is in progress or if the plotted image contains only zeros.
+
             if obj.verbose, fprintf('In acquisition_view.pointerReporter callback\n'), end
+
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
-            if obj.model.acquisitionInProgress
+            if obj.model.acquisitionInProgress || all(obj.sectionImage.CData(:)==0)
                 return
             end
 
@@ -724,6 +791,54 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord=pos(1,1);
             yAxisCoord=pos(1,2);
 
+            stagePos = obj.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
+            obj.statusText.String = sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', stagePos);
+
+        end % pointerReporter
+
+        function areaSelector(obj,~,~)
+
+            h = imrect(obj.imageAxes);
+            rect_pos = wait(h);
+            delete(h)
+
+            [rectBottomLeft,xMMpix,yMMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
+
+            frontPos = rectBottomLeft(2);
+            leftPos  = rectBottomLeft(1) + yMMpix*rect_pos(4);
+
+            extentAlongX = round(rect_pos(4)*xMMpix,2);
+            extentAlongY = round(rect_pos(3)*yMMpix,2);
+            msg = sprintf('Set the front/left position to X=%0.2f mm Y=%0.2f mm and the area to X=%0.2f by Y=%0.2f mm?',...
+                leftPos, frontPos, extentAlongX, extentAlongY);
+
+            A=questdlg(msg);
+
+            if strcmpi(A,'yes')
+                obj.model.recipe.FrontLeft.X = leftPos;
+                obj.model.recipe.FrontLeft.Y = frontPos;
+                obj.model.recipe.mosaic.sampleSize.X = extentAlongX;
+                obj.model.recipe.mosaic.sampleSize.Y = extentAlongY;
+                fprintf('\nRECIPE UPDATED\n')
+            end
+
+        end % areaSelector
+
+        function [stagePos,xMMPix,yMMPix] = convertImageCoordsToStagePosition(obj, coords)
+            % Convert a position in the preview image to a stage position in mm
+            %
+            % Inputs
+            % coords is [x coord, y coord]
+            % 
+            % Outputs
+            % stagePos is [x stage pos, y stage pos]
+            % xMMPix - number of mm per pixel in X
+            % yMMPix - number of mm per pixel in Y
+            %
+            % Note that the Y axis of the plot is motion of the X stage.
+
+            xAxisCoord = coords(1);
+            yAxisCoord = coords(2);
 
             % Size ratio between full size image and downsampled tiles
             downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
@@ -746,11 +861,53 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Get the X stage value for y=0 (right most position) and we'll reference off that
             frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*xMMPix;
 
-            obj.statusText.String = ...
-            sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', ...
-              frontRightX + yAxisCoord*xMMPix, obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix);
+            xPosInMM = frontRightX + yAxisCoord*xMMPix;
+            yPosInMM = obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix;
 
-        end % pointerReporter
+            stagePos = [xPosInMM,yPosInMM];
+        end % convertImageCoordsToStagePosition
+
+
+        function imageZoomHandler(obj,src,~)
+            % This callback function is run when the user presses the zoom out, in, or zero zoom
+            % buttons in the control bar at the top of the GUI.
+
+            zoomProp=0.15; % How much to zoom in and out each time the button is pressed
+
+            switch src.Tag
+            case 'zoomin'
+                % Determine first if zooming in is possible
+                YLim =[obj.imageAxes.YLim(1) + size(obj.previewImageData,2)*zoomProp, ... 
+                    obj.imageAxes.YLim(2) - size(obj.previewImageData,2)*zoomProp];
+
+                XLim = [obj.imageAxes.XLim(1) + size(obj.previewImageData,1)*zoomProp, ...
+                    obj.imageAxes.XLim(2) - size(obj.previewImageData,1)*zoomProp];
+
+                if diff(YLim)<1 || diff(XLim)<1
+                    % Then we've tried to zoom in too far, disable the zoom in button
+                    obj.button_zoomIn.Enable='off';
+                    return
+                end
+                obj.imageAxes.YLim(1) = obj.imageAxes.YLim(1) + size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.YLim(2) = obj.imageAxes.YLim(2) - size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.XLim(1) = obj.imageAxes.XLim(1) + size(obj.previewImageData,1)*zoomProp;
+                obj.imageAxes.XLim(2) = obj.imageAxes.XLim(2) - size(obj.previewImageData,1)*zoomProp;
+            case 'zoomout'
+                obj.button_zoomIn.Enable='on'; %In case it was previously disabled
+                obj.imageAxes.YLim(1) = obj.imageAxes.YLim(1) - size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.YLim(2) = obj.imageAxes.YLim(2) + size(obj.previewImageData,2)*zoomProp;
+                obj.imageAxes.XLim(1) = obj.imageAxes.XLim(1) - size(obj.previewImageData,1)*zoomProp;
+                obj.imageAxes.XLim(2) = obj.imageAxes.XLim(2) + size(obj.previewImageData,1)*zoomProp;
+            case 'zerozoom'
+                obj.button_zoomIn.Enable='on'; %In case it was previously disabled
+                obj.imageAxes.YLim = [0,size(obj.previewImageData,2)];
+                obj.imageAxes.XLim = [0,size(obj.previewImageData,1)];
+            otherwise 
+                fprintf('bakingtray.gui.acquisition_view.imageZoomHandler encounters unknown source tag: "%s"\n',src.Tag)
+            end
+
+        end
+
     end %close hidden methods
 
 

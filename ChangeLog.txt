@@ -1,7 +1,14 @@
 BakingTray ChangeLog
 
 Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
-When mature, changes should be merged into master *as a merge commit*  and this changelog file updated. 
+When mature, changes should be merged into master *as a merge commit*  and this changelog file updated.
+
+
+4th August 2017
+- USER: Define imaging area by drawing a box. Zoom in and out. 
+- USER: Channel offsets no longer subtracted in ScanImage.
+- USER: Z-stack settings applied to ScanImage when the acquisition view opens. 
+- Multiple bug fixes.
 
 
 2nd August 2017 
@@ -28,6 +35,7 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 - Get rid of ScanImage user-functions. Everything now done in SIBT with listeners on the user-function notifiers.
 - Pressing "Abort" in ScanImage during tile-scanning will now disarm SIBT
 - Stage coords shown in acq window
+
 
 4th July 2017
 - Major organisation of project prior to publishing on GitHib.

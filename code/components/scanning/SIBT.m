@@ -110,10 +110,6 @@ classdef SIBT < scanner
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
 
-            %We now set some values to optimal settings for proceeding, but these are not critical.
-            fprintf(' - Setting fast z waveform type to "step"\n')
-            obj.hC.hFastZ.waveformType='step'; %Enforced anyway when arming the scanner
-
             %Supply a reasonable default for the illumination with depth adjustment and report to the command line 
             Lz=210; %TODO: this should be a user setting not in here
             fprintf(' - Setting up power/depth correction using Lz=%d.\n   You may change this value in "POWER CONTROLS". (Smaller numbers will increase the power more with depth.)\n',Lz)
@@ -156,46 +152,25 @@ classdef SIBT < scanner
 
             obj.enableArmedListeners
 
+            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
+
+            % Tweak a couple of display settings
             if obj.hC.hDisplay.displayRollingAverageFactor>1
                 fprintf('Setting display rolling average to 1\n')
                 obj.hC.hDisplay.displayRollingAverageFactor=1;
             end
-
-            %Set up for Z-stacks if we'll be doing those
-            thisRecipe = obj.parent.recipe;
-            if thisRecipe.mosaic.numOpticalPlanes>1
-                fprintf('Setting up z-scanning with "step" waveform\n')
-                obj.hC.hFastZ.waveformType = 'step'; %Always
-                obj.hC.hFastZ.numVolumes=1; %Always
-                obj.hC.hFastZ.enable=1;
-
-                obj.hC.hStackManager.framesPerSlice = 1; %Always (number of frames per grab per layer)
-                obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
-                sliceThicknessInUM = thisRecipe.mosaic.sliceThickness*1E3;
-                obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices; %Will be uniformly spaced always!
-                obj.hC.hStackManager.stackReturnHome = 1;
-
-
-                if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
-                    %The number of channel window updates per second
-                    fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
-                    obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
-                end
-
-                if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
-                    fprintf('Setting volume display style from 3D to Tiled\n')
-                    obj.hC.hDisplay.volumeDisplayStyle='Tiled';
-                end
-
-            else
-                %Ensure we disable z-scanning
-                obj.hC.hStackManager.numSlices = 1;
-                obj.hC.hStackManager.stackZStepSize = 0;
+            if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
+                %The number of channel window updates per second
+                fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
+                obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
             end
+
+
+            obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
             %If any of these fail, we leave the function gracefully
             try
-                obj.hC.acqsPerLoop=thisRecipe.numTilesInOpticalSection;% This is the number of x/y positions that need to be visited
+                obj.hC.acqsPerLoop=obj.parent.recipe.numTilesInOpticalSection;% This is the number of x/y positions that need to be visited
                 obj.hC.extTrigEnable=1;
                 %Put it into acquisition mode but it won't proceed because it's waiting for a trigger
                 obj.hC.startLoop;
@@ -215,6 +190,41 @@ classdef SIBT < scanner
             fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
 
+
+        function applyZstackSettingsFromRecipe(obj)
+            % applyZstackSettingsFromRecipe
+            % This method is (at least for now) specific to ScanImage. 
+            % Its main purpose is to set the number of planes and distance between planes.
+            % It also sets the the view style to tiled. This method is called by armScanner
+            % but also by external classes at certain times in order to set up the correct 
+            % Z settings in ScanImage so the user can do a quick Grab and check the
+            % illumination correction with depth.
+
+            thisRecipe = obj.parent.recipe;
+            if thisRecipe.mosaic.numOpticalPlanes>1
+                fprintf('Setting up z-scanning with "step" waveform\n')
+                obj.hC.hFastZ.waveformType = 'step'; %Always
+                obj.hC.hFastZ.numVolumes=1; %Always
+                obj.hC.hFastZ.enable=1;
+
+                obj.hC.hStackManager.framesPerSlice = 1; %Always (number of frames per grab per layer)
+                obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
+                sliceThicknessInUM = thisRecipe.mosaic.sliceThickness*1E3;
+                obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices; %Will be uniformly spaced always!
+                obj.hC.hStackManager.stackReturnHome = 1;
+
+                if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
+                    fprintf('Setting volume display style from 3D to Tiled\n')
+                    obj.hC.hDisplay.volumeDisplayStyle='Tiled';
+                end
+
+            else
+                %Ensure we disable z-scanning if this is not being used
+                obj.hC.hStackManager.numSlices = 1;
+                obj.hC.hStackManager.stackZStepSize = 0;
+            end
+
+        end % applyZstackSettingsFromRecipe
 
         function success = disarmScanner(obj)
             if obj.hC.active
@@ -282,8 +292,11 @@ classdef SIBT < scanner
             % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
             scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
+
+            % Scanner type and version
             scanSettings.scanMode= obj.scannerType;
             scanSettings.scannerID=obj.scannerID;
+            scanSettings.version=obj.getVersion;
 
             %Record the detailed image settings to allow for things like acquisition resumption
             scanSettings.pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
@@ -356,7 +369,7 @@ classdef SIBT < scanner
 
         function tearDown(obj)
             % Turn off PMTs
-            obj.hC.hPmts.powersOn = zeros(1,length(obj.hC.hPmts.powersOn));
+            obj.hC.hPmts.powersOn(:) = 0;
         end
 
         function setImageSize(obj,pixelsPerLine,evnt)
@@ -506,6 +519,12 @@ classdef SIBT < scanner
             obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
             obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
         end %applyScanSettings
+
+
+        function verStr=getVersion(obj)
+            verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
+        end
+
 
     end %close methods
 
@@ -675,7 +694,6 @@ classdef SIBT < scanner
 
             %If we get here we failed to disarm
             fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
-
         end %tileScanAbortedInScanImage
 
     end %hidden methods
