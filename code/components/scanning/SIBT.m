@@ -180,6 +180,7 @@ classdef SIBT < scanner
             success=true;
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
+            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
 
             % Store the current tile pattern, as it's generated on the fly and 
             % and this is time-consuming to put into the tile acq callback. 
@@ -367,7 +368,7 @@ classdef SIBT < scanner
 
         function tearDown(obj)
             % Turn off PMTs
-            obj.hC.hPmts.powersOn = zeros(1,length(obj.hC.hPmts.powersOn));
+            obj.hC.hPmts.powersOn(:) = 0;
         end
 
         function setImageSize(obj,pixelsPerLine,evnt)

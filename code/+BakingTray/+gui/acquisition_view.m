@@ -369,6 +369,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Update the text in the top left of the acquisition view
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
+            % We only want to run this on the first tile of each section. Faster this way.
             if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
                 if obj.verbose, fprintf('Caching end time in acquisition_view object\n'), end
                 obj.cachedEndTimeStructure=obj.model.estimateTimeRemaining;
