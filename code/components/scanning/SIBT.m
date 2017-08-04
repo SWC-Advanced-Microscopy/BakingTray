@@ -152,6 +152,8 @@ classdef SIBT < scanner
 
             obj.enableArmedListeners
 
+            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
+
             % Tweak a couple of display settings
             if obj.hC.hDisplay.displayRollingAverageFactor>1
                 fprintf('Setting display rolling average to 1\n')
@@ -180,7 +182,6 @@ classdef SIBT < scanner
             success=true;
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
-            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
 
             % Store the current tile pattern, as it's generated on the fly and 
             % and this is time-consuming to put into the tile acq callback. 

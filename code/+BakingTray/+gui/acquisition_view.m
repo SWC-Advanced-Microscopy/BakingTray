@@ -757,25 +757,29 @@ classdef acquisition_view < BakingTray.gui.child_view
         end % pointerReporter
 
         function areaSelector(obj,~,~)
-            k = waitforbuttonpress; %TODO: this is not honored for the GUI window.
-            if k==1
-                return
-            end
-            rect_pos = rbbox; % output is [x y width height]
-            disp('rectangle drawn at coords')
-            disp(rect_pos)
+
+            h = imrect(obj.imageAxes);
+            rect_pos = wait(h);
+            delete(h)
 
             [rectBottomLeft,xMMpix,yMMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
 
             frontPos = rectBottomLeft(2);
             leftPos  = rectBottomLeft(1) + yMMpix*rect_pos(4);
 
-            fprintf('Front left of rectangle is X=%0.2f mm Y=%0.2f mm area is  %0.2f by %0.2f mm\n', ...
-                leftPos, frontPos, rect_pos(3)*xMMpix, rect_pos(4)*yMMpix );
+            msg = sprintf('Set the front/left position to X=%0.2f mm Y=%0.2f mm and the area to X=%0.2f by Y=%0.2f mm?',...
+                leftPos, frontPos, rect_pos(4)*xMMpix, rect_pos(3)*yMMpix);
 
+            A=questdlg(msg);
 
-            % Flash a rectangle
-            a=annotation('rectangle',rect_pos,'Color','red'); drawnow; pause(0.5); delete(a) 
+            if strcmpi(A,'yes')
+                obj.model.recipe.FrontLeft.X = leftPos;
+                obj.model.recipe.FrontLeft.Y = frontPos;
+                obj.model.recipe.mosaic.sampleSize.X = rect_pos(4)*xMMpix;
+                obj.model.recipe.mosaic.sampleSize.Y = rect_pos(3)*yMMpix;
+                fprintf('\nRECIPE UPDATED\n')
+            end
+
         end % areaSelector
 
         function [stagePos,xMMPix,yMMPix] = convertImageCoordsToStagePosition(obj, coords)
