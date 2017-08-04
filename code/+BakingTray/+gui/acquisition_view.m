@@ -280,6 +280,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'acquisitionPaused', 'PostSet', @obj.updatePauseButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updatePauseButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateBakeButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disable_ZoomElementsDuringAcq);
             obj.listeners{end+1}=addlistener(obj.model, 'abortAfterSectionComplete', 'PostSet', @obj.updateBakeButtonState);
 
 
@@ -638,7 +639,9 @@ classdef acquisition_view < BakingTray.gui.child_view
         function updateBakeButtonState(obj,~,~)
             if obj.verbose, fprintf('In acquisition_view.updateBakeButtonState callback\n'), end
 
-            if obj.model.acquisitionInProgress && ~obj.model.scanner.isAcquiring 
+            if obj.model.acquisitionInProgress && ~obj.model.scanner.isAcquiring
+                % This disables the button during the dead-time between asking for an acquisition
+                % and it actually beginning
                 obj.button_BakeStop.Enable='off';
             else
                 obj.button_BakeStop.Enable='on';
@@ -661,8 +664,23 @@ classdef acquisition_view < BakingTray.gui.child_view
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.cancelStop{:})
                 obj.button_previewScan.Enable='off';
             end
-
         end %updateBakeButtonState
+
+
+        function disable_ZoomElementsDuringAcq(obj,~,~)
+            % Listener callback to disable the zoom and box buttons during acquisition
+            if obj.model.acquisitionInProgress
+                button_zoomIn.Enable='off';
+                button_zoomOut.Enable='off';
+                button_zoomNative.Enable='off';
+                button_drawBox.Enable='off';
+            else
+                button_zoomIn.Enable='on';
+                button_zoomOut.Enable='on';
+                button_zoomNative.Enable='on';
+                button_drawBox.Enable='on';
+            end
+        end
 
 
         function closeAcqGUI(obj,~,~)
