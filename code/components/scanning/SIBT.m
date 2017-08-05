@@ -294,7 +294,9 @@ classdef SIBT < scanner
 
             % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
-            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
+            scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
+            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants; % The length constant used for ramping power
+            scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)
 
             % Scanner type and version
             scanSettings.scanMode= obj.scannerType;
@@ -484,8 +486,13 @@ classdef SIBT < scanner
         end %setImageSize
 
         function applyScanSettings(obj,scanSettings)
+            % SIBT.applyScanSettings
+            %
             % Applies a saved set of scanSettings in order to return ScanImage to a 
-            % a previous state. e.g. used to resume an acquisition following a crash.
+            % a previous state. e.g. used to manually resume an acquisition that was 
+            % terminated for some reason.
+            %
+
             if ~isstruct(scanSettings)
                 return
             end
@@ -496,9 +503,10 @@ classdef SIBT < scanner
             obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
 
             % Set the laser power and changing power with depth
-            obj.hC.hBeams.powers = scanSettings.beamPower;            
+            obj.hC.hBeams.powers = scanSettings.beamPower;
+            obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
             obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
-            % TODO : add the drop-down 
+            obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
 
             % Which channels to acquire
             if iscell(scanSettings.activeChannels)
