@@ -109,14 +109,6 @@ classdef SIBT < scanner
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
-
-            %Supply a reasonable default for the illumination with depth adjustment and report to the command line 
-            Lz=210; %TODO: this should be a user setting not in here
-            fprintf(' - Setting up power/depth correction using Lz=%d.\n   You may change this value in "POWER CONTROLS". (Smaller numbers will increase the power more with depth.)\n',Lz)
-            obj.hC.hBeams.pzAdjust=true;
-            obj.hC.hBeams.lengthConstants=Lz;
-
-
             obj.enforceImportantSettings
             success=true;
         end %connect
