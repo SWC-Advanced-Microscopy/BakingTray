@@ -154,6 +154,7 @@ classdef SIBT < scanner
 
             obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
 
+
             % Tweak a couple of display settings
             if obj.hC.hDisplay.displayRollingAverageFactor>1
                 fprintf('Setting display rolling average to 1\n')
@@ -167,6 +168,16 @@ classdef SIBT < scanner
 
 
             obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
+
+            % If the user will be displaying more than one channel and there are multiple depths,
+            % set the system to diplay only the first depth of each z-slize. Otherwise acquisition
+            % slows down a bit.
+            if length(obj.channelsToDisplay)>1 && obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
+                fprintf(['Setting channel display to show only the first depth: ', ...
+                    'This is faster with multiple channels being displayed\n'])
+                obj.hC.hDisplay.volumeDisplayStyle='Current';
+                obj.hC.hDisplay.selectedZs=0;
+            end
 
             %If any of these fail, we leave the function gracefully
             try
