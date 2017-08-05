@@ -22,11 +22,6 @@ classdef SIBT < scanner
         verbose=false;
     end
 
-    properties(Hidden,SetObservable)
-        %NOTE: this is SIBT-specific right now (17/04/2017)
-        channelLookUpTablesChanged=1 %Flips between 1 and -1 if any channel lookup table has changed
-    end
-
     properties (Hidden)
         defaultShutterIDs %The default shutter IDs used by the scanner
         maxStripe=1; %Number of channel window updates per second

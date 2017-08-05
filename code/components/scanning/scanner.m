@@ -30,7 +30,9 @@ classdef (Abstract) scanner < handle & loghandler
         isScannerAcquiring %True if scanner is acquiring data (this will be false during cutting)
         acquisitionPaused=false %This indicates whether the acquisition has been paused
         channelsToSave % This should be updated with a listener
+        channelLookUpTablesChanged=1 %Flips between 1 and -1 if any channel lookup table has changed
     end
+
 
     % The following are all critical methods that your class should define
     % You should also define a suitable destructor to clean up after you class
@@ -238,7 +240,7 @@ classdef (Abstract) scanner < handle & loghandler
         % can be written to an acquisition log file as part of an sprintf command. Don't
         % add formatting characters like new lines.
 
-        function settingsReport = generateSettingsReport(obj)
+        generateSettingsReport(obj)
         % generateSettingsReport(obj)
         %
         % Before begining acquisition we want the user to be presented with a list
@@ -266,7 +268,8 @@ classdef (Abstract) scanner < handle & loghandler
         %
         % If current value does not evaluate to true when passed through the anonymous function, 
         % the user will just be shown a highlighted value to indicate that something is not right. 
-
+        %
+        % NOTE: this function should return empty if no valid tests exist.
 
      end % close abstract methods
 

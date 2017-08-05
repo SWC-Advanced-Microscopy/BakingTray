@@ -695,7 +695,7 @@ classdef view < handle
                 end
 
                 % Place system name in window title
-                obj.hFig.Name = sprintf('BakingTray on %s', R.SYSTEM.ID)
+                obj.hFig.Name = sprintf('BakingTray on %s', R.SYSTEM.ID);
                 set(obj.text_status,'String', msg)
             end 
         end %updateStatusText
