@@ -1,6 +1,5 @@
 classdef view < handle
 
-
     properties
         hFig
         model % The BT model object goes here
@@ -178,7 +177,10 @@ classdef view < handle
             obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
 
             % Update the status text whenever the BT.isSlicing property changes. This will only happen twice per section
-            obj.listeners{end+1} = addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateStatusText)
+            % It ensures that the time left string updates
+            obj.listeners{end+1} = addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateStatusText);
+
+            obj.listeners{end+1} = addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disableDuringAcquisition);
 
 
             obj.button_recipe = uicontrol(...
@@ -676,22 +678,24 @@ classdef view < handle
 
                 if ~isempty(scnSet)
                     endTime = obj.model.estimateTimeRemaining;
-                    msg = sprintf(['System: %s ; Scanner: %s\n', ...
+                    msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
-                        'Tiles: %d x %d ; Depth: %0.1f mm\n',...
-                        'Section time: %s\n', ...
-                        'Total time left: %s\n'], ...
-                        R.SYSTEM.ID, scannerID, ...
+                        'Tiles: %d x %d ; Depth: %0.1f mm\n', ...
+                        'Time left: %s ; Slice Time: %s\n',  ....
+                        'Projected disk usage: %0.2f GB'], ...
+                        scannerID, R.mosaic.scanmode, ...
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
                         R.NumTiles.X, R.NumTiles.Y, R.mosaic.sliceThickness*R.mosaic.numSections, ...
-                        endTime.timePerSectionString, endTime.timeForSampleString);
+                        endTime.timeForSampleString, endTime.timePerSectionString, obj.model.recipe.estimatedSizeOnDisk);
 
                 elseif isempty(scnSet)
                     msg = sprintf('System ID: %s ; Scanner: %s', R.SYSTEM.ID, scannerID);
                 end
 
+                % Place system name in window title
+                obj.hFig.Name = sprintf('BakingTray on %s', R.SYSTEM.ID)
                 set(obj.text_status,'String', msg)
             end 
         end %updateStatusText
@@ -707,6 +711,14 @@ classdef view < handle
             end
         end %updateReadyToAcquireElements
 
+        function disableDuringAcquisition(obj,~,~)
+            % Callback to disable the view when an acquisition is in progress
+            if obj.model.acquisitionInProgress
+                obj.enableDisableThisView('off')
+            else 
+                obj.enableDisableThisView('on')
+            end
+        end % disableDuringAcquisition
 
         function ID = getScannerID(obj)
             %returns false if no scanner is connected
@@ -735,9 +747,16 @@ classdef view < handle
 
 
         function enableDisableThisView(obj,enableState)
+            % enableDisableThisView
+            %
             % Toggles the enable/disable state on all buttons and edit boxes. 
             % This method is called by the acquire GUI to ensure that whilst
             % it is open it is not possible to modify the recipe.
+            %
+            % Examples
+            % bakingtray.gui.view.enableDisableThisView('on')
+            % bakingtray.gui.view.enableDisableThisView('off')
+
             if nargin<2 && ~strcmp(enableState,'on') && ~strcmp(enableState,'off')
                 return
             end
