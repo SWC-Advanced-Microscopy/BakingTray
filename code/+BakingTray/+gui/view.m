@@ -173,8 +173,12 @@ classdef view < handle
                 'FitBoxToText','off', ...
                 'String', '');
             obj.updateSampleSavePathBox
+
             % Add a listener to the sampleSavePath property of the BT model
             obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
+
+            % Update the status text whenever the BT.isSlicing property changes. This will only happen twice per section
+            obj.listeners{end+1} = addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateStatusText)
 
 
             obj.button_recipe = uicontrol(...

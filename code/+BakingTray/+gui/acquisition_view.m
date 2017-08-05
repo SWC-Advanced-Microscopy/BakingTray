@@ -670,15 +670,15 @@ classdef acquisition_view < BakingTray.gui.child_view
         function disable_ZoomElementsDuringAcq(obj,~,~)
             % Listener callback to disable the zoom and box buttons during acquisition
             if obj.model.acquisitionInProgress
-                button_zoomIn.Enable='off';
-                button_zoomOut.Enable='off';
-                button_zoomNative.Enable='off';
-                button_drawBox.Enable='off';
+                obj.button_zoomIn.Enable='off';
+                obj.button_zoomOut.Enable='off';
+                obj.button_zoomNative.Enable='off';
+                obj.button_drawBox.Enable='off';
             else
-                button_zoomIn.Enable='on';
-                button_zoomOut.Enable='on';
-                button_zoomNative.Enable='on';
-                button_drawBox.Enable='on';
+                obj.button_zoomIn.Enable='on';
+                obj.button_zoomOut.Enable='on';
+                obj.button_zoomNative.Enable='on';
+                obj.button_drawBox.Enable='on';
             end
         end
 
