@@ -50,6 +50,26 @@ function bake(obj,varargin)
         return
     end
 
+    % TODO - incorporate into checkIfAcquisitionIsPossible
+    % Report to screen and the log file how much disk space is currently available
+    acqInGB = obj.recipe.estimatedSizeOnDisk;
+    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
+    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
+    volumeToWrite = volumeToWrite{1};
+    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
+    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
+        volumeToWrite, round(out.freeGB), round(out.totalGB));
+    fprintf(msg)
+
+    if (out.freeGB+acqInGB) > out.totalGB
+        msg=sprintf('\nYOU DO NOT HAVE ENOUGH DISK SPACE FOR THIS ACQUISITION\n');
+        fprintf(msg)
+        warndlg(msg);
+        return
+    end
+
+    obj.acqLogWriteLine(msg)
+
 
     %Define an anonymous function to nicely print the current time
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
@@ -75,16 +95,6 @@ function bake(obj,varargin)
 
     % Print the version number and name of the scanning software 
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
-
-
-    % Report to screen and the log file how much disk space is currently available
-    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
-    volumeToWrite = volumeToWrite{1};
-    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
-    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
-        volumeToWrite, round(out.freeGB), round(out.totalGB));
-    fprintf(msg)
-    obj.acqLogWriteLine(msg)
 
 
     % Report to the acquisition log whether we will attempt to turn off the laser at the end
