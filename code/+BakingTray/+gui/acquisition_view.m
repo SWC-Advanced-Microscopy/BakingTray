@@ -277,9 +277,14 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             %Add some listeners to monitor properties on the scanner component
             obj.listeners{1}=addlistener(obj.model, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
+
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'acquisitionPaused', 'PostSet', @obj.updatePauseButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updatePauseButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updatePauseButtonState);
+
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateBakeButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateBakeButtonState);
+
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disable_ZoomElementsDuringAcq);
             obj.listeners{end+1}=addlistener(obj.model, 'abortAfterSectionComplete', 'PostSet', @obj.updateBakeButtonState);
 
@@ -627,11 +632,19 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if ~obj.model.acquisitionInProgress
                 set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
+
             elseif obj.model.acquisitionInProgress && ~obj.model.scanner.acquisitionPaused
                 set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
 
             elseif obj.model.acquisitionInProgress && obj.model.scanner.acquisitionPaused
                 set(obj.button_Pause, obj.buttonSettings_Pause.resume{:})
+            end
+
+            if obj.model.isSlicing
+                % If we enter this callback because of slicing then disable the button
+                % We will re-enter again once slicing and finished and then the above will 
+                % hold true and we just won't disable here.
+                set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
             end
         end %updatePauseButtonState
 
@@ -663,6 +676,14 @@ classdef acquisition_view < BakingTray.gui.child_view
                 %then we are give the option to cancel stop.
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.cancelStop{:})
                 obj.button_previewScan.Enable='off';
+            end
+
+            if obj.model.isSlicing
+                % If we enter this callback because of slicing then disable both buttons
+                % We will re-enter again once slicing and finished and then the above will 
+                % hold true and we just won't disable here.
+                obj.button_previewScan.Enable='off';
+                obj.button_BakeStop.Enable='Off'
             end
         end %updateBakeButtonState
 
