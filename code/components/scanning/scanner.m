@@ -238,7 +238,37 @@ classdef (Abstract) scanner < handle & loghandler
         % can be written to an acquisition log file as part of an sprintf command. Don't
         % add formatting characters like new lines.
 
+        function settingsReport = generateSettingsReport(obj)
+        % generateSettingsReport(obj)
+        %
+        % Before begining acquisition we want the user to be presented with a list
+        % of important scanner settings to summarize how the acquisition will be 
+        % conducted. The list should indicate a friendly setting name (e.g. "channels to acquire"), 
+        % the value for this acquisition, and if appropriate a suggested value.
+        % For instance, bidirectional scanning should usually be true. So the user
+        % will be shown a display the highlights this setting should it be false. 
+        % Settings like this, that we don't *have* to enforce, we will allow the user
+        % to choose what they like and just nudge them if it's no "ideal" since maybe
+        % there is some reason for an unusual setting choice that we can't now predict.
+        %
+        % Inputs
+        % settingsTo report should be a vector of structures with one one item per
+        % setting. Each structure should be in the form:
+        % 
+        % S.friendlyName = 'bidirectional scanning'
+        % S.currentValue = true
+        % S.suggestedVal = true
+        %
+        % or:
+        % S.friendlyName = 'channels to acquire'
+        % S.currentValue = [1,2,3];
+        % S.suggestedVal = @(x) length(x)>1; 
+        %
+        % If current value does not evaluate to true when passed through the anonymous function, 
+        % the user will just be shown a highlighted value to indicate that something is not right. 
 
-     end %close methods
+
+     end % close abstract methods
+
 
 end %close classdef

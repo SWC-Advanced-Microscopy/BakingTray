@@ -109,6 +109,12 @@ classdef SIBT < scanner
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
+            if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
+                %The number of channel window updates per second
+                fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
+                obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
+            end
+
             obj.enforceImportantSettings
             success=true;
         end %connect
@@ -123,7 +129,7 @@ classdef SIBT < scanner
         end %isReady
 
 
-        function success = armScanner(obj)
+        function [success,msg] = armScanner(obj)
             %Arm scanner and tell it to acquire a fixed number of frames (as defined below)
             success=false;
             if isempty(obj.parent) || ~obj.parent.isRecipeConnected
@@ -144,19 +150,12 @@ classdef SIBT < scanner
 
             obj.enableArmedListeners
 
-            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
+            % The string "msg" will contain any messages we wish to display to the user as part of the confirmation box.
+            msg = '';
 
-
-            % Tweak a couple of display settings
-            if obj.hC.hDisplay.displayRollingAverageFactor>1
-                fprintf('Setting display rolling average to 1\n')
-                obj.hC.hDisplay.displayRollingAverageFactor=1;
-            end
-            if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
-                %The number of channel window updates per second
-                fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
-                obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
-            end
+            obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+            msg = sprintf('%sDisabled offset subtraction.\n',msg);
+            obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
 
 
             obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
@@ -167,6 +166,7 @@ classdef SIBT < scanner
             if length(obj.channelsToDisplay)>1 && obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
                 fprintf(['Setting channel display to show only the first depth: ', ...
                     'This is faster with multiple channels being displayed\n'])
+                msg = sprintf('%sDisplaying only first depth in ScanImage for speed reasons.\n',msg);
                 obj.hC.hDisplay.volumeDisplayStyle='Current';
                 obj.hC.hDisplay.selectedZs=0;
             end
@@ -515,7 +515,7 @@ classdef SIBT < scanner
             obj.hC.hChannels.channelSave = scanSettings.activeChannels;
 
 
-            % We set the scan parameters. The order in which these are set matters            
+            % We set the scan parameters. The order in which these are set matters
             obj.hC.hRoiManager.scanZoomFactor = scanSettings.zoomFactor;
             obj.hC.hScan2D.bidirectional = scanSettings.bidirectionalScan;
             obj.hC.hRoiManager.forceSquarePixelation = scanSettings.pixEqLinCheckBox;
@@ -532,9 +532,34 @@ classdef SIBT < scanner
         end %applyScanSettings
 
 
-        function verStr=getVersion(obj)
+        function verStr = getVersion(obj)
             verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
-        end
+        end % getVersion
+
+
+        function sr = generateSettingsReport(obj)
+
+            % Bidirectional scanning
+            n=1;
+            st(n).friendlyName = 'Bidirectional scanning';
+            st(n).currentValue = obj.hC.hScan2D.bidirectional;
+            st(n).suggestedVal = true;
+
+
+            % Ramping power with Z
+            n=n+1;
+            st(n).friendlyName = 'Power Z adjust';
+            st(n).currentValue = obj.hC.hBeams.pzAdjust;
+            if hC.hStackManager.numSlices>1
+                suggested = true;
+            elseif hC.hStackManager.numSlices==1 
+                % Because then it doesn't matter what this is set to and we don't want to 
+                % distract the user with stuff that doesn't matter;
+                suggested = obj.hC.hBeams.pzAdjust;
+            end
+            st(n).suggestedVal = suggested
+
+        end % generateSettingsReport
 
 
     end %close methods
@@ -542,7 +567,7 @@ classdef SIBT < scanner
 
     methods (Hidden)
         function lastFrameNumber = getLastFrameNumber(obj)
-            % Returns the number of frames acquired by the scanner. 
+            % Returns the number of frames acquired by the scanner.
             % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI. 
             lastFrameNumber = obj.hC.hDisplay.lastFrameNumber;
             %TODO: does it return zero if there are no data yet?
