@@ -5,27 +5,18 @@
 </a>
 
 ### What is it?
-BakingTray is an open-source serial section 2-photon tomography (STP) system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) API.
+BakingTray is an open-source serial section 2-photon tomography (STP) system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
 This software is aimed at technically-minded people who want an open source STP solution that can be modified for their needs. 
 Setting up BakingTray requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
 _This is not a turn-key solution_.
-
-
-### What hardware does it run on?
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
-You can use either a linear or resonant scanner for the fast axis, but resonant is recommended for speed and is better supported by BakingTray.
-Control of the 3-axis stage is done from within BakingTray, not ScanImage. 
-Use a [supported device](https://github.com/BaselLaserMouse/BakingTray) or write your own controller class using the provided instructions. 
-
 
 ### How does it work?
 BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/BaselLaserMouse/ScanImageTileScan).
 BakingTray simply slices off the top of the sample after each tile-scan is complete, exposing fresh tissue for imaging. 
 Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes. 
-The ScanImage API [allows the software to be controlled progamatically](https://github.com/tenss/ScanImageAPI_Examples). 
-
 
 ### Current features
 This software has been thoroughly stress-tested and is capable of generating production-quality data.
