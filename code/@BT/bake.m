@@ -61,7 +61,7 @@ function bake(obj,varargin)
         volumeToWrite, round(out.freeGB), round(out.totalGB));
     fprintf(msg)
 
-    if (out.freeGB+acqInGB) > out.totalGB
+    if out.freeGB < acqInGB
         msg=sprintf('\nYOU DO NOT HAVE ENOUGH DISK SPACE FOR THIS ACQUISITION\n');
         fprintf(msg)
         warndlg(msg);
