@@ -47,10 +47,11 @@ function bake(obj,varargin)
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
     if ~acqPossible
         fprintf(msg)
+        warndlg(msg,'Acquisition failed to start');
         return
     end
 
-    % TODO - incorporate into checkIfAcquisitionIsPossible
+
     % Report to screen and the log file how much disk space is currently available
     acqInGB = obj.recipe.estimatedSizeOnDisk;
     fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
@@ -60,14 +61,6 @@ function bake(obj,varargin)
     msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
         volumeToWrite, round(out.freeGB), round(out.totalGB));
     fprintf(msg)
-
-    if out.freeGB < acqInGB
-        msg=sprintf('\nYOU DO NOT HAVE ENOUGH DISK SPACE FOR THIS ACQUISITION\n');
-        fprintf(msg)
-        warndlg(msg);
-        return
-    end
-
     obj.acqLogWriteLine(msg)
 
 

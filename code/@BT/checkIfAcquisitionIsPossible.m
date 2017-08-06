@@ -6,7 +6,8 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     % Purpose
     % This method determines whether it is possible to begin an acquisiton. 
     % e.g. does the cutting position seem plausible, is the scanner ready
-    % and conncted, etc. 
+    % and conncted, are the axes connected, is there a recipe, is there 
+    % enough disk space, etc. 
     % 
     % Behavior
     % The method returns true if acquisition is possible and false otherwise.
@@ -17,62 +18,70 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
 
 
     msg='';
+    msgNumber=1;
 
     % An acquisition must not already be in progress
     if obj.acquisitionInProgress
         acquisitionPossible=false;
-        msg=sprintf('%sAcquisition already in progress\n', msg);
+        msg=sprintf('%s%d) Acquisition already in progress\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
 
 
     % We need a recipe connected and it must indicate that acquisition is possible
     if ~obj.isRecipeConnected
-        msg=sprintf('%sNo recipe.\n',msg);
+        msg=sprintf('%s%d) No recipe.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
 
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
-        msg=sprintf('%sNo scanner is connected.\n',msg);
+        msg=sprintf('%s%d) No scanner is connected.\n' ,msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
 
     if obj.isScannerConnected && ~obj.scanner.isReady
-        msg=sprintf('Scanner is not ready to acquire data\n');
+        msg=sprintf('%s%d) Scanner is not ready to acquire data\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
 
 
     if obj.isRecipeConnected && ~obj.recipe.acquisitionPossible
-        msg=sprintf(['%sAcquisition is not currently possible.\n', ...
-            'Did you define the cutting position and front/left positions?\n'], msg);
+        msg=sprintf(['%s%d) Did you define the cutting position and front/left positions?\n'], msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
-
-
 
 
     %If a laser is connected, check it is ready
     if obj.isLaserConnected
         [isReady,msgLaser]=obj.laser.isReady;
         if ~isReady
-            msg = sprintf('%sThe laser is not ready: %s\n', msg, msgLaser);
+            msg = sprintf('%s%d) The laser is not ready: %s\n', msg, msgLaser);
+            msgNumber=msgNumber+1;
         end
     end
 
     %Check the axes are conncted
     if ~obj.isXaxisConnected
-        msg=sprintf('%sNo xAxis is connected.\n',msg);
+        msg=sprintf('%s%d) No xAxis is connected.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
     if ~obj.isYaxisConnected
-        msg=sprintf('%sNo yAxis is connected.\n',msg);
+        msg=sprintf('%s%d) No yAxis is connected.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
 
     %Only raise an error about the z axis and cutter if we have more than one section    
     if ~obj.isZaxisConnected
         if obj.isRecipeConnected && obj.recipe.mosaic.numSections>1
-            msg=sprintf('%sNo zAxis is connected.\n',msg);
+            msg=sprintf('%s%d) No zAxis is connected.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
         end
     end
     if ~obj.isCutterConnected
         if obj.isRecipeConnected && obj.recipe.mosaic.numSections>1
-            msg=sprintf('%sNo cutter is connected.\n',msg);
+            msg=sprintf('%s%d) No cutter is connected.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
         end
     end
 
@@ -84,14 +93,15 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
 
         if distanceRequested>distanceAvailable
             numSlicesPossible = floor(distanceAvailable/obj.recipe.mosaic.sliceThickness)-1;
-            fprintf(['\n%sRequested %d slices: this is %0.2f mm of tissue but only %0.2f mm is possible.\n',...
-                'You can safely cut a maximum of %d slices.\n',...
-                'Change your settings or sample position and try again.\n\n'], ...
+            msg = sprintf(['%s%d) Requested %d slices: this is %0.2f mm thick but only %0.2f mm is possible. ',...
+                'You can cut a maximum of %d slices.\n'], ...
              msg,...
+             msgNumber, ...
              obj.recipe.mosaic.numSections,...
              distanceRequested, ...
              distanceAvailable,...
              numSlicesPossible);
+            msgNumber=msgNumber+1;
         end
     end
 
@@ -111,29 +121,34 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
             else
                 nDirStr='ies';
             end
-            msg=sprintf(['%sConducting acquisition in this directory would write data into %d existing section director%s.\n',...
+            msg=sprintf(['%s%d) Conducting acquisition in this directory would write data into %d existing section director%s.\n',...
                 'Acquisition will not proceed.\nSolutions:\n\t* Start a new directory.\n\t* Change the sample ID name.\n',...
-                '\t* Change the section start number.\n'], msg, n, nDirStr);
+                '\t* Change the section start number.\n'], msg, msgNumber, n, nDirStr);
+            msgNumber=msgNumber+1;
         end
     end
-
-
-    % Ensure that we will display only one channel. This is potentially important for speed reasons
-    % TODO: maybe make this a setting?
-    if  obj.isScannerConnected && strcmpi(obj.scanner.scannerType,'linear')
-        n=length(obj.scanner.channelsToDisplay);
-        if n>1
-            msg=sprintf(['%sScanImage is currently configured to display %d channels\n',...
-                    'Acquisition may be faster with just one channel selected for display.\n', ...
-                    'Please go to the CHANNELS window in ScanImage and leave only one channel checked in the "Display" column\n'],msg,n);
-        end
-    end
-
 
     % Is there a valid path to which we can save data?
     if isempty(obj.sampleSavePath)
-        msg=sprintf(['%sNo save path has been defined for this sample.\n'],msg);
+        msg=sprintf(['%s%d) No save path has been defined for this sample.\n'], msg, msgNumber);
+        msgNumber=msgNumber+1;
     end
+
+
+    % Do we have enough disk space for the acquisition to proceed?
+    if obj.isRecipeConnected && exist(obj.sampleSavePath,'dir')
+        acqInGB = obj.recipe.estimatedSizeOnDisk;
+        volumeToWrite = strsplit(obj.sampleSavePath,filesep);
+        volumeToWrite = volumeToWrite{1};
+        out = BakingTray.utils.returnDiskSpace(volumeToWrite);
+
+        if out.freeGB < acqInGB
+            msg=sprintf('%s%d) There is not enough disk space for this acquisition. Free space= %0.1f GB. Required space= %0.1f GB\n',...
+                msg, msgNumber, out.freeGB, acqInGB);
+            msgNumber=msgNumber+1;
+        end
+    end
+
 
 
     % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
@@ -141,9 +156,9 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     if isempty(msg)
         acquisitionPossible=true;
     else
+        msg = sprintf('Acquisition is currently not possible\n%s',msg);
         acquisitionPossible=false;
     end
-
 
     %Print the message to screen if the user requested no output arguments. 
     if acquisitionPossible==false && nargout<2
