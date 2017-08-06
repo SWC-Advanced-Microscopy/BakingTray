@@ -9,9 +9,9 @@ BakingTray is a [ScanImage](https://vidriotechnologies.com/) wrapper that perfor
 The software is inspired the Svoboda lab's [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project but runs on NI hardware. 
 
 ### Who is it for?
-Technically-minded people who want an open source STP solution. 
-You'll need MATLAB programming skills and the know how to set up and run a 2-photon microscope. 
-This is not a turn-key solution. 
+This software is aimed at technically-minded people who want an open source STP solution that can be modified for their needs. 
+Setting up BakingTray requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
+_This is not a turn-key solution_.
 
 
 ### What hardware does it run on?
