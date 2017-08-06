@@ -32,23 +32,38 @@ function time = prettyTime(timeInSeconds)
     % Rob Campbell - Basel, 2017
 
 
-    [~,~,D,H,M,S] = datevec(timeInSeconds / (24*60^2) );
+    disp(timeInSeconds)
+
+    [~,~,D,H,M,S] = datevec(timeInSeconds / (24*60^2) )
 
     time=''; %The nicely formatted time string will be incrementally built
 
-    if H > 0 || D > 0
-        H = H + D*24;
+    n=0; %number of messages added
+
+    if D>=3
+        time = sprintf('%s%d days ', time, D); 
+        n=n+1;
+    end
+
+    if H > 0
+        if D < 3
+            H = H + D*24;
+        end
         time = sprintf('%s%d hrs ', time, H); 
+        n=n+1;
     end
 
-    if M > 0 
+    if M > 0 && n<2
         time = sprintf('%s%d min ', time, M);
+        n=n+1;
     end
 
-    if D==0 && H==0 && S > 0
+    if  S > 0 && n<2
         % Only adds seconds if hours were zero
         time = sprintf('%s%d sec', time, round(S));
+        n=n+1;
     end
+
 
     if isempty(time)
         time = '0 s';

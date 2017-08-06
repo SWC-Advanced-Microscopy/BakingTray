@@ -797,6 +797,8 @@ classdef view < handle
             hSI=obj.model.scanner.hC;
             obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
             obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
+
+            obj.scannerListeners{end+1}=addlistener(obj.model.scanner, 'channelsToSave', 'PostSet', @obj.updateStatusText);
         end %connectScanImageListeners
 
 
@@ -805,4 +807,4 @@ classdef view < handle
 
 
 
-end
+end % close classdef
