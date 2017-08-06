@@ -29,12 +29,12 @@ The ScanImage API [allows the software to be controlled progamatically](https://
 
 
 ### Current features
-Whilst this software is under development, it has been thoroughly stress-tested and is capable of generating production-quality data.
-Its current feature set is as follows:
+This software has been thoroughly stress-tested and is capable of generating production-quality data.
+The current feature set is as follows:
 
-* Easy sample set up: no need for the user to calculate the number of tiles.
-* Fast "preview" image allows the block face to be rapidly imaged to aid set up.
+* Easy sample set up: take a fast preview image of the sample then draw a box around the area to be imaged. 
 * Acquisition of up to four channels.
+* Supports both resonant and linear scanning.
 * Real-time assembly of a downsampled image during scanning (all optical planes and channels) for quick visualisation.
 * Graceful acquisition abort (either immediately or at the end of the current section).
 * Pause the acquisition.
@@ -43,8 +43,6 @@ Its current feature set is as follows:
 * Support for multiple lasers via Scanimage.
 * Easy control of illumination as a function of depth via ScanImage. 
 * Integrates with our [StitchIt](https://github.com/BaselLaserMouse/StitchIt) software for assembling the stitched images from raw tiles. 
-* Supports both resonant and linear scanning.
-* A software "Stop" button to instantly halt motion on all stages.
 * Easily resume a previously halted acquisition. 
 
 ### Under the hood
