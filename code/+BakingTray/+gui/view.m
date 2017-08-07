@@ -330,7 +330,7 @@ classdef view < handle
             end
 
             %Fill it in with the recipe
-            obj.updateAllRecipeEditBoxes
+            obj.updateAllRecipeEditBoxesAndStatusText
 
             obj.connectRecipeListeners %It's a method because we have to close and re-connect when we load a new recipe
 
@@ -381,7 +381,7 @@ classdef view < handle
 
         % -----------------------
         % Recipe-related methods
-        function updateAllRecipeEditBoxes(obj,~,~)
+        function updateAllRecipeEditBoxesAndStatusText(obj,~,~)
             %If any recipe property is updated in model.recipe we update all the edit boxes
             %and any relevant GUI elements. We also modify elements in other attached GUIs
             %if this is needed
@@ -413,7 +413,7 @@ classdef view < handle
             %TODO: this may be creating a problem. I notice that the current section number is not updating and is stuck at 1. This might be why.
             %obj.model.currentSectionNumber=obj.model.recipe.mosaic.sectionStartNum;
 
-        end %updateAllRecipeEditBoxes
+        end %updateAllRecipeEditBoxesAndStatusText
 
         function updateRecipePropertyInRecipeClass(obj,eventData,~)
             %Replace a property in obj.model.recipe with the value the user just changed
@@ -511,7 +511,7 @@ classdef view < handle
 
             if success
                 obj.connectRecipeListeners
-                obj.updateAllRecipeEditBoxes
+                obj.updateAllRecipeEditBoxesAndStatusText
                 obj.updateRecipeFname
             end
         end %loadRecipe
@@ -780,8 +780,8 @@ classdef view < handle
         %Below are methods that handle the listeners
         function connectRecipeListeners(obj)
             % Add listeners to update the values on screen should they change
-            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
 
             %If the recipe signals a change in recipe.acquisitionPossible, we update the start button etc
             obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
@@ -793,12 +793,8 @@ classdef view < handle
         end %detachRecipeListeners
 
         function connectScanImageListeners(obj)
-            %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff
-            hSI=obj.model.scanner.hC;
-            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
-
-            obj.scannerListeners{end+1}=addlistener(obj.model.scanner, 'channelsToSave', 'PostSet', @obj.updateStatusText);
+            % Connect any required listeners to ScanImage
+            obj.scannerListeners{end+1}=addlistener(obj.model.scanner, 'scanSettingsChanged', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
         end %connectScanImageListeners
 
 

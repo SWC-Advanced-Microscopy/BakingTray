@@ -29,11 +29,25 @@ classdef (Abstract) scanner < handle & loghandler
     properties (Hidden, SetObservable, AbortSet)
         isScannerAcquiring %True if scanner is acquiring data (this will be false during cutting)
         acquisitionPaused=false %This indicates whether the acquisition has been paused
-        channelsToSave % This should be updated with a listener
-        channelLookUpTablesChanged=1 %Flips between 1 and -1 if any channel lookup table has changed
+        channelsToSave % This should be updated with a listener. BakingTray.gui.acquisition_view will monitor this.
+        channelLookUpTablesChanged=1 % Flips between 1 and -1 if any channel lookup table has changed. BakingTray.gui.acquisition_view will monitor this.
+        scanSettingsChanged=1 %Flips between 1 and -1 when any significant scan setting changes.
+                % i.e. any setting that might impact image size, FOV, frame rate, size of the final
+                % acquisition (e.g. number of channels), etc. This setting will be monitored by 
+                % at least BakingTray.gui.view and BakingTray.gui.acquisition_view
     end
 
 
+    methods (Hidden)
+        function flipScanSettingsChanged(obj,~,~)
+            % scanner.flipScanSettingsChanged
+            %
+            % Flips the scanSettingsChanged value from -1 <-> +1
+            % This is used a signal to GUI classes that an important scan
+            % setting has altered. 
+            obj.scanSettingsChanged = obj.scanSettingsChanged*-1;
+        end
+    end
     % The following are all critical methods that your class should define
     % You should also define a suitable destructor to clean up after you class
     methods (Abstract)

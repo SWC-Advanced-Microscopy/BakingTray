@@ -84,10 +84,10 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire);
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
-           % obj.enforceImportantSettings
+            % obj.enforceImportantSettings
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
@@ -97,6 +97,10 @@ classdef SIBT < scanner
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan2LUT', 'PostSet', @obj.LUTchanged);
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan3LUT', 'PostSet', @obj.LUTchanged);
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
+
+
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.flipScanSettingsChanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @obj.flipScanSettingsChanged);
 
 
             % Add "armedListeners" that are used during tiled acquisition only.
@@ -345,6 +349,7 @@ classdef SIBT < scanner
             end
             theseChans = obj.hC.hChannels.channelSave;
             obj.channelsToSave = theseChans; %store the currently selected channels to save
+            obj.flipScanSettingsChanged
         end %channelsToAcquire
 
 
