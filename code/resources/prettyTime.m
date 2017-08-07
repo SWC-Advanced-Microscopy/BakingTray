@@ -32,9 +32,7 @@ function time = prettyTime(timeInSeconds)
     % Rob Campbell - Basel, 2017
 
 
-    disp(timeInSeconds)
-
-    [~,~,D,H,M,S] = datevec(timeInSeconds / (24*60^2) )
+    [~,~,D,H,M,S] = datevec(timeInSeconds / (24*60^2) );
 
     time=''; %The nicely formatted time string will be incrementally built
 

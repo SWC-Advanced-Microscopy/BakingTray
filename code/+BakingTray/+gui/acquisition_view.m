@@ -203,17 +203,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.initialisePreviewImageData
             obj.setUpImageAxes;
 
-            % Add the depths
-            opticalPlanes_str = {};
-            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
-                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
-            end
-            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
-                obj.depthSelectPopup.String = opticalPlanes_str;
-            else
-                obj.depthSelectPopup.String = 'NONE';
-                obj.depthSelectPopup.Enable='off';
-            end
+            % Populate the depth popup
+            obj.populateDepthPopup
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
@@ -294,6 +285,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
 
+            obj.listeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.populateDepthPopup);
             obj.updateStatusText
 
             % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
@@ -723,6 +715,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateImageLUT(obj,~,~)
+            % BakingTray.gui.acquisition_view.updateImageLUT
+            %
+            % This calback updates the look-up table in the preview image wehen the user
+            % changes associated slider in the ScanImage IMAGE CONTROLS window.
+
             if obj.verbose, fprintf('In acquisition_view.updateImageLUT callback\n'), end
 
             if obj.model.isScannerConnected
@@ -732,8 +729,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateImageLUT
 
         function updateChannelsPopup(obj,~,~)
-            % This method ensures the channels available in the popup are the same as those
+            % BakingTray.gui.acquisition_view.updateChannelsPopup
+            %
+            % This calback ensures the channels available in the popup are the same as those
             % available in the scanning software. 
+
             if obj.verbose, fprintf('In acquisition_view.updateChannelsPopup callback\n'), end
 
             if obj.model.isScannerConnected
@@ -757,11 +757,35 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
         end %updateChannelsPopup
 
+
+        function populateDepthPopup(obj,~,~)
+            % BakingTray.gui.acquisition_view.populateDepthPopup
+            %
+            % This callback runs when the user changes the number of depths to be 
+            % acquired. It is also called in the constructor. It adds the correct 
+            % number of optical planes (depths) to the depths popup so the user 
+            % can select which plane they want to view. 
+
+            opticalPlanes_str = {};
+            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
+                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
+            end
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
+                obj.depthSelectPopup.String = opticalPlanes_str;
+            else
+                obj.depthSelectPopup.String = 'NONE';
+                obj.depthSelectPopup.Enable='off';
+            end
+        end %populateDepthPopup
+
         function setDepthToView(obj,~,~)
+            % BakingTray.gui.acquisition_view.setDepthToView
+            %
+            % This callback runs when the user interacts with the depth popup.
+            % The callback sets which depth will be displayed
+
             if obj.verbose, fprintf('In acquisition_view.setDepthToView callback\n'), end
 
-            % This callback runs when the user ineracts with the depth popup.
-            % The callback sets which depth will be displayed
             if isempty(obj.model.scanner.channelsToDisplay)
                 %Don't do anything if no channels are being viewed
                 return
@@ -771,6 +795,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             thisSelection = obj.depthSelectPopup.String{obj.depthSelectPopup.Value};
             thisDepthIndex = str2double(regexprep(thisSelection,'\w+ ',''));
+
+            if thisDepthIndex>size(obj.previewImageData,3)
+                %If the selected value is out of bounds default to the first depth
+                thisDepthIndex=1;
+                obj.depthSelectPopup.Value=1;
+            end
+
             obj.depthToShow = thisDepthIndex;
             obj.updateSectionImage;
         end %setDepthToView
