@@ -379,9 +379,9 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.sectionImage.CData(:)=0;
             end
 
-            % Log the current front/left position
-            obj.frontLeftWhenPreviewWasTaken.X = obj.model.getXpos;
-            obj.frontLeftWhenPreviewWasTaken.Y = obj.model.getYpos;
+            % Log the current front/left position from the recipe
+            obj.frontLeftWhenPreviewWasTaken.X = obj.model.recipe.FrontLeft.X;
+            obj.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
 
             fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
         end %initialisePreviewImageData
