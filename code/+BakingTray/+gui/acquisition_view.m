@@ -657,11 +657,19 @@ classdef acquisition_view < BakingTray.gui.child_view
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.bake{:})
                 obj.button_previewScan.Enable='on';
 
-            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete
+            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete && ~obj.model.isSlicing
                 %If there is an acquisition in progress and we're not waiting to abort after this section
                 %then it's allowed to have a stop option.
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
                 obj.button_previewScan.Enable='off';
+                obj.button_BakeStop.Enable='on';
+
+            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete && obj.model.isSlicing
+                %If there is an acquisition in progress and we're not waiting to abort after this section
+                %then it's allowed to have a stop option.
+                set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
+                obj.button_previewScan.Enable='off';
+                obj.button_BakeStop.Enable='off';
 
             elseif obj.model.acquisitionInProgress && obj.model.abortAfterSectionComplete
                 %If there is an acquisition in progress and we *are* waiting to abort after this section
@@ -670,13 +678,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.button_previewScan.Enable='off';
             end
 
-            if obj.model.isSlicing
-                % If we enter this callback because of slicing then disable both buttons
-                % We will re-enter again once slicing and finished and then the above will 
-                % hold true and we just won't disable here.
-                obj.button_previewScan.Enable='off';
-                obj.button_BakeStop.Enable='Off'
-            end
         end %updateBakeButtonState
 
 
