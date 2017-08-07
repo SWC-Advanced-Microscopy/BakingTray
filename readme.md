@@ -5,57 +5,34 @@
 </a>
 
 ### What is it?
-BakingTray is a [ScanImage](https://vidriotechnologies.com/) wrapper that performs serial section 2-photon tomography (STP) within [MATLAB](http://www.mathworks.com/). 
-The software is inspired the Svoboda lab's [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project but runs on NI hardware. 
+BakingTray is an open-source serial section 2-photon tomography (STP) system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
-Technically-minded people who want an open source STP solution. 
-You'll need MATLAB programming skills and the know how to set up and run a 2-photon microscope. 
-This is not a turn-key solution. 
-
-
-### What hardware does it run on?
+This software is aimed at technically-minded people who want an open source STP solution that can be modified for their needs. 
+Setting up BakingTray requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
+_This is not a turn-key solution_.
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
-You can use either a linear or resonant scanner for the fast axis, but resonant is recommended for speed and is better supported by BakingTray.
-Control of the 3-axis stage is done from within BakingTray, not ScanImage. 
-Use a [supported device](https://github.com/BaselLaserMouse/BakingTray) or write your own controller class using the provided instructions. 
-
 
 ### How does it work?
 BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/BaselLaserMouse/ScanImageTileScan).
 BakingTray simply slices off the top of the sample after each tile-scan is complete, exposing fresh tissue for imaging. 
 Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes. 
-The ScanImage API [allows the software to be controlled progamatically](https://github.com/tenss/ScanImageAPI_Examples). 
-
 
 ### Current features
-Whilst this software is under development, it has been thoroughly stress-tested and is capable of generating production-quality data.
-Its current feature set is as follows:
+This software has been thoroughly stress-tested and is capable of generating production-quality data.
+The current feature set is as follows:
 
-* Easy sample set up: no need for the user to calculate the number of tiles.
-* Fast "preview" image allows the block face to be rapidly imaged to aid set up.
-* Acquisition of up to four channels.
-* Real-time assembly of a downsampled image during scanning (all optical planes and channels) for quick visualisation.
-* Graceful acquisition abort (either immediately or at the end of the current section).
-* Pause the acquisition.
-* Acquisition is automatically stopped if the system loses contact with the laser or the laser drops out of modelock. 
-* The PMTs and laser are automatically switched off at the end of the acquisition.
+* Easy sample set up: take a fast preview image of the sample then draw a box around the area to be imaged. 
+* Acquisition of up to four channels using resonant or linear scanning.
+* A low-resolution preview image of the current section is assembled in real time.
+* Graceful acquisition abort (either immediately or at the end of the current section) and pausing.
+* Automatically halts if the laser drops out of modelock. 
+* PMTs and laser automatically switched off at the end of the acquisition.
 * Support for multiple lasers via Scanimage.
 * Easy control of illumination as a function of depth via ScanImage. 
 * Integrates with our [StitchIt](https://github.com/BaselLaserMouse/StitchIt) software for assembling the stitched images from raw tiles. 
-* Supports both resonant and linear scanning.
-* A software "Stop" button to instantly halt motion on all stages.
-* Easily resume a previously halted acquisition. 
+* Easily resume of a previously halted acquisition. 
+* Modular API allows developers to easily extend the software or adapt it to different hardware. 
 
-### Under the hood
-BakingTray is underpinned by a modular API that controls the three axis stage, laser power, vibratome, and the scanning software (ScanImage). 
-Developers can swap any of these components (even the scanning software) for new ones of their own design. 
-This allows for enormous flexibility in upgrading the microscope or modifying the behavior of the acquisition software. 
-
-
-### Installation ###
-- You will need a functioning ScanImage install, the Image Processing Toolbox and the Stats Toolbox.
-- Add to your path: `code`, `resources`, and `components` plus its sub-directories. 
-- You will need to define your hardware in the `componentSettings.m` file (no detailed notes on this yet). 
-- Run `scanimage` 
-- Run `BakingTray`
+### Getting started ###
+See [the wiki](https://github.com/BaselLaserMouse/BakingTray/wiki)
