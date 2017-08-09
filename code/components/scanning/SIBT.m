@@ -159,13 +159,11 @@ classdef SIBT < scanner
 
             obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
-            % If the user will be displaying more than one channel and there are multiple depths,
-            % set the system to diplay only the first depth of each z-slize. Otherwise acquisition
-            % slows down a bit.
-            if length(obj.channelsToDisplay)>1 && obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
-                fprintf(['Setting channel display to show only the first depth: ', ...
-                    'This is faster with multiple channels being displayed\n'])
-                msg = sprintf('%sDisplaying only first depth in ScanImage for speed reasons.\n',msg);
+            % Set the system to display just the first depth in ScanImage. 
+            % Should run a little faster this way, especially if we have 
+            % multiple channels being displayed.
+            if obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
+            fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
                 obj.hC.hDisplay.volumeDisplayStyle='Current';
                 obj.hC.hDisplay.selectedZs=0;
             end
@@ -239,6 +237,10 @@ classdef SIBT < scanner
             obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
             obj.disableTileSaving
+
+            % Return tile display mode to settings more useful to the user
+            obj.hC.hDisplay.volumeDisplayStyle='Tiled';
+            obj.hC.hDisplay.selectedZs=[];
 
             success=true;
             fprintf('Disarmed scanner: %s\n', datestr(now))
