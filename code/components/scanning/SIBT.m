@@ -30,7 +30,6 @@ classdef SIBT < scanner
         currentTilePattern
     end
 
-
     methods
 
         %constructor
@@ -85,6 +84,8 @@ classdef SIBT < scanner
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire);
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @obj.flipScanSettingsChanged);
+
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
             % obj.enforceImportantSettings

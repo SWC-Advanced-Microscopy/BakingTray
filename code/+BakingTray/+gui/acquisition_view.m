@@ -68,10 +68,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.parentView=parentView;
             end
 
-            if ~isempty(obj.parentView)
-                % obj.parentView.enableDisableThisView('off'); % TODO: delete if all goes well
-            end
-
             obj.hFig = BakingTray.gui.newGenericGUIFigureWindow('BakingTray_acquisition');
 
             % Closing the figure closes the view object
@@ -280,7 +276,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model, 'abortAfterSectionComplete', 'PostSet', @obj.updateBakeButtonState);
 
 
+            % The channels that can be displayed are updated with these two listeners
             obj.listeners{end+1}=addlistener(obj.model.scanner,'channelsToSave', 'PostSet', @obj.updateChannelsPopup);
+            obj.listeners{end+1}=addlistener(obj.model.scanner,'scanSettingsChanged', 'PostSet', @obj.updateChannelsPopup);
+
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'channelLookUpTablesChanged', 'PostSet', @obj.updateImageLUT);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
