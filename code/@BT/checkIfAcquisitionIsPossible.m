@@ -56,7 +56,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     if obj.isLaserConnected
         [isReady,msgLaser]=obj.laser.isReady;
         if ~isReady
-            msg = sprintf('%s%d) The laser is not ready: %s\n', msg, msgLaser);
+            msg = sprintf('%s%d) The laser is not ready: %s\n', msg, msgNumber, msgLaser);
             msgNumber=msgNumber+1;
         end
     end
