@@ -197,28 +197,24 @@ function bake(obj,varargin)
         end
 
 
-        %There was already a check whether a z axis and cutter are connected. The acquisition was
-        %allowed to proceed if they are missing, so long as only one section was requested.
-        if obj.isZaxisConnected && obj.isCutterConnected
-            if obj.tilesRemaining==0 %This test asks if the positionArray is complete. It's possible that no tiles at all were acquired. (!)
+        % Cut the sample if necessary
+        if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
+            %Mark the section as complete
+            fname=fullfile(obj.currentTileSavePath,'COMPLETED');
+            fid=fopen(fname,'w+');
+            fprintf(fid,'COMPLETED');
+            fclose(fid);
 
-                %Mark the section as complete
-                fname=fullfile(obj.currentTileSavePath,'COMPLETED');
-                fid=fopen(fname,'w+');
-                fprintf(fid,'COMPLETED');
-                fclose(fid);
+            obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
+            currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
-                obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
-                currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
-
-                if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
-                    obj.sliceSample;
-                end
-            else
-                fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
-                obj.scanner.abortScanning;
-                return
+           if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
+                obj.sliceSample;
             end
+        else
+            fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
+            obj.scanner.abortScanning;
+            return
         end
 
         obj.detachLogObject

@@ -86,7 +86,9 @@ classdef BT < loghandler
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false
-        acquisitionInProgress=false %This indicates that a sample is being acquired (distinct from scanner.isScannerAcquiring)
+        acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
+                                    % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
+                                    % once all sections have been acquired. 
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
