@@ -729,7 +729,6 @@ classdef SIBT < scanner
             for ii=1:20
                 if ~obj.isAcquiring
                     obj.disarmScanner;
-                    obj.parent.detachLogObject;
                     return
                 end
                 fprintf('.')
