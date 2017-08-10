@@ -376,6 +376,11 @@ classdef SIBT < scanner
         end %getChannelLUT
 
         function tearDown(obj)
+            % Ensure resonant scanner is off
+            if strcmpi(obj.scannerType, 'resonant')
+                obj.hC.hScan2D.keepResonantScannerOn=0;
+            end
+
             % Turn off PMTs
             obj.hC.hPmts.powersOn(:) = 0;
         end
