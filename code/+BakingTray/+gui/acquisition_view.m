@@ -751,6 +751,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                     if length(activeChannels_str)<obj.channelSelectPopup.Value
                         % Otherwise we will get an error and the UI control will not appear
                         obj.chooseChanToDisplay
+                        obj.setChannelToView
                     end
                     obj.channelSelectPopup.String = activeChannels_str;
                     obj.channelSelectPopup.Enable='on';

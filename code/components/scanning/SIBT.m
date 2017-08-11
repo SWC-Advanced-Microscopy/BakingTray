@@ -624,7 +624,7 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
-            %Log theX and Y positions in the grid associated with the tile data from the last acquired position
+            %Log the X and Y positions in the grid associated with the tile data from the last acquired position
             if ~isempty(obj.parent.positionArray)
                 obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
                 obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
