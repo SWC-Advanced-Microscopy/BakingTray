@@ -217,7 +217,7 @@ function bake(obj,varargin)
             return
         end
 
-        obj.detachLogObject
+        obj.detachLogObject %Close the log file that writes to the section directory
 
 
         if ~isempty(obj.laser)
@@ -271,7 +271,7 @@ function bakeCleanupFun(obj)
     end
 
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
-    obj.detachLogObject;
+    obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
     obj.scanner.disarmScanner;
     obj.acquisitionInProgress=false;
     obj.sectionCompletionTimes=[]; %clear the array of completion times. 
