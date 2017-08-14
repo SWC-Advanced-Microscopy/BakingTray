@@ -582,9 +582,9 @@ classdef BT < loghandler
             elseif obj.isScannerConnected 
                 scnSet = obj.scanner.returnScanSettings;
                 nMoves = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
-                approxTimePerSection = scnSet.framePeriodInSeconds * nMoves * obj.recipe.mosaic.numOpticalPlanes;
+                approxTimePerSection = scnSet.volumePeriodInSeconds * nMoves;
                 %now guesstimate 350 ms per X/Y move plus something added on for buffering time. 
-                approxTimePerSection = round(approxTimePerSection + (nMoves*0.35) + (nMoves*scnSet.linesPerFrame^2*3E-7) );
+                approxTimePerSection = round(approxTimePerSection + (nMoves*0.35));
 
                 %Estimate cut time
                 cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 5; 

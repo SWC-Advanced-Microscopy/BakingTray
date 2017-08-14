@@ -289,6 +289,7 @@ classdef SIBT < scanner
             scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
 
             scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
+            scanSettings.volumePeriodInSeconds = round(1/obj.hC.hRoiManager.scanVolumeRate,3);
             scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
             scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
             scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
