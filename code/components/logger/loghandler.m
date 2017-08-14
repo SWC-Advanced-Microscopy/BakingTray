@@ -1,18 +1,16 @@
 classdef (Abstract) loghandler < handle
 
 
-% The log handler class provides methods and properties for 
-% integrating a bk_logger object into a concrete class. 
-% This must be inherited by a concrete class in order to function.
-%
-% For example, the linearcontroller class inherits loghandler
-% so that linear stage controller concrete classes, such C891, 
-% have access to methods that will handle error logging. These
-% methods work on a bk_logger object attached to an instance
-% of C891 as a property. The methods simplify the process of 
-% choosing what to display to screen, error handling, etc. 
-
-
+    % The log handler class provides methods and properties for 
+    % integrating a bk_logger object into a concrete class. 
+    % This must be inherited by a concrete class in order to function.
+    %
+    % For example, the linearcontroller class inherits loghandler
+    % so that linear stage controller concrete classes, such C891, 
+    % have access to methods that will handle error logging. These
+    % methods work on a bk_logger object attached to an instance
+    % of C891 as a property. The methods simplify the process of 
+    % choosing what to display to screen, error handling, etc. 
 
     properties 
         %There are 5 levels of log message (see bk_logger.bk_logger)
@@ -86,7 +84,7 @@ classdef (Abstract) loghandler < handle
             end
 
             if isvalid(obj.loggerObject)
-                obj.logMessage('loghandler',dbstack,5,'ATTACH LOGGER')
+                obj.logMessage('loghandler',dbstack,5,'DETACH LOGGER')
             else
                 fprintf('Cleaning up partially removed logger object\n')
             end

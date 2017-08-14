@@ -35,9 +35,7 @@ function runSuccess = runTileScan(obj)
     % we attach to frameAcquired in ScanImage. We just have to initiate the first frame here, then
     % the acquisition process will continue until all frames have been acquired. 
 
-    pause(0.75) %just to make sure we're at the start position
-
-
+    % Instruct the scanner to initiate the tile scan
     obj.scanner.initiateTileScan; %acquires a stack and triggers scanimage to acquire the rest of the stacks
 
     %block until done

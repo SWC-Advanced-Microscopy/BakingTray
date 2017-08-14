@@ -30,6 +30,9 @@ classdef acquisition_view < BakingTray.gui.child_view
         button_zoomNative
         button_drawBox
 
+        checkBoxLaserOff
+        checkBoxCutLast
+
         verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
     end
 
@@ -68,10 +71,6 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.parentView=parentView;
             end
 
-            if ~isempty(obj.parentView)
-                % obj.parentView.enableDisableThisView('off'); % TODO: delete if all goes well
-            end
-
             obj.hFig = BakingTray.gui.newGenericGUIFigureWindow('BakingTray_acquisition');
 
             % Closing the figure closes the view object
@@ -92,7 +91,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 textFSize=11;
             end
             obj.statusText = annotation(obj.statusPanel,'textbox', 'Units','Pixels', 'Color', 'w', ...
-                                        'Position',[0,1,260,panelHeight-4],'EdgeColor','none',...
+                                        'Position',[0,1,200,panelHeight-4],'EdgeColor','none',...
                                         'HorizontalAlignment','left', 'VerticalAlignment','middle',...
                                         'FontSize',textFSize);
 
@@ -103,7 +102,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             %Set up the "compass plot" in the bottom left of the preview axis
             pos=plotboxpos(obj.imageAxes);
-            obj.compassAxes = axes('parent', obj.hFig,...
+           obj.compassAxes = axes('parent', obj.hFig,...
                 'Units', 'pixels', 'Color', 'none', ...
                 'Position', [pos(1:2),80,80],... %The precise positioning is handled in obj.updateGUIonResize
                 'XLim', [-1,1], 'YLim', [-1,1],...
@@ -137,7 +136,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.button_BakeStop=uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [265, 2, 60, 32], ...
+                'Position', [205, 2, 60, 32], ...
                 'Units','Pixels',...
                 'ForegroundColor','k', ...
                 'FontWeight', 'bold');
@@ -169,7 +168,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.button_Pause=uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [330, 2, 60, 32], ...
+                'Position', [270, 2, 60, 32], ...
                 'Units','Pixels', ...
                 'FontSize', obj.fSize, ...
                 'FontWeight', 'bold',...
@@ -180,7 +179,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             %Pop-ups for selecting which depth and channel to show
             % Create pop-up menu
             obj.depthSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-           'Position', [400, 0, 100, 30], 'String', 'depth', 'Callback', @obj.setDepthToView,...
+           'Position', [340, 0, 70, 30], 'String', 'depth', 'Callback', @obj.setDepthToView,...
                       'Interruptible', 'off');
 
 
@@ -203,21 +202,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.initialisePreviewImageData
             obj.setUpImageAxes;
 
-            % Add the depths
-            opticalPlanes_str = {};
-            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
-                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
-            end
-            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
-                obj.depthSelectPopup.String = opticalPlanes_str;
-            else
-                obj.depthSelectPopup.String = 'NONE';
-                obj.depthSelectPopup.Enable='off';
-            end
+            % Populate the depth popup
+            obj.populateDepthPopup
             obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
             obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-                'Position', [510, 0, 100, 30], 'String', '', 'Callback', @obj.setChannelToView,...
+                'Position', [420, 0, 70, 30], 'String', '', 'Callback', @obj.setChannelToView,...
                 'Interruptible', 'off');
 
             % Add the channel names. This is under the control of a listener in case the user makes a 
@@ -244,49 +234,94 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Add buttons for zooming in and out and drawing the boundary box
             obj.button_zoomIn = uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [615 19 15 15], ...
+                'Position', [642 19 15 15], ...
                 'Units', 'Pixels', ...
                 'String', '+', ...
                 'Tag', 'zoomin', ... 
+                'ToolTip', 'Zoom in', ...
                 'Callback', @obj.imageZoomHandler);
 
             obj.button_zoomOut = uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [615 2 15 15], ...
+                'Position', [642 2 15 15], ...
                 'Units', 'Pixels', ...
                 'String', '-', ...
                 'Tag', 'zoomout', ... 
+                'ToolTip', 'Zoom out', ...
                 'Callback', @obj.imageZoomHandler);
 
 
             obj.button_zoomNative = uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [633 2 15 15], ...
+                'Position', [660 2 15 15], ...
                 'Units', 'Pixels', ...
                 'String', '0', ...
                 'Tag', 'zerozoom', ...
+                'ToolTip', 'Reset zoom',... 
                 'Callback', @obj.imageZoomHandler);
 
             obj.button_drawBox = uicontrol(...
                 'Parent', obj.statusPanel, ...
-                'Position', [633 19 15 15], ...
+                'Position', [660 19 15 15], ...
                 'Units', 'Pixels', ...
                 'String', 'B', ...
+                'ToolTip', 'Select area to image', ...
                 'Callback', @obj.areaSelector);
+
+            % Add checkboxes for toggling disabling the laser at the end of acquisition and for 
+            % slicing the last section at the end of acquisition. 
+            obj.checkBoxLaserOff = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Units', 'Pixels', ...
+                'String', 'Laser off', ...
+                'Position', [505, 18, 70, 17], ...
+                'Style','check', ... 
+                'ToolTip', 'Turn off laser when acquisition finishes', ...
+                'ForegroundColor', 'w', ...
+                'BackgroundColor', [1,1,1]*0.075, ...
+                'Value', ~obj.model.leaveLaserOn, ...
+                'Callback', @obj.updateLeaveLaserOn);
+
+            obj.checkBoxCutLast = uicontrol(...
+                'Parent', obj.statusPanel, ...
+                'Units', 'Pixels', ...
+                'Style','check', ... 
+                'String', 'Slice last', ...
+                'Position', [505, 2, 70, 17], ...
+                'ToolTip', 'Slice the final imaged section off the block', ...
+                'ForegroundColor', 'w', ...
+                'BackgroundColor', [1,1,1]*0.075, ...
+                'Value', obj.model.sliceLastSection, ...
+                'Callback', @obj.updateSliceLastSection);
 
 
             %Add some listeners to monitor properties on the scanner component
             obj.listeners{1}=addlistener(obj.model, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
+
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'acquisitionPaused', 'PostSet', @obj.updatePauseButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updatePauseButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updatePauseButtonState);
+
             obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateBakeButtonState);
+            obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateBakeButtonState);
+
+            obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disable_ZoomElementsDuringAcq);
             obj.listeners{end+1}=addlistener(obj.model, 'abortAfterSectionComplete', 'PostSet', @obj.updateBakeButtonState);
 
 
+            % The channels that can be displayed are updated with these two listeners
             obj.listeners{end+1}=addlistener(obj.model.scanner,'channelsToSave', 'PostSet', @obj.updateChannelsPopup);
+            obj.listeners{end+1}=addlistener(obj.model.scanner,'scanSettingsChanged', 'PostSet', @obj.updateChannelsPopup);
+
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'channelLookUpTablesChanged', 'PostSet', @obj.updateImageLUT);
             obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
             obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
+
+            obj.listeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.populateDepthPopup);
+
+            % Update checkboxes
+            obj.listeners{end+1}=addlistener(obj.model, 'leaveLaserOn', 'PostSet', @(~,~) set(obj.checkBoxLaserOff,'Value',~obj.model.leaveLaserOn) );
+            obj.listeners{end+1}=addlistener(obj.model, 'sliceLastSection', 'PostSet', @(~,~) set(obj.checkBoxCutLast,'Value',obj.model.sliceLastSection) );
 
             obj.updateStatusText
 
@@ -381,9 +416,9 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.sectionImage.CData(:)=0;
             end
 
-            % Log the current front/left position
-            obj.frontLeftWhenPreviewWasTaken.X = obj.model.getXpos;
-            obj.frontLeftWhenPreviewWasTaken.Y = obj.model.getYpos;
+            % Log the current front/left position from the recipe
+            obj.frontLeftWhenPreviewWasTaken.X = obj.model.recipe.FrontLeft.X;
+            obj.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
 
             fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
         end %initialisePreviewImageData
@@ -626,11 +661,19 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if ~obj.model.acquisitionInProgress
                 set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
+
             elseif obj.model.acquisitionInProgress && ~obj.model.scanner.acquisitionPaused
                 set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
 
             elseif obj.model.acquisitionInProgress && obj.model.scanner.acquisitionPaused
                 set(obj.button_Pause, obj.buttonSettings_Pause.resume{:})
+            end
+
+            if obj.model.isSlicing
+                % If we enter this callback because of slicing then disable the button
+                % We will re-enter again once slicing and finished and then the above will 
+                % hold true and we just won't disable here.
+                set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
             end
         end %updatePauseButtonState
 
@@ -638,7 +681,9 @@ classdef acquisition_view < BakingTray.gui.child_view
         function updateBakeButtonState(obj,~,~)
             if obj.verbose, fprintf('In acquisition_view.updateBakeButtonState callback\n'), end
 
-            if obj.model.acquisitionInProgress && ~obj.model.scanner.isAcquiring 
+            if obj.model.acquisitionInProgress && ~obj.model.scanner.isAcquiring
+                % This disables the button during the dead-time between asking for an acquisition
+                % and it actually beginning
                 obj.button_BakeStop.Enable='off';
             else
                 obj.button_BakeStop.Enable='on';
@@ -649,11 +694,19 @@ classdef acquisition_view < BakingTray.gui.child_view
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.bake{:})
                 obj.button_previewScan.Enable='on';
 
-            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete
+            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete && ~obj.model.isSlicing
                 %If there is an acquisition in progress and we're not waiting to abort after this section
                 %then it's allowed to have a stop option.
                 set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
                 obj.button_previewScan.Enable='off';
+                obj.button_BakeStop.Enable='on';
+
+            elseif obj.model.acquisitionInProgress && ~obj.model.abortAfterSectionComplete && obj.model.isSlicing
+                %If there is an acquisition in progress and we're not waiting to abort after this section
+                %then it's allowed to have a stop option.
+                set(obj.button_BakeStop, obj.buttonSettings_BakeStop.stop{:})
+                obj.button_previewScan.Enable='off';
+                obj.button_BakeStop.Enable='off';
 
             elseif obj.model.acquisitionInProgress && obj.model.abortAfterSectionComplete
                 %If there is an acquisition in progress and we *are* waiting to abort after this section
@@ -663,6 +716,22 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
         end %updateBakeButtonState
+
+
+        function disable_ZoomElementsDuringAcq(obj,~,~)
+            % Listener callback to disable the zoom and box buttons during acquisition
+            if obj.model.acquisitionInProgress
+                obj.button_zoomIn.Enable='off';
+                obj.button_zoomOut.Enable='off';
+                obj.button_zoomNative.Enable='off';
+                obj.button_drawBox.Enable='off';
+            else
+                obj.button_zoomIn.Enable='on';
+                obj.button_zoomOut.Enable='on';
+                obj.button_zoomNative.Enable='on';
+                obj.button_drawBox.Enable='on';
+            end
+        end
 
 
         function closeAcqGUI(obj,~,~)
@@ -684,6 +753,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateImageLUT(obj,~,~)
+            % BakingTray.gui.acquisition_view.updateImageLUT
+            %
+            % This calback updates the look-up table in the preview image wehen the user
+            % changes associated slider in the ScanImage IMAGE CONTROLS window.
+
             if obj.verbose, fprintf('In acquisition_view.updateImageLUT callback\n'), end
 
             if obj.model.isScannerConnected
@@ -693,8 +767,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateImageLUT
 
         function updateChannelsPopup(obj,~,~)
-            % This method ensures the channels available in the popup are the same as those
+            % BakingTray.gui.acquisition_view.updateChannelsPopup
+            %
+            % This calback ensures the channels available in the popup are the same as those
             % available in the scanning software. 
+
             if obj.verbose, fprintf('In acquisition_view.updateChannelsPopup callback\n'), end
 
             if obj.model.isScannerConnected
@@ -705,10 +782,15 @@ classdef acquisition_view < BakingTray.gui.child_view
                 activeChannels = obj.model.scanner.channelsToDisplay;
                 activeChannels_str = {};
                 for ii=1:length(activeChannels)
-                    activeChannels_str{end+1} = sprintf('Channel %d',activeChannels(ii));
+                    activeChannels_str{end+1} = sprintf('Chan %d',activeChannels(ii));
                 end
 
                 if ~isempty(activeChannels)
+                    if length(activeChannels_str)<obj.channelSelectPopup.Value
+                        % Otherwise we will get an error and the UI control will not appear
+                        obj.chooseChanToDisplay
+                        obj.setChannelToView
+                    end
                     obj.channelSelectPopup.String = activeChannels_str;
                     obj.channelSelectPopup.Enable='on';
                 else
@@ -718,11 +800,35 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
         end %updateChannelsPopup
 
+
+        function populateDepthPopup(obj,~,~)
+            % BakingTray.gui.acquisition_view.populateDepthPopup
+            %
+            % This callback runs when the user changes the number of depths to be 
+            % acquired. It is also called in the constructor. It adds the correct 
+            % number of optical planes (depths) to the depths popup so the user 
+            % can select which plane they want to view. 
+
+            opticalPlanes_str = {};
+            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
+                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
+            end
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
+                obj.depthSelectPopup.String = opticalPlanes_str;
+            else
+                obj.depthSelectPopup.String = 'NONE';
+                obj.depthSelectPopup.Enable='off';
+            end
+        end %populateDepthPopup
+
         function setDepthToView(obj,~,~)
+            % BakingTray.gui.acquisition_view.setDepthToView
+            %
+            % This callback runs when the user interacts with the depth popup.
+            % The callback sets which depth will be displayed
+
             if obj.verbose, fprintf('In acquisition_view.setDepthToView callback\n'), end
 
-            % This callback runs when the user ineracts with the depth popup.
-            % The callback sets which depth will be displayed
             if isempty(obj.model.scanner.channelsToDisplay)
                 %Don't do anything if no channels are being viewed
                 return
@@ -732,6 +838,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             thisSelection = obj.depthSelectPopup.String{obj.depthSelectPopup.Value};
             thisDepthIndex = str2double(regexprep(thisSelection,'\w+ ',''));
+
+            if thisDepthIndex>size(obj.previewImageData,3)
+                %If the selected value is out of bounds default to the first depth
+                thisDepthIndex=1;
+                obj.depthSelectPopup.Value=1;
+            end
+
             obj.depthToShow = thisDepthIndex;
             obj.updateSectionImage;
         end %setDepthToView
@@ -907,6 +1020,18 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
         end
+
+        function updateLeaveLaserOn(obj,~,~)
+            % Set the leave laser on flag in the model.
+            % Responds to checkbox
+            obj.model.leaveLaserOn=~obj.checkBoxLaserOff.Value;
+        end %updateLeaveLaserOn
+
+        function updateSliceLastSection(obj,~,~)
+            % Set the slice last section flag in the model.
+            % Responds to checkbox
+            obj.model.sliceLastSection=obj.checkBoxCutLast.Value;
+        end %updateLeaveLaserOn
 
     end %close hidden methods
 

@@ -1,6 +1,5 @@
 classdef view < handle
 
-
     properties
         hFig
         model % The BT model object goes here
@@ -173,8 +172,15 @@ classdef view < handle
                 'FitBoxToText','off', ...
                 'String', '');
             obj.updateSampleSavePathBox
+
             % Add a listener to the sampleSavePath property of the BT model
             obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
+
+            % Update the status text whenever the BT.isSlicing property changes. This will only happen twice per section
+            % It ensures that the time left string updates
+            obj.listeners{end+1} = addlistener(obj.model, 'isSlicing', 'PostSet', @obj.updateStatusText);
+
+            obj.listeners{end+1} = addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disableDuringAcquisition);
 
 
             obj.button_recipe = uicontrol(...
@@ -304,7 +310,7 @@ classdef view < handle
 
                     obj.recipeEntryBoxes.(thisProp{1}).([thisProp{2},'Y']) = ...
                     uicontrol(commonRecipeTextEditSettings{:}, ...
-                        'Position', [225, 18*(ii-1)+5, 30, 17], ...
+                        'Position', [225, 18*(ii-1)+5, 35, 17], ...
                         'TooltipString', obj.recipeToolTips{ii}, ...
                         'Tag', [obj.recipePropertyNames{ii},'||Y']);
                 end
@@ -324,7 +330,7 @@ classdef view < handle
             end
 
             %Fill it in with the recipe
-            obj.updateAllRecipeEditBoxes
+            obj.updateAllRecipeEditBoxesAndStatusText
 
             obj.connectRecipeListeners %It's a method because we have to close and re-connect when we load a new recipe
 
@@ -375,7 +381,7 @@ classdef view < handle
 
         % -----------------------
         % Recipe-related methods
-        function updateAllRecipeEditBoxes(obj,~,~)
+        function updateAllRecipeEditBoxesAndStatusText(obj,~,~)
             %If any recipe property is updated in model.recipe we update all the edit boxes
             %and any relevant GUI elements. We also modify elements in other attached GUIs
             %if this is needed
@@ -407,7 +413,7 @@ classdef view < handle
             %TODO: this may be creating a problem. I notice that the current section number is not updating and is stuck at 1. This might be why.
             %obj.model.currentSectionNumber=obj.model.recipe.mosaic.sectionStartNum;
 
-        end %updateAllRecipeEditBoxes
+        end %updateAllRecipeEditBoxesAndStatusText
 
         function updateRecipePropertyInRecipeClass(obj,eventData,~)
             %Replace a property in obj.model.recipe with the value the user just changed
@@ -505,7 +511,7 @@ classdef view < handle
 
             if success
                 obj.connectRecipeListeners
-                obj.updateAllRecipeEditBoxes
+                obj.updateAllRecipeEditBoxesAndStatusText
                 obj.updateRecipeFname
             end
         end %loadRecipe
@@ -672,22 +678,31 @@ classdef view < handle
 
                 if ~isempty(scnSet)
                     endTime = obj.model.estimateTimeRemaining;
-                    msg = sprintf(['System: %s ; Scanner: %s\n', ...
+                    if length(obj.model.scanner.channelsToAcquire)>1
+                        channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
+                    elseif length(obj.model.scanner.channelsToAcquire)==1                            
+                        channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
+                    elseif length(obj.model.scanner.channelsToAcquire)==0
+                        channelsToAcquireString = 'NO CHANNELS!';
+                    end
+                    msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
-                        'Tiles: %d x %d ; Depth: %0.1f mm\n',...
-                        'Section time: %s\n', ...
-                        'Total time left: %s\n'], ...
-                        R.SYSTEM.ID, scannerID, ...
+                        'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
+                        'Time left: %s ; Slice Time: %s\n',  ....
+                        'Projected disk usage: %0.2f GB'], ...
+                        scannerID, R.mosaic.scanmode, ...
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
-                        R.NumTiles.X, R.NumTiles.Y, R.mosaic.sliceThickness*R.mosaic.numSections, ...
-                        endTime.timePerSectionString, endTime.timeForSampleString);
+                        R.NumTiles.X, R.NumTiles.Y, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
+                        endTime.timeForSampleString, endTime.timePerSectionString, obj.model.recipe.estimatedSizeOnDisk);
 
                 elseif isempty(scnSet)
                     msg = sprintf('System ID: %s ; Scanner: %s', R.SYSTEM.ID, scannerID);
                 end
 
+                % Place system name in window title
+                obj.hFig.Name = sprintf('BakingTray on %s', R.SYSTEM.ID);
                 set(obj.text_status,'String', msg)
             end 
         end %updateStatusText
@@ -703,6 +718,14 @@ classdef view < handle
             end
         end %updateReadyToAcquireElements
 
+        function disableDuringAcquisition(obj,~,~)
+            % Callback to disable the view when an acquisition is in progress
+            if obj.model.acquisitionInProgress
+                obj.enableDisableThisView('off')
+            else 
+                obj.enableDisableThisView('on')
+            end
+        end % disableDuringAcquisition
 
         function ID = getScannerID(obj)
             %returns false if no scanner is connected
@@ -731,9 +754,16 @@ classdef view < handle
 
 
         function enableDisableThisView(obj,enableState)
+            % enableDisableThisView
+            %
             % Toggles the enable/disable state on all buttons and edit boxes. 
             % This method is called by the acquire GUI to ensure that whilst
             % it is open it is not possible to modify the recipe.
+            %
+            % Examples
+            % bakingtray.gui.view.enableDisableThisView('on')
+            % bakingtray.gui.view.enableDisableThisView('off')
+
             if nargin<2 && ~strcmp(enableState,'on') && ~strcmp(enableState,'off')
                 return
             end
@@ -757,8 +787,8 @@ classdef view < handle
         %Below are methods that handle the listeners
         function connectRecipeListeners(obj)
             % Add listeners to update the values on screen should they change
-            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'sample', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
+            obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
 
             %If the recipe signals a change in recipe.acquisitionPossible, we update the start button etc
             obj.recipeListeners{end+1}=addlistener(obj.model.recipe, 'acquisitionPossible', 'PostSet', @obj.updateReadyToAcquireElements);
@@ -770,10 +800,8 @@ classdef view < handle
         end %detachRecipeListeners
 
         function connectScanImageListeners(obj)
-            %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff
-            hSI=obj.model.scanner.hC;
-            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.updateAllRecipeEditBoxes);
-            obj.scannerListeners{end+1}=addlistener(hSI.hRoiManager, 'scanFrameRate', 'PostSet', @obj.updateAllRecipeEditBoxes);
+            % Connect any required listeners to ScanImage
+            obj.scannerListeners{end+1}=addlistener(obj.model.scanner, 'scanSettingsChanged', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
         end %connectScanImageListeners
 
 
@@ -782,4 +810,4 @@ classdef view < handle
 
 
 
-end
+end % close classdef

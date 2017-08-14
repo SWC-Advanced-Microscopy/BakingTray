@@ -22,11 +22,6 @@ classdef SIBT < scanner
         verbose=false;
     end
 
-    properties(Hidden,SetObservable)
-        %NOTE: this is SIBT-specific right now (17/04/2017)
-        channelLookUpTablesChanged=1 %Flips between 1 and -1 if any channel lookup table has changed
-    end
-
     properties (Hidden)
         defaultShutterIDs %The default shutter IDs used by the scanner
         maxStripe=1; %Number of channel window updates per second
@@ -34,7 +29,6 @@ classdef SIBT < scanner
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
         currentTilePattern
     end
-
 
     methods
 
@@ -89,10 +83,12 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire); %TODO: move into SIBT
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire);
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @obj.flipScanSettingsChanged);
+
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
-           % obj.enforceImportantSettings
+            % obj.enforceImportantSettings
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
@@ -104,18 +100,20 @@ classdef SIBT < scanner
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
 
 
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.flipScanSettingsChanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @obj.flipScanSettingsChanged);
+
+
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
-
-            %Supply a reasonable default for the illumination with depth adjustment and report to the command line 
-            Lz=210; %TODO: this should be a user setting not in here
-            fprintf(' - Setting up power/depth correction using Lz=%d.\n   You may change this value in "POWER CONTROLS". (Smaller numbers will increase the power more with depth.)\n',Lz)
-            obj.hC.hBeams.pzAdjust=true;
-            obj.hC.hBeams.lengthConstants=Lz;
-
+            if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
+                %The number of channel window updates per second
+                fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
+                obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
+            end
 
             obj.enforceImportantSettings
             success=true;
@@ -131,7 +129,7 @@ classdef SIBT < scanner
         end %isReady
 
 
-        function success = armScanner(obj)
+        function [success,msg] = armScanner(obj)
             %Arm scanner and tell it to acquire a fixed number of frames (as defined below)
             success=false;
             if isempty(obj.parent) || ~obj.parent.isRecipeConnected
@@ -152,21 +150,24 @@ classdef SIBT < scanner
 
             obj.enableArmedListeners
 
-            obj.hC.hChannels.channelSubtractOffset(:)=0; %Disable offset subtraction
+            % The string "msg" will contain any messages we wish to display to the user as part of the confirmation box.
+            msg = '';
 
-            % Tweak a couple of display settings
-            if obj.hC.hDisplay.displayRollingAverageFactor>1
-                fprintf('Setting display rolling average to 1\n')
-                obj.hC.hDisplay.displayRollingAverageFactor=1;
-            end
-            if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
-                %The number of channel window updates per second
-                fprintf('Restricting display stripe rate to %d Hz. This can speed up acquisition.\n',obj.maxStripe)
-                obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
-            end
+            obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+            msg = sprintf('%sDisabled offset subtraction.\n',msg);
+            obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
 
 
             obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
+
+            % Set the system to display just the first depth in ScanImage. 
+            % Should run a little faster this way, especially if we have 
+            % multiple channels being displayed.
+            if obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
+            fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
+                obj.hC.hDisplay.volumeDisplayStyle='Current';
+                obj.hC.hDisplay.selectedZs=0;
+            end
 
             %If any of these fail, we leave the function gracefully
             try
@@ -238,6 +239,10 @@ classdef SIBT < scanner
             obj.disableArmedListeners;
             obj.disableTileSaving
 
+            % Return tile display mode to settings more useful to the user
+            obj.hC.hDisplay.volumeDisplayStyle='Tiled';
+            obj.hC.hDisplay.selectedZs=[];
+
             success=true;
             fprintf('Disarmed scanner: %s\n', datestr(now))
         end %disarmScanner
@@ -284,6 +289,7 @@ classdef SIBT < scanner
             scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
 
             scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
+            scanSettings.volumePeriodInSeconds = round(1/obj.hC.hRoiManager.scanVolumeRate,3);
             scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
             scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
             scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
@@ -291,7 +297,9 @@ classdef SIBT < scanner
 
             % Beam power
             scanSettings.beamPower= obj.hC.hBeams.powers;
-            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants;
+            scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
+            scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants; % The length constant used for ramping power
+            scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)
 
             % Scanner type and version
             scanSettings.scanMode= obj.scannerType;
@@ -345,6 +353,7 @@ classdef SIBT < scanner
             end
             theseChans = obj.hC.hChannels.channelSave;
             obj.channelsToSave = theseChans; %store the currently selected channels to save
+            obj.flipScanSettingsChanged
         end %channelsToAcquire
 
 
@@ -368,6 +377,11 @@ classdef SIBT < scanner
         end %getChannelLUT
 
         function tearDown(obj)
+            % Ensure resonant scanner is off
+            if strcmpi(obj.scannerType, 'resonant')
+                obj.hC.hScan2D.keepResonantScannerOn=0;
+            end
+
             % Turn off PMTs
             obj.hC.hPmts.powersOn(:) = 0;
         end
@@ -481,8 +495,13 @@ classdef SIBT < scanner
         end %setImageSize
 
         function applyScanSettings(obj,scanSettings)
+            % SIBT.applyScanSettings
+            %
             % Applies a saved set of scanSettings in order to return ScanImage to a 
-            % a previous state. e.g. used to resume an acquisition following a crash.
+            % a previous state. e.g. used to manually resume an acquisition that was 
+            % terminated for some reason.
+            %
+
             if ~isstruct(scanSettings)
                 return
             end
@@ -493,9 +512,10 @@ classdef SIBT < scanner
             obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
 
             % Set the laser power and changing power with depth
-            obj.hC.hBeams.powers = scanSettings.beamPower;            
+            obj.hC.hBeams.powers = scanSettings.beamPower;
+            obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
             obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
-            % TODO : add the drop-down 
+            obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
 
             % Which channels to acquire
             if iscell(scanSettings.activeChannels)
@@ -504,7 +524,7 @@ classdef SIBT < scanner
             obj.hC.hChannels.channelSave = scanSettings.activeChannels;
 
 
-            % We set the scan parameters. The order in which these are set matters            
+            % We set the scan parameters. The order in which these are set matters
             obj.hC.hRoiManager.scanZoomFactor = scanSettings.zoomFactor;
             obj.hC.hScan2D.bidirectional = scanSettings.bidirectionalScan;
             obj.hC.hRoiManager.forceSquarePixelation = scanSettings.pixEqLinCheckBox;
@@ -521,9 +541,34 @@ classdef SIBT < scanner
         end %applyScanSettings
 
 
-        function verStr=getVersion(obj)
+        function verStr = getVersion(obj)
             verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
-        end
+        end % getVersion
+
+
+        function sr = generateSettingsReport(obj)
+
+            % Bidirectional scanning
+            n=1;
+            st(n).friendlyName = 'Bidirectional scanning';
+            st(n).currentValue = obj.hC.hScan2D.bidirectional;
+            st(n).suggestedVal = true;
+
+
+            % Ramping power with Z
+            n=n+1;
+            st(n).friendlyName = 'Power Z adjust';
+            st(n).currentValue = obj.hC.hBeams.pzAdjust;
+            if hC.hStackManager.numSlices>1
+                suggested = true;
+            elseif hC.hStackManager.numSlices==1 
+                % Because then it doesn't matter what this is set to and we don't want to 
+                % distract the user with stuff that doesn't matter;
+                suggested = obj.hC.hBeams.pzAdjust;
+            end
+            st(n).suggestedVal = suggested
+
+        end % generateSettingsReport
 
 
     end %close methods
@@ -531,7 +576,7 @@ classdef SIBT < scanner
 
     methods (Hidden)
         function lastFrameNumber = getLastFrameNumber(obj)
-            % Returns the number of frames acquired by the scanner. 
+            % Returns the number of frames acquired by the scanner.
             % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI. 
             lastFrameNumber = obj.hC.hDisplay.lastFrameNumber;
             %TODO: does it return zero if there are no data yet?
@@ -580,7 +625,7 @@ classdef SIBT < scanner
             % that performs the tile scanning. It is an "implicit" loop, since it is called 
             % repeatedly until all tiles have been acquired.
 
-            %Log theX and Y positions in the grid associated with the tile data from the last acquired position
+            %Log the X and Y positions in the grid associated with the tile data from the last acquired position
             if ~isempty(obj.parent.positionArray)
                 obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
                 obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
@@ -685,7 +730,6 @@ classdef SIBT < scanner
             for ii=1:20
                 if ~obj.isAcquiring
                     obj.disarmScanner;
-                    obj.parent.detachLogObject;
                     return
                 end
                 fprintf('.')

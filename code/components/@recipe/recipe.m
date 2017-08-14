@@ -304,6 +304,10 @@ classdef recipe < handle
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         % Methods for setting up the imaging scene
         function setCurrentPositionAsFrontLeft(obj)
+            % recipe.setCurrentPositionAsFrontLeft
+            %
+            % Store the current position as the front/left of the tile grid
+
             % TODO: add error checks
             if isempty(obj.parent)
                 success=false;
@@ -314,9 +318,13 @@ classdef recipe < handle
             [x,y]=hBT.getXYpos;
             obj.FrontLeft.X = x;
             obj.FrontLeft.Y = y;
-        end
+        end % setCurrentPositionAsFrontLeft
 
         function setCurrentPositionAsCuttingPosition(obj)
+            % recipe.setCurrentPositionAsCuttingPosition
+            %
+            % Store the current stage position as the position at which we will start cutting
+
             % TODO: add error checks
             if isempty(obj.parent)
                 success=false;
@@ -327,9 +335,11 @@ classdef recipe < handle
             [x,y]=hBT.getXYpos;
             obj.CuttingStartPoint.X = x;
             obj.CuttingStartPoint.Y = y;
-        end
+        end % setCurrentPositionAsCuttingPosition
 
         function setFrontLeftFromVentralMidLine(obj)
+            % recipe.setFrontLeftFromVentralMidline
+            %
             % Calculates the front-left position of sample based on the ventral mid-line.
             % The idea is that the user exposes the cerebellum until the pons is visible.
             % Then places the laser on the edge of the pons at the mid-line. If the brain
@@ -359,8 +369,31 @@ classdef recipe < handle
 
             obj.FrontLeft.X=left;
             obj.FrontLeft.Y=front;
-        end
+        end % setFrontLeftFromVentralMidLine
 
+        function estimatedSizeInGB = estimatedSizeOnDisk(obj)
+            % recipe.estimatedSizeOnDisk
+            %
+            % Return the estimated size of of the acquisition on disk in gigabytes
+            if ~obj.parent.isScannerConnected
+                fprintf('No scanner connected. Can not estimate size on disk\n')
+                estimatedSize=nan;
+                return
+            end
+
+            N=obj.NumTiles;
+            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * N.X * N.Y;
+            
+            scnSet = obj.ScannerSettings;
+            totalImages = imagesPerChannel * length(scnSet.activeChannels);
+
+            totalBytes = totalImages * scnSet.pixelsPerLine * scnSet.linesPerFrame * 2; %2 bytes per pixel (16 bit)
+
+            totalBytes = totalBytes *1.01; % Add 1% for headers and so forth
+
+            estimatedSizeInGB = totalBytes/1024^3;
+
+        end % estimatedSizeOnDisk
 
     end %methods
 
@@ -660,7 +693,6 @@ classdef recipe < handle
             end
 
         end % checkIfAcquisitionIsPossible
-
 
     end % Hidden methods
 

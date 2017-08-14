@@ -14,10 +14,10 @@ classdef dummyLaser < laser %& loghandler
         %These properties are associated with a timer that simulates the tuning process of the 
         %laser to a new wavelength. The purpose of this is for the laser GUI to update 
         %realistically when the dummy laser is connected. 
-        nanoMetersPerSecond = 10; %Raw at which the wavelength changes
-        wavelengthTimer %to simulate slow wavelength changing
-        updateInterval = 0.10; %every 100 ms update the wavelength during wavelength change
-        hiddenCurrentWavelength=800; %This is the current laser wavelength that is incremented gradually when the user "tunes" the dummy laser 
+        nanoMetersPerSecond = 10    % Rate at which the wavelength changes
+        wavelengthTimer             % To simulate slow wavelength changing
+        updateInterval = 0.10      % Every 100 ms update the wavelength during wavelength change
+        hiddenCurrentWavelength=800 % This is the current laser wavelength that is incremented gradually when the user "tunes" the dummy laser 
     end
 
     methods
@@ -48,7 +48,7 @@ classdef dummyLaser < laser %& loghandler
 
             %Set the target wavelength to equal the current wavelength
             obj.targetWavelength=obj.currentWavelength;
-
+            obj.hC.BytesAvailable=0; % Because the laser view checks this before deciding whether to run its timer function
             obj.friendlyName = 'Dummy Laser';
         end %constructor
 

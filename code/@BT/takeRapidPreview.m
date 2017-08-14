@@ -89,6 +89,7 @@ function takeRapidPreview(obj)
     end
 
     obj.recipe.mosaic.numOpticalPlanes = numZ;
+    obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
     obj.recipe.sample.ID=ID;
 
     obj.lastTilePos.X=0;

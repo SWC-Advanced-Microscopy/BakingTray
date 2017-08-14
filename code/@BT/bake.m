@@ -47,8 +47,21 @@ function bake(obj,varargin)
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
     if ~acqPossible
         fprintf(msg)
+        warndlg(msg,'Acquisition failed to start');
         return
     end
+
+
+    % Report to screen and the log file how much disk space is currently available
+    acqInGB = obj.recipe.estimatedSizeOnDisk;
+    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
+    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
+    volumeToWrite = volumeToWrite{1};
+    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
+    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
+        volumeToWrite, round(out.freeGB), round(out.totalGB));
+    fprintf(msg)
+    obj.acqLogWriteLine(msg)
 
 
     %Define an anonymous function to nicely print the current time
@@ -75,16 +88,6 @@ function bake(obj,varargin)
 
     % Print the version number and name of the scanning software 
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
-
-
-    % Report to screen and the log file how much disk space is currently available
-    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
-    volumeToWrite = volumeToWrite{1};
-    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
-    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
-        volumeToWrite, round(out.freeGB), round(out.totalGB));
-    fprintf(msg)
-    obj.acqLogWriteLine(msg)
 
 
     % Report to the acquisition log whether we will attempt to turn off the laser at the end
@@ -194,31 +197,27 @@ function bake(obj,varargin)
         end
 
 
-        %There was already a check whether a z axis and cutter are connected. The acquisition was
-        %allowed to proceed if they are missing, so long as only one section was requested.
-        if obj.isZaxisConnected && obj.isCutterConnected
-            if obj.tilesRemaining==0 %This test asks if the positionArray is complete. It's possible that no tiles at all were acquired. (!)
+        % Cut the sample if necessary
+        if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
+            %Mark the section as complete
+            fname=fullfile(obj.currentTileSavePath,'COMPLETED');
+            fid=fopen(fname,'w+');
+            fprintf(fid,'COMPLETED');
+            fclose(fid);
 
-                %Mark the section as complete
-                fname=fullfile(obj.currentTileSavePath,'COMPLETED');
-                fid=fopen(fname,'w+');
-                fprintf(fid,'COMPLETED');
-                fclose(fid);
+            obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
+            currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
-                obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
-                currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
-
-                if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
-                    obj.sliceSample;
-                end
-            else
-                fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
-                obj.scanner.abortScanning;
-                return
+           if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
+                obj.sliceSample;
             end
+        else
+            fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
+            obj.scanner.abortScanning;
+            return
         end
 
-        obj.detachLogObject
+        obj.detachLogObject %Close the log file that writes to the section directory
 
 
         if ~isempty(obj.laser)
@@ -272,7 +271,7 @@ function bakeCleanupFun(obj)
     end
 
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
-    obj.detachLogObject;
+    obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
     obj.scanner.disarmScanner;
     obj.acquisitionInProgress=false;
     obj.sectionCompletionTimes=[]; %clear the array of completion times. 

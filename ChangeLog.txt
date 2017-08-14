@@ -3,6 +3,15 @@ BakingTray ChangeLog
 Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated.
 
+14th August 2017
+- USER: The recipe fast z-settings are applied after each rapid preview scan.
+- USER: Report estimated disk space and number of channels to main BakingTray GUI.
+- USER: Acquisition will not start if there is insufficient disk space.
+- USER: Checkboxes in Acquisition view for turning off laser after acq finishes and slicing the last section.
+- USER: Improve the accuracy of the initial acquisition time estimate. 
+- BUGFIX: Slicing events and section finishe are now logged to detailed section log file
+- ScanImage pZ adjust no longer set by BakingTray
+- "Keep resonant scanner on" always set to false in SIBT teardown method.
 
 4th August 2017
 - USER: Define imaging area by drawing a box. Zoom in and out. 

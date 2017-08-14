@@ -29,9 +29,25 @@ classdef (Abstract) scanner < handle & loghandler
     properties (Hidden, SetObservable, AbortSet)
         isScannerAcquiring %True if scanner is acquiring data (this will be false during cutting)
         acquisitionPaused=false %This indicates whether the acquisition has been paused
-        channelsToSave % This should be updated with a listener
+        channelsToSave % This should be updated with a listener. BakingTray.gui.acquisition_view will monitor this.
+        channelLookUpTablesChanged=1 % Flips between 1 and -1 if any channel lookup table has changed. BakingTray.gui.acquisition_view will monitor this.
+        scanSettingsChanged=1 %Flips between 1 and -1 when any significant scan setting changes.
+                % i.e. any setting that might impact image size, FOV, frame rate, size of the final
+                % acquisition (e.g. number of channels), etc. This setting will be monitored by 
+                % at least BakingTray.gui.view and BakingTray.gui.acquisition_view
     end
 
+
+    methods (Hidden)
+        function flipScanSettingsChanged(obj,~,~)
+            % scanner.flipScanSettingsChanged
+            %
+            % Flips the scanSettingsChanged value from -1 <-> +1
+            % This is used a signal to GUI classes that an important scan
+            % setting has altered. 
+            obj.scanSettingsChanged = obj.scanSettingsChanged*-1;
+        end
+    end
     % The following are all critical methods that your class should define
     % You should also define a suitable destructor to clean up after you class
     methods (Abstract)
@@ -238,7 +254,38 @@ classdef (Abstract) scanner < handle & loghandler
         % can be written to an acquisition log file as part of an sprintf command. Don't
         % add formatting characters like new lines.
 
+        generateSettingsReport(obj)
+        % generateSettingsReport(obj)
+        %
+        % Before begining acquisition we want the user to be presented with a list
+        % of important scanner settings to summarize how the acquisition will be 
+        % conducted. The list should indicate a friendly setting name (e.g. "channels to acquire"), 
+        % the value for this acquisition, and if appropriate a suggested value.
+        % For instance, bidirectional scanning should usually be true. So the user
+        % will be shown a display the highlights this setting should it be false. 
+        % Settings like this, that we don't *have* to enforce, we will allow the user
+        % to choose what they like and just nudge them if it's no "ideal" since maybe
+        % there is some reason for an unusual setting choice that we can't now predict.
+        %
+        % Inputs
+        % settingsTo report should be a vector of structures with one one item per
+        % setting. Each structure should be in the form:
+        % 
+        % S.friendlyName = 'bidirectional scanning'
+        % S.currentValue = true
+        % S.suggestedVal = true
+        %
+        % or:
+        % S.friendlyName = 'channels to acquire'
+        % S.currentValue = [1,2,3];
+        % S.suggestedVal = @(x) length(x)>1; 
+        %
+        % If current value does not evaluate to true when passed through the anonymous function, 
+        % the user will just be shown a highlighted value to indicate that something is not right. 
+        %
+        % NOTE: this function should return empty if no valid tests exist.
 
-     end %close methods
+     end % close abstract methods
+
 
 end %close classdef

@@ -142,7 +142,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     pause(finalWait)
 
     finished=true;
-    obj.isSlicing=false;
+
     if nargout>0
         varargout{1}=finished;
     end

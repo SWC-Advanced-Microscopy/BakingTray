@@ -40,15 +40,12 @@ classdef BT < loghandler
         componentSettings
     end
 
-    properties
+    properties (SetObservable,AbortSet,Transient)
+        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         leaveLaserOn=false      % If true, the laser is not switched off when acquisition finishes.
         sliceLastSection=true   % If true, the last section is sliced. If false it's left on the face of the block
         importLastFrames=true   % If true, we keep a copy of the frames acquired at the last X/Y position in BT.downSampledTileBuffer
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
-    end
-
-    properties (SetObservable,AbortSet,Transient)
-        sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
     end
 
     %The following are counters and temporary variables used during acquistion
@@ -86,7 +83,9 @@ classdef BT < loghandler
     % These properties are used by GUIs and general broadcasting
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false
-        acquisitionInProgress=false %This indicates that a sample is being acquired (distinct from scanner.isScannerAcquiring)
+        acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
+                                    % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
+                                    % once all sections have been acquired. 
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
@@ -583,9 +582,9 @@ classdef BT < loghandler
             elseif obj.isScannerConnected 
                 scnSet = obj.scanner.returnScanSettings;
                 nMoves = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
-                approxTimePerSection = scnSet.framePeriodInSeconds * nMoves * obj.recipe.mosaic.numOpticalPlanes;
-                %now guesstimate 250 ms per X/Y move plus something added on for buffering time. 
-                approxTimePerSection = round(approxTimePerSection + (nMoves*0.25) + (nMoves*scnSet.linesPerFrame^2*3E-7) );
+                approxTimePerSection = scnSet.volumePeriodInSeconds * nMoves;
+                %now guesstimate 350 ms per X/Y move plus something added on for buffering time. 
+                approxTimePerSection = round(approxTimePerSection + (nMoves*0.35));
 
                 %Estimate cut time
                 cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 5; 
