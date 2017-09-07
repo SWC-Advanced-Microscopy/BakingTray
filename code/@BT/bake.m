@@ -142,7 +142,7 @@ function bake(obj,varargin)
         end
 
         if obj.saveToDisk
-            if ~obj.defineSavePath
+            if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
                 %Detailed warnings produced by defineSavePath method
                 disp('Acquisition stopped: save path not defined');
                 return 
@@ -230,6 +230,20 @@ function bake(obj,varargin)
             currentTimeStr() ,obj.currentSectionNumber, prettyTime(elapsedTimeInSeconds) ));
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
+
+        % If this is the first pass through the loop and we're using ScanImage, dump
+        % the settings to a file. TODO: eventually we need to decide what to do with other
+        % scan systems and abstract this code. 
+        if ii==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+            d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
+            if ~isempty(d)
+                tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
+                TMP=scanimage.util.opentif(tmp_fname);
+                scanSettings = TMP.SI;
+                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath));
+                save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+            end
+        end
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.

@@ -1,5 +1,5 @@
 function success = defineSavePath(obj) 
-    %Set up the save file names for this section based on the current recipe
+    % Set up the save file names for this section based on the current recipe and create directories as needed
     %
     % function success = BT.defineSavePath
     %
@@ -7,7 +7,12 @@ function success = defineSavePath(obj)
     % Define the directory into which tiles will be saved and make this directory if needed.
     %
     %
+    % Inputs
+    % none
     %
+    % 
+    % Outputs
+    % success - true if everything was created as needed. false otherwse 
 
     if obj.currentSectionNumber<0
         fprintf('Current section number is less than zero: %d. THIS IS ODD\n', obj.currentSectionNumber)

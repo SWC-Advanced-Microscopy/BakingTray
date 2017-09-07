@@ -732,7 +732,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.button_zoomNative.Enable='on';
                 obj.button_drawBox.Enable='on';
             end
-        end
+        end %disable_ZoomElementsDuringAcq
 
 
         function closeAcqGUI(obj,~,~)
@@ -750,7 +750,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 case 'Yes'
                     obj.delete
             end
-        end
+        end %closeAcqGUI
 
 
         function updateImageLUT(obj,~,~)
