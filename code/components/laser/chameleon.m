@@ -1,28 +1,26 @@
-classdef maitai < laser & loghandler
-%%  maitai - control class for maitai lasers
+classdef chameleon < laser & loghandler
+%%  chameleon - control class for Coherent Chameleon lasers
 %
 %
 % Example
-% M = maitai('COM1');
+% M = chameleon('COM1');
 %
-% Laser control component for MaiTai lasers from SpectraPhysics. 
-% IMPORTANT: In the SpectraPhysics GUI you should set the baudrate
-% switch to "9600".
+% Laser control component for Chameleon lasers from Coherent. 
 %
 % For docs, please see the laser abstract class. 
 %
 %
-% Rob Campbell - Basel 2016
+% Rob Campbell - Basel 2017
 
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %constructor
-        function obj = maitai(serialComms,logObject)
-        % function obj = maitai(serialComms,logObject)
+        function obj = chameleon(serialComms,logObject)
+        % function obj = chameleon(serialComms,logObject)
 
             if nargin<1
-                error('maitai requires at least one input argument: you must supply the laser COM port as a string')
+                error('chameleon requires at least one input argument: you must supply the laser COM port as a string')
             end
             %Attach log object if it is supplied
             if nargin>1
@@ -32,13 +30,13 @@ classdef maitai < laser & loghandler
             obj.maxWavelength=1100;
             obj.minWavelength=700;
 
-            fprintf('\nSetting up MaiTai laser communication on serial port %s\n', serialComms);
+            fprintf('\nSetting up Chameleon laser communication on serial port %s\n', serialComms);
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
             success = obj.connect;
 
             if ~success
-                fprintf('Component maitai failed to connect to laser over the serial port.\n')
+                fprintf('Component chameleon failed to connect to laser over the serial port.\n')
                 %TODO: is it possible to delete it here?
             end
 
@@ -46,19 +44,19 @@ classdef maitai < laser & loghandler
             obj.targetWavelength=obj.currentWavelength;
 
             %Report connection and humidity
-            fprintf('Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n', ...
+            fprintf('Connected to Chameleon laser on %s, laser humidity is %0.2f%%\n\n', ...
              serialComms, obj.readHumidity)
 
-            obj.friendlyName = 'MaiTai';
+            obj.friendlyName = 'Chameleon';
         end %constructor
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %destructor
         function delete(obj)
-            fprintf('Disconnecting from MaiTai laser\n')
+            fprintf('Disconnecting from Chameleon laser\n')
             if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
-                fprintf('Closing serial communications with MaiTai laser\n')
+                fprintf('Closing serial communications with Chameleon laser\n')
                 flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 fclose(obj.hC);
                 delete(obj.hC);
@@ -67,20 +65,30 @@ classdef maitai < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
+            obj.hC=serial(obj.controllerID,'BaudRate',19200, ...
+                        'TimeOut',5, ...
+                        'Terminator', 'CR/LF');
+            
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
-                fprintf(' * ERROR: Failed to connect to MaiTai:\n%s\n\n', ME.message)
+                fprintf(' * ERROR: Failed to connect to Chameleon:\n%s\n\n', ME.message)
                 success=false;
                 return
             end
 
             flushinput(obj.hC) % Just in case
-            if isempty(obj.hC) %TODO: better tests: query the version number or something like that
-                success=false;
-            else
-                success=true;
+            success = false;
+            if ~isempty(obj.hC)
+                s1 = obj.sendAndReceiveSerial('ECHO=0'); % So we don't get back a copy of the command
+                s2 = obj.sendAndReceiveSerial('PROMPT=0'); % So we don't get the "CHAMELEON> " text
+                s3 = obj.setWatchDogTimer(0); % Ensure laser does not turn off 
+
+                if s1==1 && s2==1 && s3==1
+                    success=true;
+                else
+                    fprintf('ERROR: Failed to communicate with chameleon: ECHO=0 returned nothing\n')
+                end
             end 
             obj.isLaserConnected=success;
         end %connect
@@ -97,35 +105,42 @@ classdef maitai < laser & loghandler
 
 
         function success = turnOn(obj)
-            if obj.readWarmedUp<100
-                fprintf('Laser is not warmed up. Current warm up state: %0.2f\n',obj.readWarmedUp)
+            % TODO
+            % The Chameleon can't be turned on remotely. You have to use
+            % the key. So think what to do about this. 
+            if ~obj.readWarmedUp
+                fprintf('Laser is not warmed up.\n')
                 return
             end
-            successA=obj.sendAndReceiveSerial('ON',false);
-            successB=obj.setWatchDogTimer(0); %otherwise it will turn off again
-            success=successA & successB;
+            % TODO: the following not finished because this won't work if
+            % the key switch is off 
+            success=obj.sendAndReceiveSerial('L=1');
             obj.isLaserOn=success;
         end
 
 
         function success = turnOff(obj)
-            success=obj.sendAndReceiveSerial('OFF',false);
+            success=obj.sendAndReceiveSerial('L=0');
             if success
                 obj.isLaserOn=false;
             end
         end
 
         function powerOnState = isPoweredOn(obj)
-            if obj.readPumpPower>10
-                powerOnState=true;
-            else
-                powerOnState=false;
+           	[success,reply]=obj.sendAndReceiveSerial('?L');
+            if ~success
+                powerOnState=0;
+                return
             end
+            
+            powerOnState = (str2double(reply)==1);
+            
             obj.isLaserOn=powerOnState;
         end
 
 
         function [laserReady,msg] = isReady(obj)
+           % TODO: not done
             laserReady = false;
             msg='';
             [shutterState,success] = obj.isShutterOpen;
@@ -134,12 +149,7 @@ classdef maitai < laser & loghandler
                 obj.isLaserReady=false;
                 return
             end
-            if ~obj.emissionPossible
-                msg='Laser is switched off and is not emitting';
-                obj.isLaserReady=false;
-                return
-            end
-            if shutterState==0
+              if shutterState==0
                 msg='Laser shutter is closed';
                 obj.isLaserReady=false;
                 return
@@ -156,7 +166,7 @@ classdef maitai < laser & loghandler
 
 
         function modelockState = isModeLocked(obj)
-            [success,reply]=obj.sendAndReceiveSerial('*STB?'); %modelock state embedded in the second bit of this 8 bit number
+            [success,reply]=obj.sendAndReceiveSerial('?MDLK'); %modelock state embedded in the second bit of this 8 bit number
             if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
                 modelockState=false;
                 obj.isLaserModeLocked=modelock;
@@ -164,18 +174,14 @@ classdef maitai < laser & loghandler
             end
 
             %extract modelock state
-            bits = fliplr(dec2bin(str2double(reply),8));
-            if strcmp(bits(2),'1')
-                modelockState=1;
-            else 
-                modelockState=0;
-            end
+            modelockState = str2double(reply);
+            modelockState = (modelockState==1); %Because it can equal 2 (CW) or 0 (Off)
             obj.isLaserModeLocked=modelockState;
         end
 
 
         function success = openShutter(obj)
-            success=obj.sendAndReceiveSerial('SHUTTER 1',false);
+            success=obj.sendAndReceiveSerial('SHUTTER=1');
             pause(0.75) %Because it takes the laser about a second to register the change
             if success
                 obj.isLaserShutterOpen=true;
@@ -184,7 +190,7 @@ classdef maitai < laser & loghandler
 
 
         function success = closeShutter(obj)
-            success=obj.sendAndReceiveSerial('SHUTTER 0',false);
+            success=obj.sendAndReceiveSerial('SHUTTER=0');
             pause(0.75) %Because it takes the laser about a second to register the change
             if success
                 obj.isLaserShutterOpen=false;
@@ -193,7 +199,7 @@ classdef maitai < laser & loghandler
 
 
         function [shutterState,success] = isShutterOpen(obj)
-            [success,reply]=obj.sendAndReceiveSerial('SHUTTER?');
+            [success,reply]=obj.sendAndReceiveSerial('?S');
             if ~success
                 shutterState=[];
                 return
@@ -204,17 +210,22 @@ classdef maitai < laser & loghandler
 
 
         function wavelength = readWavelength(obj) 
-            [success,wavelength]=obj.sendAndReceiveSerial('READ:WAVELENGTH??'); 
+            [success,wavelength]=obj.sendAndReceiveSerial('?VW'); 
             if ~success
                 wavelength=[];
                 return
             end
-            wavelength = str2double(wavelength(1:end-2));
-            obj.currentWavelength=wavelength;
+            wavelength = str2double(wavelength);
+            if ~isnan(wavelength)
+                obj.currentWavelength=wavelength;
+            else
+                fprintf('Failed to read wavelength from Chameleon. Likely laser is tuning.\n')
+            end
         end
 
 
         function success = setWavelength(obj,wavelengthInNM)
+
             success=false;
             if length(wavelengthInNM)>1
                 fprintf('wavelength should be a scalar')
@@ -223,7 +234,7 @@ classdef maitai < laser & loghandler
             if ~obj.isTargetWavelengthInRange(wavelengthInNM)
                 return
             end
-            cmd = sprintf('WAVELENGTH %d', round(wavelengthInNM));
+            cmd = sprintf('WAVELENGTH=%d', round(wavelengthInNM));
             [success,wavelength]=obj.sendAndReceiveSerial(cmd,false);
             if ~success
                 return
@@ -235,130 +246,97 @@ classdef maitai < laser & loghandler
    
 
         function tuning = isTuning(obj)
-            %First get the desired (setpoint) wavelength
-            [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
+            [success,reply]=obj.sendAndReceiveSerial('?TS');
             if ~success
+                tuning=nan;
                 return
             end
 
-            wavelengthDesired = str2double(wavelengthDesired(1:end-2));
-            pause(0.33)
-            currentWavelength = obj.readWavelength;
-
-            if round(currentWavelength) == wavelengthDesired
-                tuning=false;
-            else
+            reply = str2double(reply);
+            
+            if reply>0
                 tuning=true;
+            else
+               tuning=false;
             end
-
+            
         end
 
 
         function laserPower = readPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:POWER?');
+            [success,laserPower]=obj.sendAndReceiveSerial('?UF');
             if ~success
                 laserPower=[];
                 return
             end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
+            laserPower = str2double(laserPower);
         end
 
 
         function laserID = readLaserID(obj)
-            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');
+            [success,laserID]=obj.sendAndReceiveSerial('?SN');
             if ~success
                 laserID=[];
                 return
             end
+            laserID = ['Chameleon, Serial Number: ', laserID];
         end
 
 
         function laserStats = returnLaserStats(obj)
             lambda = obj.readWavelength;
             outputPower = obj.readPower;
-            pumpPower = obj.readPumpPower;
-            pumpCurrent = obj.readPumpLaserCurrent;
             humidity = obj.readHumidity;
 
-            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,pumpPower=%dmW,pumpCurrent=%0.1f,humidity=%0.1f', ...
-                lambda,outputPower,pumpPower,pumpCurrent,humidity);
+            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,humidity=%0.1f', ...
+                lambda,outputPower,humidity);
         end
 
 
 
-        % MaiTai specific
-        function laserPower = readPumpPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');
-            if ~success
-                laserPower=[];
-                return
-            end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
-        end
-
-        function pLasI = readPumpLaserCurrent(obj)
-            [success,pLasI]=obj.sendAndReceiveSerial('READ:PLASER:PCURRENT?');
-            if ~success
-                pLasI=[];
-                return
-            end
-            pLasI = str2double(pLasI(1:end-1));
-        end
-
+        % Chameleon specific
         function laserHumidity = readHumidity(obj)
-            [success,laserHumidity]=obj.sendAndReceiveSerial('READ:HUM?');
+            % I think some lasers don't have sensor and just return 0
+            [success,laserHumidity]=obj.sendAndReceiveSerial('?RH');
             if ~success
                 laserHumidity=[];
                 return
             end
-            laserHumidity = str2double(laserHumidity(1:end-3));
+            laserHumidity = str2double(laserHumidity);
         end
 
         function warmedUpValue = readWarmedUp(obj)
-            %Return a scalar that defines whether the laser is warmed up
-            %100 means warmed up. Returns empty if nothing was read back.
-            [success,warmedUpValue]=obj.sendAndReceiveSerial('READ:PCTWarmedup?');
+            %Return a bool that defines whether the laser is warmed up and
+            %ready emit.
+            [success,warmedUpValue]=obj.sendAndReceiveSerial('?ST');
             if ~success
                 warmedUpValue=[];
                 return
             end
-            warmedUpValue = str2double(warmedUpValue(1:end-1));
-        end
-
-        function emission = emissionPossible(obj)
-            [success,reply]=obj.sendAndReceiveSerial('*STB?'); %emission state embedded in the first bit of this 8 bit number
-            if ~success %If we can't talk to it, we assume it's also not emitting (maybe questionable, but let's go with this for now)
-                emission=false;
-                return
-            end
-
-            %extract modelock state
-            bits = fliplr(dec2bin(str2double(reply),8));
-            if strcmp(bits(1),'1')
-                emission=1;
-            else 
-                emission=0;
+            
+            if strfind(warmedUpValue,'OK')
+                warmedUpValue=true;
+            else
+                warmedUpValue=false;
             end
         end
 
         function success=setWatchDogTimer(obj,value)
-            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
-            success=obj.sendAndReceiveSerial(cmd,false);
-            if ~success
+            if value <= 0
+                [success,~] = obj.sendAndReceiveSerial('HB=0');
                 return
-            end
-            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
-            if ~success
-                return
-            end
-
-            currentValue = round(str2double(currentValue));
-            if currentValue ~= value
-                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
-                    value,currentValue)
-                success=false;
+            else
+                [success,~] = obj.sendAndReceiveSerial('HB=1');
+                if ~success
+                    return
+                end
+                if value>100
+                    value=100;
+                elseif value<1
+                    value=1;
+                end
+                value = num2str(round(value));
+                [success,~] = obj.sendAndReceiveSerial(['HBR=',value]);
             end
         end
 
@@ -373,7 +351,7 @@ classdef maitai < laser & loghandler
             if isempty(commandString) || ~ischar(commandString)
                 reply='';
                 success=false;
-                obj.logMessage(inputname(1),dbstack,6,'maitai.sendReceiveSerial command string not valid.')
+                obj.logMessage(inputname(1),dbstack,6,'chameleon.sendReceiveSerial command string not valid.')
                 return
             end
 
@@ -392,11 +370,11 @@ classdef maitai < laser & loghandler
             doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do. 
             if obj.hC.BytesAvailable>0
                 if doFlush
-                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
+                    fprintf('Read in from the Chameleon buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
                         commandString, obj.hC.BytesAvailable)
                     flushinput(obj.hC)
                 else
-                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
+                    fprintf('Read in from the Chameleon buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
                         commandString, obj.hC.BytesAvailable)
                 end
             end
