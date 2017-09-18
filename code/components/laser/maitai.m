@@ -285,7 +285,25 @@ classdef maitai < laser & loghandler
                 lambda,outputPower,pumpPower,pumpCurrent,humidity);
         end
 
+        function success=setWatchDogTimer(obj,value)
+            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
+            success=obj.sendAndReceiveSerial(cmd,false);
+            if ~success
+                return
+            end
+            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
+            if ~success
+                return
+            end
 
+            currentValue = round(str2double(currentValue));
+            if currentValue ~= value
+                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
+                    value,currentValue)
+                success=false;
+            end
+        end
+        
 
         % MaiTai specific
         function laserPower = readPumpPower(obj)
@@ -343,24 +361,6 @@ classdef maitai < laser & loghandler
             end
         end
 
-        function success=setWatchDogTimer(obj,value)
-            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
-            success=obj.sendAndReceiveSerial(cmd,false);
-            if ~success
-                return
-            end
-            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
-            if ~success
-                return
-            end
-
-            currentValue = round(str2double(currentValue));
-            if currentValue ~= value
-                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
-                    value,currentValue)
-                success=false;
-            end
-        end
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

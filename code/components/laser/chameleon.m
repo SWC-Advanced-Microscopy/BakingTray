@@ -12,6 +12,36 @@ classdef chameleon < laser & loghandler
 %
 % Rob Campbell - Basel 2017
 
+    properties
+       % The following is a list of Chemeleon fault states taken from the 
+       % Chameleon Ultra and Chameleon Vision operatpr manual page 5-8.
+       faultMessage = ...
+            {'Laser head interlock', 'External interlock', ...
+              'PS cover interlock', 'LBO temperature', ...
+              'LBO not locked at set temperature', 'Vanadate temperature', ...
+              'Etalon temperature', 'Diode 1 temperature', ...
+              'Diode 2 temperature', 'Baseplate temperature', ...
+              'Heatsink 1 temperature', 'Heatsink 2 temperature', ...
+              '', '', '', ...
+              'Diode 1 over-current', 'Diode 2 over-current', ...
+              'Over-current', 'Diode 1 under-voltage', ...
+              'Diode 2 under-voltage', 'Diode 1 over-voltage', ...
+              'Diode 2 over-voltage', '', '', 'Diode 1 EEPROM', ...
+              'Diode 2 EEPROM', 'Laser head EEPROM', 'PS EEPROM',...
+              'PS-head mismatch', 'LBO battery', 'Shutter state mismatch', ...
+              'CPU PROM checksum', 'Head PROM checksum', ...
+              'Diode 1 PROM checksum', 'Diode 2 PROM checksum', ...
+              'CPU PROM range','Head PROM range', 'Diode 1PROM range', ...
+              'Diode 2 PROM range', 'Head-diode mismatch', '', '', ...
+              'Lost modelock', '', '', '', 'Ti-Sapph temperature', '', ...
+              'PZT X', 'Cavity humidity', 'Tuning stepper motor homing', ...
+              'Lasing', 'Laser failed to begin modelocking', 'Headboard comms', ...
+              'System lasing', 'PS-head EEPROM mismatch', ...
+              'Modelock slit stepper motor homing', 'Chameleon-verdi EEPROM', ...
+              'Chameleon precompensator homing', 'Chameleon curve EEPROM'};
+                
+    end % close properties
+    
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -105,16 +135,26 @@ classdef chameleon < laser & loghandler
 
 
         function success = turnOn(obj)
-            % TODO
-            % The Chameleon can't be turned on remotely. You have to use
-            % the key. So think what to do about this. 
-            if ~obj.readWarmedUp
-                fprintf('Laser is not warmed up.\n')
+            % The Chameleon can't be turned on remotely unless the key 
+            % is set to the active position.
+            success=false;
+            
+            if ~obj.readKeySwitch
+                fprintf('Key switch is set to "STANDBY". Can not turn on Chameleon laser.\n')
+                obj.isLaserOn=success;
                 return
             end
-            % TODO: the following not finished because this won't work if
-            % the key switch is off 
-            success=obj.sendAndReceiveSerial('L=1');
+            
+            faultInd = obj.readFaultState;
+            % If there is no fault state we attempt to turn on the laser
+            if length(faultInd)==1 && faultInd==0
+                success=obj.sendAndReceiveSerial('L=1');
+            else
+                % Otherwise the laser is not turned on and the
+                % readFaultState method will automatically have printed
+                % to screen the fault message. So nothing more to do. 
+            end
+            
             obj.isLaserOn=success;
         end
 
@@ -292,35 +332,6 @@ classdef chameleon < laser & loghandler
                 lambda,outputPower,humidity);
         end
 
-
-
-        % Chameleon specific
-        function laserHumidity = readHumidity(obj)
-            % I think some lasers don't have sensor and just return 0
-            [success,laserHumidity]=obj.sendAndReceiveSerial('?RH');
-            if ~success
-                laserHumidity=[];
-                return
-            end
-            laserHumidity = str2double(laserHumidity);
-        end
-
-        function warmedUpValue = readWarmedUp(obj)
-            %Return a bool that defines whether the laser is warmed up and
-            %ready emit.
-            [success,warmedUpValue]=obj.sendAndReceiveSerial('?ST');
-            if ~success
-                warmedUpValue=[];
-                return
-            end
-            
-            if strfind(warmedUpValue,'OK')
-                warmedUpValue=true;
-            else
-                warmedUpValue=false;
-            end
-        end
-
         function success=setWatchDogTimer(obj,value)
             if value <= 0
                 [success,~] = obj.sendAndReceiveSerial('HB=0');
@@ -340,6 +351,95 @@ classdef chameleon < laser & loghandler
             end
         end
 
+        
+        % Chameleon specific
+        function laserHumidity = readHumidity(obj)
+            % I think some lasers don't have sensor and just return 0
+            [success,laserHumidity]=obj.sendAndReceiveSerial('?RH');
+            if ~success
+                laserHumidity=[];
+                return
+            end
+            laserHumidity = str2double(laserHumidity);
+        end
+
+        function warmedUpValue = readWarmedUp(obj)
+            % Return a bool that defines whether the laser is warmed up and
+            % ready emit. To determin this we querthe operating status
+            % text which returns "Starting" or "OK"
+            [success,warmedUpValue]=obj.sendAndReceiveSerial('?ST');
+            if ~success
+                warmedUpValue=[];
+                return
+            end
+            
+            if strfind(warmedUpValue,'OK')
+                warmedUpValue=true;
+            else
+                warmedUpValue=false;
+            end
+        end
+
+        
+        function keyState = readKeySwitch(obj)
+            % Is the key set to enable or disable?
+            [success,reply] = obj.sendAndReceiveSerial('?K');
+            if ~success
+                keyState=[];
+                return
+            end
+            keyState = str2double(reply);
+        end
+
+        function [faultNumbers,faultStateString] = readFaultState(obj)
+            % Return the laser fault state(s) as an integer code and a string. 
+            % If there is no fault, it returns the integer "0"
+            % Returns empty if the state could not be read
+            
+            [success,faultNumbers]=obj.sendAndReceiveSerial('?F');
+            
+            if ~success
+                faultNumbers=[];
+                faultStateString = '';
+                return
+            end
+            
+            % Multiple fault states are separated by the character "&" so
+            % we make an array of fault state numbers
+            faultNumbers = cellfun(@str2double, strsplit(faultNumbers, '&'));
+            
+            % If the laser returns "0" there is no current fault state
+            if length(faultNumbers)==1 && faultNumbers(1) == 0
+                faultStateString = 'no faults';
+                return
+            end
+            
+            % Build a cell array of laser fault messages
+            faultMSG = cell(1,length(faultNumbers)); % Error strings will go here
+            for ii=1:length(faultNumbers)
+                if faultNumbers(ii) > length(obj.faultMessage) || isempty(obj.faultMessage{faultNumbers(ii)})
+                    % The returned number has indexed an out of bounds message or a missing message
+                    faultMSG{ii} = sprintf('Unknown fault state: %d. ', faultNumbers(ii));
+                else
+                    faultMSG{ii} = sprintf('Fault code %d: %s fault. ', ...
+                        faultNumbers(ii), obj.faultMessage{faultNumbers(ii)});
+                end
+            end
+            
+            % Report these to screen and return as an output
+            
+            % Otherwise we have one or more faults. Report these:
+            if length(faultNumbers) == 1
+                fprintf('Laser reports 1 error:\n')
+            elseif length(faultNumbers) > 1
+                fprintf('Laser reports %d errors:\n', length(faultNumbers))
+            end
+            
+            cellfun(@(x) fprintf('%s\n',x), faultMSG) % Display on CMD line          
+            
+            faultStateString = [faultMSG{:}]; % Output of this method
+            
+        end
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function [success,reply]=sendAndReceiveSerial(obj,commandString,waitForReply)
