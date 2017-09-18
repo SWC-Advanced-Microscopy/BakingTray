@@ -3,7 +3,7 @@ classdef chameleon < laser & loghandler
 %
 %
 % Example
-% M = chameleon('COM1');
+% C = chameleon('COM1');
 %
 % Laser control component for Chameleon lasers from Coherent. 
 %
@@ -22,7 +22,7 @@ classdef chameleon < laser & loghandler
               'Etalon temperature', 'Diode 1 temperature', ...
               'Diode 2 temperature', 'Baseplate temperature', ...
               'Heatsink 1 temperature', 'Heatsink 2 temperature', ...
-              '', '', '', ...
+              '', '', '', ... %These are placeholders because there are gaps in the fault index numbers
               'Diode 1 over-current', 'Diode 2 over-current', ...
               'Over-current', 'Diode 1 under-voltage', ...
               'Diode 2 under-voltage', 'Diode 1 over-voltage', ...
@@ -52,6 +52,7 @@ classdef chameleon < laser & loghandler
             if nargin<1
                 error('chameleon requires at least one input argument: you must supply the laser COM port as a string')
             end
+
             %Attach log object if it is supplied
             if nargin>1
                 obj.attachLogObject(logObject);
@@ -74,8 +75,7 @@ classdef chameleon < laser & loghandler
             obj.targetWavelength=obj.currentWavelength;
 
             %Report connection and humidity
-            fprintf('Connected to Chameleon laser on %s, laser humidity is %0.2f%%\n\n', ...
-             serialComms, obj.readHumidity)
+            fprintf('Connected to Chameleon laser on serial port %s\n\n', serialComms)
 
             obj.friendlyName = 'Chameleon';
         end %constructor
@@ -110,14 +110,14 @@ classdef chameleon < laser & loghandler
             flushinput(obj.hC) % Just in case
             success = false;
             if ~isempty(obj.hC)
-                s1 = obj.sendAndReceiveSerial('ECHO=0'); % So we don't get back a copy of the command
-                s2 = obj.sendAndReceiveSerial('PROMPT=0'); % So we don't get the "CHAMELEON> " text
-                s3 = obj.setWatchDogTimer(0); % Ensure laser does not turn off 
+                s1 = obj.sendAndReceiveSerial('ECHO=0');   % So we don't get back a copy of the command
+                s2 = obj.sendAndReceiveSerial('PROMPT=0'); % So we don't get the "CHAMELEON> " text after each command is sent
+                s3 = obj.setWatchDogTimer(0); % Ensure laser does not turn off if there inactivity on the serial port
 
                 if s1==1 && s2==1 && s3==1
                     success=true;
                 else
-                    fprintf('ERROR: Failed to communicate with chameleon: ECHO=0 returned nothing\n')
+                    fprintf('ERROR: Failed to communicate with Chameleon laser\n')
                 end
             end 
             obj.isLaserConnected=success;
@@ -160,6 +160,7 @@ classdef chameleon < laser & loghandler
 
 
         function success = turnOff(obj)
+            % Even the keyswitch is set to "ENABLE" the laser can be turned off remotely
             success=obj.sendAndReceiveSerial('L=0');
             if success
                 obj.isLaserOn=false;
@@ -180,16 +181,21 @@ classdef chameleon < laser & loghandler
 
 
         function [laserReady,msg] = isReady(obj)
-           % TODO: not done
             laserReady = false;
             msg='';
             [shutterState,success] = obj.isShutterOpen;
+
             if ~success
                 msg='No connection to laser';
                 obj.isLaserReady=false;
                 return
             end
-              if shutterState==0
+            if ~obj.isPoweredOn
+                msg='Laser not powered on';
+                obj.isLaserReady=false;
+                return
+            end
+            if shutterState==0
                 msg='Laser shutter is closed';
                 obj.isLaserReady=false;
                 return
@@ -206,14 +212,14 @@ classdef chameleon < laser & loghandler
 
 
         function modelockState = isModeLocked(obj)
-            [success,reply]=obj.sendAndReceiveSerial('?MDLK'); %modelock state embedded in the second bit of this 8 bit number
+            [success,reply]=obj.sendAndReceiveSerial('?MDLK');
             if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
                 modelockState=false;
                 obj.isLaserModeLocked=modelock;
                 return
             end
 
-            %extract modelock state
+            % Determine modelock state
             modelockState = str2double(reply);
             modelockState = (modelockState==1); %Because it can equal 2 (CW) or 0 (Off)
             obj.isLaserModeLocked=modelockState;
@@ -488,8 +494,6 @@ classdef chameleon < laser & loghandler
                 return
             end
 
-
-            %TODO: improve check of success?
             success=true;
         end
 

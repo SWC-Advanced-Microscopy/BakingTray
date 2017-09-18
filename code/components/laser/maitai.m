@@ -410,8 +410,6 @@ classdef maitai < laser & loghandler
                 return
             end
 
-
-            %TODO: improve check of success?
             success=true;
         end
 
