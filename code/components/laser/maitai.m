@@ -31,7 +31,8 @@ classdef maitai < laser & loghandler
 
             obj.maxWavelength=1100;
             obj.minWavelength=700;
-
+            obj.friendlyName = 'MaiTai';
+            
             fprintf('\nSetting up MaiTai laser communication on serial port %s\n', serialComms);
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
@@ -39,6 +40,7 @@ classdef maitai < laser & loghandler
 
             if ~success
                 fprintf('Component maitai failed to connect to laser over the serial port.\n')
+                return
                 %TODO: is it possible to delete it here?
             end
 
@@ -49,7 +51,7 @@ classdef maitai < laser & loghandler
             fprintf('Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n', ...
              serialComms, obj.readHumidity)
 
-            obj.friendlyName = 'MaiTai';
+            
         end %constructor
 
 
@@ -77,11 +79,17 @@ classdef maitai < laser & loghandler
             end
 
             flushinput(obj.hC) % Just in case
-            if isempty(obj.hC) %TODO: better tests: query the version number or something like that
+            if isempty(obj.hC) 
                 success=false;
             else
-                success=true;
-            end 
+                [~,s] = obj.isShutterOpen;
+                if s==true
+                    success=true;
+                else
+                    fprintf('Failed to communicate with maitai laser\n');
+                    success=false;
+                end
+            end
             obj.isLaserConnected=success;
         end %connect
 

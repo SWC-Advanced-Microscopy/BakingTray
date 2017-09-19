@@ -60,6 +60,7 @@ classdef chameleon < laser & loghandler
 
             obj.maxWavelength=1100;
             obj.minWavelength=700;
+            obj.friendlyName = 'Chameleon';
 
             fprintf('\nSetting up Chameleon laser communication on serial port %s\n', serialComms);
             BakingTray.utils.clearSerial(serialComms)
@@ -68,6 +69,7 @@ classdef chameleon < laser & loghandler
 
             if ~success
                 fprintf('Component chameleon failed to connect to laser over the serial port.\n')
+                return
                 %TODO: is it possible to delete it here?
             end
 
@@ -77,7 +79,6 @@ classdef chameleon < laser & loghandler
             %Report connection and humidity
             fprintf('Connected to Chameleon laser on serial port %s\n\n', serialComms)
 
-            obj.friendlyName = 'Chameleon';
         end %constructor
 
 
@@ -117,7 +118,15 @@ classdef chameleon < laser & loghandler
                 if s1==1 && s2==1 && s3==1
                     success=true;
                 else
-                    fprintf('ERROR: Failed to communicate with Chameleon laser\n')
+                    %double-check we can talk to the laser
+                    [~,s] = obj.isShutterOpen;
+                    if s==true
+                        success=true;
+                    else
+                        fprintf('Failed to communicate with Chameleon laser\n')
+                        success=false;
+                    end
+                    
                 end
             end 
             obj.isLaserConnected=success;
