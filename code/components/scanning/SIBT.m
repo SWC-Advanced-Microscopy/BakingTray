@@ -414,7 +414,7 @@ classdef SIBT < scanner
             %
             % This information is then used to apply the scan settings. 
 
-            if isa(pixelsPerLine,'matlab.ui.container.Menu') % Is the menu item present?
+            if isa(pixelsPerLine,'matlab.ui.control.UIControl') % Will be true if we're using a pop-up menu to set the image size
                 if ~isprop(pixelsPerLine,'UserData')
                     fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
                     return
@@ -424,7 +424,7 @@ classdef SIBT < scanner
                     return
                 end
 
-                settings=pixelsPerLine.UserData;
+                settings=pixelsPerLine.UserData(pixelsPerLine.Value);
                 if ~isfield(settings,'pixelsPerLine')
                     fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "pixelsPerLine". NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
                     return
@@ -435,6 +435,7 @@ classdef SIBT < scanner
                 fastMult = settings.fastMult;
                 slowMult = settings.slowMult;
                 objRes = settings.objRes;
+
             else
                 pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
                 fastMult = [];

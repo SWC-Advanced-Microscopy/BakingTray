@@ -3,6 +3,16 @@ BakingTray ChangeLog
 Most commits and development should go in the dev branch (or a branch devoted to a specific feature).
 When mature, changes should be merged into master *as a merge commit*  and this changelog file updated.
 
+In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
+The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
+
+
+20th September 2017
+- USER: Move image resolution selection from the menu to the recipe panel.
+- USER: Add checkboxes to acquisition view for leaving the laser on and cutting the last section.
+- Save ScanImage acquisition settings to disk after the first section has been acquired. 
+- Add class for interacting with Chameleon lasers from Coherent.
+
 14th August 2017
 - USER: The recipe fast z-settings are applied after each rapid preview scan.
 - USER: Report estimated disk space and number of channels to main BakingTray GUI.

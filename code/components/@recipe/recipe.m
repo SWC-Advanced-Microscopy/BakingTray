@@ -444,7 +444,7 @@ classdef recipe < handle
 
                             % If the sample name is not a string or empty then we just make one up
                             if ~ischar(fieldValue) || length(fieldValue)==0
-                                fieldValue=['sample_',datestr(now,'yy-mm-dd_HHMMSS')];
+                                fieldValue=['sample_',datestr(now,'yymmdd_HHMMSS')];
                                 fprintf('Setting sample name to: %s\n',fieldValue)
                             end
                             obj.sample.(field2check) = fieldValue;
