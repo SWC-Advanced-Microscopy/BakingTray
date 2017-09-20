@@ -168,8 +168,11 @@ classdef (Abstract) scanner < handle & loghandler
         % OUT.FOV_alongRowsinMicrons - Number of imaged microns along the rows (the lines) of the image (to 2 decimal places)
         % OUT.micronsPerPixel_cols   - The number of microns per pixel along the columns (to 3 decimal places)
         % OUT.micronsPerPixel_rows   - The number of microns per pixel along the rows (to 3 decimal places)
-        %
+        % OUT.volumePeriodInSeconds  - The number of seconds taken to acquire a z-stack at one x/y position
+
         % Other fields may be returned too if desired. But the above are the only critical ones.
+        % See also the fields in the dummyScanner class just in case there's something missing from the above list.
+
 
         pauseAcquisition(obj)
         % pauseAcquisition
