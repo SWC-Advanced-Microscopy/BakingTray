@@ -31,7 +31,8 @@ classdef maitai < laser & loghandler
 
             obj.maxWavelength=1100;
             obj.minWavelength=700;
-
+            obj.friendlyName = 'MaiTai';
+            
             fprintf('\nSetting up MaiTai laser communication on serial port %s\n', serialComms);
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
@@ -39,6 +40,7 @@ classdef maitai < laser & loghandler
 
             if ~success
                 fprintf('Component maitai failed to connect to laser over the serial port.\n')
+                return
                 %TODO: is it possible to delete it here?
             end
 
@@ -46,10 +48,10 @@ classdef maitai < laser & loghandler
             obj.targetWavelength=obj.currentWavelength;
 
             %Report connection and humidity
-            fprintf(['Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n'], ...
+            fprintf('Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n', ...
              serialComms, obj.readHumidity)
 
-            obj.friendlyName = 'MaiTai';
+            
         end %constructor
 
 
@@ -77,11 +79,17 @@ classdef maitai < laser & loghandler
             end
 
             flushinput(obj.hC) % Just in case
-            if isempty(obj.hC) %TODO: better tests: query the version number or something like that
+            if isempty(obj.hC) 
                 success=false;
             else
-                success=true;
-            end 
+                [~,s] = obj.isShutterOpen;
+                if s==true
+                    success=true;
+                else
+                    fprintf('Failed to communicate with maitai laser\n');
+                    success=false;
+                end
+            end
             obj.isLaserConnected=success;
         end %connect
 
@@ -215,7 +223,6 @@ classdef maitai < laser & loghandler
 
 
         function success = setWavelength(obj,wavelengthInNM)
-
             success=false;
             if length(wavelengthInNM)>1
                 fprintf('wavelength should be a scalar')
@@ -236,7 +243,6 @@ classdef maitai < laser & loghandler
    
 
         function tuning = isTuning(obj)
-
             %First get the desired (setpoint) wavelength
             [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
             if ~success
@@ -287,7 +293,25 @@ classdef maitai < laser & loghandler
                 lambda,outputPower,pumpPower,pumpCurrent,humidity);
         end
 
+        function success=setWatchDogTimer(obj,value)
+            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
+            success=obj.sendAndReceiveSerial(cmd,false);
+            if ~success
+                return
+            end
+            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
+            if ~success
+                return
+            end
 
+            currentValue = round(str2double(currentValue));
+            if currentValue ~= value
+                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
+                    value,currentValue)
+                success=false;
+            end
+        end
+        
 
         % MaiTai specific
         function laserPower = readPumpPower(obj)
@@ -345,24 +369,6 @@ classdef maitai < laser & loghandler
             end
         end
 
-        function success=setWatchDogTimer(obj,value)
-            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
-            success=obj.sendAndReceiveSerial(cmd,false);
-            if ~success
-                return
-            end
-            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
-            if ~success
-                return
-            end
-
-            currentValue = round(str2double(currentValue));
-            if currentValue ~= value
-                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
-                    value,currentValue)
-                success=false;
-            end
-        end
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -412,8 +418,6 @@ classdef maitai < laser & loghandler
                 return
             end
 
-
-            %TODO: improve check of success?
             success=true;
         end
 

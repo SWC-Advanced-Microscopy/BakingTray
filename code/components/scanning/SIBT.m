@@ -414,7 +414,7 @@ classdef SIBT < scanner
             %
             % This information is then used to apply the scan settings. 
 
-            if isa(pixelsPerLine,'matlab.ui.container.Menu')
+            if isa(pixelsPerLine,'matlab.ui.control.UIControl') % Will be true if we're using a pop-up menu to set the image size
                 if ~isprop(pixelsPerLine,'UserData')
                     fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "UserData" in its first input arg. NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
                     return
@@ -424,7 +424,7 @@ classdef SIBT < scanner
                     return
                 end
 
-                settings=pixelsPerLine.UserData;
+                settings=pixelsPerLine.UserData(pixelsPerLine.Value);
                 if ~isfield(settings,'pixelsPerLine')
                     fprintf('SIBT.setImageSize is used as a CallBack function but finds no field "pixelsPerLine". NOT APPLYING IMAGE SIZE TO SCANIMAGE.\n')
                     return
@@ -435,6 +435,7 @@ classdef SIBT < scanner
                 fastMult = settings.fastMult;
                 slowMult = settings.slowMult;
                 objRes = settings.objRes;
+
             else
                 pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
                 fastMult = [];
@@ -449,7 +450,7 @@ classdef SIBT < scanner
             pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
 
 
-            if pixEqLin
+            if pixEqLin % is the user asking for square tiles?
                 % It's pretty easy to change the image size if we have square images. 
                 if ~pixEqLinCheckBox
                     fprintf('Setting Pix=Lin check box in ScanImage CONFIGURATION window to true\n')
@@ -458,6 +459,12 @@ classdef SIBT < scanner
                 obj.hC.hRoiManager.pixelsPerLine=pixelsPerLine;
 
                 else
+
+                    if pixEqLinCheckBox
+                        fprintf('Setting Pix=Lin check box in ScanImage CONFIGURATION window to false\n')
+                        obj.hC.hRoiManager.forceSquarePixelation=false;
+                    end
+
                     % Handle changes in image size if we have rectangular images
                     if isempty(slowMult)
                         slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;

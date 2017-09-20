@@ -137,7 +137,6 @@ classdef dummyScanner < scanner
         end %isAcquiring
 
         function OUT = returnScanSettings(obj)
-            %TODO: return something useful
             OUT.pixelsPerLine=512;
             OUT.linesPerFrame=512;
             OUT.micronsBetweenOpticalPlanes=10;
@@ -149,6 +148,7 @@ classdef dummyScanner < scanner
             OUT.micronsPerPixel_rows=1;
 
             OUT.framePeriodInSeconds = 0.5;
+            OUT.volumePeriodInSeconds = OUT.framePeriodInSeconds * obj.parent.recipe.mosaic.numOpticalPlanes;
             OUT.pixelTimeInMicroSeconds = (OUT.framePeriodInSeconds * 1E6) / (OUT.pixelsPerLine * OUT.linesPerFrame);
             OUT.linePeriodInMicroseconds = OUT.pixelTimeInMicroSeconds * OUT.pixelsPerLine;
             OUT.bidirectionalScan = true;

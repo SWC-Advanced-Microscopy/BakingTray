@@ -40,22 +40,26 @@ classdef view < handle
 
 
 
-        %These properties are used to build and populate the recipe fields
-        %The property is split by "||" to handle nesting
-        recipePropertyNames  = {'sample||ID', 'sample||objectiveName', 'mosaic||numSections', ...
+        % These properties are used to build and populate the recipe fields
+        % The property is split by "||" to handle nesting
+
+        recipePropertyNames  = {'sample||objectiveName', 'sample||ID', ...
+                    'mosaic||scanmode', 'mosaic||numSections', ...
                     'mosaic||numOpticalPlanes', 'mosaic||sectionStartNum', ...
                     'mosaic||overlapProportion', 'mosaic||sampleSize', ...
                     'mosaic||cuttingSpeed','mosaic||cutSize', 'mosaic||sliceThickness', ...
                     }
 
-        recipeFieldLabels = {'Sample ID', 'Objective Name', 'Num. Sections', ...
+        recipeFieldLabels = {'Objective Name', 'Sample ID', ...
+                    'Scan Mode', 'Num. Sections', ...
                     'Num. Optical Planes', 'Section Start Num.', ...
                     'Overlap Prop.', 'Sample Size (mm)', ...
                     'Cut Speed (mm/s)', 'Cut Size (mm)', 'Slice Thickness (mm)', ...
                     }
 
-        recipeToolTips = {sprintf('String defining the sample ID.\nSpaces will be replaced with underscores.\nNames with leading digits will have a string appended.'), ...
-                    'The name of the objective.\nCurrently only used as a note.', ...
+        recipeToolTips = {'The name of the objective.\nCurrently only used as a note.', ...
+                    sprintf('String defining the sample ID.\nSpaces will be replaced with underscores.\nNames with leading digits will have a string appended.'), ...
+                    'Scan mode (currently can only be set to "tile"', ...
                     'Number of sections to cut and image.', ...
                     'The numeric ID of the first section', ...
                     'The number of optical planes within a section', ...
@@ -71,7 +75,7 @@ classdef view < handle
         statusPanel  %For now this will house a general purpose display box - just dump a big text string into it 
         recipePanel %recipe editing goes here
 
-        suppressToolTips=true
+        suppressToolTips=false
 
     end
 
@@ -96,7 +100,7 @@ classdef view < handle
 
             %Resize the figure window
             pos=get(obj.hFig, 'Position');
-            pos(3:4)=[300,400];
+            pos(3:4)=[300,435];
             set(obj.hFig, ...
                 'Position',pos, ... 
                 'units','pixels', ...
@@ -117,27 +121,8 @@ classdef view < handle
             settings=BakingTray.settings.readComponentSettings;
             if strcmp(settings.scanner.type,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
-                frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'scanImageFrameSizes.csv');
-                if exist(frameSizeFname, 'file')
-                    [objective,pixelsPerLine,linePerFrame,zoomValue,micsPix,fastM,slowM,objRes] = ...
-                        textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
-                    obj.menu.frameSize = uimenu(obj.menu.scanner,'Label','Frame Size');
-                    for ii=1:length(objRes)
-                        obj.menu.frameRes(ii) = uimenu(obj.menu.frameSize,'Label', ...
-                            sprintf('%dx%d %0.3f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii)) );
-                        thisStruct.objective=objective{ii};
-                        thisStruct.pixelsPerLine=pixelsPerLine(ii);
-                        thisStruct.linesPerFrame=linePerFrame(ii);
-                        thisStruct.micsPix=micsPix(ii);
-                        thisStruct.fastMult=fastM(ii);
-                        thisStruct.slowMult=slowM(ii);
-                        thisStruct.objRes=objRes(ii);
-                        obj.menu.frameRes(ii).UserData=thisStruct;
-                        obj.menu.frameRes(ii).Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
-                    end
-                end
-
             end
+
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
 
@@ -149,7 +134,7 @@ classdef view < handle
             %Basic status panel - directory selection and recipe loading
             commonButtonSettings={'Units', 'pixels', 'FontSize', obj.fSize, 'FontWeight', 'bold'};
 
-            obj.basicSetupPanel = BakingTray.gui.newGenericGUIPanel([3.5, 345, 295, 55],obj.hFig);
+            obj.basicSetupPanel = BakingTray.gui.newGenericGUIPanel([3.5, 380, 295, 55],obj.hFig);
             obj.button_chooseDir = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.basicSetupPanel, ...
@@ -209,12 +194,12 @@ classdef view < handle
 
 
             %Buttons for interfacing with hardware
-            obj.hardwarePanel = BakingTray.gui.newGenericGUIPanel([3.5, 295, 295, 45],obj.hFig);
+            obj.hardwarePanel = BakingTray.gui.newGenericGUIPanel([3.5, 340, 295, 35],obj.hFig);
 
             obj.button_laser = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
-                'Position', [10,12.5, 50, 20], ...
+                'Position', [10,6, 50, 20], ...
                 'Callback',@obj.startLaserGUI, ...
                 'String', 'Laser');
             if ~obj.suppressToolTips
@@ -228,7 +213,7 @@ classdef view < handle
             obj.button_prepare = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
-                'Position', [65,12.5, 110, 20], ...
+                'Position', [65,6, 110, 20], ...
                 'String', 'Prepare Sample', ...
                 'Callback',@obj.startPrepareGUI);
             if ~obj.suppressToolTips
@@ -238,7 +223,7 @@ classdef view < handle
             obj.button_start = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
-                'Position', [180,12.5, 55, 20], ...
+                'Position', [180,6, 55, 20], ...
                 'Callback',@obj.START, ...
                 'String', 'Start', ....
                 'ForegroundColor','k');
@@ -247,7 +232,7 @@ classdef view < handle
             end
 
             %Status panel
-            obj.statusPanel = BakingTray.gui.newGenericGUIPanel([3.5, 200, 295, 90],obj.hFig);
+            obj.statusPanel = BakingTray.gui.newGenericGUIPanel([3.5, 245, 295, 90],obj.hFig);
             obj.text_status = annotation(...
                  obj.statusPanel, 'textbox', ...
                 'Units', 'pixels', ...
@@ -260,8 +245,12 @@ classdef view < handle
 
             obj.updateStatusText
 
-            %Recipe panel
-            obj.recipePanel = BakingTray.gui.newGenericGUIPanel([3.5, 5, 295, 190],obj.hFig);
+
+
+            % Build the recipe panel
+            % This contains a selection of recipe fields and talks bidirectionally to the recipe
+            % object attached to BT.
+            obj.recipePanel = BakingTray.gui.newGenericGUIPanel([3.5, 5, 295, 235],obj.hFig);
 
             %To have the order the way I'd like (sample at the top)
             obj.recipeFieldLabels=fliplr(obj.recipeFieldLabels);
@@ -274,7 +263,9 @@ classdef view < handle
                         'Callback',@obj.updateRecipePropertyInRecipeClass};
 
 
+            % Build the recipe edit boxes using the properties: recipeFieldLabels and recipePropertyNames.
             for ii=length(obj.recipePropertyNames):-1:1 %So the tab focus moves down the window not up it
+
                 thisProp = strsplit(obj.recipePropertyNames{ii},'||');
 
                 %Add a text label
@@ -288,14 +279,17 @@ classdef view < handle
                         ~isempty(regexp(obj.recipeFieldLabels{ii},'Num\.', 'once')) 
                         textEditWidth=45;
                     else
-                        textEditWidth=140;
+                        textEditWidth=145;
                     end
                     obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}) = ...
                     uicontrol(commonRecipeTextEditSettings{:}, ...
-                        'Position', [145, 18*(ii-1)+5, textEditWidth, 17], ...
+                        'Position', [140, 18*(ii-1)+5, textEditWidth, 17], ...
                         'TooltipString', obj.recipeToolTips{ii}, ...
                         'Tag', obj.recipePropertyNames{ii}); %The tag is used by obj.updateRecipePropertyInRecipeClass to update the recipe
 
+                    if strfind(obj.recipePropertyNames{ii}, 'scanmode')
+                        obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).Enable='Off';
+                    end
                 elseif strcmp(thisProp{2},'sampleSize')
 
                     %We need a separate X and Y box for the sample size
@@ -329,10 +323,67 @@ classdef view < handle
                 end
             end
 
+
             %Fill it in with the recipe
             obj.updateAllRecipeEditBoxesAndStatusText
 
             obj.connectRecipeListeners %It's a method because we have to close and re-connect when we load a new recipe
+
+
+
+            % Add non-recipe fields above the recipe fields. e.g. the tile size isn't part of the recipe
+            % directly because it's associated with the scanning software is merely saved to the recipe when 
+            % when acquisition starts. This isn't ideal, but it'll work for now (20/09/2017)
+
+            obj.recipeTextLabels.other={}; % Labels that aren't part of the recipe go into this cell array
+            obj.recipeEntryBoxes.other={}; % As above but for the entry boxes
+            commonNonRecipeTextEditSettings={'Parent', obj.recipePanel, ...
+                        'Style','edit', 'Units', 'pixels', 'FontSize', obj.fSize, ...
+                        'HorizontalAlignment', 'Left'}; %no callback defined here
+
+            fieldIndex=12; %Index (counting from the bottom) of the position into which we will add a field
+
+            obj.recipeTextLabels.other{end+1} = obj.makeRecipeLabel([0,18*(fieldIndex-1)+7,140,18], 'Tile Size');
+            obj.recipeTextLabels.other{end}.VerticalAlignment='middle';
+
+            obj.recipeEntryBoxes.other{end+1} = ...
+                uicontrol(commonNonRecipeTextEditSettings{:}, ...
+                        'Position', [140, 18*(fieldIndex-1)+11, 145, 17], ...
+                        'Tag', 'tilesize', 'String' ,'', 'Style', 'PopupMenu'); 
+            if ~obj.suppressToolTips
+                obj.recipeEntryBoxes.other{end}.TooltipString = 'Tile size (cols x rows) to use during acquisition';
+            end
+
+            % If we are using ScanImage and we find a frameSize file, populate the tile size property.
+            % Otherwise disable and supply a message if needed. 
+            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'scanImageFrameSizes.csv');
+            if strcmp(settings.scanner.type,'SIBT')
+                if exist(frameSizeFname, 'file')
+                    [objective,pixelsPerLine,linePerFrame,zoomValue,micsPix,fastM,slowM,objRes] = ...
+                        textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
+                    popUpText={};                    
+                    for ii=1:length(objRes)
+                        popUpText{ii} = sprintf('%dx%d %0.2f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii));
+                        thisStruct(ii).objective = objective{ii};
+                        thisStruct(ii).pixelsPerLine = pixelsPerLine(ii);
+                        thisStruct(ii).linesPerFrame = linePerFrame(ii);
+                        thisStruct(ii).micsPix = micsPix(ii);
+                        thisStruct(ii).fastMult = fastM(ii);
+                        thisStruct(ii).slowMult = slowM(ii);
+                        thisStruct(ii).objRes = objRes(ii);
+                    end
+                    obj.recipeEntryBoxes.other{1}.String = popUpText;
+                    obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
+                    obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
+                else % No frameSize file found
+                    obj.recipeEntryBoxes.other{1}.String = 'No scanImageFrameSizes.csv';
+                    obj.recipeEntryBoxes.other{1}.Enable = 'Off';
+                end
+            else % No scanimage
+                obj.recipeEntryBoxes.other{1}.String = 'Not using ScanImage';
+                obj.recipeEntryBoxes.other{1}.Enable = 'Off';
+            end
+
 
 
             %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff

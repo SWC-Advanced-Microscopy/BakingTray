@@ -553,6 +553,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.button_BakeStop.Enable='off'; %This gets re-enabled when the scanner starts imaging
 
             obj.updateImageLUT;
+            obj.model.leaveLaserOn=false; % TODO: For now always set the laser to switch off when starting [17/08/2017]
             obj.model.bake;
 
         end %bake_callback
@@ -731,7 +732,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.button_zoomNative.Enable='on';
                 obj.button_drawBox.Enable='on';
             end
-        end
+        end %disable_ZoomElementsDuringAcq
 
 
         function closeAcqGUI(obj,~,~)
@@ -749,7 +750,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 case 'Yes'
                     obj.delete
             end
-        end
+        end %closeAcqGUI
 
 
         function updateImageLUT(obj,~,~)
