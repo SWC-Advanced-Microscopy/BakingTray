@@ -243,6 +243,12 @@ classdef view < handle
                 'FitBoxToText','off', ...
                 'String', '');
 
+
+            % At this point ewe need to define these two fields
+            obj.recipeTextLabels.other={}; % Labels that aren't part of the recipe go into this cell array
+            obj.recipeEntryBoxes.other={}; % As above but for the entry boxes
+
+
             obj.updateStatusText
 
 
@@ -334,9 +340,6 @@ classdef view < handle
             % Add non-recipe fields above the recipe fields. e.g. the tile size isn't part of the recipe
             % directly because it's associated with the scanning software is merely saved to the recipe when 
             % when acquisition starts. This isn't ideal, but it'll work for now (20/09/2017)
-
-            obj.recipeTextLabels.other={}; % Labels that aren't part of the recipe go into this cell array
-            obj.recipeEntryBoxes.other={}; % As above but for the entry boxes
             commonNonRecipeTextEditSettings={'Parent', obj.recipePanel, ...
                         'Style','edit', 'Units', 'pixels', 'FontSize', obj.fSize, ...
                         'HorizontalAlignment', 'Left'}; %no callback defined here
@@ -351,7 +354,10 @@ classdef view < handle
                         'Position', [140, 18*(fieldIndex-1)+11, 145, 17], ...
                         'Tag', 'tilesize', 'String' ,'', 'Style', 'PopupMenu'); 
             if ~obj.suppressToolTips
-                obj.recipeEntryBoxes.other{end}.TooltipString = 'Tile size (cols x rows) to use during acquisition';
+                obj.recipeEntryBoxes.other{end}.TooltipString = ...
+                 sprintf(['Instruct ScanImage to use this tile size (cols x rows) to use during acquisition.\n', ...
+                          'Note: that the current tile size and image resolution are listed in the status\n', ...
+                          'text and in ScanImage. These are the values the acquisition will follow.'])
             end
 
             % If we are using ScanImage and we find a frameSize file, populate the tile size property.
@@ -379,16 +385,15 @@ classdef view < handle
                     obj.recipeEntryBoxes.other{1}.String = 'No scanImageFrameSizes.csv';
                     obj.recipeEntryBoxes.other{1}.Enable = 'Off';
                 end
+                obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
             else % No scanimage
                 obj.recipeEntryBoxes.other{1}.String = 'Not using ScanImage';
                 obj.recipeEntryBoxes.other{1}.Enable = 'Off';
             end
 
 
-
-            %TODO: the following listeners are temporary. We need to have SIBT handle this ScanImage stuff
-            if obj.model.isScannerConnected && isa(obj.model.scanner,'SIBT')
-                obj.connectScanImageListeners
+            if obj.model.isScannerConnected
+                obj.connectScannerListeners
             end
 
         end %close constructor
@@ -461,8 +466,9 @@ classdef view < handle
             end
 
             %Set the current section number to be equal to the start number
-            %TODO: this may be creating a problem. I notice that the current section number is not updating and is stuck at 1. This might be why.
-            %obj.model.currentSectionNumber=obj.model.recipe.mosaic.sectionStartNum;
+            %TODO: this may be creating a problem. I notice that the current section number is not updating 
+            %      and is stuck at 1. This might be why.
+            % obj.model.currentSectionNumber=obj.model.recipe.mosaic.sectionStartNum;
 
         end %updateAllRecipeEditBoxesAndStatusText
 
@@ -647,7 +653,7 @@ classdef view < handle
             if ~success
                 warndlg(sprintf('Failed to attach ScanImage.\nLook for errrors at the terminal.'),'')
             end
-            obj.connectScanImageListeners
+            obj.connectScannerListeners
             obj.updateStatusText; %TODO: this might become recursive in future. WARNING!
         end %connectScanImage
 
@@ -755,9 +761,44 @@ classdef view < handle
                 % Place system name in window title
                 obj.hFig.Name = sprintf('BakingTray on %s', R.SYSTEM.ID);
                 set(obj.text_status,'String', msg)
+
+                % Finally we highlight the tile size label as needed
+                obj.updateTileSizeLabelText
             end 
         end %updateStatusText
 
+        function updateTileSizeLabelText(obj)
+            % This isn't a callback is a helper method to other callbacks.
+            % If the selected tile size in the pop-up menu doesn't match what the 
+            % scanner is going to be acquiring then we highlight the label by 
+            % making it red. Otherwise it's white.
+
+            % Get the tile size value from the pop-up menu
+            selectedTileSize=[];
+            for ii=1:length(obj.recipeEntryBoxes.other)
+                tBox = obj.recipeEntryBoxes.other{ii};
+                if strcmp(tBox.Tag,'tilesize')
+                    selectedTileSize = tBox.UserData(tBox.Value);
+                    break
+                end
+            end
+            if isempty(selectedTileSize)
+                return
+            end
+
+            scnSet=obj.model.scanner.returnScanSettings;
+            if selectedTileSize.pixelsPerLine==scnSet.pixelsPerLine && ...
+                 selectedTileSize.linesPerFrame==scnSet.linesPerFrame && ...
+                 selectedTileSize.slowMult==scnSet.slowMult && ...
+                 selectedTileSize.fastMult==scnSet.fastMult && ...
+                 scnSet.zoomFactor==1
+                obj.recipeTextLabels.other{ii}.String = 'Tile Size';
+                obj.recipeTextLabels.other{ii}.Color = 'w';
+             else
+                 obj.recipeTextLabels.other{ii}.String = '*Tile Size';
+                 obj.recipeTextLabels.other{ii}.Color = 'r';
+            end
+        end
 
         function updateReadyToAcquireElements(obj,~,~)
             if obj.model.recipe.acquisitionPossible
@@ -848,12 +889,17 @@ classdef view < handle
         function detachRecipeListeners(obj)
             % Detach all listeners related to the recipe
             cellfun(@delete,obj.recipeListeners)
+            obj.recipeListeners={};
         end %detachRecipeListeners
 
-        function connectScanImageListeners(obj)
+        function connectScannerListeners(obj)
             % Connect any required listeners to ScanImage
+            if ~isempty(obj.scannerListeners)
+                cellfun(@delete,obj.scannerListeners)
+                obj.scannerListeners={};
+            end
             obj.scannerListeners{end+1}=addlistener(obj.model.scanner, 'scanSettingsChanged', 'PostSet', @obj.updateAllRecipeEditBoxesAndStatusText);
-        end %connectScanImageListeners
+        end %connectScannerListeners
 
 
     end %Hidden methods
