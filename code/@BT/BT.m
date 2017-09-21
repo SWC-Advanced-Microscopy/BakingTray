@@ -697,7 +697,14 @@ classdef BT < loghandler
         end %isLaserConnected
 
         function isConnected=isScannerConnected(obj)
+            % TODO: consider whether the hC check needs to be added to isComponentConnected, since all
+            % components but the recipe class could potentially benefit from it. 
             isConnected=obj.isComponentConnected('scanner');
+            if ~isConnected
+                return
+            else
+                isConnected = isvalid(obj.scanner.hC);
+            end    
         end %isScannerConnected
 
         function isConnected=isRecipeConnected(obj)
