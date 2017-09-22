@@ -773,6 +773,12 @@ classdef view < handle
             % scanner is going to be acquiring then we highlight the label by 
             % making it red. Otherwise it's white.
 
+
+            % If possible update the label text. Don't proceed if no scanner is connected
+            if ~obj.model.isScannerConnected
+                return
+            end
+
             % Get the tile size value from the pop-up menu
             selectedTileSize=[];
             for ii=1:length(obj.recipeEntryBoxes.other)
@@ -859,11 +865,22 @@ classdef view < handle
             if nargin<2 && ~strcmp(enableState,'on') && ~strcmp(enableState,'off')
                 return
             end
+
             entryBoxFields=fields(obj.recipeEntryBoxes);
+
             for ii=1:length(entryBoxFields)
-                theseFields=fields(obj.recipeEntryBoxes.(entryBoxFields{ii}));
-                for kk=1:length(theseFields)
-                    obj.recipeEntryBoxes.(entryBoxFields{ii}).(theseFields{kk}).Enable=enableState;
+                thisItem = obj.recipeEntryBoxes.(entryBoxFields{ii});
+                if iscell(thisItem)
+                    for kk=1:length(thisItem)
+                        thisItem{kk}.Enable=enableState;
+                    end
+                end
+
+                if isstruct(thisItem)
+                    theseFields=fields(thisItem);
+                    for kk=1:length(theseFields)
+                        thisItem.(theseFields{kk}).Enable=enableState;
+                    end
                 end
             end
             %The laser button should always be enabled
