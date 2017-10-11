@@ -62,13 +62,15 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
     end
 
     % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
-    tilePosArray = zeros(obj.NumTiles.Y*obj.NumTiles.X, 2);
-    R=repmat(1:obj.NumTiles.Y,obj.NumTiles.X,1);
+    numY = obj.NumTiles.Y;
+    numX = obj.NumTiles.X;
+    tilePosArray = zeros(numY*numX, 2);
+    R=repmat(1:numY,numX,1);
     tilePosArray(:,2)=R(:);
-    theseCols=1:obj.NumTiles.X;
+    theseCols=1:numX;
 
-    for ii=1:obj.NumTiles.X:size(tilePosArray,1)
-        tilePosArray(ii:ii+obj.NumTiles.X-1,1)=theseCols;
+    for ii=1:numX:size(tilePosArray,1)
+        tilePosArray(ii:ii+numX-1,1)=theseCols;
         theseCols=fliplr(theseCols);
     end
 

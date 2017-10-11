@@ -869,17 +869,14 @@ classdef view < handle
             entryBoxFields=fields(obj.recipeEntryBoxes);
 
             for ii=1:length(entryBoxFields)
-                thisItem = obj.recipeEntryBoxes.(entryBoxFields{ii});
-                if iscell(thisItem)
-                    for kk=1:length(thisItem)
-                        thisItem{kk}.Enable=enableState;
-                    end
-                end
-
-                if isstruct(thisItem)
-                    theseFields=fields(thisItem);
+                if isstruct( obj.recipeEntryBoxes.(entryBoxFields{ii}) ) 
+                    theseFields=fields(obj.recipeEntryBoxes.(entryBoxFields{ii}));
                     for kk=1:length(theseFields)
-                        thisItem.(theseFields{kk}).Enable=enableState;
+                        obj.recipeEntryBoxes.(entryBoxFields{ii}).(theseFields{kk}).Enable=enableState;
+                    end
+                elseif iscell( obj.recipeEntryBoxes.(entryBoxFields{ii}) ) 
+                    for kk=1:length(obj.recipeEntryBoxes.(entryBoxFields{ii}))
+                        obj.recipeEntryBoxes.(entryBoxFields{ii}){kk}.Enable=enableState;
                     end
                 end
             end

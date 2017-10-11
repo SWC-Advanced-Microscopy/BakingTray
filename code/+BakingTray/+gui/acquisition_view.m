@@ -71,6 +71,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.parentView=parentView;
             end
 
+            fprintf('Opening acquisition view\n')
             obj.hFig = BakingTray.gui.newGenericGUIFigureWindow('BakingTray_acquisition');
 
             % Closing the figure closes the view object
@@ -102,7 +103,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             %Set up the "compass plot" in the bottom left of the preview axis
             pos=plotboxpos(obj.imageAxes);
-           obj.compassAxes = axes('parent', obj.hFig,...
+            obj.compassAxes = axes('parent', obj.hFig,...
                 'Units', 'pixels', 'Color', 'none', ...
                 'Position', [pos(1:2),80,80],... %The precise positioning is handled in obj.updateGUIonResize
                 'XLim', [-1,1], 'YLim', [-1,1],...
@@ -184,6 +185,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
             %Do not proceed if we can not make a tile pattern
+            obj.statusText.String = '** Checking tile pattern **';
             tp=obj.model.recipe.tilePattern;
             if isempty(tp)
                 obj.button_BakeStop.Enable='off';
@@ -196,11 +198,14 @@ classdef acquisition_view < BakingTray.gui.child_view
                 warndlg(msg,'');
             end
 
-
             % Build a blank image then insert it (nicely formatted) into the axes. 
             % We'll repeat this before acquisition too, so recipe can be altered at any time
-            obj.initialisePreviewImageData
+            obj.statusText.String = ' ** PLEASE WAIT ** ';
+            obj.statusText.Color = 'r';
+            obj.initialisePreviewImageData(tp);
             obj.setUpImageAxes;
+            drawnow
+
 
             % Populate the depth popup
             obj.populateDepthPopup
@@ -323,13 +328,14 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.listeners{end+1}=addlistener(obj.model, 'leaveLaserOn', 'PostSet', @(~,~) set(obj.checkBoxLaserOff,'Value',~obj.model.leaveLaserOn) );
             obj.listeners{end+1}=addlistener(obj.model, 'sliceLastSection', 'PostSet', @(~,~) set(obj.checkBoxCutLast,'Value',obj.model.sliceLastSection) );
 
-            obj.updateStatusText
-
             % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
             % TODO: in future we might wish to make this more elegant, but for now it should work
+            obj.statusText.String = '** Applying settings to scanner **';
             if isa(obj.model.scanner,'SIBT')
                 obj.model.scanner.applyZstackSettingsFromRecipe;
             end
+            obj.statusText.Color = 'w';
+            obj.updateStatusText;
         end
 
         function delete(obj)
@@ -385,11 +391,15 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %setUpImageAxes
 
 
-        function initialisePreviewImageData(obj)
+        function initialisePreviewImageData(obj,tp)
             % Calculate where the tiles will go in the preview image the create the image
-            % 
+            % if the tile pattern (output of the recipe tilePattern method) is not supplied
+            % then it is obtained here. 
 
-            tp=obj.model.recipe.tilePattern; %Stage positions in mm (x,y)
+            if nargin<2
+                tp=obj.model.recipe.tilePattern; %Stage positions in mm (x,y)
+            end
+
             if isempty(tp)
                 fprintf('ERROR: no tile position data. initialisePreviewImageData can not build empty image\n')
                 return

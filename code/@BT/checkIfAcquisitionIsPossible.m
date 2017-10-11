@@ -87,6 +87,13 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
 
 
     % Ensure we have enough travel on the Z-stage to acquire all the sections
+    % This is also checked in the recipe, so it's very unlikely we will fail at this point.
+    % The only way this could happen is if:
+    % 1) The user entrered the number of sections required whilst the z-stage was lowered then raised the z-stage.
+    %    This could well happen.
+    % 2 The z-stage was not connected when the recipe value was set, because then the distance available would not 
+    %   have been checked in the recipe. This is wildly improbable, however. 
+
     if obj.isRecipeConnected && obj.isZaxisConnected
         distanceAvailable = obj.zAxis.getMaxPos - obj.zAxis.axisPosition;  %more positive is a more raised Z platform
         distanceRequested = obj.recipe.mosaic.numSections * obj.recipe.mosaic.sliceThickness;
