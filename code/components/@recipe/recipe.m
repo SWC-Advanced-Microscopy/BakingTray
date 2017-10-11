@@ -500,6 +500,24 @@ classdef recipe < handle
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'numSections'
                             fieldValue = obj.checkInteger(fieldValue);
+
+                            if ~isempty(fieldValue) && isnumeric(fieldValue) && ~isempty(obj.parent) && isvalid(obj.parent) && isa(obj.parent,'BT') && obj.parent.isZaxisConnected
+                                %Ensure there is enough Z motion range to accomodate this many sections
+                                distanceAvailable = obj.parent.zAxis.getMaxPos - obj.parent.zAxis.axisPosition;  %more positive is a more raised Z platform
+                                distanceRequested = fieldValue * obj.mosaic.sliceThickness;
+
+                                if distanceRequested>distanceAvailable
+                                    numSlicesPossible = floor(distanceAvailable/obj.mosaic.sliceThickness)-1;
+                                    fprintf(['Requested %d slices: this is %0.2f mm thick but only %0.2f mm is possible. ',...
+                                        'You can cut a maximum of %d slices.\n'], ...
+                                     fieldValue,...
+                                     distanceRequested, ...
+                                     distanceAvailable,...
+                                     numSlicesPossible);
+                                    fieldValue = numSlicesPossible;
+                                end
+                            end % if ~isempty(fieldValue) ...
+
                         case 'cuttingSpeed'
                             fieldValue = obj.checkFloat(fieldValue,0.05,2); %min/max allowed speeds
                         case 'cutSize'
