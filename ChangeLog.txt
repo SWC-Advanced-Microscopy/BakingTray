@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+11th October 2017
+- USER: The number of slices is capped according to the currently remaining travel range of the z-stage. 
+- Small tweaks to improve GUI responsiveness under certain circumstances. 
+
 21st September 2017
 - USER: "Tile Size" label text turns red if the scan settings differ from the value in the pop-up box
 
