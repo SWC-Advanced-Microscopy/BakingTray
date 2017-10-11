@@ -861,9 +861,15 @@ classdef view < handle
             end
             entryBoxFields=fields(obj.recipeEntryBoxes);
             for ii=1:length(entryBoxFields)
-                theseFields=fields(obj.recipeEntryBoxes.(entryBoxFields{ii}));
-                for kk=1:length(theseFields)
-                    obj.recipeEntryBoxes.(entryBoxFields{ii}).(theseFields{kk}).Enable=enableState;
+                if isstruct( obj.recipeEntryBoxes.(entryBoxFields{ii}) ) 
+                    theseFields=fields(obj.recipeEntryBoxes.(entryBoxFields{ii}));
+                    for kk=1:length(theseFields)
+                        obj.recipeEntryBoxes.(entryBoxFields{ii}).(theseFields{kk}).Enable=enableState;
+                    end
+                elseif iscell( obj.recipeEntryBoxes.(entryBoxFields{ii}) ) 
+                    for kk=1:length(obj.recipeEntryBoxes.(entryBoxFields{ii}))
+                        obj.recipeEntryBoxes.(entryBoxFields{ii}){kk}.Enable=enableState;
+                    end
                 end
             end
             %The laser button should always be enabled
