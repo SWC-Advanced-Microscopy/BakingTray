@@ -204,15 +204,36 @@ classdef SIBT < scanner
             thisRecipe = obj.parent.recipe;
             if thisRecipe.mosaic.numOpticalPlanes>1
                 fprintf('Setting up z-scanning with "step" waveform\n')
-                obj.hC.hFastZ.waveformType = 'step'; %Always
-                obj.hC.hFastZ.numVolumes=1; %Always
-                obj.hC.hFastZ.enable=1;
 
-                obj.hC.hStackManager.framesPerSlice = 1; %Always (number of frames per grab per layer)
-                obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
+                % Only change settings that need changing, otherwise it's slow.
+                % The following settings are fixed: they will never change
+                if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
+                    obj.hC.hFastZ.waveformType = 'step'; %Always
+                end
+                if obj.hC.hFastZ.numVolumes ~= 1
+                    obj.hC.hFastZ.numVolumes=1; %Always
+                end
+                if obj.hC.hFastZ.enable ~=1
+                    obj.hC.hFastZ.enable=1;
+                end
+                if obj.hC.hStackManager.framesPerSlice ~= 1
+                    obj.hC.hStackManager.framesPerSlice = 1; %Always (number of frames per grab per layer)
+                end
+                if obj.hC.hStackManager.stackReturnHome ~= 1
+                    obj.hC.hStackManager.stackReturnHome = 1;
+                end
+
+                % Now set the number of slices and the distance in z over which to image
                 sliceThicknessInUM = thisRecipe.mosaic.sliceThickness*1E3;
-                obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices; %Will be uniformly spaced always!
-                obj.hC.hStackManager.stackReturnHome = 1;
+
+                if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes;
+                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
+                end
+
+                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/obj.hC.hStackManager.numSlices; 
+                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices; %Will be uniformly spaced always!
+                end
+
 
                 if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
                     fprintf('Setting volume display style from 3D to Tiled\n')
