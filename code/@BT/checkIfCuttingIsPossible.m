@@ -55,15 +55,15 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
     %Check we are on the correct side of the cutter before begining to cut
     xPos=obj.getXYpos;
     if obj.recipe.SYSTEM.cutterSide == 1
-        if xPos>obj.recipe.CuttingStartPoint.X
+        if xPos>=obj.recipe.CuttingStartPoint.X
             msg=sprintf('%sThe sample is already beyond the blade. Move it away from the blade and try again.\n',msg);
         end
     elseif obj.recipe.SYSTEM.cutterSide == -1
-        if xPos<obj.recipe.CuttingStartPoint.X
+        if xPos<=obj.recipe.CuttingStartPoint.X
             msg=sprintf('%sThe sample is already beyond the blade. Move it away from the blade and try again.\n',msg);
         end
     end
-        
+
 
     %TODO: 
     %Do we have enough travel to make the cut itself?
