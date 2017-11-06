@@ -154,6 +154,9 @@ classdef SIBT < scanner
             msg = '';
 
             obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+            % Ensure the offset is auto-read so we can use this value later
+            obj.hC.hScan2D.channelsAutoReadOffsets=true;
+
             msg = sprintf('%sDisabled offset subtraction.\n',msg);
             obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
 
