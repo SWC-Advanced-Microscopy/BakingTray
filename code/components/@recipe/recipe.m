@@ -210,9 +210,10 @@ classdef recipe < handle
             end % if nargin<1
 
 
-            % Build classes that will calculate these properties using dependent variables
-            obj.TileStepSize = TileStepSize(obj);
-            obj.NumTiles = NumTiles(obj);
+            % Build instances of TileStepSize and NumTiles classes that will calculate these properties 
+            % using dependent variables
+            obj.TileStepSize = TileStepSize(obj); 
+            obj.NumTiles = NumTiles(obj); 
 
             %Add these recipe parameters as properties
             obj.sample = params.sample;
@@ -491,8 +492,8 @@ classdef recipe < handle
                                 fprintf('ERROR: mosaic.scanmode must be a string!\n')
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
-                            if ~strcmp(fieldValue,'tile')
-                                fprintf('ERROR: mosaic.scanmode can currently only be set to "tile"\n')
+                            if ~strcmp(fieldValue,'tile') && ~strcmp(fieldValue,'ribbon')
+                                fprintf('ERROR: mosaic.scanmode can only be set to "tile" or "ribbon"\n')
                                 fieldValue=[]; % As above, will stop the assignment.
                             end
 

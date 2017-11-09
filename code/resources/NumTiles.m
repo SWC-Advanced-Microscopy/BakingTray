@@ -49,9 +49,16 @@ classdef NumTiles < handle
                 Y=0;
                 return
             end
-            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
-            fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-            Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+            switch obj.recipe.mosaic.scanmode
+                case 'tile'
+                    obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+                    fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
+                    Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+                case 'ribbon'
+                    Y=1; %We scan with the stage along this axis so always one tile
+                otherwise
+                    error('Unknown scan mode %s\n', obj.recipe.scanmode) %Really unlikely we'll ever land here
+                end
         end
 
     end % Methods
