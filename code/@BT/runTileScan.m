@@ -33,7 +33,16 @@ function runSuccess = runTileScan(obj)
 
     case 'ribbon'
         obj.yAxis.enableInMotionTrigger(1)
-        obj.setYvelocity(20) % TODO: set this according to image resolution
+        % TODO: The following line calculates the stage speed based upon the current image
+        % resolution.  This will need placing elsewhere pretty soon. No error checking right now.
+        R = obj.scanner.returnScanSettings;
+        xResInMM = R.micronsPerPixel_cols * 1E-3;
+        yRange = range(pos(:,2));
+        numLines = yRange/xResInMM;
+        timeToImageLines = numLines * R.linePeriodInMicroseconds * 1E-6;
+        ySpeed = yRange / timeToImageLines;
+        fprintf('Scanning each %0.1f mm ribbon in %0.2f s at %0.2f mm/s\n', yRange, timeToImageLines, ySpeed);
+        obj.setYvelocity(ySpeed)
     end
 
     %TODO: ensure the acquisition is stopped before we proceed
