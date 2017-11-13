@@ -14,8 +14,6 @@ function runSuccess = runTileScan(obj)
     [pos,indexes]=obj.recipe.tilePattern;
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
 
-    startTime=now;
-
     % Move to the front left position
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
     obj.toFrontLeft;
@@ -55,6 +53,8 @@ function runSuccess = runTileScan(obj)
     % we attach to frameAcquired in ScanImage. We just have to initiate the first frame here, then
     % the acquisition process will continue until all frames have been acquired. 
 
+    startTime=now;
+
     % Instruct the scanner to initiate the tile scan. This may simply involving issuing a trigger if tile scanning
     % or will initiate a motion that will itself trigger if ribbon scanning.
     obj.scanner.initiateTileScan; %acquires a stack and triggers scanimage to acquire the rest of the stacks
@@ -78,9 +78,9 @@ function runSuccess = runTileScan(obj)
     % Report the total time
     totalTime = now-startTime;
     totalTime = totalTime*24*60^2;
-    fprintf('\nFinished %d tiles (%d x %d x %d) in %0.1f seconds (%0.2f s per tile)\n\n',...
-        obj.recipe.numTilesInPhysicalSection, ....
+    fprintf('\nFinished %d/%d tiles (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n',...
+        obj.currentTilePosition,obj.recipe.numTilesInPhysicalSection, ....
         obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, obj.recipe.mosaic.numOpticalPlanes, ...
-        totalTime, totalTime/obj.recipe.numTilesInPhysicalSection)
+        totalTime, totalTime/(obj.currentTilePosition))
     runSuccess=true;
 
