@@ -208,7 +208,7 @@ function bake(obj,varargin)
             obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
-           if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
+            if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
                 obj.sliceSample;
             end
         else

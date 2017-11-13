@@ -293,9 +293,6 @@ classdef view < handle
                         'TooltipString', obj.recipeToolTips{ii}, ...
                         'Tag', obj.recipePropertyNames{ii}); %The tag is used by obj.updateRecipePropertyInRecipeClass to update the recipe
 
-                    if strfind(obj.recipePropertyNames{ii}, 'scanmode')
-                        obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).Enable='Off';
-                    end
                 elseif strcmp(thisProp{2},'sampleSize')
 
                     %We need a separate X and Y box for the sample size

@@ -28,6 +28,7 @@ classdef SIBT < scanner
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
         currentTilePattern
+        allowNonSquarePixels=false
     end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
@@ -88,10 +89,10 @@ classdef SIBT < scanner
 
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
-            % obj.enforceImportantSettings
+            % obj.enforceSquarePixels
             %Set listeners on properties we don't want the user to change. Hitting any of these
             %will call a single method that resets all of the properties to the values we desire. 
-            obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceImportantSettings);
+            obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceSquarePixels);
 
             obj.LUTchanged
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan1LUT', 'PostSet', @obj.LUTchanged);
@@ -115,7 +116,7 @@ classdef SIBT < scanner
                 obj.hC.hScan2D.mdfData.stripingMaxRate=obj.maxStripe;
             end
 
-            obj.enforceImportantSettings
+            obj.enforceSquarePixels
             success=true;
         end %connect
 
@@ -161,7 +162,23 @@ classdef SIBT < scanner
             obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
 
 
-            obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
+            % Set up ScanImage according the type of scan pattern we will use
+            switch obj.parent.recipe.mosaic.scanmode
+            case 'tile'
+                obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
+            case 'ribbon'
+                R = obj.returnScanSettings;
+                xResInMM = R.micronsPerPixel_cols * 1E-3;
+                pos=obj.parent.recipe.tilePattern;
+                yRange = range(pos(:,2));
+
+                numLines = round(yRange/xResInMM);
+
+                obj.allowNonSquarePixels=true;
+                obj.hC.hRoiManager.forceSquarePixels=false;
+                linesPerFrame = round(numLines*0.95);
+                obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
+            end
 
             % Set the system to display just the first depth in ScanImage. 
             % Should run a little faster this way, especially if we have 
@@ -267,6 +284,7 @@ classdef SIBT < scanner
             obj.hC.hDisplay.volumeDisplayStyle='Tiled';
             obj.hC.hDisplay.selectedZs=[];
 
+           
             success=true;
             fprintf('\nDisarmed scanner: %s\n', datestr(now))
         end %disarmScanner
@@ -326,11 +344,10 @@ classdef SIBT < scanner
                 obj.hC.hScan2D.trigIssueSoftwareAcq;
             case 'ribbon'
                 % Issue a non-blocking Y motion
-                if obj.parent.currentTilePosition==1
-                    obj.parent.moveYto(obj.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
-                elseif obj.parent.currentTilePosition>1
-                    % The counter has already incremented by this point in SIBT.tileAcqDone, so we don't need to do it here
-                    obj.parent.moveYto(obj.currentTilePattern(obj.parent.currentTilePosition,2), true);
+                if mod(obj.parent.currentTilePosition,2) %If it's odd
+                    obj.parent.moveYto(obj.currentTilePattern(2,2), true); 
+                else
+                    obj.parent.moveYto(obj.currentTilePattern(1,2), true);
                 end
             otherwise
                 % This will never happen
@@ -460,15 +477,18 @@ classdef SIBT < scanner
 
 
         %Listener callback methods
-        function enforceImportantSettings(obj,~,~)
+        function enforceSquarePixels(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
+            if obj.allowNonSquarePixels %TODO: this is a bit shit. Should disable the listener. 
+                return
+            end
             if obj.verbose
-                fprintf('Hit SIBT.enforceImportantSettings\n')
+                fprintf('Hit SIBT.enforceSquarePixels\n')
             end
             if obj.hC.hRoiManager.forceSquarePixels==false
                 obj.hC.hRoiManager.forceSquarePixels=true;
             end
-        end %enforceImportantSettings
+        end %enforceSquarePixels
 
 
         function LUTchanged(obj,~,~)

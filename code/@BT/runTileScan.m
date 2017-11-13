@@ -25,22 +25,26 @@ function runSuccess = runTileScan(obj)
 
     % Set up stages for the acquisition type.
     % Also set up triggering on line 1 of the Y stage if we're doing a ribbon scan. Otherwise disable it.
+    % The scanner-specific changes that need to be made will have been implemented in the scaner itself (e.g. in SIBT)
+    % by the armScanner method
     switch obj.recipe.mosaic.scanmode
     case 'tile'
         obj.yAxis.disableInMotionTrigger(1)
 
     case 'ribbon'
-        obj.yAxis.enableInMotionTrigger(1)
-        % TODO: The following line calculates the stage speed based upon the current image
-        % resolution.  This will need placing elsewhere pretty soon. No error checking right now.
+        obj.yAxis.enableInMotionTrigger(1);
         R = obj.scanner.returnScanSettings;
-        xResInMM = R.micronsPerPixel_cols * 1E-3;
+
         yRange = range(pos(:,2));
-        numLines = yRange/xResInMM;
-        timeToImageLines = numLines * R.linePeriodInMicroseconds * 1E-6;
+        timeToImageLines = R.linesPerFrame * R.linePeriodInMicroseconds * 1E-6;
+
         ySpeed = yRange / timeToImageLines;
-        fprintf('Scanning each %0.1f mm ribbon in %0.2f s at %0.2f mm/s\n', yRange, timeToImageLines, ySpeed);
-        obj.setYvelocity(ySpeed)
+
+        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n', ...
+            yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
+
+        obj.setYvelocity(ySpeed);
+
     end
 
     %TODO: ensure the acquisition is stopped before we proceed
@@ -71,6 +75,10 @@ function runSuccess = runTileScan(obj)
     %Disable in-motion triggering if it was enabled
     if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
         obj.yAxis.disableInMotionTrigger(1)
+        
+        % Ensure we are back to square pixels (in case of prior riboon scan)
+        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
+        obj.scanner.allowNonSquarePixels=false;
     end
     %Ensure we are back at normal motion speed
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 
