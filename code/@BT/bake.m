@@ -128,44 +128,31 @@ function bake(obj,varargin)
     obj.acquisitionInProgress=true;
     obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
+    %Do ribbon-specific stuff (e.g. work out where the z-planes should be)
+    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+        obj.scanner.moveFastZTo(0)
+        nOptPlanes = obj.recipe.mosaic.numOpticalPlanes;
+        opticalRibbonPlanesToImage = (0:nOptPlanes-1) * round(obj.recipe.VoxelSize.Z,1);
+    else %We are not ribbon-scanning
+        opticalRibbonPlanesToImage=1; %This needs to be 1 if we are doing tile scanning
+    end
+
+
     %loop and tile scan
     for ii=1:obj.recipe.mosaic.numSections
-
-        startTime=now;
 
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
 
-        obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1;
+        obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
         if obj.currentSectionNumber<0
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
-
-        if obj.saveToDisk
-            if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
-                %Detailed warnings produced by defineSavePath method
-                disp('Acquisition stopped: save path not defined');
-                return 
-            end
-            obj.scanner.setUpTileSaving;
-
-            %Add logger object to the above directory
-            logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
-            obj.attachLogObject(bkFileLogger(logFilePath))
-        end
-
-
-        if ~obj.scanner.armScanner;
-            disp('FAILED TO START -- COULD NOT ARM SCANNER')
-            return
-        end
-
 
         obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
             currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
             strrep(obj.currentTileSavePath,'\','\\') ))
         startAcq=now;
-
 
         if ~isempty(obj.laser)
             % Record laser status before section
@@ -173,8 +160,44 @@ function bake(obj,varargin)
         end
 
 
-        if ~obj.runTileScan
-            return
+        for tDepthInd = 1:length(opticalRibbonPlanesToImage) %One pass through this loop if tile scanning
+            obj.currentOpticalSectionNumber = tDepthInd; %Does nothing if we're not ribbon-scanning
+
+            if obj.saveToDisk
+                if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
+                    % (Detailed warnings are produced by defineSavePath method)
+                    disp('Acquisition stopped: save path not defined');
+                    return 
+                end
+                obj.scanner.setUpTileSaving; % This method is aware of the requirements of ribbon vs tile scanning
+
+                %Add logger object to the above directory
+                logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
+                obj.attachLogObject(bkFileLogger(logFilePath))
+            end % if obj.saveToDisk
+
+            % Move the PIFOC if needed
+            if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+                obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
+            end
+
+            if ~obj.scanner.armScanner;
+                disp('FAILED TO START -- COULD NOT ARM SCANNER')
+                return
+            end
+
+            % ===> Now the scanning runs <===
+            if ~obj.runTileScan
+                return
+            end
+
+        end % for tDepthInd ...
+
+
+        %Return the PIFOC to zero if needed
+        if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+            obj.currentOpticalSectionNumber=1;
+            obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
         end
 
 
@@ -190,6 +213,7 @@ function bake(obj,varargin)
                 return
             end
         end
+
 
 
         % Cut the sample if necessary
@@ -320,7 +344,7 @@ function bakeCleanupFun(obj)
         % Ensure we are back to square pixels (in case of prior riboon scan)
         obj.scanner.hC.hRoiManager.forceSquarePixels=true;
         obj.scanner.allowNonSquarePixels=false;
-        obj.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
+        obj.scanner.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
         obj.scanner.moveFastZTo(0)
     end
 

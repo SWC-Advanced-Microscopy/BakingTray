@@ -752,7 +752,8 @@ classdef BT < loghandler
             end
             scnSet=obj.scanner.returnScanSettings;
             downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
-            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3; %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
+            %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
+            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3;
         end
 
         function out = get.pathToSectionDirs(obj)

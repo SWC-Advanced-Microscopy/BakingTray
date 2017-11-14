@@ -82,9 +82,16 @@ function runSuccess = runTileScan(obj)
     % Report the total time
     totalTime = now-startTime;
     totalTime = totalTime*24*60^2;
-    fprintf('\nFinished %d/%d tiles (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n',...
-        obj.currentTilePosition,obj.recipe.numTilesInPhysicalSection, ....
-        obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, obj.recipe.mosaic.numOpticalPlanes, ...
-        totalTime, totalTime/(obj.currentTilePosition))
+
+    switch obj.recipe.mosaic.scanmode
+    case 'tile'
+        nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
+    case 'ribbon'
+        nTilesToAcquire = obj.recipe.numTilesInOpticalSection;
+    end
+
+    fprintf('\nFinished %d/%d tiles (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
+        obj.currentTilePosition, nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
+        obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/(obj.currentTilePosition))
     runSuccess=true;
 

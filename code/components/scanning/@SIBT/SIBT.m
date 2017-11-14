@@ -178,6 +178,10 @@ classdef SIBT < scanner
                 obj.hC.hRoiManager.forceSquarePixels=false;
                 linesPerFrame = round(numLines*0.95);
                 obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
+
+                %Disable Z-stack
+                obj.hC.hStackManager.numSlices = 1;
+                obj.hC.hStackManager.stackZStepSize = 0;
             end
 
             % Set the system to display just the first depth in ScanImage. 
