@@ -320,6 +320,8 @@ function bakeCleanupFun(obj)
         % Ensure we are back to square pixels (in case of prior riboon scan)
         obj.scanner.hC.hRoiManager.forceSquarePixels=true;
         obj.scanner.allowNonSquarePixels=false;
+        obj.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
+        obj.scanner.moveFastZTo(0)
     end
 
     % Must run this last since turning off the PMTs sometimes causes a crash

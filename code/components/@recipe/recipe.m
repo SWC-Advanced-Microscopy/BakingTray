@@ -282,7 +282,13 @@ classdef recipe < handle
                 % Other stuff is calculated from the scanner and recipe information
                 obj.VoxelSize.X = obj.ScannerSettings.micronsPerPixel_cols;
                 obj.VoxelSize.Y = obj.ScannerSettings.micronsPerPixel_rows;
-                obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
+
+                if strcmp(obj.mosaic.scanmode,'ribbon')
+                    obj.VoxelSize.Z = round( (obj.mosaic.sliceThickness*1E3) / obj.mosaic.numOpticalPlanes,1);
+                else
+                    obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
+                end
+
                 obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
                 obj.Tile.nColumns = obj.ScannerSettings.pixelsPerLine;
                 success=true;
