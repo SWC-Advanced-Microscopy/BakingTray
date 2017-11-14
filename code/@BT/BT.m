@@ -56,11 +56,12 @@ classdef BT < loghandler
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
         sectionCompletionTimes  % A vector containing the number of seconds it took to acquire the data for each section (including cutting)
+        currentOpticalSectionNumber=1 % This is only used for cases where the scanner does not to handle the fast Z.
 
-        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here. 
+        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
         % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
         % TODO: should channels contain empty slots for non-acquired channels? 
-        downSampledTileBuffer = [] 
+        downSampledTileBuffer = []
         downsamplePixPerLine=125 %TODO: for now this is a value in pixels only. This is brittle! CAUTION
         %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)

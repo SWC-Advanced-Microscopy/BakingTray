@@ -75,10 +75,6 @@ function runSuccess = runTileScan(obj)
     %Disable in-motion triggering if it was enabled
     if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
         obj.yAxis.disableInMotionTrigger(1)
-        
-        % Ensure we are back to square pixels (in case of prior riboon scan)
-        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
-        obj.scanner.allowNonSquarePixels=false;
     end
     %Ensure we are back at normal motion speed
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 

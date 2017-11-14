@@ -320,11 +320,26 @@ classdef SIBT < scanner
 
 
         function setUpTileSaving(obj)
+            if isempty(obj.parent)
+                fprintf('SIBT is not attached to BakingTray. Skipping tile saving setup\n')
+                return
+            end
+
             obj.hC.hScan2D.logFilePath = obj.parent.currentTileSavePath;
             % TODO: oddly, the file counter automatically adjusts so as not to over-write existing data but 
             % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
             obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1. 
-            obj.hC.hScan2D.logFileStem = sprintf('%s-%04d',obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber); %TODO: replace with something better
+
+
+            switch obj.parent.recipe.mosaic.scanmode
+            case 'tile'
+                obj.hC.hScan2D.logFileStem = sprintf('%s-%04d', ...
+                    obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber);
+            case 'ribbon'
+                obj.hC.hScan2D.logFileStem = sprintf('%s-%04d-%02d', ...
+                    obj.parent.recipe.sample.ID, obj.parent.currentSectionNumber, obj.parent.currentOpticalSectionNumber);
+            end
+
             obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
 
@@ -339,6 +354,13 @@ classdef SIBT < scanner
             % If ribbon-scanning it is triggered from the stage itself when it starts move
             % and so comes in through the defined PFI line in ScanImage, thus initiateTileScan
             % must start a stage motion rather than send a trigger
+
+            if isempty(obj.parent)
+                fprintf('SIBT is not attached to BakingTray. Just sending software trigger\n')
+                obj.hC.hScan2D.trigIssueSoftwareAcq;
+                return
+            end
+
             switch obj.parent.recipe.mosaic.scanmode
             case 'tile'
                 obj.hC.hScan2D.trigIssueSoftwareAcq;
@@ -447,6 +469,7 @@ classdef SIBT < scanner
         applyScanSettings(obj,scanSettings)
         scanSettings=returnScanSettings(obj)
         setImageSize(obj,pixelsPerLine,evnt)
+        moveFastZTo(obj,targetPositionInMicrons)
     end %Close SIBT methods in external files
 
 

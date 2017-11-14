@@ -161,11 +161,6 @@ function bake(obj,varargin)
         end
 
 
-        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-        if ii==1
-            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-        end
-
         obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
             currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
             strrep(obj.currentTileSavePath,'\','\\') ))
@@ -219,6 +214,11 @@ function bake(obj,varargin)
 
         obj.detachLogObject %Close the log file that writes to the section directory
 
+
+        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+        if ii==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+        end
 
         if ~isempty(obj.laser)
             % Record laser status after section
@@ -316,8 +316,13 @@ function bakeCleanupFun(obj)
 
     obj.abortAfterSectionComplete=false; %Reset this flag or the acquisition will not complete next time
 
+    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+        % Ensure we are back to square pixels (in case of prior riboon scan)
+        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
+        obj.scanner.allowNonSquarePixels=false;
+    end
+
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
-    
-end %bakeCleanupFun
 
+end %bakeCleanupFun
