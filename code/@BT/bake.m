@@ -188,7 +188,12 @@ function bake(obj,varargin)
 
             % ===> Now the scanning runs <===
             if ~obj.runTileScan
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
                 return
+            end
+
+            if obj.abortAcqNow
+                break
             end
 
         end % for tDepthInd ...
@@ -294,7 +299,6 @@ function bake(obj,varargin)
     fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
     fclose(fid);
 
-
 end
 
 
@@ -338,7 +342,9 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=false;
     end
 
-    obj.abortAfterSectionComplete=false; %Reset this flag or the acquisition will not complete next time
+    %Reset these flags or the acquisition will not complete next time
+    obj.abortAfterSectionComplete=false;
+    obj.abortAcqNow=false;
 
     if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
         % Ensure we are back to square pixels (in case of prior riboon scan)

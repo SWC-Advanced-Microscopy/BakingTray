@@ -88,6 +88,7 @@ classdef BT < loghandler
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
+        abortAcqNow=false   %Used when aborting an acquisition so we break out of the ribbon depth loop in BT.bake
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
 

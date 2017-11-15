@@ -607,6 +607,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
                     %TODO: these three lines also appear in BT.bake
                     obj.model.leaveLaserOn=true; %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
+                    obj.model.abortAcqNow=true; %Otherwise in ribbon scanning it moved to the next optical plane
                     obj.model.scanner.abortScanning;
                     obj.model.scanner.disarmScanner;
                     obj.model.detachLogObject;
