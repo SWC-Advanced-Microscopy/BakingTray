@@ -153,9 +153,19 @@ function bake(obj,varargin)
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
 
-        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
+
+        if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
+            % (Detailed warnings are produced by defineSavePath method)
+            disp('Acquisition stopped: save path not defined');
+            return
+        end
+
+
+
+        tLine = sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
             currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
-            strrep(obj.currentTileSavePath,'\','\\') ))
+            strrep(obj.currentTileSavePath,'\','\\') );
+        obj.acqLogWriteLine(tLine)
         startAcq=now;
 
         if ~isempty(obj.laser)
@@ -168,11 +178,7 @@ function bake(obj,varargin)
             obj.currentOpticalSectionNumber = tDepthInd; %Does nothing if we're not ribbon-scanning
 
             if obj.saveToDisk
-                if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
-                    % (Detailed warnings are produced by defineSavePath method)
-                    disp('Acquisition stopped: save path not defined');
-                    return 
-                end
+
                 obj.scanner.setUpTileSaving; % This method is aware of the requirements of ribbon vs tile scanning
 
                 %Add logger object to the above directory
