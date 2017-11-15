@@ -734,7 +734,7 @@ classdef view < handle
                     endTime = obj.model.estimateTimeRemaining;
                     if length(obj.model.scanner.channelsToAcquire)>1
                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
-                    elseif length(obj.model.scanner.channelsToAcquire)==1                            
+                    elseif length(obj.model.scanner.channelsToAcquire)==1
                         channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==0
                         channelsToAcquireString = 'NO CHANNELS!';
