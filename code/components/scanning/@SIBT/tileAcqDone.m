@@ -16,11 +16,11 @@ function tileAcqDone(obj,~,~)
     switch obj.parent.recipe.mosaic.scanmode
         case 'tile'
             %Initiate move to the next X/Y position (blocking motion)
-            obj.parent.moveXYto(obj.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
-                obj.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
+            obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+                obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
         case 'ribbon'
             %Initiate move to the next X position. Non-blocking, keep Y unchanged.
-            obj.parent.moveXto(obj.currentTilePattern(obj.parent.currentTilePosition+1,1), false);
+            obj.parent.moveXto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), false);
         otherwise
             % This can not happen. 
     end
@@ -69,7 +69,7 @@ function tileAcqDone(obj,~,~)
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
-    if obj.parent.currentTilePosition>size(obj.currentTilePattern,1)
+    if obj.parent.currentTilePosition>size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
         return
     end

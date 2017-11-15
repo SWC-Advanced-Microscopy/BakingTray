@@ -143,23 +143,34 @@ classdef SIBT < scanner
             switch obj.scannerType
                 case 'resonant'
                     %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
-                    obj.hC.hScan2D.trigAcqInTerm='PFI1';
+                    trigLine='PFI1';
                 case 'linear'
-                    obj.hC.hScan2D.trigAcqInTerm='PFI0';
+                    trigLine='PFI0';
             end
 
+            if ~strcmp(obj.hC.hScan2D.trigAcqInTerm, trigLine)
+                obj.hC.hScan2D.trigAcqInTerm=trigLine;
+            end
 
             obj.enableArmedListeners
 
             % The string "msg" will contain any messages we wish to display to the user as part of the confirmation box.
             msg = '';
 
-            obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+            if any(obj.hC.hChannels.channelSubtractOffset)
+                obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+            end
+
             % Ensure the offset is auto-read so we can use this value later
-            obj.hC.hScan2D.channelsAutoReadOffsets=true;
+            if ~obj.hC.hScan2D.channelsAutoReadOffsets
+                obj.hC.hScan2D.channelsAutoReadOffsets=true;
+            end
 
             msg = sprintf('%sDisabled offset subtraction.\n',msg);
-            obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
+
+            if obj.hC.hDisplay.displayRollingAverageFactor ~=1
+                obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
+            end
 
 
             % Set up ScanImage according the type of scan pattern we will use
@@ -169,15 +180,24 @@ classdef SIBT < scanner
             case 'ribbon'
                 R = obj.returnScanSettings;
                 xResInMM = R.micronsPerPixel_cols * 1E-3;
-                pos=obj.parent.recipe.tilePattern;
-                yRange = range(pos(:,2));
+
+                if isempty(obj.parent.currentTilePattern)
+                    obj.parent.currentTilePattern = obj.parent.recipe.tilePattern;
+                end
+
+                yRange = range(obj.parent.currentTilePattern(:,2));
 
                 numLines = round(yRange/xResInMM);
 
                 obj.allowNonSquarePixels=true;
-                obj.hC.hRoiManager.forceSquarePixels=false;
+                if obj.hC.hRoiManager.forceSquarePixels==true
+                    obj.hC.hRoiManager.forceSquarePixels=false;
+                end
                 linesPerFrame = round(numLines*0.95);
-                obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
+                
+                if obj.hC.hRoiManager.linesPerFrame ~= linesPerFrame
+                    obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
+                end
 
                 %Disable Z-stack
                 obj.hC.hStackManager.numSlices = 1;
@@ -203,14 +223,9 @@ classdef SIBT < scanner
                 rethrow(ME1)
                 return
             end
-
             success=true;
 
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
-
-            % Store the current tile pattern, as it's generated on the fly and 
-            % and this is time-consuming to put into the tile acq callback. 
-            obj.currentTilePattern=obj.parent.recipe.tilePattern;
 
             fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner

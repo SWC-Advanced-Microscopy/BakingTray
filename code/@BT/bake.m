@@ -137,6 +137,10 @@ function bake(obj,varargin)
         opticalRibbonPlanesToImage=1; %This needs to be 1 if we are doing tile scanning
     end
 
+    % Store the current tile pattern, as it's generated on the fly and 
+    % and this is time-consuming to put into the tile acq callback. 
+    obj.currentTilePattern=obj.recipe.tilePattern;
+
 
     %loop and tile scan
     for ii=1:obj.recipe.mosaic.numSections
