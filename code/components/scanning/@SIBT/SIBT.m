@@ -29,6 +29,7 @@ classdef SIBT < scanner
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
         currentTilePattern
         allowNonSquarePixels=false
+        cachedChanLUT={} %Used to determine if channel look-up tables have changed
     end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
@@ -385,10 +386,11 @@ classdef SIBT < scanner
                 obj.hC.hScan2D.trigIssueSoftwareAcq;
             case 'ribbon'
                 % Issue a non-blocking Y motion
+
                 if mod(obj.parent.currentTilePosition,2) %If it's odd
-                    obj.parent.moveYto(obj.currentTilePattern(2,2), true); 
+                    obj.parent.moveYto(obj.parent.currentTilePattern(2,2), true); 
                 else
-                    obj.parent.moveYto(obj.currentTilePattern(1,2), true);
+                    obj.parent.moveYto(obj.parent.currentTilePattern(1,2), true);
                 end
             otherwise
                 % This will never happen
@@ -417,8 +419,16 @@ classdef SIBT < scanner
                 fprintf('Hit SIBT.channelsToAcquire\n')
             end
             theseChans = obj.hC.hChannels.channelSave;
-            obj.channelsToSave = theseChans; %store the currently selected channels to save
-            obj.flipScanSettingsChanged
+
+            if ~isequal(obj.channelsToSave,theseChans)
+                if obj.verbose
+                    fprintf(' channelsToAcquire has changed\n')
+                end
+                %Then something has changed
+                obj.flipScanSettingsChanged
+                obj.channelsToSave = theseChans; %store the currently selected channels to save
+            end
+
         end %channelsToAcquire
 
 
@@ -534,10 +544,29 @@ classdef SIBT < scanner
 
 
         function LUTchanged(obj,~,~)
+            %Flips the bit if any one of the channel look-up tables has changed
             if obj.verbose
                 fprintf('Hit SIBT.LUTchanged\n')
             end
-            obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; %Just flip it so listeners on other classes notice the change
+
+            if isempty(obj.cachedChanLUT)
+                for ii=1:length(obj.hC.hChannels.channelSubtractOffset)
+                    obj.cachedChanLUT{ii} = obj.getChannelLUT(ii);
+                end
+                % Flip bit so listeners on other classes notice the change
+                obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; 
+            else
+                for ii=1:length(obj.cachedChanLUT)
+                    if ~isequal(obj.cachedChanLUT{ii},obj.getChannelLUT(ii))
+                        obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1;
+                        if obj.verbose
+                            fprintf(' SIBT LUT %d changed\n',ii)
+                        end
+                        return
+                    end
+                end
+            end %  ifisempty
+
         end %LUTchanged
 
 
