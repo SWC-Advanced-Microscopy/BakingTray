@@ -87,6 +87,7 @@ classdef SIBT < scanner
             % Update channels to save property whenever the user makes changes in scanImage
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire);
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @obj.flipScanSettingsChanged);
+            %obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
 
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
@@ -213,7 +214,7 @@ classdef SIBT < scanner
                 obj.hC.hDisplay.volumeDisplayStyle='Current';
                 obj.hC.hDisplay.selectedZs=0;
             end
-
+            obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
             %If any of these fail, we leave the function gracefully
             try
                 obj.hC.acqsPerLoop=obj.parent.recipe.numTilesInOpticalSection;% This is the number of x/y positions that need to be visited
@@ -226,7 +227,7 @@ classdef SIBT < scanner
             end
             success=true;
 
-            obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
+
 
             fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
@@ -599,6 +600,12 @@ classdef SIBT < scanner
             fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
         end %tileScanAbortedInScanImage
 
+        function changeChecker(obj,s,e)
+            %TODO: this method will buffer changes in scanimage properties so we only trigger 
+            e
+            e.AffectedObject.(s.Name)
+            s
+        end
     end % Closed hidden SIBT methods
 
 
