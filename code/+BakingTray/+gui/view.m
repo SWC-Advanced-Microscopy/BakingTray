@@ -779,7 +779,11 @@ classdef view < handle
             % If scnSet is provided then it doesn't have to be obtained from the scanner
 
             if nargin<2
-                scnSet=obj.model.scanner.returnScanSettings;
+                if obj.model.isScannerConnected
+                    scnSet=obj.model.scanner.returnScanSettings;
+                else
+                    return
+                end
             end
 
             % Get the tile size value from the pop-up menu
@@ -812,7 +816,7 @@ classdef view < handle
             if obj.model.recipe.acquisitionPossible
                 obj.button_start.String='START';
                 obj.button_start.ForegroundColor=[0,0.75,0];
-            else ~obj.model.recipe.acquisitionPossible
+            else
                 obj.button_start.String='Start';
                 obj.button_start.ForegroundColor='k';
             end
