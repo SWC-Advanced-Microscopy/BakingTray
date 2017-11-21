@@ -79,7 +79,8 @@ classdef SIBT < scanner
             obj.hC=API;
 
             fprintf('\n\nStarting SIBT interface for ScanImage\n')
-            %Log default state of settings so we return to these when disarming
+
+            %Log default state of settings so we return to these when disarming, as we will assume control over the shutter
             obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
 
 
@@ -215,7 +216,7 @@ classdef SIBT < scanner
                 obj.hC.hDisplay.volumeDisplayStyle='Current';
                 obj.hC.hDisplay.selectedZs=0;
             end
-            obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
+            % obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters %TODO -- assume control over shutter
             %If any of these fail, we leave the function gracefully
             try
                 obj.hC.acqsPerLoop=obj.parent.recipe.numTilesInOpticalSection;% This is the number of x/y positions that need to be visited

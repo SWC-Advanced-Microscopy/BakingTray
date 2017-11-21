@@ -7,18 +7,28 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+
+21st November 2017
+- USER: ** Move to ScanImage 5.3.1 **
+- DEVELOPER: Ribbon scanning as an experimental feature. (NOT READY FOR USERS)
+- Speed improvements in GUI.
+
+
 11th October 2017
 - USER: The number of slices is capped according to the currently remaining travel range of the z-stage. 
 - Small tweaks to improve GUI responsiveness under certain circumstances. 
 
+
 21st September 2017
 - USER: "Tile Size" label text turns red if the scan settings differ from the value in the pop-up box
+
 
 20th September 2017
 - USER: Move image resolution selection from the menu to the recipe panel.
 - USER: Add checkboxes to acquisition view for leaving the laser on and cutting the last section.
 - Save ScanImage acquisition settings to disk after the first section has been acquired. 
 - Add class for interacting with Chameleon lasers from Coherent.
+
 
 14th August 2017
 - USER: The recipe fast z-settings are applied after each rapid preview scan.
@@ -29,6 +39,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - BUGFIX: Slicing events and section finishe are now logged to detailed section log file
 - ScanImage pZ adjust no longer set by BakingTray
 - "Keep resonant scanner on" always set to false in SIBT teardown method.
+
 
 4th August 2017
 - USER: Define imaging area by drawing a box. Zoom in and out. 
