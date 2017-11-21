@@ -210,9 +210,10 @@ classdef recipe < handle
             end % if nargin<1
 
 
-            % Build classes that will calculate these properties using dependent variables
-            obj.TileStepSize = TileStepSize(obj);
-            obj.NumTiles = NumTiles(obj);
+            % Build instances of TileStepSize and NumTiles classes that will calculate these properties 
+            % using dependent variables
+            obj.TileStepSize = TileStepSize(obj); 
+            obj.NumTiles = NumTiles(obj); 
 
             %Add these recipe parameters as properties
             obj.sample = params.sample;
@@ -281,7 +282,13 @@ classdef recipe < handle
                 % Other stuff is calculated from the scanner and recipe information
                 obj.VoxelSize.X = obj.ScannerSettings.micronsPerPixel_cols;
                 obj.VoxelSize.Y = obj.ScannerSettings.micronsPerPixel_rows;
-                obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
+
+                if strcmp(obj.mosaic.scanmode,'ribbon')
+                    obj.VoxelSize.Z = round( (obj.mosaic.sliceThickness*1E3) / obj.mosaic.numOpticalPlanes,1);
+                else
+                    obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
+                end
+
                 obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
                 obj.Tile.nColumns = obj.ScannerSettings.pixelsPerLine;
                 success=true;
@@ -371,18 +378,33 @@ classdef recipe < handle
             obj.FrontLeft.Y=front;
         end % setFrontLeftFromVentralMidLine
 
-        function estimatedSizeInGB = estimatedSizeOnDisk(obj)
-            % recipe.estimatedSizeOnDisk
+        function estimatedSizeInGB = estimatedSizeOnDisk(obj,numTiles)
+            % recipe.estimatedSizeOnDisk(numTiles)
             %
             % Return the estimated size of of the acquisition on disk in gigabytes
+            %
+            % Inputs
+            % numTIles - this optional input defines the number of tiles the system
+            %            will acquire per optical plane. It is used to avoid this
+            %            method needing to call the NumTiles class, which can be slow. 
+            %            numTiles is calculated from the current scan settings if it's 
+            %            missing.
+
+
             if ~obj.parent.isScannerConnected
                 fprintf('No scanner connected. Can not estimate size on disk\n')
                 estimatedSize=nan;
                 return
             end
 
-            N=obj.NumTiles;
-            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * N.X * N.Y;
+            if nargin<2
+                N=obj.NumTiles;
+                numTiles = N.X * N.Y;
+            end
+
+
+            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * numTiles;
+
             
             scnSet = obj.ScannerSettings;
             totalImages = imagesPerChannel * length(scnSet.activeChannels);
@@ -491,8 +513,8 @@ classdef recipe < handle
                                 fprintf('ERROR: mosaic.scanmode must be a string!\n')
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
-                            if ~strcmp(fieldValue,'tile')
-                                fprintf('ERROR: mosaic.scanmode can currently only be set to "tile"\n')
+                            if ~strcmp(fieldValue,'tile') && ~strcmp(fieldValue,'ribbon')
+                                fprintf('ERROR: mosaic.scanmode can only be set to "tile" or "ribbon"\n')
                                 fieldValue=[]; % As above, will stop the assignment.
                             end
 
@@ -534,16 +556,18 @@ classdef recipe < handle
                                 fieldValue=[];
                             else 
                                 % Do not allow the sample size to be smaller than the tile size
-                                if obj.TileStepSize.X==0
+                                tileX = obj.TileStepSize.X;
+                                if tileX==0
                                     minSampleSizeX=0.05;
                                 else
-                                    minSampleSizeX=obj.TileStepSize.X;
+                                    minSampleSizeX=tileX;
                                 end
 
-                                if obj.TileStepSize.Y==0
+                                tileY = obj.TileStepSize.Y;
+                                if tileY==0
                                     minSampleSizeY=0.05;
                                 else
-                                    minSampleSizeY=obj.TileStepSize.Y;
+                                    minSampleSizeY=tileY;
                                 end
 
                                 fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 20);

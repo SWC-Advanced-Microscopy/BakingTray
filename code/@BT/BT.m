@@ -56,11 +56,13 @@ classdef BT < loghandler
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
         sectionCompletionTimes  % A vector containing the number of seconds it took to acquire the data for each section (including cutting)
+        currentOpticalSectionNumber=1 % This is only used for cases where the scanner does not to handle the fast Z.
+        currentTilePattern      % The cached currently used tilePattern. Saves having to regenerate each time from the recipe
 
-        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here. 
+        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
         % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
         % TODO: should channels contain empty slots for non-acquired channels? 
-        downSampledTileBuffer = [] 
+        downSampledTileBuffer = []
         downsamplePixPerLine=125 %TODO: for now this is a value in pixels only. This is brittle! CAUTION
         %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
@@ -87,6 +89,7 @@ classdef BT < loghandler
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
+        abortAcqNow=false   %Used when aborting an acquisition so we break out of the ribbon depth loop in BT.bake
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
 
@@ -558,12 +561,17 @@ classdef BT < loghandler
             fclose(fid);
         end %acqLogWriteLine
 
-        function out = estimateTimeRemaining(obj)
+        function out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
             % Use BT.sectionCompletionTimes to estimate how much time is left assuming we acquire all sections
             % If no sections have been completed, BT.sectionCompletion times will be empty. In this case we
             % estimate how long it will take from the scan settings. 
             %
             % Returns a structure containing information about when the recording will finish
+            %
+            %
+            % Optional input arguments used to speed up this method
+            % scnSet - the output of obj.scanner.returnScanSettings
+            % numTilesPerOpticalSection - output of obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y
 
             out=[];
 
@@ -579,12 +587,17 @@ classdef BT < loghandler
                 out.timePerSectionInSeconds = mu;
                 out.timeLeftInSeconds = sectionsRemaining * mu;
 
-            elseif obj.isScannerConnected 
-                scnSet = obj.scanner.returnScanSettings;
-                nMoves = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
-                approxTimePerSection = scnSet.framePeriodInSeconds * obj.recipe.mosaic.numOpticalPlanes * nMoves;
+            elseif obj.isScannerConnected
+                if nargin<2
+                    scnSet = obj.scanner.returnScanSettings;
+                end
+                if nargin<3
+                    numTilesPerOpticalSection = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
+                end
+
+                approxTimePerSection = scnSet.framePeriodInSeconds * obj.recipe.mosaic.numOpticalPlanes * numTilesPerOpticalSection;
                 %now guesstimate 350 ms per X/Y move plus something added on for buffering time. 
-                approxTimePerSection = round(approxTimePerSection + (nMoves*0.35));
+                approxTimePerSection = round(approxTimePerSection + (numTilesPerOpticalSection*0.35));
 
                 %Estimate cut time
                 cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 5; 
@@ -751,7 +764,8 @@ classdef BT < loghandler
             end
             scnSet=obj.scanner.returnScanSettings;
             downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
-            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3; %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
+            %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
+            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3;
         end
 
         function out = get.pathToSectionDirs(obj)

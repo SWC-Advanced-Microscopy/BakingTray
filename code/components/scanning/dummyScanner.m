@@ -148,7 +148,6 @@ classdef dummyScanner < scanner
             OUT.micronsPerPixel_rows=1;
 
             OUT.framePeriodInSeconds = 0.5;
-            OUT.volumePeriodInSeconds = OUT.framePeriodInSeconds * obj.parent.recipe.mosaic.numOpticalPlanes;
             OUT.pixelTimeInMicroSeconds = (OUT.framePeriodInSeconds * 1E6) / (OUT.pixelsPerLine * OUT.linesPerFrame);
             OUT.linePeriodInMicroseconds = OUT.pixelTimeInMicroSeconds * OUT.pixelsPerLine;
             OUT.bidirectionalScan = true;

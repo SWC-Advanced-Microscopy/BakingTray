@@ -19,6 +19,7 @@ classdef NumTiles < handle
     properties (Dependent)
         X=0 % Which the user will see as recipe.NumTiles.X in the recipe class
         Y=0 % Which the user will see as recipe.NumTiles.Y in the recipe class
+        tilesPerPlane  % Which the user will see as recipe.NumTiles.tilesPerPlane in the recipe class (returns a struct)
     end
 
 
@@ -33,7 +34,7 @@ classdef NumTiles < handle
         end
 
         function X = get.X(obj)
-            % Return the number of tiles in X
+            % Return the number of tiles in X per optical plane
             if ~obj.isReadyToCalcProperties
                 X=0;
                 return
@@ -41,18 +42,52 @@ classdef NumTiles < handle
             obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
             X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
-        end
+        end %get.X
 
         function Y = get.Y(obj)
-            % Return the number of tiles in Y
+            % Return the number of tiles in Y per optical planeY
             if ~obj.isReadyToCalcProperties
                 Y=0;
                 return
             end
-            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
-            fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-            Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
-        end
+            switch obj.recipe.mosaic.scanmode
+                case 'tile'
+                    obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+                    fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
+                    Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+                case 'ribbon'
+                    Y=1; %We scan with the stage along this axis so always one tile
+                otherwise
+                    error('Unknown scan mode %s\n', obj.recipe.scanmode) %Really unlikely we'll ever land here
+            end
+        end %get.Y
+
+        function N = get.tilesPerPlane(obj)
+            % Return the total number of tiles per optical plane
+            if ~obj.isReadyToCalcProperties
+                N=0;
+                return
+            end
+            switch obj.recipe.mosaic.scanmode
+                case 'tile'
+                    obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+
+                    fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
+                    N.Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+
+                    fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
+                    N.X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
+                    N.total = N.X * N.Y;
+
+                case 'ribbon'
+                    N.total = obj.X;
+                    N.X=obj.X;
+                    N.Y=1;
+                otherwise
+                    error('Unknown scan mode %s\n', obj.recipe.scanmode) %Really unlikely we'll ever land here
+            end
+
+        end %get.tilesPerPlane
 
     end % Methods
 
@@ -60,8 +95,7 @@ classdef NumTiles < handle
         function isReady = isReadyToCalcProperties(obj)
             % Return true if we are able to calculate the step size without crashing
             isReady=false;
-            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent) &&  obj.recipe.parent.isScannerConnected && obj.recipe.recordScannerSettings
-
+            if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent) &&  obj.recipe.parent.isScannerConnected
                 isReady=true;
             end
         end

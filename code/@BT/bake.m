@@ -128,49 +128,45 @@ function bake(obj,varargin)
     obj.acquisitionInProgress=true;
     obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
+    %Do ribbon-specific stuff (e.g. work out where the z-planes should be)
+    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+        obj.scanner.moveFastZTo(0)
+        nOptPlanes = obj.recipe.mosaic.numOpticalPlanes;
+        opticalRibbonPlanesToImage = (0:nOptPlanes-1) * round(obj.recipe.VoxelSize.Z,1);
+    else %We are not ribbon-scanning
+        opticalRibbonPlanesToImage=1; %This needs to be 1 if we are doing tile scanning
+    end
+
+    % Store the current tile pattern, as it's generated on the fly and 
+    % and this is time-consuming to put into the tile acq callback. 
+    obj.currentTilePattern=obj.recipe.tilePattern;
+
+
     %loop and tile scan
     for ii=1:obj.recipe.mosaic.numSections
-
-        startTime=now;
 
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
 
-        obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1;
+        obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
         if obj.currentSectionNumber<0
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
 
-        if obj.saveToDisk
-            if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
-                %Detailed warnings produced by defineSavePath method
-                disp('Acquisition stopped: save path not defined');
-                return 
-            end
-            obj.scanner.setUpTileSaving;
 
-            %Add logger object to the above directory
-            logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
-            obj.attachLogObject(bkFileLogger(logFilePath))
-        end
-
-
-        if ~obj.scanner.armScanner;
-            disp('FAILED TO START -- COULD NOT ARM SCANNER')
+        if ~obj.defineSavePath % Define directories into which we will save data. Create if needed.
+            % (Detailed warnings are produced by defineSavePath method)
+            disp('Acquisition stopped: save path not defined');
             return
         end
 
 
-        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-        if ii==1
-            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-        end
 
-        obj.acqLogWriteLine(sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
+        tLine = sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
             currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
-            strrep(obj.currentTileSavePath,'\','\\') ))
+            strrep(obj.currentTileSavePath,'\','\\') );
+        obj.acqLogWriteLine(tLine)
         startAcq=now;
-
 
         if ~isempty(obj.laser)
             % Record laser status before section
@@ -178,8 +174,45 @@ function bake(obj,varargin)
         end
 
 
-        if ~obj.runTileScan
-            return
+        for tDepthInd = 1:length(opticalRibbonPlanesToImage) %One pass through this loop if tile scanning
+            obj.currentOpticalSectionNumber = tDepthInd; %Does nothing if we're not ribbon-scanning
+
+            if obj.saveToDisk
+
+                obj.scanner.setUpTileSaving; % This method is aware of the requirements of ribbon vs tile scanning
+
+                %Add logger object to the above directory
+                logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
+                obj.attachLogObject(bkFileLogger(logFilePath))
+            end % if obj.saveToDisk
+
+            % Move the PIFOC if needed
+            if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+                obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
+            end
+
+            if ~obj.scanner.armScanner;
+                disp('FAILED TO START -- COULD NOT ARM SCANNER')
+                return
+            end
+
+            % ===> Now the scanning runs <===
+            if ~obj.runTileScan
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+                return
+            end
+
+            if obj.abortAcqNow
+                break
+            end
+
+        end % for tDepthInd ...
+
+
+        %Return the PIFOC to zero if needed
+        if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+            obj.currentOpticalSectionNumber=1;
+            obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
         end
 
 
@@ -197,6 +230,7 @@ function bake(obj,varargin)
         end
 
 
+
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
             %Mark the section as complete
@@ -208,7 +242,7 @@ function bake(obj,varargin)
             obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
-           if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
+            if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
                 obj.sliceSample;
             end
         else
@@ -219,6 +253,11 @@ function bake(obj,varargin)
 
         obj.detachLogObject %Close the log file that writes to the section directory
 
+
+        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+        if ii==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+        end
 
         if ~isempty(obj.laser)
             % Record laser status after section
@@ -270,7 +309,6 @@ function bake(obj,varargin)
     fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
     fclose(fid);
 
-
 end
 
 
@@ -314,10 +352,19 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=false;
     end
 
-    obj.abortAfterSectionComplete=false; %Reset this flag or the acquisition will not complete next time
+    %Reset these flags or the acquisition will not complete next time
+    obj.abortAfterSectionComplete=false;
+    obj.abortAcqNow=false;
+
+    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
+        % Ensure we are back to square pixels (in case of prior riboon scan)
+        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
+        obj.scanner.allowNonSquarePixels=false;
+        obj.scanner.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
+        obj.scanner.moveFastZTo(0)
+    end
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
-    
-end %bakeCleanupFun
 
+end %bakeCleanupFun
