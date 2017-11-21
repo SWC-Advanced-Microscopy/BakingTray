@@ -12,19 +12,16 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.numOpticalSlices = obj.hC.hStackManager.numSlices;
     scanSettings.zoomFactor = obj.hC.hRoiManager.scanZoomFactor;
 
-    scanSettings.scannerMechanicalAnglePP_fast_axis = round(range(obj.hC.hRoiManager.imagingFovDeg(:,1)),3);
-    scanSettings.scannerMechanicalAnglePP_slowAxis =  round(range(obj.hC.hRoiManager.imagingFovDeg(:,2)),3);
-
-    scanSettings.FOV_alongColsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,1)),3);
-    scanSettings.FOV_alongRowsinMicrons = round(range(obj.hC.hRoiManager.imagingFovUm(:,2)),3);
+    imagingFovUm = obj.hC.hRoiManager.imagingFovUm;
+    scanSettings.FOV_alongColsinMicrons = round(range(imagingFovUm(:,1)),3);
+    scanSettings.FOV_alongRowsinMicrons = round(range(imagingFovUm(:,2)),3);
 
     scanSettings.micronsPerPixel_cols = round(scanSettings.FOV_alongColsinMicrons/scanSettings.pixelsPerLine,3);
     scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
 
+    
     scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
-    scanSettings.volumePeriodInSeconds = round(1/obj.hC.hRoiManager.scanVolumeRate,3);
-    scanSettings.pixelTimeInMicroSeconds = round(obj.hC.hScan2D.scanPixelTimeMean * 1E6,4);
-    scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
+    % scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4); %% TODO: for now we don't do this since it takes about 200 ms and we don't need it
     scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
     scanSettings.activeChannels = obj.hC.hChannels.channelSave;
 

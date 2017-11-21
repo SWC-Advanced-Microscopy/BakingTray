@@ -378,18 +378,33 @@ classdef recipe < handle
             obj.FrontLeft.Y=front;
         end % setFrontLeftFromVentralMidLine
 
-        function estimatedSizeInGB = estimatedSizeOnDisk(obj)
-            % recipe.estimatedSizeOnDisk
+        function estimatedSizeInGB = estimatedSizeOnDisk(obj,numTiles)
+            % recipe.estimatedSizeOnDisk(numTiles)
             %
             % Return the estimated size of of the acquisition on disk in gigabytes
+            %
+            % Inputs
+            % numTIles - this optional input defines the number of tiles the system
+            %            will acquire per optical plane. It is used to avoid this
+            %            method needing to call the NumTiles class, which can be slow. 
+            %            numTiles is calculated from the current scan settings if it's 
+            %            missing.
+
+
             if ~obj.parent.isScannerConnected
                 fprintf('No scanner connected. Can not estimate size on disk\n')
                 estimatedSize=nan;
                 return
             end
 
-            N=obj.NumTiles;
-            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * N.X * N.Y;
+            if nargin<2
+                N=obj.NumTiles;
+                numTiles = N.X * N.Y;
+            end
+
+
+            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * numTiles;
+
             
             scnSet = obj.ScannerSettings;
             totalImages = imagesPerChannel * length(scnSet.activeChannels);

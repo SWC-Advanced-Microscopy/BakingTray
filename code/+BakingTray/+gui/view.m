@@ -731,7 +731,10 @@ classdef view < handle
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;
 
                 if ~isempty(scnSet)
-                    endTime = obj.model.estimateTimeRemaining;
+                    numX = R.NumTiles.X;
+                    numY = R.NumTiles.Y;
+
+                    endTime = obj.model.estimateTimeRemaining(scnSet, numX*numY);
                     if length(obj.model.scanner.channelsToAcquire)>1
                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==1
@@ -739,6 +742,9 @@ classdef view < handle
                     elseif length(obj.model.scanner.channelsToAcquire)==0
                         channelsToAcquireString = 'NO CHANNELS!';
                     end
+
+
+                    estimatedSize = obj.model.recipe.estimatedSizeOnDisk(numX*numY);
                     msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
@@ -748,8 +754,8 @@ classdef view < handle
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
-                        R.NumTiles.X, R.NumTiles.Y, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
-                        endTime.timeForSampleString, endTime.timePerSectionString, obj.model.recipe.estimatedSizeOnDisk);
+                        numX, numY, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
+                        endTime.timeForSampleString, endTime.timePerSectionString, estimatedSize);
 
                 elseif isempty(scnSet)
                     msg = sprintf('System ID: %s ; Scanner: %s', R.SYSTEM.ID, scannerID);
@@ -760,15 +766,22 @@ classdef view < handle
                 set(obj.text_status,'String', msg)
 
                 % Finally we highlight the tile size label as needed
-                obj.updateTileSizeLabelText
+                obj.updateTileSizeLabelText(scnSet)
             end 
         end %updateStatusText
 
-        function updateTileSizeLabelText(obj)
+        function updateTileSizeLabelText(obj,scnSet)
             % This isn't a callback is a helper method to other callbacks.
             % If the selected tile size in the pop-up menu doesn't match what the 
             % scanner is going to be acquiring then we highlight the label by 
             % making it red. Otherwise it's white.
+            %
+            % Inputs
+            % If scnSet is provided then it doesn't have to be obtained from the scanner
+
+            if nargin<2
+                scnSet=obj.model.scanner.returnScanSettings;
+            end
 
             % Get the tile size value from the pop-up menu
             selectedTileSize=[];
@@ -783,7 +796,6 @@ classdef view < handle
                 return
             end
 
-            scnSet=obj.model.scanner.returnScanSettings;
             if selectedTileSize.pixelsPerLine==scnSet.pixelsPerLine && ...
                  selectedTileSize.linesPerFrame==scnSet.linesPerFrame && ...
                  selectedTileSize.slowMult==scnSet.slowMult && ...
