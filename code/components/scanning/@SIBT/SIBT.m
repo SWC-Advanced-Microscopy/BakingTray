@@ -30,7 +30,9 @@ classdef SIBT < scanner
         currentTilePattern
         allowNonSquarePixels=false
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
-    end
+        lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
+                                      %If a setting has changeded, the flipScanSettingsChanged method is run
+     end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
 
@@ -85,9 +87,8 @@ classdef SIBT < scanner
 
             obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
-            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @obj.channelsToAcquire);
-            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @obj.flipScanSettingsChanged);
-            %obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
 
             obj.listeners{end+1} = addlistener(obj.hC, 'active', 'PostSet', @obj.isAcquiring);
 
@@ -103,8 +104,8 @@ classdef SIBT < scanner
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay,'chan4LUT', 'PostSet', @obj.LUTchanged);
 
 
-            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @obj.flipScanSettingsChanged);
-            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @obj.flipScanSettingsChanged);
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
 
 
             % Add "armedListeners" that are used during tiled acquisition only.
@@ -601,11 +602,31 @@ classdef SIBT < scanner
         end %tileScanAbortedInScanImage
 
         function changeChecker(obj,s,e)
-            %TODO: this method will buffer changes in scanimage properties so we only trigger 
-            e
-            e.AffectedObject.(s.Name)
-            s
-        end
+
+            variableName = s.Name;  % The name of the variable that might have changed
+            variableValue = e.AffectedObject.(variableName); % The current value of the variable
+
+            % If the variable isn't in the buffer, we add it and trigger the change flag.
+            if ~isfield(obj.lastSeenScanSettings,variableName)
+                obj.lastSeenScanSettings.(variableName) = variableValue;
+                obj.flipScanSettingsChanged;
+                if obj.verbose
+                    fprintf('Added variable %s to SIBT settings cache and assumed it changed\n', variableName)
+                end
+                return
+            end
+
+            %If the current value doesn't equal the previous value, update the previous value and 
+            %trigger the change flag
+            if ~isequal(obj.lastSeenScanSettings.(variableName), variableValue)
+                obj.lastSeenScanSettings.(variableName) = variableValue;
+                obj.flipScanSettingsChanged;
+                if obj.verbose
+                    fprintf('Variable %s appears to have changed in ScanImage\n', variableName)
+                end
+            end
+        end %changeChecker
+
     end % Closed hidden SIBT methods
 
 
