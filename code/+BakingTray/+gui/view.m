@@ -731,10 +731,9 @@ classdef view < handle
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;
 
                 if ~isempty(scnSet)
-                    numX = R.NumTiles.X;
-                    numY = R.NumTiles.Y;
+                    tilesPlane = R.NumTiles.tilesPerPlane;
 
-                    endTime = obj.model.estimateTimeRemaining(scnSet, numX*numY);
+                    endTime = obj.model.estimateTimeRemaining(scnSet, tilesPlane.total);
                     if length(obj.model.scanner.channelsToAcquire)>1
                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==1
@@ -744,7 +743,7 @@ classdef view < handle
                     end
 
 
-                    estimatedSize = obj.model.recipe.estimatedSizeOnDisk(numX*numY);
+                    estimatedSize = obj.model.recipe.estimatedSizeOnDisk(tilesPlane.total);
                     msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
@@ -754,7 +753,7 @@ classdef view < handle
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
-                        numX, numY, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
+                        tilesPlane.X, tilesPlane.Y, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
                         endTime.timeForSampleString, endTime.timePerSectionString, estimatedSize);
 
                 elseif isempty(scnSet)

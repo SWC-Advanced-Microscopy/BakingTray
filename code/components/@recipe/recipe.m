@@ -556,16 +556,18 @@ classdef recipe < handle
                                 fieldValue=[];
                             else 
                                 % Do not allow the sample size to be smaller than the tile size
-                                if obj.TileStepSize.X==0
+                                tileX = obj.TileStepSize.X;
+                                if tileX==0
                                     minSampleSizeX=0.05;
                                 else
-                                    minSampleSizeX=obj.TileStepSize.X;
+                                    minSampleSizeX=tileX;
                                 end
 
-                                if obj.TileStepSize.Y==0
+                                tileY = obj.TileStepSize.Y;
+                                if tileY==0
                                     minSampleSizeY=0.05;
                                 else
-                                    minSampleSizeY=obj.TileStepSize.Y;
+                                    minSampleSizeY=tileY;
                                 end
 
                                 fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 20);
