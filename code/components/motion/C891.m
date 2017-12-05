@@ -407,19 +407,78 @@ classdef C891 < linearcontroller
 
 
     methods (Hidden) % Hidden methods specific to C891
-        function enableInMotionTrigger(obj,DIOline)
-            % Enables "in motion" DIO on defined trigger line
-            obj.hC.TRO(DIOline,0)
-            obj.hC.CTO(DIOline,2,1)
-            obj.hC.CTO(DIOline,3,6)
-            obj.hC.TRO(DIOline,1)
+        function enableInMotionTrigger(obj,DIOline1,DIOline2)
+            % Enables "in motion" DIO on defined trigger line (p. 102, MS205E v.2.0.0)
+            obj.hC.TRO(DIOline1,0)
+            obj.hC.CTO(DIOline1,2,1)
+            obj.hC.CTO(DIOline1,3,6)
+            obj.hC.TRO(DIOline1,1)
+
+            %If a second input is provided, set up "Position distance" trigger mode (p. 99, MS205E v.2.0.0)
+            if nargin>2
+              obj.hC.TRO(DIOline2,0)
+              obj.hC.CTO(DIOline2,2,1)
+
+              obj.hC.CTO(DIOline2,3,0)
+              obj.hC.CTO(DIOline2,1,0.547)
+
+              obj.hC.TRO(DIOline2,1)
+            end
+
         end %enableMotionInMotionTrigger(obj,DIOline)
 
-        function disableInMotionTrigger(obj,DIOline)
-            % Disabled "in motion" DIO on defined trigger line
-            obj.hC.TRO(DIOline,0) %disable trigger
-            obj.hC.CTO(DIOline,3,0) %Revert to default
+        function motionTrigMax(obj,DIOline,pos)
+            % Sets up a max position for triggering
+            obj.hC.TRO(DIOline,0)
+            obj.hC.CTO(DIOline,8,pos)
+            obj.hC.TRO(DIOline,1)
+        end
+
+        function motionTrigMin(obj,DIOline,pos)
+            % Sets up a min position for triggering
+            obj.hC.TRO(DIOline,0)
+            obj.hC.CTO(DIOline,9,pos)
+            obj.hC.TRO(DIOline,1)
+        end
+
+        function disableInMotionTrigger(obj,varargin)
+            % Disable trigger outputs on listed lines and set lines to zero
+            for ii=1:length(varargin)
+              tLine = varargin{ii};
+              if ~isnumeric(tLine)
+                continue
+              end
+              obj.hC.TRO(tLine,0)    % Disable trigger
+              obj.hC.CTO(tLine,3,0)  % Revert to default
+              obj.hC.DIO(tLine,0)    % Revert to default
+            end %for ii
         end %enableMotionInMotionTrigger(obj,DIOline)
+
+        function pauseInMotionTrigger(obj,varargin)
+            % Disable trigger outputs on listed lines and set lines to zero
+            for ii=1:length(varargin)
+              tLine = varargin{ii};
+              if ~isnumeric(tLine)
+                continue
+              end
+              obj.hC.TRO(tLine,0) %disable trigger
+              %obj.hC.DIO(tLine,0) %Revert to default
+            end %for ii
+        end %enableMotionInMotionTrigger(obj,DIOline)
+
+        function resumeInMotionTrigger(obj,varargin)
+            % Disable trigger outputs on listed lines and set lines to zero
+            for ii=1:length(varargin)
+              tLine = varargin{ii};
+              if ~isnumeric(tLine)
+                continue
+              end
+              obj.hC.TRO(tLine,1)
+              %obj.hC.DIO(tLine,1)
+            end %for ii
+        end %enableMotionInMotionTrigger(obj,DIOline)
+
+
 
     end %close hidden methods
 
