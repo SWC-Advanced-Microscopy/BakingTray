@@ -19,9 +19,13 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.micronsPerPixel_cols = round(scanSettings.FOV_alongColsinMicrons/scanSettings.pixelsPerLine,3);
     scanSettings.micronsPerPixel_rows = round(scanSettings.FOV_alongRowsinMicrons/scanSettings.linesPerFrame,3);
 
-    
+
     scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
-    % scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4); %% TODO: for now we don't do this since it takes about 200 ms and we don't need it
+
+    if strcmp(obj.parent.recipe.mosaic.scanmode,'ribbon')
+        scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
+    end
+
     scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
     scanSettings.activeChannels = obj.hC.hChannels.channelSave;
 
