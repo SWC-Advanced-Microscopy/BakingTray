@@ -40,7 +40,7 @@ function runSuccess = runTileScan(obj)
 
         ySpeed = yRange / timeToImageLines;
 
-        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n', ...
+        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n\n', ...
             yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
 
         obj.setYvelocity(ySpeed);
