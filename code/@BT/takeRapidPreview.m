@@ -64,6 +64,7 @@ function takeRapidPreview(obj)
 
     obj.scanner.disableTileSaving
     obj.currentTileSavePath=[];
+    obj.currentTilePattern=obj.recipe.tilePattern; %Log the current tile pattern before starting
 
 
     obj.preAllocateTileBuffer

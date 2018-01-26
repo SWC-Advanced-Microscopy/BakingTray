@@ -118,70 +118,70 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     % They will already be the correct type. (TODO: where is that done?)
 
     if mod(thisRecipe.mosaic.sectionStartNum,1)>0
-        msg=sprintf('%smosaic.sectionStartNum was not an integer. Setting it to %d\n', msg, D.mosaic.sectionStartNum)
+        msg=sprintf('%smosaic.sectionStartNum was not an integer. Setting it to %d\n', msg, D.mosaic.sectionStartNum);
         thisRecipe.mosaic.sectionStartNum = D.mosaic.sectionStartNum;
     end
     if thisRecipe.mosaic.sectionStartNum<1
-        msg=sprintf('%smosaic.sectionStartNum was less than 1. Setting it to %d\n', msg, D.mosaic.sectionStartNum)
+        msg=sprintf('%smosaic.sectionStartNum was less than 1. Setting it to %d\n', msg, D.mosaic.sectionStartNum);
         thisRecipe.mosaic.sectionStartNum = D.mosaic.sectionStartNum;
     end
 
 
     if mod(thisRecipe.mosaic.numSections,1)>0
-        msg=sprintf('%smosaic.numSections was not an integer. Setting it to %d\n', msg, D.mosaic.numSections)
+        msg=sprintf('%smosaic.numSections was not an integer. Setting it to %d\n', msg, D.mosaic.numSections);
         thisRecipe.mosaic.numSections = D.mosaic.numSections;
     end
 
 
     if thisRecipe.mosaic.numSections<1
-        msg=sprintf('%smosaic.numSections was less than 1. Setting it to %d\n', msg, D.mosaic.numSections)
+        msg=sprintf('%smosaic.numSections was less than 1. Setting it to %d\n', msg, D.mosaic.numSections);
         thisRecipe.mosaic.numSections = D.mosaic.numSections;
     end
 
 
     if thisRecipe.mosaic.cuttingSpeed==0
-        msg=sprintf('%smosaic.cuttingSpeed was zero. Setting it to %0.3f\n', msg, D.mosaic.cuttingSpeed)
+        msg=sprintf('%smosaic.cuttingSpeed was zero. Setting it to %0.3f\n', msg, D.mosaic.cuttingSpeed);
         thisRecipe.mosaic.cuttingSpeed = D.mosaic.cuttingSpeed;
     end
 
 
     if thisRecipe.mosaic.cutSize<1
-        msg=sprintf('%smosaic.cutSize was less than 1. Setting it to %0.1f\n', msg, D.mosaic.cutSize)
+        msg=sprintf('%smosaic.cutSize was less than 1. Setting it to %0.1f\n', msg, D.mosaic.cutSize);
         thisRecipe.mosaic.cutSize = D.mosaic.cutSize;
     end
 
 
     if thisRecipe.mosaic.sliceThickness==0
-        msg=sprintf('%smosaic.sliceThickness was zero. Setting it to %0.1f\n', msg, D.mosaic.sliceThickness)
+        msg=sprintf('%smosaic.sliceThickness was zero. Setting it to %0.1f\n', msg, D.mosaic.sliceThickness);
         thisRecipe.mosaic.sliceThickness = D.mosaic.sliceThickness;
     end
 
 
     if mod(thisRecipe.mosaic.numOpticalPlanes,1)>0
-        msg=sprintf('%smosaic.numOpticalPlanes was not an integer. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes)
+        msg=sprintf('%smosaic.numOpticalPlanes was not an integer. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes);
         thisRecipe.mosaic.numOpticalPlanes = D.mosaic.numOpticalPlanes;
     end
     if thisRecipe.mosaic.numOpticalPlanes<1
-        msg=sprintf('%smosaic.numOpticalPlanes was less than 1. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes)
+        msg=sprintf('%smosaic.numOpticalPlanes was less than 1. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes);
         thisRecipe.mosaic.numOpticalPlanes = D.mosaic.numOpticalPlanes;
     end
 
 
     if thisRecipe.mosaic.overlapProportion<0 || thisRecipe.mosaic.overlapProportion>0.5
-        msg=sprintf('%smosaic.overlapProportion should be between 0 and 0.5. Setting it to %0.1f\n', msg, D.mosaic.overlapProportion)
+        msg=sprintf('%smosaic.overlapProportion should be between 0 and 0.5. Setting it to %0.1f\n', msg, D.mosaic.overlapProportion);
         thisRecipe.mosaic.overlapProportion = D.mosaic.overlapProportion;
     end
 
 
     if isempty(thisRecipe.mosaic.sampleSize.X) || isempty(thisRecipe.mosaic.sampleSize.Y) 
-        msg=sprintf('%smosaic.sampleSize was empty setting to %d by %d mm\n', msg, D.mosaic.sampleSize.X,D.mosaic.sampleSize.Y)
+        msg=sprintf('%smosaic.sampleSize was empty setting to %d by %d mm\n', msg, D.mosaic.sampleSize.X,D.mosaic.sampleSize.Y);
         thisRecipe.mosaic.sampleSize.X = D.mosaic.sampleSize.X;
         thisRecipe.mosaic.sampleSize.Y = D.mosaic.sampleSize.Y;
     end
 
     %The following is hard-coded
-    if ~strcmp(thisRecipe.mosaic.scanmode,'tile')
-        msg=sprintf('%smosaic.scanmode can only take on the value "tile" at present. Correcting', msg)
+    if ~strcmp(thisRecipe.mosaic.scanmode,'tile') && ~strcmp(thisRecipe.mosaic.scanmode,'ribbon')
+        msg=sprintf('%smosaic.scanmode can only take on the value "tile" or "ribbon". Setting to "tile"', msg);
         thisRecipe.mosaic.scanmode='tile';
     end
 

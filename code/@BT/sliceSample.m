@@ -115,9 +115,8 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     obj.cutter.startVibrate(obj.recipe.SLICER.postCutVibrate); %the stop vibrate command is in the cleanup function
 
-    %Reset speeds of stages to what they were originally    
-    obj.setYvelocity(moveStepSpeed);
-    obj.setXvelocity(moveStepSpeed);
+    %Move a little faster to dislodge the slice (TODO: these values will depend on acceleration)
+    obj.setYvelocity(30);
 
     %Wait and try to dislodge slice
     pause(obj.recipe.SLICER.postCutDelay/2)
@@ -136,6 +135,10 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
             return
         end
     end
+
+    %Reset speeds of stages to what they were originally    
+    obj.setYvelocity(moveStepSpeed);
+    obj.setXvelocity(moveStepSpeed);
 
     finalWait=obj.recipe.SLICER.postCutDelay/2;
     obj.logMessage(inputname(1),dbstack,2,sprintf('Waiting %0.2f seconds',finalWait))

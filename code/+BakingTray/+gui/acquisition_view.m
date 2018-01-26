@@ -416,9 +416,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             imCols = range(tp(:,1)) + stepSizes(1);
             imRows = range(tp(:,2)) + stepSizes(2);
 
-            obj.previewImageData = zeros([imRows,imCols, ...
+            obj.previewImageData = ones([imRows,imCols, ...
                 obj.model.recipe.mosaic.numOpticalPlanes, ...
-                obj.model.scanner.maxChannelsAvailable],'int16');
+                obj.model.scanner.maxChannelsAvailable],'int16') * -2E15;
 
             obj.model.downSampledTileBuffer(:)=0;
 
@@ -474,6 +474,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if obj.verbose, fprintf('In acquisition_view.placeNewTilesInPreviewData callback\n'), end
 
+            %TODO: temporarily do not build preview if ribbon-scanning
+            if strcmp(obj.model.recipe.mosaic.scanmode,'ribbon')
+                return
+            end
+
             obj.updateStatusText
             if obj.model.processLastFrames==false
                 return
@@ -512,6 +517,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             % This callback function updates when the listener on obj.previewImageData fires or if the user 
             % updates the popup boxes for depth or channel
             if obj.verbose, fprintf('In acquisition_view.updateSectionImage callback\n'), end
+
+
+            %TODO: Temporarily do not update section imaging if ribbon scanning
+            if strcmp(obj.model.recipe.mosaic.scanmode,'ribbon')
+                return
+            end
 
             if ~obj.doSectionImageUpdate
                 return
@@ -596,6 +607,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
                     %TODO: these three lines also appear in BT.bake
                     obj.model.leaveLaserOn=true; %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
+                    obj.model.abortAcqNow=true; %Otherwise in ribbon scanning it moved to the next optical plane
                     obj.model.scanner.abortScanning;
                     obj.model.scanner.disarmScanner;
                     obj.model.detachLogObject;

@@ -293,9 +293,6 @@ classdef view < handle
                         'TooltipString', obj.recipeToolTips{ii}, ...
                         'Tag', obj.recipePropertyNames{ii}); %The tag is used by obj.updateRecipePropertyInRecipeClass to update the recipe
 
-                    if strfind(obj.recipePropertyNames{ii}, 'scanmode')
-                        obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).Enable='Off';
-                    end
                 elseif strcmp(thisProp{2},'sampleSize')
 
                     %We need a separate X and Y box for the sample size
@@ -734,14 +731,19 @@ classdef view < handle
                 micronsBetweenOpticalPlanes = (R.mosaic.sliceThickness/R.mosaic.numOpticalPlanes)*1000;
 
                 if ~isempty(scnSet)
-                    endTime = obj.model.estimateTimeRemaining;
+                    tilesPlane = R.NumTiles.tilesPerPlane;
+
+                    endTime = obj.model.estimateTimeRemaining(scnSet, tilesPlane.total);
                     if length(obj.model.scanner.channelsToAcquire)>1
                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
-                    elseif length(obj.model.scanner.channelsToAcquire)==1                            
+                    elseif length(obj.model.scanner.channelsToAcquire)==1
                         channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==0
                         channelsToAcquireString = 'NO CHANNELS!';
                     end
+
+
+                    estimatedSize = obj.model.recipe.estimatedSizeOnDisk(tilesPlane.total);
                     msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
                         'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
@@ -751,8 +753,8 @@ classdef view < handle
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
-                        R.NumTiles.X, R.NumTiles.Y, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
-                        endTime.timeForSampleString, endTime.timePerSectionString, obj.model.recipe.estimatedSizeOnDisk);
+                        tilesPlane.X, tilesPlane.Y, R.mosaic.sliceThickness*R.mosaic.numSections, channelsToAcquireString, ...
+                        endTime.timeForSampleString, endTime.timePerSectionString, estimatedSize);
 
                 elseif isempty(scnSet)
                     msg = sprintf('System ID: %s ; Scanner: %s', R.SYSTEM.ID, scannerID);
@@ -763,15 +765,26 @@ classdef view < handle
                 set(obj.text_status,'String', msg)
 
                 % Finally we highlight the tile size label as needed
-                obj.updateTileSizeLabelText
+                obj.updateTileSizeLabelText(scnSet)
             end 
         end %updateStatusText
 
-        function updateTileSizeLabelText(obj)
+        function updateTileSizeLabelText(obj,scnSet)
             % This isn't a callback is a helper method to other callbacks.
             % If the selected tile size in the pop-up menu doesn't match what the 
             % scanner is going to be acquiring then we highlight the label by 
             % making it red. Otherwise it's white.
+            %
+            % Inputs
+            % If scnSet is provided then it doesn't have to be obtained from the scanner
+
+            if nargin<2
+                if obj.model.isScannerConnected
+                    scnSet=obj.model.scanner.returnScanSettings;
+                else
+                    return
+                end
+            end
 
 
             % If possible update the label text. Don't proceed if no scanner is connected
@@ -792,7 +805,6 @@ classdef view < handle
                 return
             end
 
-            scnSet=obj.model.scanner.returnScanSettings;
             if selectedTileSize.pixelsPerLine==scnSet.pixelsPerLine && ...
                  selectedTileSize.linesPerFrame==scnSet.linesPerFrame && ...
                  selectedTileSize.slowMult==scnSet.slowMult && ...
@@ -810,7 +822,7 @@ classdef view < handle
             if obj.model.recipe.acquisitionPossible
                 obj.button_start.String='START';
                 obj.button_start.ForegroundColor=[0,0.75,0];
-            else ~obj.model.recipe.acquisitionPossible
+            else
                 obj.button_start.String='Start';
                 obj.button_start.ForegroundColor='k';
             end
