@@ -274,7 +274,7 @@ classdef C891 < linearcontroller
 
             if isempty(minPos)
               minPos = obj.hC.qTMN('1'); 
-              minPos = st.transformDistance(minPos);
+              minPos = obj.attachedStage.transformDistance(minPos);
             end
         end
 
@@ -283,7 +283,7 @@ classdef C891 < linearcontroller
 
             if isempty(maxPos)
               maxPos = obj.hC.qTMX('1'); 
-              maxPos = st.transformDistance(maxPos);
+              maxPos = obj.attachedStage.transformDistance(maxPos);
             end
         end
 
