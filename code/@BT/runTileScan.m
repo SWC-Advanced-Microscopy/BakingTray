@@ -6,10 +6,10 @@ function runSuccess = runTileScan(obj)
     % Purpose
     % The method moves the sample to the front/left position, initialises some variables
     % then initiates the scan cycle. 
-    
+
     runSuccess=false;
 
-    
+
     % Create the position array
     [pos,indexes]=obj.recipe.tilePattern;
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
@@ -29,10 +29,10 @@ function runSuccess = runTileScan(obj)
     % by the armScanner method
     switch obj.recipe.mosaic.scanmode
     case 'tile'
-        obj.yAxis.disableInMotionTrigger(1)
+        obj.yAxis.disableInMotionTrigger(1,2)
 
     case 'ribbon'
-        obj.yAxis.enableInMotionTrigger(1);
+        obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
         R = obj.scanner.returnScanSettings;
 
         yRange = range(pos(:,2));
@@ -40,7 +40,7 @@ function runSuccess = runTileScan(obj)
 
         ySpeed = yRange / timeToImageLines;
 
-        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n', ...
+        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n\n', ...
             yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
 
         obj.setYvelocity(ySpeed);
@@ -74,7 +74,7 @@ function runSuccess = runTileScan(obj)
 
     %Disable in-motion triggering if it was enabled
     if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        obj.yAxis.disableInMotionTrigger(1)
+        obj.yAxis.disableInMotionTrigger(1,2)
     end
     %Ensure we are back at normal motion speed
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 
@@ -94,4 +94,3 @@ function runSuccess = runTileScan(obj)
         obj.currentTilePosition, nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
         obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/(obj.currentTilePosition))
     runSuccess=true;
-

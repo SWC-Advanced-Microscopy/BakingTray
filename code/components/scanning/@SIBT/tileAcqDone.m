@@ -37,7 +37,7 @@ function tileAcqDone(obj,~,~)
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} is empty. ',z);
             elseif ~isprop(lastStripe,'roiData')
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} has no field "roiData"',z);
-            elseif ~iscell(lastStripe.roiData)
+            elseif ~iscell(lastStripe.roiData) && ~isempty(iscell(lastStripe.roiData)) %% TODO -- temporarilty don't report errors if this is empty since this seems to be a ScanImage bug 04/12/17
                  msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell. It is a %s.',z, class(lastStripe.roiData));
             elseif length(lastStripe.roiData)<1
                 msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell with length >1',z);

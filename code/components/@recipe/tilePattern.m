@@ -74,20 +74,20 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
 
         if min(tilePosArray(:,1)) < obj.parent.xAxis.getMinPos
             msg=sprintf('%sMinimum allowed X position is %0.2f but tile position array will extend to %0.2f\n',...
-                msg, min(tilePosArray(:,1)), obj.parent.xAxis.getMinPos);
+                msg, obj.parent.xAxis.getMinPos, min(tilePosArray(:,1)) );
         end
         if max(tilePosArray(:,1)) > obj.parent.xAxis.getMaxPos
             msg=sprintf('%sMaximum allowed X position is %0.2f but tile position array will extend to %0.2f\n',...
-                msg, max(tilePosArray(:,1)), obj.parent.xAxis.getMaxPos);
+                msg, obj.parent.xAxis.getMaxPos, max(tilePosArray(:,1)) );
         end
 
         if min(tilePosArray(:,2)) < obj.parent.yAxis.getMinPos
-            msg=sprintf('%sMinimum allowed X position is %0.2f but tile position array will extend to %0.2f\n',...
-                msg, min(tilePosArray(:,2)), obj.parent.yAxis.getMinPos);
+            msg=sprintf('%sMinimum allowed Y position is %0.2f but tile position array will extend to %0.2f\n',...
+                msg, obj.parent.yAxis.getMinPos, min(tilePosArray(:,2)) );
         end
         if max(tilePosArray(:,2)) > obj.parent.yAxis.getMaxPos
-            msg=sprintf('%sMaximum allowed X position is %0.2f but tile position array will extend to %0.2f\n',...
-                msg, max(tilePosArray(:,2)), obj.parent.yAxis.getMinPos);
+            msg=sprintf('%sMaximum allowed Y position is %0.2f but tile position array will extend to %0.2f\n',...
+                msg, obj.parent.yAxis.getMinPos, max(tilePosArray(:,2)) );
         end
     else
 

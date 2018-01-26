@@ -360,6 +360,10 @@ classdef recipe < handle
                 return
             end
 
+            % We just need a tile pattern and don't want to generate an out of bounds error due to a funny
+            % front/left position. So first set the front/left to zero.
+            obj.FrontLeft.X=0;
+            obj.FrontLeft.Y=0;
             tp=obj.tilePattern;
 
             if isempty(tp)

@@ -416,9 +416,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             imCols = range(tp(:,1)) + stepSizes(1);
             imRows = range(tp(:,2)) + stepSizes(2);
 
-            obj.previewImageData = zeros([imRows,imCols, ...
+            obj.previewImageData = ones([imRows,imCols, ...
                 obj.model.recipe.mosaic.numOpticalPlanes, ...
-                obj.model.scanner.maxChannelsAvailable],'int16');
+                obj.model.scanner.maxChannelsAvailable],'int16') * -2E15;
 
             obj.model.downSampledTileBuffer(:)=0;
 
