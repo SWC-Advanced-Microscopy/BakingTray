@@ -43,8 +43,15 @@ classdef C891 < genericPIcontroller
     methods
         % Constructor
         function obj=C891(stageObject,logObject)
+            if nargin<1
+              stageObject=[];
+            end
+            if nargin<2
+                logObject=[];
+            end
             obj = obj@genericPIcontroller(stageObject,logObject);
         end % Constructor
+    end
 
 
     methods (Hidden) % Hidden methods specific to C891

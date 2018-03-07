@@ -77,7 +77,7 @@ classdef genericPIcontroller < linearcontroller
           end
 
           if ~isfield(connectionDetails,'interface')
-            fprintf('No connectionDetails.interface field. Can not connect to %s.\n', obj.controllerID.controllerModel)
+            fprintf('No connectionDetails.interface field. Can not connect to %s.\n', connectionDetails.controllerModel)
             success = false;
             return
           end
@@ -119,7 +119,7 @@ classdef genericPIcontroller < linearcontroller
             obj.hC.InitializeController;
 
             catch
-              fprintf('\n\n *** Failed to establish connection to PI %s controller.\n', obj.controllerID.controllerModel)
+              fprintf('\n\n *** Failed to establish connection to PI %s controller.\n', connectionDetails.controllerModel)
               fprintf(' *** Cycle the power on the unit and try again.  \n\n')
               success=false;
               rethrow(lasterror)
@@ -279,7 +279,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(minPos)
               minPos = obj.hC.qTMN('1'); 
-              minPos = st.transformDistance(minPos);
+              minPos = obj.attachedStage.transformDistance(minPos);
             end
         end
 
@@ -288,7 +288,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(maxPos)
               maxPos = obj.hC.qTMX('1'); 
-              maxPos = st.transformDistance(maxPos);
+              maxPos = obj.attachedStage.transformDistance(maxPos);
             end
         end
 
