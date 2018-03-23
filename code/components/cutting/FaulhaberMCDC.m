@@ -66,9 +66,9 @@ classdef FaulhaberMCDC < cutter & loghandler
                 return
             end
 
-            if ischar(obj.controllerID);
+            if ischar(obj.controllerID)
                 obj.hC = serial(obj.controllerID);
-            elseif iscell(obj.controllerID);
+            elseif iscell(obj.controllerID)
                 obj.hC = serial(obj.controllerID{:});
             else
                 success=false;                
