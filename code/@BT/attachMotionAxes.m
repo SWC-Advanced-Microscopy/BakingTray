@@ -76,9 +76,9 @@ function success=attachMotionAxes(obj,settings)
             catch ME1
                 disp(ME1.message)
                 fprintf('FAILED TO BUILD AXIS: %s\n',thisAxisName)
-                disp(ME.message)
-                for ii=1:length(ME.stack)
-                    st=ME.stack(ii);
+                disp(ME1.message)
+                for ii=1:length(ME1.stack)
+                    st=ME1.stack(ii);
                     fprintf('\t%s - %s (line: %d)\n', st.name,st.file,st.line)
                 end
                 fprintf('\n')
