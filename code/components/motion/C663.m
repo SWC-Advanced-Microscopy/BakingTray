@@ -5,7 +5,7 @@ classdef C663 < genericPIcontroller
 % All abstract methods should (where possible) have doc text only in the abstract method class file.
 %
 %
-% To use the C663 stage, install the PI MATLAB support package. Ensure that the instances of
+% To use the C663 controller, install the PI MATLAB support package. Ensure that the instances of
 % the class can be created and behave as expected. e.g. that the .MOV method can be used to
 % move the stage. So go through PI's example MATLAB scripts and ensure all makes sense.
 %
@@ -26,12 +26,6 @@ classdef C663 < genericPIcontroller
 % PI_MATLAB_Driver_GCS2 loaded successfully.
 % Attempting to connect to C-C663 with serial number 116010269
 
-
-% It should also be possible to connect via RS232 or TCP/IP, but this isn't tested.
-% See the doc text for the controllerID property in C663.m
-%
-%
-%
 
     properties
 
