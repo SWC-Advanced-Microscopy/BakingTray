@@ -90,6 +90,23 @@ switch controllerName
         component = C891(stageComponents);
         
         controllerID.interface='usb';
+        controllerID.controllerModel='C-891';
+
+        controllerID.ID=controllerParams.connectAt;
+        component.connect(controllerID); %Connect to the controller
+
+     case 'C663'
+        % Likely this will be used to control an X or Y stage
+        stageComponents = build_C891_stages(stages);
+        if isempty(stageComponents)
+            return
+        end
+
+        component = C663(stageComponents);
+
+        controllerID.interface='usb';
+        controllerID.controllerModel='C-663';
+
         controllerID.ID=controllerParams.connectAt;
         component.connect(controllerID); %Connect to the controller
 

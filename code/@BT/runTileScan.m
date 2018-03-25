@@ -29,7 +29,7 @@ function runSuccess = runTileScan(obj)
     % by the armScanner method
     switch obj.recipe.mosaic.scanmode
     case 'tile'
-        obj.yAxis.disableInMotionTrigger(1,2)
+        %obj.yAxis.disableInMotionTrigger(1,2) % TODO: temporarily disable. Not all stages do this.
 
     case 'ribbon'
         obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
