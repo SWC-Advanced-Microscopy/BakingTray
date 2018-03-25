@@ -425,13 +425,29 @@ classdef (Abstract) linearcontroller < handle & loghandler
                 msg=sprintf('Desired move location is empty');
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
-            end            
-            if ~isscalar(thisValue)                
+            end
+            if ~isscalar(thisValue)
                 msg='Desired move location must be a scalar';
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
             success=true;
+        end
+
+        function success=resetAxis(obj)
+            % Some stages can become temporarily disabled by accident.
+            % This method cycles the disable/enable routines in the hope of
+            % returning functionality
+            fprintf('Attempting to reset axis\n')
+
+            %TODO add a "check if axis is enabled method"
+            if ~obj.disableAxis
+                fprintf('Failed to disable axis\n')
+            end
+            if ~obj.enableAxis
+                fprintf('Failed to enable axis\n')
+            end
+
         end
     end %close methods
 
