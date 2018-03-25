@@ -117,6 +117,7 @@ classdef maitai < laser & loghandler
 
 
         function success = turnOff(obj)
+            obj.closeShutter; % Older MaiTai lasers seem not to do this by default 
             success=obj.sendAndReceiveSerial('OFF',false);
             if success
                 obj.isLaserOn=false;
