@@ -414,6 +414,14 @@ classdef genericPIcontroller < linearcontroller
 
         end %disableAxis
 
+        function printAxisStatus(obj)
+          printAxisStatus@linearcontroller(obj); %call the superclass
+          fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
+                obj.getMinPos, obj.getMaxPos)
+          
+        end
+
+
     end %close methods
 
 

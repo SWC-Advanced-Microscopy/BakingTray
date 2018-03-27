@@ -36,7 +36,7 @@ classdef C891 < genericPIcontroller
     properties
 
       % See also genericPIcontroller
-
+      paramMap
     end % close public properties
 
 
@@ -50,7 +50,33 @@ classdef C891 < genericPIcontroller
                 logObject=[];
             end
             obj = obj@genericPIcontroller(stageObject,logObject);
+
+            %Build a map structure that allows us to read off desired controller parameters
+            paramID = {'Position P Term', 'Position I Term', 'Position D Term', ...
+                       'Velocity P Term', 'Velocity I Term', 'Velocity D Term'};
+
+            IDhex = {'3000', '3001', '3002', ...
+                    '3010', '3011', '3012'};
+
+            obj.paramMap = containers.Map(paramID,IDhex);
+
         end % Constructor
+    end
+
+    methods
+        function reportPIDparams(obj)
+            % Prints to screen the PID parameters for this stage/controller pair
+            theseKeys = obj.paramMap.keys;
+            f = find( cellfun(@(x) endsWith(x,' Term'),theseKeys)  ) ; %Find keys associated with the the PID loop
+
+            %Print the contents of these to screen
+            for ii=1:length(f)
+                thisKey = theseKeys{f(ii)};
+                thisVal = obj.hC.qSPA('1', hex2dec(obj.paramMap(thisKey)) ); 
+                fprintf('%s : %0.5f\n' , thisKey,  thisVal);
+            end
+
+        end
     end
 
 
@@ -88,5 +114,18 @@ classdef C891 < genericPIcontroller
 
     end %close hidden methods
 
+
+    methods
+        function printAxisStatus(obj)
+            printAxisStatus@genericPIcontroller(obj)
+
+            enableDisableString={'disabled','enabled'};
+            fprintf('Axis is %s\n', enableDisableString{obj.hC.qEAX('1')+1})
+            fprintf('Servo is %s\n', enableDisableString{obj.hC.qSVO('1')+1})
+            obj.reportPIDparams
+            fprintf('%s\n',obj.hC.qIDN)
+
+        end
+    end
 
 end %close classdef 

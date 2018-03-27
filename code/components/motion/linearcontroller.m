@@ -455,6 +455,33 @@ classdef (Abstract) linearcontroller < handle & loghandler
             end
 
         end
+
+
+        function printAxisStatus(obj)
+            % Prints to screen information related to this axis
+            %
+            % Behavior
+            % The command can return whatever is most appropriate for the stage/controller. 
+            % The idea is to provide debugging information so that the user does not have to 
+            % quit BakingTray and start manufacturer-provided software in order to get 
+            % basic information. Classes that inherit linearcontroller should first run
+            % this superclass method before appending behavior of their own. This means they are
+            % also free to define no additional behavior if that is appropriate.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none - only return text to screen
+
+            fprintf('\n** Status of stage and controller of %s\n', obj.attachedStage.axisName)
+
+
+            fprintf('BakingTray minPos = %0.2f mm ; BakingTray maxPos = %0.2f mm\n', ... 
+                obj.attachedStage.minPos, obj.attachedStage.maxPos)
+        end
+
+
     end %close methods
 
 end %close classdef
