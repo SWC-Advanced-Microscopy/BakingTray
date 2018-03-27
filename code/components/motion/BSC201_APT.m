@@ -539,6 +539,26 @@ classdef BSC201_APT < linearcontroller
 
       end
 
+      function resetAxis(obj)
+        %enable/disable of the stepper motor could cause loss of the position and is never needed
+        fprintf('Axis reset not valid for the BSC201 as it is driving a stepper motor with no encoder\n')
+      end
+
+      function printAxisStatus(obj)
+        printAxisStatus@linearcontroller(obj); %call the superclass
+        [~,maxPos,minPos,~,~,~]=obj.hC.GetStageAxisInfo(0,0,0,0,0,0);
+
+        fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
+              obj.attachedStage.transformDistance(minPos), obj.attachedStage.transformDistance(maxPos))
+        if obj.isMotorHomed
+          fprintf('Motor is homed\n')
+        else
+          fprintf('Motor is NOT homed!\n')
+        end
+
+      end
+
+
     end %close methods
 
 

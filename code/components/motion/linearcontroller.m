@@ -475,8 +475,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % none - only return text to screen
 
             fprintf('\n** Status of stage and controller of %s\n', obj.attachedStage.axisName)
-
-
+            fprintf('Axis position = %0.2f mm\n', obj.axisPosition)
             fprintf('BakingTray minPos = %0.2f mm ; BakingTray maxPos = %0.2f mm\n', ... 
                 obj.attachedStage.minPos, obj.attachedStage.maxPos)
         end
