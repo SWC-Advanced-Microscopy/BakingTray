@@ -73,8 +73,11 @@ classdef BSC201_APT < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function delete(obj)
-        obj.hC.StopCtrl;
-        delete(obj.figH)
+        if ~isempty(obj.hC)
+          fprintf('Closing connection to BSC201 controller\n')
+          obj.hC.StopCtrl;
+          delete(obj.figH)
+        end
       end %destructor
 
 

@@ -70,8 +70,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
 
     %Check that none of these will produce out of bounds motions
     msg='';
-   if ~isempty(obj.parent) && isa(obj.parent,'BT') && isvalid(obj.parent)
-
+    if ~isempty(obj.parent) && isa(obj.parent,'BT') && isvalid(obj.parent)
         if min(tilePosArray(:,1)) < obj.parent.xAxis.getMinPos
             msg=sprintf('%sMinimum allowed X position is %0.2f but tile position array will extend to %0.2f\n',...
                 msg, obj.parent.xAxis.getMinPos, min(tilePosArray(:,1)) );
@@ -98,6 +97,8 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
 
     if ~isempty(msg)
         fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
+        fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
+             min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
         tilePosArray=[];
         tileIndexArray=[];
     end

@@ -62,8 +62,7 @@ classdef genericPIcontroller < linearcontroller
         % Destructor
         function delete(obj)
             if ~isempty(obj.hC)
-              msg = sprintf('Closing connection to %s controller',obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,3,msg)
+              fprintf('Closing connection to %s controller\n',obj.controllerID.controllerModel);
               obj.hC.CloseConnection
             end
         end % Destructor
