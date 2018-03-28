@@ -48,6 +48,7 @@ classdef FaulhaberMCDC < cutter & loghandler
         %destructor
         function delete(obj)
             if ~isempty(obj.hC) && isa(obj.hC,'serial')
+                fprintf('Closing connection to Faulhaber MCDC motor controller\n')
                 obj.stopVibrate;
                 fclose(obj.hC);
                 delete(obj.hC);

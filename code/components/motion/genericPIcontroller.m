@@ -62,8 +62,7 @@ classdef genericPIcontroller < linearcontroller
         % Destructor
         function delete(obj)
             if ~isempty(obj.hC)
-              msg = sprintf('Closing connection to %s controller',obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,3,msg)
+              fprintf('Closing connection to %s controller\n',obj.controllerID.controllerModel);
               obj.hC.CloseConnection
             end
         end % Destructor
@@ -413,6 +412,19 @@ classdef genericPIcontroller < linearcontroller
             end
 
         end %disableAxis
+
+        function printAxisStatus(obj)
+          printAxisStatus@linearcontroller(obj); %call the superclass
+
+          minPos = obj.hC.qTMN('1'); 
+          minPos = obj.attachedStage.transformDistance(minPos);
+
+          maxPos = obj.hC.qTMX('1'); 
+          maxPos = obj.attachedStage.transformDistance(maxPos);
+          fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
+                minPos, maxPos)
+        end
+
 
     end %close methods
 
