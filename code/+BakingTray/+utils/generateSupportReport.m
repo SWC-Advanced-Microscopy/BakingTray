@@ -170,13 +170,13 @@ function generateSupportReport(attemptLaunch,reportFname)
         waitbar(0.3,wb); drawnow
 
 
-        % Open a temporary text file into which we will dump a variety of information
+        % Open a temporary text file into which we will dump a variety of general system information
         tmpTxtFileName = fullfile(tempdir,[fname '_system_details.txt']);
+        tempFilesToDelete{end+1} = tmpTxtFileName;
 
         % Record CPU info
         cpuInfo = most.idioms.cpuinfo;
         dumpToTXT(tmpTxtFileName, cpuInfo);
-        tempFilesToDelete{end+1} = tmpTxtFileName;
 
 
         % Record current path
@@ -214,6 +214,9 @@ function generateSupportReport(attemptLaunch,reportFname)
         mFullSession = char(jFullSession);
       
         
+        % Add the tmp file to the zip list
+        filesToZip{end+1} = tmpTxtFileName;
+
         try
             %save separate files for convenience
             fn = fullfile(tempdir,'mSessionHistory.txt');
@@ -231,6 +234,8 @@ function generateSupportReport(attemptLaunch,reportFname)
             filesToZip{end+1} = fn;
         catch
         end
+
+
         
 
         % Copy the BakingTray settings files
@@ -249,10 +254,21 @@ function generateSupportReport(attemptLaunch,reportFname)
             fprintf('Failed to finding settings files at %s\n', BakingTray.settings.settingsLocation)
         end
 
-        waitbar(0.9,wb); drawnow
+        % Save a copy of the current recipe
+        try 
+            tmpRecipeFile = hBTlocal.recipe.writeFullRecipeForAcquisition(tempdir);
+            tempFilesToDelete{end+1} = tmpRecipeFile;
+            filesToZip{end+1} = tmpRecipeFile;
+        catch
+            fprintf('Failed to write full recipe file\n')
+            recipeFname = fullfile(tempdir,'recipe_stub_failed_to_write_full.yml');
+            hBTlocal.recipe.saveRecipe(recipeFname);
+            tempFilesToDelete{end+1} = recipeFname;
+            filesToZip{end+1} = recipeFname;
+        end
 
-        % Add the tmp file to the zip list
-        filesToZip{end+1} = tmpTxtFileName;
+
+        waitbar(0.9,wb); drawnow
 
         % Zip important information
         zip(reportFname, filesToZip);
