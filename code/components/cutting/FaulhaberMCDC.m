@@ -37,7 +37,7 @@ classdef FaulhaberMCDC < cutter & loghandler
             obj.controllerID=serialComms;
             success = obj.connect;
 
-            obj.stopVibrate % Because rarely on some systems the vibramtome starts on connect
+            obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
 
             if ~success
                 fprintf('Component FaulhaberMCDC failed to connect to vibrotome controller.\n')
