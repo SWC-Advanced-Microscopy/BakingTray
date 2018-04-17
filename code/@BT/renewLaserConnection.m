@@ -19,7 +19,6 @@ function success=renewLaserConnection(obj)
 
     delete(obj.laser)
 
-    renewLaserConnection(obj)
     %Build the component
     obj.laser=buildLaserComponent(laserClass, currentCOM);
 
