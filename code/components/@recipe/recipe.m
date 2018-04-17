@@ -361,10 +361,8 @@ classdef recipe < handle
             end
 
             % We just need a tile pattern and don't want to generate an out of bounds error due to a funny
-            % front/left position. So first set the front/left to zero.
-            obj.FrontLeft.X=0;
-            obj.FrontLeft.Y=0;
-            tp=obj.tilePattern;
+            % front/left position. So we pass "quiet" and "returnEvenIfOutOfBounds" to the tilePattern method
+            tp=obj.tilePattern(true,true);
 
             if isempty(tp)
                 success=false;

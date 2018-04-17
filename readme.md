@@ -5,7 +5,7 @@
 </a>
 
 ### What is it?
-BakingTray is an open-source serial section 2-photon tomography (STP) system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
+BakingTray is an open-source serial section 2-photon imaging system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
 This software is aimed at technically-minded people who want an open source STP solution that can be modified for their needs. 
@@ -36,3 +36,12 @@ The current feature set is as follows:
 
 ### Getting started ###
 See [the wiki](https://github.com/BaselLaserMouse/BakingTray/wiki)
+
+
+### Related work
+* Economo *et al*. A New Platform for Brain-Wide Imaging and Reconstruction of Neurons. eLife 2016
+* Li *et al*. Micro-Optical Sectioning Tomography to Obtain a High-Resolution Atlas of the Mouse Brain. Science. 2010
+* Mayerich *et al*. Knife-edge scanning microscopy for imaging and reconstruction of three-dimensional anatomical structures… J. Microscopy. 2008
+* Ragan *et al*. Serial two-photon tomography for automated ex-vivo mouse brain imaging. Nat. Meth. 2012
+* Seiriki, *et al*. High-Speed and Scalable Whole-Brain Imaging in Rodents and Primates. Neuron 2017
+* Zheng *et al*. Visualization of brain circuits using two-photon fluorescence micro-optical sectioning tomography. Opt. Express. 2013
