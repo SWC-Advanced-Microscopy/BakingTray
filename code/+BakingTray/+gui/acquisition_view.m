@@ -489,7 +489,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 return
             end
 
-            %If the current tile position is 1 that means it was reset from it's final value at the end of the last
+            %If the current tile position is 1 that means it was reset from its final value at the end of the last
             %section to 1 by BT.runTileScan. So that indicates the start of a section. If so, we wipe all the 
             %buffer data so we get a blank image
             if obj.model.currentTilePosition==1

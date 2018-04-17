@@ -1,4 +1,4 @@
-function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
+function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOfBounds)
     % Calculate a tile grid for imaging. The imaging will proceed in an "S" over the sample.
     %
     % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet)
@@ -24,8 +24,14 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
     % 
     % Rob Campbell - Basel
 
+
     if nargin<2
         quiet=false;
+    end
+    if nargin<3
+        % This is set to true by recipe.setFrontLeftFromVentralMidLine
+        % Nothing else should be setting this to true
+        returnEvenIfOutOfBounds=false;
     end
 
     % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
@@ -96,11 +102,16 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet)
 
 
     if ~isempty(msg)
-        fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
-        fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
-             min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
-        tilePosArray=[];
-        tileIndexArray=[];
+
+        if ~quiet
+            fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
+            fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
+                 min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
+        end
+        if ~returnEvenIfOutOfBounds
+            tilePosArray=[];
+            tileIndexArray=[];
+        end
     end
 
 
