@@ -7,6 +7,16 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+17th April 2018
+- Add class for PI C-663
+- Explicitly close MaiTai shutter before turning off
+- USER: hBT.getStageStatus returns info on stages
+- USER: hBT.renewLaserConnection to re-connect to laser in event of a failure on startup
+- BakingTray.utils.generateSupportReport for assistance in reporting errors
+- MCDC cutter sends stop command when connecting
+- BUGFIX: Preview image size is now calculated correctly 
+- BUGFIX: setVentralMidline failure corrected for small water baths
+
 
 21st November 2017
 - USER: ** Move to ScanImage 5.3.1 **
