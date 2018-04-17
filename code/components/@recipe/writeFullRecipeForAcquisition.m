@@ -1,4 +1,4 @@
-function writeFullRecipeForAcquisition(obj,dirName)
+function varargout=writeFullRecipeForAcquisition(obj,dirName)
     % Write recipe to disk and name it according to the sample ID and today's date
     % 
     % recipe.writeFullRecipeForAcquisition
@@ -15,6 +15,10 @@ function writeFullRecipeForAcquisition(obj,dirName)
     % Inputs
     % dirName - By default the recipe is written to the current directory. If dirName
     %           is defined, the recipe is written here instead. 
+    %
+    % Outputs
+    % Optionally return the full path to the file location
+    %
     %
     % Also see:
     %  recipe.saveRecipe 
@@ -48,3 +52,6 @@ function writeFullRecipeForAcquisition(obj,dirName)
     fprintf('Writing recipe to %s\n',writePath);
     BakingTray.yaml.WriteYaml(writePath,thisRecipe);
 
+    if nargout>0
+        varargout{1}=writePath;
+    end

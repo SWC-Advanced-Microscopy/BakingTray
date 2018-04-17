@@ -409,12 +409,17 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
             tp=abs(tp);
-            tp=ceil(tp/obj.model.downsampleTileMMperPixel); %TODO: non-square images?
+            tp=ceil(tp/obj.model.downsampleTileMMperPixel);
             obj.previewTilePositions=tp;
 
+            ovLap = obj.model.recipe.mosaic.overlapProportion+1;
+
+            % The size of the preview image
             stepSizes = max(abs(diff(tp)));
-            imCols = range(tp(:,1)) + stepSizes(1);
-            imRows = range(tp(:,2)) + stepSizes(2);
+            %              imsize + tile size including overlap
+            imCols = range(tp(:,1)) + round(stepSizes(1) * ovLap);
+            imRows = range(tp(:,2)) + round(stepSizes(2) * ovLap);
+
 
             obj.previewImageData = ones([imRows,imCols, ...
                 obj.model.recipe.mosaic.numOpticalPlanes, ...
@@ -484,7 +489,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 return
             end
 
-            %If the current tile position is 1 that means it was reset from it's final value at the end of the last
+            %If the current tile position is 1 that means it was reset from its final value at the end of the last
             %section to 1 by BT.runTileScan. So that indicates the start of a section. If so, we wipe all the 
             %buffer data so we get a blank image
             if obj.model.currentTilePosition==1

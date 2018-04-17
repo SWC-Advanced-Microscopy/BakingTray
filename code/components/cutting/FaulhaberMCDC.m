@@ -36,7 +36,9 @@ classdef FaulhaberMCDC < cutter & loghandler
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
             success = obj.connect;
-            
+
+            obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
+
             if ~success
                 fprintf('Component FaulhaberMCDC failed to connect to vibrotome controller.\n')
                 %TODO: is it possible to delete it here?
@@ -48,6 +50,7 @@ classdef FaulhaberMCDC < cutter & loghandler
         %destructor
         function delete(obj)
             if ~isempty(obj.hC) && isa(obj.hC,'serial')
+                fprintf('Closing connection to Faulhaber MCDC motor controller\n')
                 obj.stopVibrate;
                 fclose(obj.hC);
                 delete(obj.hC);
@@ -66,9 +69,9 @@ classdef FaulhaberMCDC < cutter & loghandler
                 return
             end
 
-            if ischar(obj.controllerID);
+            if ischar(obj.controllerID)
                 obj.hC = serial(obj.controllerID);
-            elseif iscell(obj.controllerID);
+            elseif iscell(obj.controllerID)
                 obj.hC = serial(obj.controllerID{:});
             else
                 success=false;                

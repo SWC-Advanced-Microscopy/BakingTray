@@ -207,7 +207,14 @@ classdef BT < loghandler
 
 
         % ----------------------------------------------------------------------
-        % Public methods for moving the X/Y stage
+        % Public methods for moving the X/Y stage an interacting with it
+        function getStageStatus(obj)
+            %Print to screen status of each axis
+            obj.xAxis.printAxisStatus
+            obj.yAxis.printAxisStatus
+            obj.zAxis.printAxisStatus
+        end
+        
         function varargout=moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Absolute move position defined by xPos and yPos
             % Wait for motion to complete before returning if blocking is true. 

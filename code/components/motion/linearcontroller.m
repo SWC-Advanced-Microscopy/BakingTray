@@ -105,8 +105,6 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % Output
         % Position of the axis in the currently selected units. False if no reading could be made.
 
-
-
         moving = isMoving(obj)
         % Is a given axis currently moving?
         %
@@ -205,8 +203,6 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % true - the units were changed successfully
         % false - the units were not changed successfully
 
-
-
     end %Critical abstract methods
 
 
@@ -270,20 +266,20 @@ classdef (Abstract) linearcontroller < handle & loghandler
         end
 
         function success = isStageConnected(obj)
-        % isStageConnected
-        %
-        % function success = isStageConnected(obj)
-        %
-        %
-        % Behavior
-        % Returns true if a stage has been attached to the controller object.
-        %
-        % 
-        % Inputs
-        % none 
-        %
-        % Outputs
-        % success - true or false depending on whether a stage is present
+            % isStageConnected
+            %
+            % function success = isStageConnected(obj)
+            %
+            %
+            % Behavior
+            % Returns true if a stage has been attached to the controller object.
+            %
+            % 
+            % Inputs
+            % none 
+            %
+            % Outputs
+            % success - true or false depending on whether a stage is present
 
             success=false;
             attachedStage=[];
@@ -301,33 +297,33 @@ classdef (Abstract) linearcontroller < handle & loghandler
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function ready = isAxisReady(obj)
-          % Report whether the controller is ready to execute a command on an axis
-          %
-          % Behavior
-          % Before performing tasks such as getting an axis position or moving an axis we 
-          % want to first check whether the controller is correctly set up to do this. 
-          % i.e. is the connection to the controller working and is the stage connected?
-          % This method's first output argument must return true if everything is set up correctly. 
-          % You may define extra output arguments specific for your purposes.
-          %
-          % Inputs
-          % none 
-          %
-          % Outputs
-          % ready - true/false
-          %   ready is true if the object is set up and ready to perform axis motions or 
-          %   query the axis, etc. false otherwise.
+            % Report whether the controller is ready to execute a command on an axis
+            %
+            % Behavior
+            % Before performing tasks such as getting an axis position or moving an axis we 
+            % want to first check whether the controller is correctly set up to do this. 
+            % i.e. is the connection to the controller working and is the stage connected?
+            % This method's first output argument must return true if everything is set up correctly. 
+            % You may define extra output arguments specific for your purposes.
+            %
+            % Inputs
+            % none 
+            %
+            % Outputs
+            % ready - true/false
+            %   ready is true if the object is set up and ready to perform axis motions or 
+            %   query the axis, etc. false otherwise.
 
 
-          ready=false;
+            ready=false;
 
-          % Is a connection established to the hardare and is at least one linearstage connected?
-          if ~obj.isControllerConnected || ~obj.isStageConnected 
-            obj.logMessage(inputname(1),dbstack,6,'Controller or stages not connected.')
-            return
-          end
+            % Is a connection established to the hardare and is at least one linearstage connected?
+            if ~obj.isControllerConnected || ~obj.isStageConnected 
+                obj.logMessage(inputname(1),dbstack,6,'Controller or stages not connected.')
+                return
+            end
 
-          ready=true;
+            ready=true;
         end %isAxisReady
 
 
@@ -425,14 +421,66 @@ classdef (Abstract) linearcontroller < handle & loghandler
                 msg=sprintf('Desired move location is empty');
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
-            end            
-            if ~isscalar(thisValue)                
+            end
+            if ~isscalar(thisValue)
                 msg='Desired move location must be a scalar';
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
             success=true;
         end
+
+        function varargout=resetAxis(obj)
+            % Some stages can become temporarily disabled by accident.
+            % This method cycles the disable/enable routines in the hope of
+            % returning functionality
+            fprintf('Attempting to reset axis')
+            success=true;
+            %TODO add a "check if axis is enabled method"
+            if ~obj.disableAxis
+                fprintf('\nFailed to disable axis\n')
+                success=false;
+            end
+            if ~obj.enableAxis
+                fprintf('\nFailed to enable axis\n')
+                success=false;
+            end
+
+            if success
+                fprintf(' - success!\n')
+            end
+
+            if nargout>0
+                varargout{1}=success;
+            end
+
+        end
+
+
+        function printAxisStatus(obj)
+            % Prints to screen information related to this axis
+            %
+            % Behavior
+            % The command can return whatever is most appropriate for the stage/controller. 
+            % The idea is to provide debugging information so that the user does not have to 
+            % quit BakingTray and start manufacturer-provided software in order to get 
+            % basic information. Classes that inherit linearcontroller should first run
+            % this superclass method before appending behavior of their own. This means they are
+            % also free to define no additional behavior if that is appropriate.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none - only return text to screen
+
+            fprintf('\n** Status of stage and controller of %s\n', obj.attachedStage.axisName)
+            fprintf('Axis position = %0.2f mm\n', obj.axisPosition)
+            fprintf('BakingTray minPos = %0.2f mm ; BakingTray maxPos = %0.2f mm\n', ... 
+                obj.attachedStage.minPos, obj.attachedStage.maxPos)
+        end
+
+
     end %close methods
 
 end %close classdef

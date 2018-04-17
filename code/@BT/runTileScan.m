@@ -29,7 +29,7 @@ function runSuccess = runTileScan(obj)
     % by the armScanner method
     switch obj.recipe.mosaic.scanmode
     case 'tile'
-        obj.yAxis.disableInMotionTrigger(1,2)
+        %obj.yAxis.disableInMotionTrigger(1,2) % TODO: temporarily disable. Not all stages do this.
 
     case 'ribbon'
         obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
@@ -90,7 +90,7 @@ function runSuccess = runTileScan(obj)
         nTilesToAcquire = obj.recipe.numTilesInOpticalSection;
     end
 
-    fprintf('\nFinished %d/%d tiles (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
+    fprintf('\nFinished %d tile positions. Acquired %d images per channel (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
         obj.currentTilePosition, nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
         obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/(obj.currentTilePosition))
     runSuccess=true;
