@@ -82,7 +82,7 @@ switch controllerName
 
     case 'C891'
         % Likely this will be used to control an X or Y stage
-        stageComponents = build_C891_stages(stages);
+        stageComponents = buildSingleAxisGenericPIstage(stages);
         if isempty(stageComponents)
             return
         end
@@ -97,7 +97,7 @@ switch controllerName
 
      case 'C663'
         % Likely this will be used to control an X or Y stage
-        stageComponents = build_C891_stages(stages);
+        stageComponents = buildSingleAxisGenericPIstage(stages);
         if isempty(stageComponents)
             return
         end
@@ -181,7 +181,7 @@ function stageComponents = build_BSC201_APT_stages(stages)
 
 
 
-function stageComponents = build_C891_stages(stages)
+function stageComponents = buildSingleAxisGenericPIstage(stages)
     %Returns a structure of stage components for the PI C891
 
     stageComponents=[];
