@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+23rd April 2018 PRE-RELEASE
+- Minor bugfixes relating to the bounding box drawing.
+
+
 17th April 2018
 - Add class for PI C-663
 - Explicitly close MaiTai shutter before turning off
