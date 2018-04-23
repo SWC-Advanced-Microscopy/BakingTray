@@ -942,7 +942,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             h = imrect(obj.imageAxes);
             rect_pos = wait(h);
             delete(h)
-
             [rectBottomLeft,xMMpix,yMMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
 
             frontPos = rectBottomLeft(2);
@@ -985,18 +984,16 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord = coords(1);
             yAxisCoord = coords(2);
 
-            % Size ratio between full size image and downsampled tiles
-            downsampleRatio = obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine;
-
-            xMMPix = obj.model.recipe.VoxelSize.X * downsampleRatio * 1E-3;
-            yMMPix = obj.model.recipe.VoxelSize.Y * downsampleRatio * 1E-3;
-
+            sSize=obj.model.recipe.mosaic.sampleSize; %Size of the area we are imaging
+            % So number of pixels in X and Y
+            yMMPix = sSize.Y/size(obj.previewImageData,1);
+            xMMPix = sSize.X / size(obj.previewImageData,2);
 
             % How the figure is set up:
-            % * The Y axis corresponds to motion of the X stage. 
+            % * The Y axis of the image (rows) corresponds to motion of the X stage. 
             %   X stage values go negative as we move up the axis (where axis values become more postive)
             % 
-            % * The X axis corresponds to motion of the Y stage
+            % * The X axis of the image (columns) corresponds to motion of the Y stage
             %   Both Y stage values and X axis values become more positive as we move to the right.
             %
             % * The front/left position is at the top left of the figure
