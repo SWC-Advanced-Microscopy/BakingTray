@@ -786,6 +786,12 @@ classdef view < handle
                 end
             end
 
+
+            % If possible update the label text. Don't proceed if no scanner is connected
+            if ~obj.model.isScannerConnected
+                return
+            end
+
             % Get the tile size value from the pop-up menu
             selectedTileSize=[];
             for ii=1:length(obj.recipeEntryBoxes.other)
@@ -871,7 +877,9 @@ classdef view < handle
             if nargin<2 && ~strcmp(enableState,'on') && ~strcmp(enableState,'off')
                 return
             end
+
             entryBoxFields=fields(obj.recipeEntryBoxes);
+
             for ii=1:length(entryBoxFields)
                 if isstruct( obj.recipeEntryBoxes.(entryBoxFields{ii}) ) 
                     theseFields=fields(obj.recipeEntryBoxes.(entryBoxFields{ii}));
