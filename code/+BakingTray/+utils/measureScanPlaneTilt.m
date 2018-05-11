@@ -28,11 +28,10 @@ function OUT=measureScanPlaneTilt(planeData)
 
 
         tRows = squeeze(mean(im(1:nLines,:,:),1));
-        tmp=squeeze(mean(tRows(pixToAverage,:),1));
-        OUT.statsRows(ii) = fitDataToSigmoid(x, tmp );
+        OUT.statsRows(ii) = BakingTray.utils.fitSigmoidToData(x, squeeze(mean(tRows(pixToAverage,:),1)) );
 
         tCols = squeeze(mean(im(:,1:nLines,:),2));
-        OUT.statsCols(ii) = fitDataToSigmoid(x, squeeze(mean(tCols(pixToAverage,:),1)) );
+        OUT.statsCols(ii) = BakingTray.utils.fitSigmoidToData(x, squeeze(mean(tCols(pixToAverage,:),1)) );
 
     end
 
@@ -60,51 +59,6 @@ function OUT=measureScanPlaneTilt(planeData)
     grid on
 
 
-
-
-
-
-
-function fitStruct = fitDataToSigmoid(x,y)
-
-    % Prepare data and generate starting parameters
-    [x,y] = prepareCurveData(x,y);
-
-    % Store fit data in a structure
-    fitStruct.x = x;
-    fitStruct.y = y;
-
-    automatic_initial_params=[quantile(y,0.05) quantile(y,0.95) 1 1];
-
-    %estimate the 50% point
-    if sum(y==quantile(y,0.5))==0
-        automatic_initial_params(3) = x(y==quantile(y(2:end),0.5));
-    else
-        automatic_initial_params(3) = x(y==quantile(y,0.5));
-    end
-
-
-    tFit = @(param,xval) param(1) + ( param(2)-param(1) )./ ( 1 + 10.^( ( param(3) - xval ) * param(4) ) );
-
-
-    [BETA,RESID,JAC,COVB] = nlinfit(x, y, tFit, automatic_initial_params);
-    fitStruct.yHat = tFit(BETA,x);
-    fitStruct.param=BETA';
-    fitStruct.fit = tFit;
-
-    % confidence interval of the parameters
-    fitStruct.paramCI = nlparci(BETA,RESID,'Jacobian',JAC);
-
-    % confidence interval of the estimation
-    [fitStruct.ypred,delta] = nlpredci(tFit,x,BETA,RESID,'Covar',COVB);
-    fitStruct.ypredlowerCI = fitStruct.ypred - delta;
-    fitStruct.ypredupperCI = fitStruct.ypred + delta;
-    fitStruct.startingParams = automatic_initial_params;
-
-    %Find the x value nearest to the midpoint of the fit
-    [~,minInd]=min(abs(x-BETA(3)));
-    fitStruct.maxSlope.x = x(minInd);
-    fitStruct.maxSlope.yHat = fitStruct.yHat(minInd);
 
 
 function plotDataAndFit(fRes,tColor)
