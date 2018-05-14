@@ -413,6 +413,23 @@ classdef genericPIcontroller < linearcontroller
 
         end %disableAxis
 
+        function success = referenceStage(obj)
+          if obj.isStageReferenced
+            success=true;
+            return
+          else
+            %Disable servo and reference the stage
+            obj.hC.SVO('1',false);
+            obj.hC.FRF('1')
+            obj.hC.SVO('1',true);
+          end
+
+        end
+
+        function isReferenced = isStageReferenced(obj)
+          isReferenced = obj.hC.qFRF('1');
+        end
+
         function printAxisStatus(obj)
           printAxisStatus@linearcontroller(obj); %call the superclass
 

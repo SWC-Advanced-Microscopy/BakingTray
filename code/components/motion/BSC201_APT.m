@@ -157,7 +157,7 @@ classdef BSC201_APT < linearcontroller
         obj.setMotionRange; %The hardware controller itself will be unable to move the stage out of range
 
 
-        if ~obj.isMotorHomed & ~isempty(obj.attachedStage)
+        if ~obj.isStageReferenced & ~isempty(obj.attachedStage)
           obj.referenceStage;
         end
 
@@ -424,8 +424,6 @@ classdef BSC201_APT < linearcontroller
       end %disableAxis
 
 
-
-      %TODO: enforce that this function must always be present. even for V552, etc?
       function success=referenceStage(obj)
         %We first ensure that the limit switch associated with home
         %is the switch associated with the retracted actuator. This
@@ -447,21 +445,15 @@ classdef BSC201_APT < linearcontroller
 
         pause(1) %Because this might help with the APT crashing problems
 
-        if obj.isMotorHomed
+        if obj.isStageReferenced
           success=true; 
         else
           obj.logMessage(inputname(1),dbstack,6,'Controller reports motor is not homed. Stage may not be referenced')
           success=false;
         end
-
-
       end %reference stage
 
-
-
-      %The following are hardware query commands that the BSC201 supports but we can't be 
-      %certain if other hardware will do so or if it's relevant to other hardware. 
-      function motorHomed=isMotorHomed(obj)
+      function motorHomed=isStageReferenced(obj)
         % Has the homing routine been performed?
         % output: true/false. If no connection can be established, returns empty
 
@@ -477,8 +469,12 @@ classdef BSC201_APT < linearcontroller
           motorHomed=false;
         end
 
-      end %isMotorHomed
+      end %isStageReferenced
 
+
+
+      %The following are hardware query commands that the BSC201 supports but we can't be 
+      %certain if other hardware will do so or if it's relevant to other hardware. 
 
 
       function success=setMotionRange(obj)
@@ -553,7 +549,7 @@ classdef BSC201_APT < linearcontroller
 
         fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
               obj.attachedStage.transformDistance(minPos), obj.attachedStage.transformDistance(maxPos))
-        if obj.isMotorHomed
+        if obj.isStageReferenced
           fprintf('Motor is homed\n')
         else
           fprintf('Motor is NOT homed!\n')
