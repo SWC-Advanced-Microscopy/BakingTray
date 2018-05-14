@@ -203,6 +203,36 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % true - the units were changed successfully
         % false - the units were not changed successfully
 
+        success = referenceStage(obj)
+        %Conduct a reference motion on an axis
+        %
+        % Behavior
+        % If possible, conduct a reference motion on an axis connected to a controller.
+        % If stage can not be referenced the method should return true.
+        %
+        % Inputs
+        % none
+        %
+        % Outputs
+        % true - operation succeeded
+        % false - operation failed
+
+
+        success = isStageReferenced(obj)
+        %Test whether the axis connected to the stage has been referenced
+        %
+        % Behavior
+        % Send command to check whether attached axis is referenced. If the stage
+        % can not be referenced this method should return true.
+        %
+        % Inputs
+        % none
+        %
+        % Outputs
+        % true - stage is referenced
+        % false - stage is not referenced
+
+
     end %Critical abstract methods
 
 

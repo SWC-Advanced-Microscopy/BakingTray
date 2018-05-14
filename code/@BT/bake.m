@@ -196,6 +196,11 @@ function bake(obj,varargin)
                 return
             end
 
+            % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+            if ii==1
+                obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+            end
+
             % ===> Now the scanning runs <===
             if ~obj.runTileScan
                 fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
@@ -253,11 +258,6 @@ function bake(obj,varargin)
 
         obj.detachLogObject %Close the log file that writes to the section directory
 
-
-        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-        if ii==1
-            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-        end
 
         if ~isempty(obj.laser)
             % Record laser status after section

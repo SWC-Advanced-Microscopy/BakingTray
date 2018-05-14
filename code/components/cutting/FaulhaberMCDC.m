@@ -8,7 +8,7 @@ classdef FaulhaberMCDC < cutter & loghandler
     %
     % Rob Campbell - Basel, 2016
 
-    
+
     properties 
 
         %controllerID should be a cell array of strings that can be fed to the serial port command. 
@@ -18,7 +18,8 @@ classdef FaulhaberMCDC < cutter & loghandler
         maxControlValue=30000; %TODO: find the max control value. e.g. when motor 
                                 %commanded to this setting it should produdce motorMaxSpeed cycles/sec
     end %close public properties
-      
+
+
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -40,8 +41,10 @@ classdef FaulhaberMCDC < cutter & loghandler
             obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
 
             if ~success
-                fprintf('Component FaulhaberMCDC failed to connect to vibrotome controller.\n')
-                %TODO: is it possible to delete it here?
+                fprintf(['\n\nWARNING!\nComponent FaulhaberMCDC failed to connect to vibrotome controller.\n',...
+                    'Closing serial port\n'])
+                fclose(obj.hC)
+                delete(obj.hC)
             end
         end %constructor
 
@@ -74,23 +77,22 @@ classdef FaulhaberMCDC < cutter & loghandler
             elseif iscell(obj.controllerID)
                 obj.hC = serial(obj.controllerID{:});
             else
-                success=false;                
+                success=false;
             end
 
             fopen(obj.hC);
 
-            if isempty(obj.hC) %TODO: better tests: query the version number or something like that
-                success=false;
-            else
-                success=true;
-            end
 
-            obj.isCutterConnected=success;
+            success = obj.isControllerConnected;
 
         end %connect
 
 
         function success = isControllerConnected(obj)
+            if isempty(obj.hC)
+                success=false;
+                return
+            end
             [success,reply] = obj.sendReceiveSerial('VER');
             success = success &  ~isempty(strfind(reply,'Version'));
             obj.isCutterConnected=success;
@@ -144,8 +146,6 @@ classdef FaulhaberMCDC < cutter & loghandler
             end
             fprintf(obj.hC,commandString);
             reply=fgetl(obj.hC);
-
-            %TODO: improve check of success
 
             if strfind(reply,'Unknown command')
                 success=false;
