@@ -23,11 +23,13 @@ function varargout=measureSurfaceHeight(imStack,varargin)
             return
         end
         [~,imStack]=scanimage.util.opentif(fname); % TODO - why do my stacks keep producing a reshape error?
+
         imStack=squeeze(imStack);
-        if ndims(imStack)
+        if ndims(imStack)>3
             fprintf('Found %d channels in %s. Averaging them all together.\n', size(imStack,3),fname)
             imStack = squeeze(mean(imStack,3));
         end
+        fprintf('Loaded an image stack of size %d x %d x %d\n', size(imStack))
 
         % TODO - parse the header and extract depth info
         header = imfinfo(fname);
@@ -128,13 +130,17 @@ function varargout=measureSurfaceHeight(imStack,varargin)
 
 
     subplot(2,2,3)
-    x=1:squaresPersSide;
-    plot(x, x*b(2),'-r')
+    x=-squaresPersSide/2 : squaresPersSide/2;
+    plot(x, b(1)+x*b(2),'-r')
     hold on
-    plot(x, x*b(3),'-b')
+    plot(x, b(1)+x*b(3),'-b')
     hold off
+    grid on
     legend('Fast axis','Slow axis')
-    title(sprintf('Fast=%0.1f - Slow=%0.1f',b(2),b(3)))
+    title(sprintf('Fast=%0.1f - Slow=%0.1f - b_0=%0.1f', ...
+        b(2), b(3), b(1) ))
+
+
 
     if nargout>0
         varargout{1}=GridData;
