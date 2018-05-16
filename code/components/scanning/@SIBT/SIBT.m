@@ -20,6 +20,7 @@ classdef SIBT < scanner
     properties
         % If true you get debug messages printed during scanning and when listener callbacks are hit
         verbose=false;
+        settings=struct('tileRotate',-1);
     end
 
     properties (Hidden)
