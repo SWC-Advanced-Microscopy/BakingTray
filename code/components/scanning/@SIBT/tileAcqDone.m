@@ -66,6 +66,11 @@ function tileAcqDone(obj,~,~)
     end % if obj.parent.importLastFrames
 
 
+    %Optionally reset tripped PMTs
+    if obj.settings.doResetTrippedPMT
+        obj.reseTrippedPMTs
+    end
+
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
@@ -86,7 +91,6 @@ function tileAcqDone(obj,~,~)
         positionArray = obj.parent.positionArray;
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
-
 
     % Initiate the next position
     while obj.acquisitionPaused
