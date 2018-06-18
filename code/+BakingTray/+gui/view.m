@@ -366,10 +366,12 @@ classdef view < handle
                         textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
                     popUpText={};                    
                     for ii=1:length(objRes)
-                        popUpText{ii} = sprintf('%dx%d %0.2f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii));
+                        popUpText{ii} = sprintf('%dx%d %0.2f um/pix zm %0.1f', ...
+                            pixelsPerLine(ii),linePerFrame(ii),micsPix(ii), zoomValue(ii));
                         thisStruct(ii).objective = objective{ii};
                         thisStruct(ii).pixelsPerLine = pixelsPerLine(ii);
                         thisStruct(ii).linesPerFrame = linePerFrame(ii);
+                        thisStruct(ii).zoomFactor = zoomValue(ii);
                         thisStruct(ii).micsPix = micsPix(ii);
                         thisStruct(ii).fastMult = fastM(ii);
                         thisStruct(ii).slowMult = slowM(ii);
@@ -809,7 +811,8 @@ classdef view < handle
                  selectedTileSize.linesPerFrame==scnSet.linesPerFrame && ...
                  selectedTileSize.slowMult==scnSet.slowMult && ...
                  selectedTileSize.fastMult==scnSet.fastMult && ...
-                 scnSet.zoomFactor==1
+                 selectedTileSize.zoomFactor==scnSet.zoomFactor
+
                 obj.recipeTextLabels.other{ii}.String = 'Tile Size';
                 obj.recipeTextLabels.other{ii}.Color = 'w';
              else

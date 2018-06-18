@@ -13,6 +13,8 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 23rd April 2018
 - Minor bugfixes relating to the bounding box drawing.
+- Add methods for referencing stages
+- BakingTray.utils.measureSurfaceHeight measures surface height at different locations within a single z-stack
 
 
 17th April 2018

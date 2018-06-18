@@ -20,6 +20,7 @@ classdef SIBT < scanner
     properties
         % If true you get debug messages printed during scanning and when listener callbacks are hit
         verbose=false;
+        settings=struct('tileRotate',-1, 'doResetTrippedPMT',0);
     end
 
     properties (Hidden)
@@ -341,6 +342,37 @@ classdef SIBT < scanner
     methods % This methods block contains additional methods unique to SIBT
         % Perhaps some of the following should be part of scanner, we need to decide
         % Larger methods are in their own files and declared after this block
+
+        function resetTrippedPMTs(obj,resetAll)
+            % function resetTrippedPMTs(resetAll)
+            %
+            % Purpose
+            % Resets the trip state on P2100 series.
+            % If resetAll is false (which it is by default) we only
+            % poll the PMTs corresponding to channels currently being saved.
+            % We skip the rest. 
+
+            if nargin<2
+                resetAll=false;
+            end
+
+            if resetAll==true
+                doReset = ones(1,length(obj.hC.hPmts.tripped));
+            else
+                doReset = zeros(1,length(obj.hC.hPmts.tripped));
+                doReset(obj.channelsToAcquire) = 1;
+            end
+            
+            for ii=1:length(obj.hC.hPmts.tripped)
+                if doReset(ii) && obj.hC.hPmts.tripped(ii)
+                    msg = sprintf('Reset tripped PMT #%d', ii);
+                    obj.logMessage(inputname(1) ,dbstack,2, msg)
+                    hSI.hC.hPmts.resetTripStatus(ii);
+                    hSI.hC.hPmts.setPmtPower(ii,1);
+                end
+            end
+        end %close resetTrippedPMTs
+
         function framePeriod = getFramePeriod(obj) %TODO: this isn't in the abstract class.
             %return the frame period (how long it takes to acquire a frame) in seconds
             framePeriod = obj.hC.hRoiManager.scanFramePeriod;
