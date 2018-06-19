@@ -675,7 +675,7 @@ classdef view < handle
                     if isfield(tSet,'stitchingVoxelSize')
                         thisStruct(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
                     else
-                        thisStruct(ii).stitchingVoxelSize = struct('X',  tSet.nominalMicronsPerPixel, 'Y',  tSet.nominalMicronsPerPixel);
+                        thisStruct(ii).stitchingVoxelSize = [];
                     end
                 end
 
@@ -875,14 +875,23 @@ classdef view < handle
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
 
+            %Set the scanner settings
+            obj.model.scanner.setImageSize(src,evt)
+
             %Send copies of stitching-related data to the recipe
             FrameData = src.UserData(src.Value);
-            obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+            if isempty(FrameData.stitchingVoxelSize)
+                scnSet = obj.model.scanner.returnScanSettings;
+                % Just take nominal values. It doesn't matter too much. 
+                mu = mean([scnSet.micronsPerPixel_rows,scnSet.micronsPerPixel_cols]);
+                obj.model.recipe.StitchingParameters.VoxelSize.X=mu;
+                obj.model.recipe.StitchingParameters.VoxelSize.Y=mu;
+            else
+                obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+            end
             obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
             obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
 
-            %Set the scanner settings
-            obj.model.scanner.setImageSize(src,evt)
         end
 
         function ID = getScannerID(obj)
