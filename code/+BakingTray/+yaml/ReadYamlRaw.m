@@ -2,19 +2,19 @@ function result = ReadYamlRaw(filename, verbose, nosuchfileaction, treatasdata)
 import BakingTray.yaml.*;
 if ~exist('verbose','var')
         verbose = 0;
-    end;
+    end
     if ~exist('nosuchfileaction','var')
         nosuchfileaction = 0;
-    end;
+    end
     if ~ismember(nosuchfileaction,[0,1])
         error('nosuchfileexception parameter must be 0,1 or missing.');
-    end;
+    end
     if(~exist('treatasdata','var'))
         treatasdata = 0;
-    end;
+    end
     if ~ismember(treatasdata,[0,1])
         error('treatasdata parameter must be 0,1 or missing.');
-    end;
+    end
     [pth,~,~] = fileparts(mfilename('fullpath'));       
     try
         import('org.yaml.snakeyaml.*');
@@ -25,7 +25,7 @@ if ~exist('verbose','var')
         	javaaddpath(dp); % javaaddpath clears global variables!?
         end
         import('org.yaml.snakeyaml.*');
-    end;
+    end
     setverblevel(verbose);
     result = load_yaml(filename, nosuchfileaction, treatasdata);
 end
@@ -34,11 +34,11 @@ import BakingTray.yaml.*;
 persistent nsfe;
     if exist('nosuchfileaction','var') %isempty(nsfe) && 
         nsfe = nosuchfileaction;
-    end;
+    end
     persistent tadf;
     if isempty(tadf) && exist('treatasdata','var')
         tadf = treatasdata;
-    end;
+    end
     yaml = org.yaml.snakeyaml.Yaml(); % It appears that Java objects cannot be persistent!?
     if ~tadf
         [filepath, filename, fileext] = fileparts(inputfilename);
@@ -46,18 +46,18 @@ persistent nsfe;
             pathstore = cd();
         else
             pathstore = cd(filepath);
-        end;
-    end;
+        end
+    end
     try
         if ~tadf
             result = scan(yaml.load(fileread([filename, fileext])));
         else
             result = scan(yaml.load(inputfilename));
-        end;
+        end
     catch ex
         if ~tadf
             cd(pathstore);
-        end;
+        end
         switch ex.identifier
             case 'MATLAB:fileread:cannotOpenFile'
                 if nsfe == 1
@@ -66,13 +66,13 @@ persistent nsfe;
                     warning('MATLAB:MATYAML:FileNotFound', ['No such file to read: ',filename,fileext]);
                     result = struct();
                     return;
-                end;
-        end;
+                end
+        end
         rethrow(ex);
-    end;
+    end
     if ~tadf
         cd(pathstore);    
-    end;
+    end
 end
 function result = scan(r)
 import BakingTray.yaml.*;
@@ -90,7 +90,7 @@ if isa(r, 'char')
         result = scan_map(r);
     else
         error(['Unknown data type: ' class(r)]);
-    end;
+    end
 end
 function result = scan_string(r)
 import BakingTray.yaml.*;
@@ -117,7 +117,7 @@ result = cell(r.size(),1);
         i = it.next();
         result{ii} = scan(i);
         ii = ii + 1;
-    end;
+    end
 end
 function result = scan_map(r)
 import BakingTray.yaml.*;
@@ -130,8 +130,8 @@ it = r.keySet().iterator();
             result.(ich) = perform_import(r.get(java.lang.String(ich)));
         else
             result.(genvarname(ich)) = scan(r.get(java.lang.String(ich)));
-        end;
-    end;
+        end
+    end
     if not(exist('result','var'))
         result={};
     end
@@ -150,7 +150,7 @@ r = scan(r);
     else
         disp(r);
         error(['Importer does not unterstand given filename. '               'Invalid node displayed above.']);
-    end;
+    end
 end
 function setverblevel(level)
 import BakingTray.yaml.*;
@@ -158,7 +158,7 @@ global verbose_readyaml;
     verbose_readyaml = 0;
     if exist('level','var')
         verbose_readyaml = level;
-    end;
+    end
 end
 function result = getverblevel()
 import BakingTray.yaml.*;
@@ -173,6 +173,6 @@ if getverblevel() >= level
             disp(value_to_display);
         else
             fprintf('\n');
-        end;
-    end;
+        end
+    end
 end
