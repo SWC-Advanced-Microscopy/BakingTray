@@ -662,10 +662,14 @@ classdef view < handle
                     %This is used by StitchIt to correct barrel or pincushion distortion
                     if isfield(tSet,'lensDistort')
                         thisStruct(ii).lensDistort = tSet.lensDistort;
+                    else
+                        thisStruct(ii).lensDistort = [];
                     end
                     %This is used by StitchIt to affine transform the images to correct things like shear and rotation
-                    if isfield(tSet,'affinMat')
+                    if isfield(tSet,'affineMat')
                         thisStruct(ii).affineMat = tSet.affineMat;
+                    else
+                        thisStruct(ii).affineMat = [];
                     end
                     %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
                     if isfield(tSet,'stitchingVoxelSize')
@@ -677,7 +681,7 @@ classdef view < handle
 
                 obj.recipeEntryBoxes.other{1}.String = popUpText;
                 obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
-                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
+                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); %Cause scanimage to set the image size
             else % Report no frameSize file found
                 fprintf('\n\n No frame size file found at %s\n\n', frameSizeFname)
                 [~,fname,ext]=fileparts(frameSizeFname);
@@ -762,7 +766,7 @@ classdef view < handle
 
                     endTime = obj.model.estimateTimeRemaining(scnSet, tilesPlane.total);
                     if length(obj.model.scanner.channelsToAcquire)>1
-                        channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
+                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==1
                         channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==0
@@ -864,6 +868,22 @@ classdef view < handle
                 obj.enableDisableThisView('on')
             end
         end % disableDuringAcquisition
+
+        function applyScanSettings(obj,src,evt)
+            % Apply the chosen scan settings to ScanImage and send the current stitching settings
+            % to the recipe. TODO: This method performs critical tasks that should not be done by a view class. 
+            %                      To maintain the model/view separation the recipe operation should be done
+            %                      elsewhere. Maybe in BT or the recipe class itself.
+
+            %Send copies of stitching-related data to the recipe
+            FrameData = src.UserData(src.Value);
+            obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+            obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
+            obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
+
+            %Set the scanner settings
+            obj.model.scanner.setImageSize(src,evt)
+        end
 
         function ID = getScannerID(obj)
             %returns false if no scanner is connected
