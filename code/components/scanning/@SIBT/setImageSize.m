@@ -16,13 +16,13 @@ function setImageSize(obj,pixelsPerLine,evnt)
     % the source structure (matlab.ui.container.Menu) and should contain a field called 
     % "UserData" which is a structure that looks like this:
     %
-    %       objective: 'nikon16x'
-    %   pixelsPerLine: 512
-    %    linePerFrame: 1365
-    %         micsPix: 0.7850
-    %        fastMult: 0.7500
-    %        slowMult: 2
-    %          objRes: 59.5500
+    %              objective: 'nikon16x'
+    %          pixelsPerLine: 512
+    %           linePerFrame: 1365
+    % nominalMicronsPerPixel: 0.7850
+    %               fastMult: 0.7500
+    %               slowMult: 2
+    %                 objRes: 59.5500
     %
     % This information is then used to apply the scan settings. 
 
