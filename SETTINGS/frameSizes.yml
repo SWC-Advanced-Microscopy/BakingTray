@@ -31,6 +31,7 @@ setC:
   fastMult: 1
   slowMult: 1
   objRes: 52.46
+  lensDistort: {rows: 0, cols: 0.03}
 setD:
   objective: nikon16x
   pixelsPerLine: 1024
