@@ -56,14 +56,15 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
     xPos=round(obj.getXYpos,2);
     if obj.recipe.SYSTEM.cutterSide == 1
         if xPos>round(obj.recipe.CuttingStartPoint.X,2)
-            msg=sprintf('%sThe sample is already beyond the blade. Move it away from the blade and try again.\n',msg);
+            msg=sprintf('%sThe sample is already %0.2f microns beyond the blade. Move it away from the blade and try again.\n', ...
+                msg, abs(xPos-round(obj.recipe.CuttingStartPoint.X,2)) );
         end
     elseif obj.recipe.SYSTEM.cutterSide == -1
         if xPos<round(obj.recipe.CuttingStartPoint.X,2)
-            msg=sprintf('%sThe sample is already beyond the blade. Move it away from the blade and try again.\n',msg);
+            msg=sprintf('%sThe sample is already %0.2f microns beyond the blade. Move it away from the blade and try again.\n', ...
+                msg, abs(xPos-round(obj.recipe.CuttingStartPoint.X,2)));
         end
     end
-
 
     %TODO: 
     %Do we have enough travel to make the cut itself?
