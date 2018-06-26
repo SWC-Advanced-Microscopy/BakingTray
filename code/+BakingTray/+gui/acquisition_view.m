@@ -843,6 +843,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
                 obj.depthSelectPopup.String = opticalPlanes_str;
+                obj.depthSelectPopup.Enable='on';
             else
                 obj.depthSelectPopup.String = 'NONE';
                 obj.depthSelectPopup.Enable='off';
