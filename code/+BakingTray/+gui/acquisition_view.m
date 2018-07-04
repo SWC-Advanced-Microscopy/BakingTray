@@ -943,13 +943,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             h = imrect(obj.imageAxes);
             rect_pos = wait(h);
             delete(h)
-            [rectBottomLeft,xMMpix,yMMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
+            [rectBottomLeft,MMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
 
             frontPos = rectBottomLeft(2);
-            leftPos  = rectBottomLeft(1) + yMMpix*rect_pos(4);
+            leftPos  = rectBottomLeft(1) + MMpix*rect_pos(4);
 
-            extentAlongX = round(rect_pos(4)*xMMpix,2);
-            extentAlongY = round(rect_pos(3)*yMMpix,2);
+            extentAlongX = round(rect_pos(4)*MMpix,2);
+            extentAlongY = round(rect_pos(3)*MMpix,2);
             msg = sprintf(['Set the front/left position FROM X=%0.2f mm Y=%0.2f mm TO X=%0.2f mm Y=%0.2f mm ',...
                 'and the area FROM X=%0.2f by Y=%0.2f mm TO X=%0.2f by Y=%0.2f mm?'],...
                 obj.model.recipe.FrontLeft.X, obj.model.recipe.FrontLeft.Y, ...
@@ -969,7 +969,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         end % areaSelector
 
-        function [stagePos,xMMPix,yMMPix] = convertImageCoordsToStagePosition(obj, coords)
+        function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
             % Convert a position in the preview image to a stage position in mm
             %
             % Inputs
@@ -985,10 +985,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord = coords(1);
             yAxisCoord = coords(2);
 
-            sSize=obj.model.recipe.mosaic.sampleSize; %Size of the area we are imaging
-            % So number of pixels in X and Y
-            yMMPix = sSize.Y/size(obj.previewImageData,1);
-            xMMPix = sSize.X / size(obj.previewImageData,2);
+            %Determine the size of the image in mm
+            mmPerPixelDownSampled = (obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine) * ...
+                 obj.model.recipe.ScannerSettings.micronsPerPixel_cols * 1E-3;
 
             % How the figure is set up:
             % * The Y axis of the image (rows) corresponds to motion of the X stage. 
@@ -1002,10 +1001,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
             % Get the X stage value for y=0 (right most position) and we'll reference off that
-            frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*xMMPix;
+            frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.previewImageData,2)*mmPerPixelDownSampled;
 
-            xPosInMM = frontRightX + yAxisCoord*xMMPix;
-            yPosInMM = obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*yMMPix;
+            xPosInMM = frontRightX + yAxisCoord*mmPerPixelDownSampled;
+            yPosInMM = obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*mmPerPixelDownSampled;
 
             stagePos = [xPosInMM,yPosInMM];
         end % convertImageCoordsToStagePosition
