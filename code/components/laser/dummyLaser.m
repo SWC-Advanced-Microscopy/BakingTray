@@ -38,7 +38,7 @@ classdef dummyLaser < laser %& loghandler
             obj.minWavelength=700;
 
             obj.wavelengthTimer = timer;
-            obj.wavelengthTimer.Name = 'Dummy laser wavelength updater'
+            obj.wavelengthTimer.Name = 'Dummy laser wavelength updater';
             obj.wavelengthTimer.StartDelay = obj.updateInterval;
             obj.wavelengthTimer.TimerFcn = @(~,~) [] ;
             obj.wavelengthTimer.StopFcn = @(~,~) obj.updateWavelength;

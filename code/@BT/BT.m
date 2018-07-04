@@ -156,7 +156,7 @@ classdef BT < loghandler
             %TODO: for now at least, don't fail if there is no connection to the scanner and laser
             obj.attachLaser(obj.componentSettings.laser);
             if isempty(obj.laser)
-                fprintf('Failed to connect to scanner.\n')
+                fprintf('Failed to connect to laser.\n')
             end
 
             obj.attachScanner(obj.componentSettings.scanner);
@@ -720,9 +720,10 @@ classdef BT < loghandler
             % TODO: consider whether the hC check needs to be added to isComponentConnected, since all
             % components but the recipe class could potentially benefit from it. 
             isConnected=obj.isComponentConnected('scanner');
-            if ~isConnected
+            if ~isConnected || isa(obj.scanner,'dummyScanner')
                 return
             else
+                %Further tests
                 isConnected = ~isempty(obj.scanner.hC) && isvalid(obj.scanner.hC);
             end    
         end %isScannerConnected

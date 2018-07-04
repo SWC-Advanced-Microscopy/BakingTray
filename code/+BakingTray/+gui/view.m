@@ -827,7 +827,7 @@ classdef view < handle
             selectedTileSize=[];
             for ii=1:length(obj.recipeEntryBoxes.other)
                 tBox = obj.recipeEntryBoxes.other{ii};
-                if strcmp(tBox.Tag,'tilesize')
+                if strcmp(tBox.Tag,'tilesize') && ~isempty(tBox.UserData)
                     selectedTileSize = tBox.UserData(tBox.Value);
                     break
                 end
