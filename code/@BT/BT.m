@@ -723,7 +723,7 @@ classdef BT < loghandler
             if ~isConnected
                 return
             else
-                isConnected = isvalid(obj.scanner.hC);
+                isConnected = ~isempty(obj.scanner.hC) && isvalid(obj.scanner.hC);
             end    
         end %isScannerConnected
 
