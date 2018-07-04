@@ -113,7 +113,14 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     obj.logMessage(inputname(1),dbstack,4,'Waiting for slice to settle')
 
-    obj.cutter.startVibrate(obj.recipe.SLICER.postCutVibrate); %the stop vibrate command is in the cleanup function
+    %Vibrate slower. The stop vibrate command is in the cleanup function
+    obj.cutter.startVibrate(obj.recipe.SLICER.postCutVibrate); 
+
+    % Optionally push away the slice in X (can rip agar block off slide if blade isn't through)
+    if obj.cutter.kickOffSection
+        obj.setXvelocity(moveStepSpeed); %a faster speed
+        obj.moveXYby(7*obj.recipe.SYSTEM.cutterSide,0,1); %move forwards fast by 7 mm
+    end
 
     %Move a little faster to dislodge the slice (TODO: these values will depend on acceleration)
     obj.setYvelocity(30);
