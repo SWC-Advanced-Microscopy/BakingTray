@@ -51,10 +51,12 @@ classdef dummy_linearcontroller < linearcontroller
         delete(obj.positionTimer)
       end % Destructor
 
+
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = connect(~)
         success = true;
       end %connect
+
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = isControllerConnected(~)
@@ -82,9 +84,6 @@ classdef dummy_linearcontroller < linearcontroller
       function moving = isMoving(~,~)
         moving=false; %What to do about this? Should moves just be instant?
       end %isMoving
-
-
-
 
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -116,7 +115,6 @@ classdef dummy_linearcontroller < linearcontroller
         success=true;
 
       end %relativeMove
-
 
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -157,7 +155,6 @@ classdef dummy_linearcontroller < linearcontroller
       end %stopAxis
 
 
-
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function pos = getPositionUnits(~,~)
           pos='mm'; 
@@ -185,6 +182,15 @@ classdef dummy_linearcontroller < linearcontroller
         end
       end %getMaxPos
 
+
+      function success=referenceStage(~)
+        success=true;
+      end
+
+
+      function success=isStageReferenced(~)
+        success=true;
+      end
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       % get or set speed and acceleration settings
