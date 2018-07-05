@@ -55,6 +55,10 @@ function tileAcqDone(obj,~,~)
                         [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
             end
 
+            if obj.hC.hScan2D.logAverageFactor>1
+                obj.parent.downSampledTileBuffer = obj.parent.downSampledTileBuffer(:,:,1,:);
+            end
+
             if obj.verbose
                 fprintf('%d - Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
                     obj.parent.currentTilePosition, ...

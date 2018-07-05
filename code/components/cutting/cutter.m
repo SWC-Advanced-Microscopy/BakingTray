@@ -24,11 +24,12 @@ classdef (Abstract) cutter < handle
                      % the controller at connect-time. This can be specified in whatever
                      % way is most suitable for the hardware at hand. 
                      % e.g. COM port ID string
-
     end %close public properties
 
     properties (Hidden, SetObservable, AbortSet)
         isCutterConnected=false  % Must be updated by connect and isControllerConnected
+        kickOffSection=false     % If true, the slicing code will execute a sharp forward 
+                                 % motion of the blade once it's cut through the block.
     end
     properties (Hidden)
         parent  %A copy of the parent object (likely BakingTray) to which this component is attached

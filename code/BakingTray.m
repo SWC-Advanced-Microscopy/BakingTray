@@ -31,6 +31,7 @@ function BakingTray(varargin)
     % Build optional arguments to feed to BT during its construction
     BTargs={};
     if dummyMode
+        fprintf('\nStarting in dummy mode\n')
         BTargs = {'componentSettings',BakingTray.settings.dummy};
     else
         BTargs=[BTargs,{}];

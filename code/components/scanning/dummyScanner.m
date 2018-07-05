@@ -144,8 +144,8 @@ classdef dummyScanner < scanner
             OUT.FOV_alongColsinMicrons=775;
             OUT.FOV_alongRowsinMicrons=775;
 
-            OUT.micronsPerPixel_cols=1;
-            OUT.micronsPerPixel_rows=1;
+            OUT.micronsPerPixel_cols=OUT.FOV_alongColsinMicrons/OUT.pixelsPerLine;
+            OUT.micronsPerPixel_rows=OUT.FOV_alongRowsinMicrons/OUT.linesPerFrame;
 
             OUT.framePeriodInSeconds = 0.5;
             OUT.pixelTimeInMicroSeconds = (OUT.framePeriodInSeconds * 1E6) / (OUT.pixelsPerLine * OUT.linesPerFrame);

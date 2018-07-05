@@ -173,8 +173,11 @@ classdef SIBT < scanner
 
             msg = sprintf('%sDisabled offset subtraction.\n',msg);
 
-            if obj.hC.hDisplay.displayRollingAverageFactor ~=1
-                obj.hC.hDisplay.displayRollingAverageFactor=1; % We don't want to take rolling averages
+
+            % We don't want to take rolling averages if the user is doing a z-stack
+            if obj.parent.recipe.mosaic.numOpticalPlanes>1 && obj.hC.hDisplay.displayRollingAverageFactor ~=1
+                obj.hC.hScan2D.logAverageFactor=1;
+                obj.hC.hDisplay.displayRollingAverageFactor=1; 
             end
 
 
@@ -218,14 +221,18 @@ classdef SIBT < scanner
             % Should run a little faster this way, especially if we have 
             % multiple channels being displayed.
             if obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
-            fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
-                obj.hC.hDisplay.volumeDisplayStyle='Current';
-                obj.hC.hDisplay.selectedZs=0;
+                fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
+                    obj.hC.hDisplay.volumeDisplayStyle='Current';
+                    obj.hC.hDisplay.selectedZs=0;
             end
+
             % obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters %TODO -- assume control over shutter
             %If any of these fail, we leave the function gracefully
+
             try
-                obj.hC.acqsPerLoop=obj.parent.recipe.numTilesInOpticalSection;% This is the number of x/y positions that need to be visited
+                %Set the number of acquisitions. This will cause the acquisitions edit box in ScanImage to update.
+                %The number of acquisitions is equal to the number of x/y positions that need to be visited
+                obj.hC.acqsPerLoop=obj.parent.recipe.numTilesInOpticalSection;
                 obj.hC.extTrigEnable=1;
                 %Put it into acquisition mode but it won't proceed because it's waiting for a trigger
                 obj.hC.startLoop;
@@ -289,10 +296,21 @@ classdef SIBT < scanner
                     obj.hC.hDisplay.volumeDisplayStyle='Tiled';
                 end
 
-            else
+                %Disable all frame averaging options
+                obj.hC.hDisplay.displayRollingAverageFactor=1;
+                obj.hC.hStackManager.framesPerSlice = 1;
+                obj.hC.hScan2D.logAverageFactor = 1;
+            else % There is no z-stack being performed
+
                 %Ensure we disable z-scanning if this is not being used
                 obj.hC.hStackManager.numSlices = 1;
                 obj.hC.hStackManager.stackZStepSize = 0;
+
+                aveFrames = obj.hC.hDisplay.displayRollingAverageFactor; 
+                fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+                obj.hC.hStackManager.framesPerSlice = aveFrames;
+                obj.hC.hScan2D.logAverageFactor = aveFrames;
+
             end
 
         end % applyZstackSettingsFromRecipe
