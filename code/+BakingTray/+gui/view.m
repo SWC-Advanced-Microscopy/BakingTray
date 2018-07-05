@@ -462,8 +462,12 @@ classdef view < handle
                 fprintf('ERROR IN BakingTray.gui.view.updateRecipePropertyInRecipeClass: property path is not 2 or 3\nCan not set recipe property!\n')
                 return
             end
-        end
 
+            if strcmp(propertyPath{2},'numOpticalPlanes')
+                % If the number of planes were changed, we update the z-stack settings in the scanner software. 
+                obj.model.scanner.applyZstackSettingsFromRecipe;
+            end
+        end %updateRecipePropertyInRecipeClass
 
 
         %-----------
