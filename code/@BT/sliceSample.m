@@ -119,7 +119,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Optionally push away the slice in X (can rip agar block off slide if blade isn't through)
     if obj.cutter.kickOffSection
         obj.setXvelocity(moveStepSpeed); %a faster speed
-        obj.moveXYby(7*obj.recipe.SYSTEM.cutterSide,0,1); %move forwards fast by 7 mm
+        obj.moveXYby(3.5*obj.recipe.SYSTEM.cutterSide,0,1); %move forwards fast by 7 mm
     end
 
     %Move a little faster to dislodge the slice (TODO: these values will depend on acceleration)

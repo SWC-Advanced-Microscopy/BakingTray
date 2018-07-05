@@ -296,9 +296,11 @@ classdef SIBT < scanner
                     obj.hC.hDisplay.volumeDisplayStyle='Tiled';
                 end
 
-            else
-
-                % There are no z-stacks
+                %Disable all frame averaging options
+                obj.hC.hDisplay.displayRollingAverageFactor=1;
+                obj.hC.hStackManager.framesPerSlice = 1;
+                obj.hC.hScan2D.logAverageFactor = 1;
+            else % There is no z-stack being performed
 
                 %Ensure we disable z-scanning if this is not being used
                 obj.hC.hStackManager.numSlices = 1;
@@ -307,7 +309,7 @@ classdef SIBT < scanner
                 aveFrames = obj.hC.hDisplay.displayRollingAverageFactor; 
                 fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
                 obj.hC.hStackManager.framesPerSlice = aveFrames;
-                obj.hC.hScan2D.logAverageFactor=aveFrames;
+                obj.hC.hScan2D.logAverageFactor = aveFrames;
 
             end
 
