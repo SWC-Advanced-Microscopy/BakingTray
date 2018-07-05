@@ -573,6 +573,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.initialisePreviewImageData;
             obj.setUpImageAxes;
 
+
+            % Force update of the depths and channels because for some reason they 
+            % sometimes do not update when the recipe changes. 
+            obj.populateDepthPopup
+            obj.updateChannelsPopup
+
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
             set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
