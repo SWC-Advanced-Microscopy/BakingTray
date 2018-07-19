@@ -895,7 +895,7 @@ classdef view < handle
             end
             obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
             obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
-
+            obj.updateTileSizeLabelText;
         end
 
         function ID = getScannerID(obj)
