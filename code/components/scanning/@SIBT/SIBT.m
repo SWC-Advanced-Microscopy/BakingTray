@@ -579,10 +579,12 @@ classdef SIBT < scanner
             p(1).Color=[1,0.25,0.25];
             p(2).Color=[0.25,0.25,1];
             set(p,'LineWidth',2)
-            xlabel('Time [s]')
-            ylabel('Distance [\mum]')
+
             thisAxis.Color=[1,1,1]*0.5;
-            grid on
+            thisAxis.XLabel.String = 'Time [s]';
+            thisAxis.YLabel.String = 'Distance [\mum]';
+            grid(thisAxis,'on')
+
         end
     end %Close SIBT methods
 
