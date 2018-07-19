@@ -308,6 +308,7 @@ classdef SIBT < scanner
 
                 aveFrames = obj.hC.hDisplay.displayRollingAverageFactor; 
                 fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+                obj.hC.hFastZ.enable=false;
                 obj.hC.hStackManager.framesPerSlice = aveFrames;
                 obj.hC.hScan2D.logAverageFactor = aveFrames;
 
@@ -564,6 +565,25 @@ classdef SIBT < scanner
 
         end % generateSettingsReport
 
+        function showFastZCalib(obj)
+            %Conduct fast-z calibration and plot results
+            %This will simply run through the Z selected depths 
+            [t,expected,~,~,measured] = obj.hC.hFastZ.testActuator;
+            f=findobj('name','fastZCalib');
+            if isempty(f)
+                f=figure;
+                f.Name='fastZCalib';
+            end
+            thisAxis = gca(f);
+            p=plot(t,expected,t,measured,'parent',thisAxis);
+            p(1).Color=[1,0.25,0.25];
+            p(2).Color=[0.25,0.25,1];
+            set(p,'LineWidth',2)
+            xlabel('Time [s]')
+            ylabel('Distance [\mum]')
+            thisAxis.Color=[1,1,1]*0.5;
+            grid on
+        end
     end %Close SIBT methods
 
     methods % SIBT methods in external files

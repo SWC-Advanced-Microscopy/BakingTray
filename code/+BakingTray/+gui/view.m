@@ -118,13 +118,19 @@ classdef view < handle
             obj.menu.api = uimenu(obj.menu.main,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
 
             %If the user runs ScanImage, prompt to connect to ScanImage
+            %TODO: these menu items should react to whether or not the scanner is connected
             settings=BakingTray.settings.readComponentSettings;
             if strcmp(settings.scanner.type,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
             end
 
+
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
+            
+            %TODO: this item should only appear if the scanner if ScanImage
+            obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
+
 
             obj.menu.about = uimenu(obj.menu.main,'Label','About','Callback',@obj.about);
             obj.menu.quit = uimenu(obj.menu.main,'Label','Quit','Callback',@obj.closeBakingTray);
