@@ -644,7 +644,8 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
-        function readFrameSizeSettings(obj)            
+        function readFrameSizeSettings(obj)
+            % TODO - use the method of the same name in SIBT then populate the GUI based on that       
             frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
             if exist(frameSizeFname, 'file')
                 tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
