@@ -360,7 +360,7 @@ classdef view < handle
                 obj.recipeEntryBoxes.other{end}.TooltipString = ...
                  sprintf(['Instruct ScanImage to use this tile size (cols x rows) to use during acquisition.\n', ...
                           'Note: that the current tile size and image resolution are listed in the status\n', ...
-                          'text and in ScanImage. These are the values the acquisition will follow.'])
+                          'text and in ScanImage. These are the values the acquisition will follow.']);
             end
 
             % If we are using ScanImage and we find a frameSize file, populate the tile size property.
@@ -645,12 +645,13 @@ classdef view < handle
         end %saveRecipeToDisk
 
         function readFrameSizeSettings(obj)
-            % TODO - use the method of the same name in SIBT then populate the GUI based on that       
+        % TODO - use the method of the same name in SIBT then populate the GUI based on that
             frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
             if exist(frameSizeFname, 'file')
                 tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
                 tFields = fields(tYML);
-                popUpText={};                    
+                popUpText={};
+
                 for ii=1:length(tFields)
                     tSet = tYML.(tFields{ii});
 
@@ -699,6 +700,7 @@ classdef view < handle
                 obj.recipeEntryBoxes.other{1}.String = ['No ', fname, ext];
                 obj.recipeEntryBoxes.other{1}.Enable = 'Off';
             end
+
             obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
         end % readFrameSizeSettings
 
