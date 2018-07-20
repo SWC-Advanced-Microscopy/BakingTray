@@ -365,7 +365,7 @@ classdef view < handle
 
             % If we are using ScanImage and we find a frameSize file, populate the tile size property.
             % Otherwise disable and supply a message if needed. 
-            obj.readFrameSizeSettings
+            obj.importFrameSizeSettings
 
 
             if obj.model.isScannerConnected
@@ -644,65 +644,29 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
-        function readFrameSizeSettings(obj)
-        % TODO - use the method of the same name in SIBT then populate the GUI based on that
-            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
-            if exist(frameSizeFname, 'file')
-                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
-                tFields = fields(tYML);
-                popUpText={};
+        function importFrameSizeSettings(obj)
+            obj.model.scanner.readFrameSizeSettings;
 
-                for ii=1:length(tFields)
-                    tSet = tYML.(tFields{ii});
-
-                    % The following is hard-coded in order to make it more likely an error will be
-                    % generated here rather than down the line
+            thisStruct = obj.model.scanner.frameSizeSettings;
+            if ~isempty(thisStruct)
+                for ii=1:length(thisStruct)
 
                     % The popUpText is that which appears in the main GUI under the "Tile Size" pop-up menu
                     popUpText{ii} = sprintf('%dx%d %0.2f um/pix zm %0.1f', ...
-                        tSet.pixelsPerLine, tSet.linesPerFrame, tSet.nominalMicronsPerPixel, tSet.zoomFactor);
-
-                    thisStruct(ii).objective = tSet.objective;
-                    thisStruct(ii).pixelsPerLine = tSet.pixelsPerLine;
-                    thisStruct(ii).linesPerFrame = tSet.linesPerFrame;
-                    thisStruct(ii).zoomFactor = tSet.zoomFactor;
-                    thisStruct(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
-                    thisStruct(ii).fastMult = tSet.fastMult;
-                    thisStruct(ii).slowMult = tSet.slowMult;
-                    thisStruct(ii).objRes = tSet.objRes;
-
-                    %This is used by StitchIt to correct barrel or pincushion distortion
-                    if isfield(tSet,'lensDistort')
-                        thisStruct(ii).lensDistort = tSet.lensDistort;
-                    else
-                        thisStruct(ii).lensDistort = [];
-                    end
-                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
-                    if isfield(tSet,'affineMat')
-                        thisStruct(ii).affineMat = tSet.affineMat;
-                    else
-                        thisStruct(ii).affineMat = [];
-                    end
-                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
-                    if isfield(tSet,'stitchingVoxelSize')
-                        thisStruct(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
-                    else
-                        thisStruct(ii).stitchingVoxelSize = [];
-                    end
+                        thisStruct(ii).pixelsPerLine, thisStruct(ii).linesPerFrame, thisStruct(ii).nominalMicronsPerPixel, thisStruct(ii).zoomFactor);
                 end
-
                 obj.recipeEntryBoxes.other{1}.String = popUpText;
-                obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
-                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); %Cause scanimage to set the image size
+                obj.recipeEntryBoxes.other{1}.UserData = thisStruct; %TODO: ugly because it's a second copy
+                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); % Cause scanimage to set the image size
+
             else % Report no frameSize file found
-                fprintf('\n\n No frame size file found at %s\n\n', frameSizeFname)
-                [~,fname,ext]=fileparts(frameSizeFname);
-                obj.recipeEntryBoxes.other{1}.String = ['No ', fname, ext];
+                fprintf('\n\n No frame size file found\n\n')
+                obj.recipeEntryBoxes.other{1}.String = 'No frame size file ';
                 obj.recipeEntryBoxes.other{1}.Enable = 'Off';
             end
 
             obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
-        end % readFrameSizeSettings
+        end % importFrameSizeSettings
 
 
     end %Methods

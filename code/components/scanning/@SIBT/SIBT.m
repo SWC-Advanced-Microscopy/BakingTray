@@ -33,9 +33,7 @@ classdef SIBT < scanner
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
                                       %If a setting has changeded, the flipScanSettingsChanged method is run
-        frameSizeSettings =struct % This struct contains the available frame size options for ScanImage along with the
-                                  % the stitching parameters
-     end
+    end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
 
@@ -589,12 +587,12 @@ classdef SIBT < scanner
 
         end
 
-         function readFrameSizeSettings(obj)            
+         function readFrameSizeSettings(obj)
             frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
             if exist(frameSizeFname, 'file')
                 tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
                 tFields = fields(tYML);
-                popUpText={};                    
+                popUpText={};
                 for ii=1:length(tFields)
                     tSet = tYML.(tFields{ii});
 

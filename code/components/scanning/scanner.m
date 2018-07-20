@@ -35,6 +35,8 @@ classdef (Abstract) scanner < handle & loghandler
                 % i.e. any setting that might impact image size, FOV, frame rate, size of the final
                 % acquisition (e.g. number of channels), etc. This setting will be monitored by 
                 % at least BakingTray.gui.view and BakingTray.gui.acquisition_view
+        frameSizeSettings =struct % This struct contains the available frame size options along with the
+                                  % the stitching parameters. Can be scanner-specific. See SIBT.
     end
 
 
@@ -288,6 +290,22 @@ classdef (Abstract) scanner < handle & loghandler
         % the user will just be shown a highlighted value to indicate that something is not right. 
         %
         % NOTE: this function should return empty if no valid tests exist.
+
+        readFrameSizeSettings(obj)
+        % readFrameSizeSettings(obj)
+        % 
+        % Reads the settings YML in the BakingTray settings location. The file is callsed "frameSizes.yml"
+        % It describes the frame sizes and stitching parameters. 
+        % See: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
+        % This method is run by the main view class. It should populate the frameSizeSettings property
+        % with the correct information. See also view.importFrameSizeSettings
+        %
+        % Inputs
+        % none
+        %
+        % Outputs
+        % None
+
 
      end % close abstract methods
 

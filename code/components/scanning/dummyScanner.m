@@ -218,7 +218,9 @@ classdef dummyScanner < scanner
 
         end
 
-
+        function readFrameSizeSettings
+            %TODO: will ultimately cause problems because it does nothing, but it's unlikely this will be an issue in practice
+        end
 
     end %close methods
 
