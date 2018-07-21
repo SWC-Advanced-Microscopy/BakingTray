@@ -43,7 +43,7 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName)
         thisRecipe.(theseFields{ii}) = obj.(theseFields{ii});
     end
 
-    recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd'));
+    recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd_HHMMSS'));
 
     %We call tile pattern to ensure that the recipe parameters are up to date. This may no longer be needed.
     obj.tilePattern; %TODO: ensure we no longer need this explicit call here. 
