@@ -58,15 +58,16 @@ function applyScanSettings(obj,scanSettings)
     end
 
     % Find tif files in the last directory
-    tiffs = dir(fullfile(rawDataDir,sectionDirs(end),'*.tif'));
+    lastSectionDir = fullfile(rawDataDir,sectionDirs(end).name);
+    tiffs = dir(fullfile(lastSectionDir,'*.tif'));
     if isempty(tiffs)
         fprintf('applyScanSettings finds no tiffs in directory in %s. Not applying detailed scan settings\n', ...
-            sectionDirs(end))
+            lastSectionDir)
         return
     end
 
     % Read the ScanImage settings from this file
-    TMP=scanimage.util.opentif(tmp_fname);
+    TMP=scanimage.util.opentif(fullfile(lastSectionDir,tiffs(end).name));
     hSI_Settings = TMP.SI;
 
     % Apply the important settings to the running instance of ScanImage
@@ -74,9 +75,9 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hPmts.gains = hSI_Settings.hPmts.gains;
 
     obj.hC.hBeams.powers = hSI_Settings.hBeams.powers;
-    obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.powerZAdjustType;
-    obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.beamPowerLengthConstant;
-    obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.powerZAdjust;
+    obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;
+    obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
+    obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
 
     obj.hC.hFastZ.enable = hSI_Settings.hFastZ.enable;
     obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
