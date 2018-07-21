@@ -306,6 +306,17 @@ classdef (Abstract) scanner < handle & loghandler
         % Outputs
         % None
 
+        applyScanSettings(obj,scanSettings)
+        % applyScanSettings(obj,scanSettings)
+        %
+        % Applies a previously saved settings to the current scanner. 
+        % Used for resuming acquisitions by hBT.resumeAcquisition
+        %
+        %
+        % Inputs
+        % scanSettings - a structure containing scanner settings in a known format such that they can be applied to the 
+        %                scanner instance, changing it's settings.
+
 
      end % close abstract methods
 

@@ -3,8 +3,10 @@ function applyScanSettings(obj,scanSettings)
     %
     % Applies a saved set of scanSettings in order to return ScanImage to a 
     % a previous state. e.g. used to manually resume an acquisition that was 
-    % terminated for some reason.
+    % terminated for some reason. 
     %
+    % Inputs
+    % scanSettings - the ScanImage scanSettings field from the recipe file 
 
     if ~isstruct(scanSettings)
         return
@@ -16,6 +18,7 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
 
     % Set the laser power and changing power with depth
+    % (below we attempt to set some of these values to those used in the last acquired directory)
     obj.hC.hBeams.powers = scanSettings.beamPower;
     obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
     obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
@@ -42,3 +45,38 @@ function applyScanSettings(obj,scanSettings)
     % acquiring rectangular scans.
     obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
     obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
+
+
+    % Attempt to read the meta-data from the last saved directory to apply other settings not in the
+    % recipe file. 
+    rawDataDir=fullfile(obj.parent.sampleSavePath,obj.parent.rawDataSubDirName);
+    sectionDirs = dir(fullfile(rawDataDir,[obj.parent.recipe.sample.ID,'*']));
+    if isempty(sectionDirs)
+        fprintf('applyScanSettings finds no section directories in %s. Not applying detailed scan settings\n', ...
+            rawDataDir)
+        return
+    end
+
+    % Find tif files in the last directory
+    tiffs = dir(fullfile(rawDataDir,sectionDirs(end),'*.tif'));
+    if isempty(tiffs)
+        fprintf('applyScanSettings finds no tiffs in directory in %s. Not applying detailed scan settings\n', ...
+            sectionDirs(end))
+        return
+    end
+
+    % Read the ScanImage settings from this file
+    TMP=scanimage.util.opentif(tmp_fname);
+    hSI_Settings = TMP.SI;
+
+    % Apply the important settings to the running instance of ScanImage
+
+    obj.hC.hPmts.gains = hSI_Settings.hPmts.gains;
+
+    obj.hC.hBeams.powers = hSI_Settings.hBeams.powers;
+    obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.powerZAdjustType;
+    obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.beamPowerLengthConstant;
+    obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.powerZAdjust;
+
+    obj.hC.hFastZ.enable = hSI_Settings.hFastZ.enable;
+    obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
