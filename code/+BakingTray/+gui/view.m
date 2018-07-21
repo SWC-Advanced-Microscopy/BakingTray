@@ -543,6 +543,28 @@ classdef view < handle
                 success = obj.model.attachRecipe(fullPath);
             else
                 % Attempt to resume the acquisition 
+                % First we set the tile size in the GUI to what is in the recipe
+                thisRecipe=BakingTray.settings.readRecipe(fullPath);
+
+                tileOptions = obj.recipeEntryBoxes.other{1}.UserData;
+                currentTileSize = obj.model.recipe.Tile;
+                pixLin = [tileOptions.pixelsPerLine];
+                linFrm = [tileOptions.linesPerFrame];
+                zmFact = [tileOptions.zoomFactor];
+
+                ind = (pixLin==thisRecipe.Tile.nColumns) .* ...
+                      (linFrm==thisRecipe.Tile.nRows) .* ...
+                      (zmFact==thisRecipe.ScannerSettings.zoomFactor); %TODO: this line is dangerous. Not all scanners will have this
+                ind = find(ind);
+                if ~isempty(ind) && length(ind)==1
+                    obj.recipeEntryBoxes.other{1}.Value=ind;
+                    obj.updateStatusText
+                else
+                    fprintf(['Image settings do not match known values.\n', ...
+                        'Attempting to resume but not updating "Tile Size" in BakingTray GUI\n'])
+                end
+
+                % Now we do the resumption                 
                 success = obj.model.resumeAcquisition(fullPath);
             end
 
