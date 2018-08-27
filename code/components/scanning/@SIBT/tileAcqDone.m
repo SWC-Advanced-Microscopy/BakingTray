@@ -51,8 +51,12 @@ function tileAcqDone(obj,~,~)
 
             for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
                 obj.parent.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
-                    int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},-1),...
+                    int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileRotate),...
                         [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
+            end
+
+            if obj.hC.hScan2D.logAverageFactor>1
+                obj.parent.downSampledTileBuffer = obj.parent.downSampledTileBuffer(:,:,1,:);
             end
 
             if obj.verbose
@@ -65,6 +69,11 @@ function tileAcqDone(obj,~,~)
         end % z=1:length...
     end % if obj.parent.importLastFrames
 
+
+    %Optionally reset tripped PMTs
+    if obj.settings.doResetTrippedPMT
+        obj.reseTrippedPMTs
+    end
 
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
@@ -86,7 +95,6 @@ function tileAcqDone(obj,~,~)
         positionArray = obj.parent.positionArray;
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
-
 
     % Initiate the next position
     while obj.acquisitionPaused

@@ -1,8 +1,8 @@
-function component = buildScannerComponent(componentName,varargin)
+function component = buildScannerComponent(componentName,scannerSettings)
 % Build scanner component from a scanner class and return object
 %
 %
-%   function buildScannerComponent(componentName,varargin)
+%   function buildScannerComponent(componentName,scannerSettings)
 %
 %
 % Purpose
@@ -12,8 +12,8 @@ function component = buildScannerComponent(componentName,varargin)
 %
 % Inputs
 % componentName - string defining the name of the class to build
-% vargargin - whatever input arguments are needed by the class to be built. 
-%             may just be a COM port string. These could differ between classes.
+% scannerSettings - whatever input arguments are needed by the class to be built. 
+%
 %
 % Outputs
 % component - the component object. empty in the event of an error.
@@ -28,6 +28,9 @@ if ~ischar(componentName)
     return
 end
 
+if nargin<2
+    scannerSettings=[];
+end
 
 validComponents = {'dummyScanner','SIBT'}; %The available scanner components
 validComponentSuperClassName = 'scanner'; %The name of the abstract class that all scanner components must inherit
@@ -44,6 +47,20 @@ switch componentName
         if ismember('hSI',{W.name});
             fprintf('Connecting to scanner\n')
             component=SIBT;
+
+            %add settings
+            if ~isempty(scannerSettings) && isstruct(scannerSettings)
+                f=fields(scannerSettings);
+                for ii=1:length(f)
+                    if isfield(component.settings,f{ii});
+                        component.settings.(f{ii}) = scannerSettings.(f{ii}); %TODO: add more error checking
+                    else
+                        fprintf('Skipping unknown scanner setting field %s\n', f{ii});
+                    end
+                end
+
+            end
+
         else
             fprintf('No instance of ScanImage started. SKIPPING CONSTRUCTION OF SCANNER COMPONENT.\n')
             fprintf('To attach ScanImage to BakingTray you should:\n')

@@ -44,3 +44,4 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
     scanSettings.slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
     scanSettings.fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
+    scanSettings.averageEveryNframes = obj.hC.hDisplay.displayRollingAverageFactor;

@@ -36,6 +36,7 @@ function takeRapidPreview(obj)
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
     %TODO: all this needs shim methods in SIBT
     scanPixPerLine = obj.scanner.getPixelsPerLine;
+
     if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
         binFactor = obj.scanner.hC.hScan2D.pixelBinFactor;
         sampleRate = obj.scanner.hC.hScan2D.sampleRate;

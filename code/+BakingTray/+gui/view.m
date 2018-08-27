@@ -359,34 +359,7 @@ classdef view < handle
 
             % If we are using ScanImage and we find a frameSize file, populate the tile size property.
             % Otherwise disable and supply a message if needed. 
-            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'scanImageFrameSizes.csv');
-            if strcmp(settings.scanner.type,'SIBT')
-                if exist(frameSizeFname, 'file')
-                    [objective,pixelsPerLine,linePerFrame,zoomValue,micsPix,fastM,slowM,objRes] = ...
-                        textread(frameSizeFname,'%s%d%d%f%f%f%f%f','delimiter',',','headerlines',1);
-                    popUpText={};                    
-                    for ii=1:length(objRes)
-                        popUpText{ii} = sprintf('%dx%d %0.2f um/pix',pixelsPerLine(ii),linePerFrame(ii),micsPix(ii));
-                        thisStruct(ii).objective = objective{ii};
-                        thisStruct(ii).pixelsPerLine = pixelsPerLine(ii);
-                        thisStruct(ii).linesPerFrame = linePerFrame(ii);
-                        thisStruct(ii).micsPix = micsPix(ii);
-                        thisStruct(ii).fastMult = fastM(ii);
-                        thisStruct(ii).slowMult = slowM(ii);
-                        thisStruct(ii).objRes = objRes(ii);
-                    end
-                    obj.recipeEntryBoxes.other{1}.String = popUpText;
-                    obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
-                    obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.model.scanner.setImageSize(src,evt);
-                else % No frameSize file found
-                    obj.recipeEntryBoxes.other{1}.String = 'No scanImageFrameSizes.csv';
-                    obj.recipeEntryBoxes.other{1}.Enable = 'Off';
-                end
-                obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
-            else % No scanimage
-                obj.recipeEntryBoxes.other{1}.String = 'Not using ScanImage';
-                obj.recipeEntryBoxes.other{1}.Enable = 'Off';
-            end
+            obj.readFrameSizeSettings
 
 
             if obj.model.isScannerConnected
@@ -489,8 +462,12 @@ classdef view < handle
                 fprintf('ERROR IN BakingTray.gui.view.updateRecipePropertyInRecipeClass: property path is not 2 or 3\nCan not set recipe property!\n')
                 return
             end
-        end
 
+            if strcmp(propertyPath{2},'numOpticalPlanes')
+                % If the number of planes were changed, we update the z-stack settings in the scanner software. 
+                obj.model.scanner.applyZstackSettingsFromRecipe;
+            end
+        end %updateRecipePropertyInRecipeClass
 
 
         %-----------
@@ -661,6 +638,64 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
+        function readFrameSizeSettings(obj)            
+            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
+            if exist(frameSizeFname, 'file')
+                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
+                tFields = fields(tYML);
+                popUpText={};                    
+                for ii=1:length(tFields)
+                    tSet = tYML.(tFields{ii});
+
+                    % The following is hard-coded in order to make it more likely an error will be
+                    % generated here rather than down the line
+
+                    % The popUpText is that which appears in the main GUI under the "Tile Size" pop-up menu
+                    popUpText{ii} = sprintf('%dx%d %0.2f um/pix zm %0.1f', ...
+                        tSet.pixelsPerLine, tSet.linesPerFrame, tSet.nominalMicronsPerPixel, tSet.zoomFactor);
+
+                    thisStruct(ii).objective = tSet.objective;
+                    thisStruct(ii).pixelsPerLine = tSet.pixelsPerLine;
+                    thisStruct(ii).linesPerFrame = tSet.linesPerFrame;
+                    thisStruct(ii).zoomFactor = tSet.zoomFactor;
+                    thisStruct(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
+                    thisStruct(ii).fastMult = tSet.fastMult;
+                    thisStruct(ii).slowMult = tSet.slowMult;
+                    thisStruct(ii).objRes = tSet.objRes;
+
+                    %This is used by StitchIt to correct barrel or pincushion distortion
+                    if isfield(tSet,'lensDistort')
+                        thisStruct(ii).lensDistort = tSet.lensDistort;
+                    else
+                        thisStruct(ii).lensDistort = [];
+                    end
+                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
+                    if isfield(tSet,'affineMat')
+                        thisStruct(ii).affineMat = tSet.affineMat;
+                    else
+                        thisStruct(ii).affineMat = [];
+                    end
+                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
+                    if isfield(tSet,'stitchingVoxelSize')
+                        thisStruct(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
+                    else
+                        thisStruct(ii).stitchingVoxelSize = [];
+                    end
+                end
+
+                obj.recipeEntryBoxes.other{1}.String = popUpText;
+                obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
+                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); %Cause scanimage to set the image size
+            else % Report no frameSize file found
+                fprintf('\n\n No frame size file found at %s\n\n', frameSizeFname)
+                [~,fname,ext]=fileparts(frameSizeFname);
+                obj.recipeEntryBoxes.other{1}.String = ['No ', fname, ext];
+                obj.recipeEntryBoxes.other{1}.Enable = 'Off';
+            end
+            obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
+        end % readFrameSizeSettings
+
+
     end %Methods
 
 
@@ -735,7 +770,7 @@ classdef view < handle
 
                     endTime = obj.model.estimateTimeRemaining(scnSet, tilesPlane.total);
                     if length(obj.model.scanner.channelsToAcquire)>1
-                        channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
+                         channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==1
                         channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
                     elseif length(obj.model.scanner.channelsToAcquire)==0
@@ -796,7 +831,7 @@ classdef view < handle
             selectedTileSize=[];
             for ii=1:length(obj.recipeEntryBoxes.other)
                 tBox = obj.recipeEntryBoxes.other{ii};
-                if strcmp(tBox.Tag,'tilesize')
+                if strcmp(tBox.Tag,'tilesize') && ~isempty(tBox.UserData)
                     selectedTileSize = tBox.UserData(tBox.Value);
                     break
                 end
@@ -809,7 +844,8 @@ classdef view < handle
                  selectedTileSize.linesPerFrame==scnSet.linesPerFrame && ...
                  selectedTileSize.slowMult==scnSet.slowMult && ...
                  selectedTileSize.fastMult==scnSet.fastMult && ...
-                 scnSet.zoomFactor==1
+                 selectedTileSize.zoomFactor==scnSet.zoomFactor
+
                 obj.recipeTextLabels.other{ii}.String = 'Tile Size';
                 obj.recipeTextLabels.other{ii}.Color = 'w';
              else
@@ -836,6 +872,31 @@ classdef view < handle
                 obj.enableDisableThisView('on')
             end
         end % disableDuringAcquisition
+
+        function applyScanSettings(obj,src,evt)
+            % Apply the chosen scan settings to ScanImage and send the current stitching settings
+            % to the recipe. TODO: This method performs critical tasks that should not be done by a view class. 
+            %                      To maintain the model/view separation the recipe operation should be done
+            %                      elsewhere. Maybe in BT or the recipe class itself.
+
+            %Set the scanner settings
+            obj.model.scanner.setImageSize(src,evt)
+
+            %Send copies of stitching-related data to the recipe
+            FrameData = src.UserData(src.Value);
+            if isempty(FrameData.stitchingVoxelSize)
+                scnSet = obj.model.scanner.returnScanSettings;
+                % Just take nominal values. It doesn't matter too much. 
+                mu = mean([scnSet.micronsPerPixel_rows,scnSet.micronsPerPixel_cols]);
+                obj.model.recipe.StitchingParameters.VoxelSize.X=mu;
+                obj.model.recipe.StitchingParameters.VoxelSize.Y=mu;
+            else
+                obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+            end
+            obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
+            obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
+            obj.updateTileSizeLabelText;
+        end
 
         function ID = getScannerID(obj)
             %returns false if no scanner is connected

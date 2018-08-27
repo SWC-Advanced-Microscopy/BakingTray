@@ -24,6 +24,7 @@ classdef recipe < handle
     %               mosaic: [1x1 struct]
     %    CuttingStartPoint: [1x1 struct]
     %            FrontLeft: [1x1 struct]
+    %  StitchingParameters: []
     %             NumTiles: [1x1 NumTiles]
     %                 Tile: [1x1 struct]
     %         TileStepSize: [1x1 TileStepSize]
@@ -84,11 +85,14 @@ classdef recipe < handle
     % to record the acquisition settings as a "full" recipe file in the sample directory. 
     % This contains the above fields and also the following additional fields:
     %
+    % CuttingStartPoint.[XY] (The point at which blade is placed in X and Y before starting to cut)
+    % The CuttingStartPoint is defined by the user
+    %
     % FrontLeft.[XY] (The starting point--front left position--of the tile grid: x and y stage positions)
     % The FrontLeft is defined by the user
     %
-    % CuttingStartPoint.[XY] (The point at which blade is placed in X and Y before starting to cut)
-    % The CuttingStartPoint is defined by the user
+    % StitchingParameters (The images will be stitched using parameters in this structure)
+    % The stitching parameters aren't used by BakingTray but by StitchIt
     %
     % NumTiles.[XY] (The number of tiles required to cover the sample in X and Y)
     % The recipe class calculates NumTiles
@@ -98,6 +102,8 @@ classdef recipe < handle
     %
     % TileStepSize.[XY] (How far the stage moves in X and Y between each tile)
     % The TileStepSize is calculated by the recipe class
+    %
+    % VoxelSize.[XY] (The nominal voxel size returned by the scanner)
     %
     % The following are records of various parameters used for the acquisition. 
     % ScannerSettings (A structure that stores a variety of information about how the scanner is configured)
@@ -128,6 +134,9 @@ classdef recipe < handle
         % relevant beyond this. Cutting and imaging won't be possible until these are set to reasonable values. 
         CuttingStartPoint=struct('X',0, 'Y',0)   % Start location for cutting
         FrontLeft=struct('X',0, 'Y',0)           % Front/left position of the tile array
+
+
+        StitchingParameters
     end %close the main sample properties
 
     properties (SetAccess=protected)
@@ -709,6 +718,7 @@ classdef recipe < handle
             if isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y) || ...
                 isempty(obj.CuttingStartPoint.X) || isempty(obj.CuttingStartPoint.Y) || ...
                 isempty(obj.mosaic.sampleSize.X) || isempty(obj.mosaic.sampleSize.Y)
+
                 obj.acquisitionPossible=false;
                 return
             end
@@ -722,12 +732,14 @@ classdef recipe < handle
             % blade plus half the X width of the specimen. This doesn't even account for
             % the agar, etc. So it's a very relaxed criterion. 
             if obj.SYSTEM.cutterSide==1
-                if (obj.FrontLeft.X+obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
+                if (obj.FrontLeft.X-obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
                     obj.acquisitionPossible=true;
                 else
+                    fprintf('recipe.checkIfAcquisitionIsPossible thinks the blade may hit the sample during acquisition\n')
                     obj.acquisitionPossible=false;
                 end
             elseif obj.SYSTEM.cutterSide==-1
+                fprintf('WARNING: recipe class may not be certain blade will not hit sample during acquisition\n')
                 % This scenario has never been tested with physical hardware
                 if obj.FrontLeft.X>obj.CuttingStartPoint.X
                     obj.acquisitionPossible=true;

@@ -7,10 +7,25 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
-23rd April 2018 
+29th September 2018
+- Various bug fixes
+
+
+5th July 2018
+- Fast-Z settings in ScanImage change right away when user edits the number of planes.
+- Bug fixes to box drawing routine. 
+- Add a (currently hidden) option to kick the section off the block in the event of it sticking
+- Bugfixes to the dummy classes so the system runs without hardware. 
+
+15th June 2018
+- No longer need to move sample away from the blade before starting the setup cuts
+
+
+23rd April 2018
 - Minor bugfixes relating to the bounding box drawing.
 - Add methods for referencing stages
 - BakingTray.utils.measureSurfaceHeight measures surface height at different locations within a single z-stack
+
 
 17th April 2018
 - Add class for PI C-663

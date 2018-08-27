@@ -14,6 +14,9 @@ classdef NumTiles < handle
 
     properties (Hidden)
         recipe
+        roundThresh=0.15 %When rounding the number of required tiles, exceeding this fraction of a tile will lead 
+                         %to a ceil but staying within it will round down. i.e. if roundThresh equals 0.15, then
+                         %6.13 tiles is rounded down to 6 tiles but 6.25 is rounded up to 7 tiles. 
     end
 
     properties (Dependent)
@@ -39,9 +42,9 @@ classdef NumTiles < handle
                 X=0;
                 return
             end
-            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings (e.g. from SIBT) and stores in the recipe file
             fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-            X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
+            X = obj.roundTiles(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
         end %get.X
 
         function Y = get.Y(obj)
@@ -54,7 +57,7 @@ classdef NumTiles < handle
                 case 'tile'
                     obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
                     fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-                    Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+                    Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
                 case 'ribbon'
                     Y=1; %We scan with the stage along this axis so always one tile
                 otherwise
@@ -73,10 +76,10 @@ classdef NumTiles < handle
                     obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
 
                     fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-                    N.Y = ceil(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+                    N.Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
 
                     fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-                    N.X = ceil(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
+                    N.X = obj.roundTiles(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
                     N.total = N.X * N.Y;
 
                 case 'ribbon'
@@ -98,7 +101,15 @@ classdef NumTiles < handle
             if ~isempty(obj.recipe.parent) && isvalid(obj.recipe.parent) &&  obj.recipe.parent.isScannerConnected
                 isReady=true;
             end
-        end
+        end %isReadyToCalcProperties
+
+        function out = roundTiles(obj,tilesToRound)
+            if mod(tilesToRound,1)>obj.roundThresh
+                out = ceil(tilesToRound);
+            else
+                out = floor(tilesToRound);
+            end
+        end %roundTiles
     end % Hidden methods
 
 end %class
