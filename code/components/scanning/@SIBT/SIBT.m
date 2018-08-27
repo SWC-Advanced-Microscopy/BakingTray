@@ -307,7 +307,11 @@ classdef SIBT < scanner
                 obj.hC.hStackManager.stackZStepSize = 0;
 
                 aveFrames = obj.hC.hDisplay.displayRollingAverageFactor; 
-                fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+
+                if aveFrames>1
+                    fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+                end
+                %Even if aveFrames==1, the following is fine to do
                 obj.hC.hFastZ.enable=false;
                 obj.hC.hStackManager.framesPerSlice = aveFrames;
                 obj.hC.hScan2D.logAverageFactor = aveFrames;
