@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+29th September 2018
+- Various bug fixes
+
+
 5th July 2018
 - Fast-Z settings in ScanImage change right away when user edits the number of planes.
 - Bug fixes to box drawing routine. 
