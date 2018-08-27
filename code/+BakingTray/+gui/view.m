@@ -552,6 +552,8 @@ classdef view < handle
                 linFrm = [tileOptions.linesPerFrame];
                 zmFact = [tileOptions.zoomFactor];
 
+                % Find which line in the tile-size drop down this corresponds to 
+                % TODO - this should be implemented in the scanner, I think.
                 ind = (pixLin==thisRecipe.Tile.nColumns) .* ...
                       (linFrm==thisRecipe.Tile.nRows) .* ...
                       (zmFact==thisRecipe.ScannerSettings.zoomFactor); %TODO: this line is dangerous. Not all scanners will have this
@@ -564,7 +566,7 @@ classdef view < handle
                         'Attempting to resume but not updating "Tile Size" in BakingTray GUI\n'])
                 end
 
-                % Now we do the resumption                 
+                % Now we do the resumption
                 success = obj.model.resumeAcquisition(fullPath);
             end
 
@@ -878,18 +880,8 @@ classdef view < handle
             obj.model.scanner.setImageSize(src,evt)
 
             %Send copies of stitching-related data to the recipe
-            FrameData = src.UserData(src.Value);
-            if isempty(FrameData.stitchingVoxelSize)
-                scnSet = obj.model.scanner.returnScanSettings;
-                % Just take nominal values. It doesn't matter too much. 
-                mu = mean([scnSet.micronsPerPixel_rows,scnSet.micronsPerPixel_cols]);
-                obj.model.recipe.StitchingParameters.VoxelSize.X=mu;
-                obj.model.recipe.StitchingParameters.VoxelSize.Y=mu;
-            else
-                obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
-            end
-            obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
-            obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
+            obj.model.recipe.recordScannerSettings;
+
             obj.updateTileSizeLabelText;
         end
 

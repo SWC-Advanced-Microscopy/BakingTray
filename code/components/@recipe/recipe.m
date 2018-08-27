@@ -276,8 +276,8 @@ classdef recipe < handle
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         % Convenience methods
         function success=recordScannerSettings(obj)
-            % Checks if a scanner object is connected to the parent (BakingTray) object and if so, 
-            % run its scanner.returnScanSettings method and store the output in recipe.ScannerSettings
+            % Checks if a scanner object is connected to the parent (BakingTray) object and if so runs
+            % its scanner.returnScanSettings method and store the output in recipe.ScannerSettings
             if isempty(obj.parent)
                 success=false;
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
@@ -300,6 +300,42 @@ classdef recipe < handle
 
                 obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
                 obj.Tile.nColumns = obj.ScannerSettings.pixelsPerLine;
+
+                % Figure out if we are using one the pre-set scan settings and copy these
+                % values from the scanner to the recipe
+
+                tileOptions = obj.parent.scanner.frameSizeSettings;
+
+                if isempty(tileOptions) || length(fields(tileOptions))==0
+                    success=false;
+                    return
+                end
+                pixLin = [tileOptions.pixelsPerLine];
+                linFrm = [tileOptions.linesPerFrame];
+                zmFact = [tileOptions.zoomFactor];
+
+                ind = ([tileOptions.pixelsPerLine]==obj.Tile.nColumns) .* ...
+                    ([tileOptions.linesPerFrame]==obj.Tile.nRows) .* ...
+                    ([tileOptions.zoomFactor]==obj.ScannerSettings.zoomFactor); 
+                ind = find(ind);
+                if ~isempty(ind) && length(ind)==1
+                    FrameData = tileOptions(ind);
+                else
+                    fprintf('Recipe can not find scanner stitching settings\n')
+                end
+
+                if isempty(FrameData.stitchingVoxelSize)
+                    scnSet = obj.parent.scanner.returnScanSettings;
+                    % Just take nominal values. It doesn't matter too much. 
+                    mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
+                    obj.StitchingParameters.VoxelSize.X=mu;
+                    obj.StitchingParameters.VoxelSize.Y=mu;
+                else
+                    obj.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+                end
+                obj.StitchingParameters.lensDistort = FrameData.lensDistort;
+                obj.StitchingParameters.affineMat = FrameData.affineMat;
+
                 success=true;
             else
                 success=false;

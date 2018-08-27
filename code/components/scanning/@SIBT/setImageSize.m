@@ -12,8 +12,8 @@ function setImageSize(obj,pixelsPerLine,evnt)
     % scan angle multipliers remain the same after the setting was applied. It doesn't alter
     % the objective resolution value.
     %
-    % This method can also be run as a callback function, in which case pixelsPerLine is a is
-    % the source structure (matlab.ui.container.Menu) and should contain a field called 
+    % This method can also be run as a callback function, in which case pixelsPerLine is the
+    % source structure (matlab.ui.container.Menu) and should contain a field called 
     % "UserData" which is a structure that looks like this:
     %
     %              objective: 'nikon16x'
