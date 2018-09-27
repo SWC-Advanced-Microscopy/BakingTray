@@ -321,20 +321,26 @@ classdef recipe < handle
                 if ~isempty(ind) && length(ind)==1
                     FrameData = tileOptions(ind);
                 else
+                    FrameData=[];
                     fprintf('Recipe can not find scanner stitching settings\n')
                 end
 
-                if isempty(FrameData.stitchingVoxelSize)
+                if isstruct(FrameData) && isempty(FrameData.stitchingVoxelSize)
                     scnSet = obj.parent.scanner.returnScanSettings;
                     % Just take nominal values. It doesn't matter too much. 
                     mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
                     obj.StitchingParameters.VoxelSize.X=mu;
                     obj.StitchingParameters.VoxelSize.Y=mu;
-                else
+                elseif isstruct(FrameData)
                     obj.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
+                else
+                    fprintf('NOT USING PRE-DEFINED STITCHING PARAMS! NONE AVILABLE\n')
                 end
-                obj.StitchingParameters.lensDistort = FrameData.lensDistort;
-                obj.StitchingParameters.affineMat = FrameData.affineMat;
+
+                if isstruct(FrameData)
+                    obj.StitchingParameters.lensDistort = FrameData.lensDistort;
+                    obj.StitchingParameters.affineMat = FrameData.affineMat;
+                end
 
                 success=true;
             else
@@ -787,5 +793,5 @@ classdef recipe < handle
         end % checkIfAcquisitionIsPossible
 
     end % Hidden methods
-
+    
 end
