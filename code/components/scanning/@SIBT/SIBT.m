@@ -33,7 +33,7 @@ classdef SIBT < scanner
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
                                       %If a setting has changeded, the flipScanSettingsChanged method is run
-     end
+    end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
 
@@ -307,7 +307,12 @@ classdef SIBT < scanner
                 obj.hC.hStackManager.stackZStepSize = 0;
 
                 aveFrames = obj.hC.hDisplay.displayRollingAverageFactor; 
-                fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+
+                if aveFrames>1
+                    fprintf('SETTING UP AVERAGING OF %d frames\n', aveFrames)
+                end
+                %Even if aveFrames==1, the following is fine to do
+                obj.hC.hFastZ.enable=false;
                 obj.hC.hStackManager.framesPerSlice = aveFrames;
                 obj.hC.hScan2D.logAverageFactor = aveFrames;
 
@@ -563,6 +568,75 @@ classdef SIBT < scanner
             st(n).suggestedVal = suggested
 
         end % generateSettingsReport
+
+        function showFastZCalib(obj)
+            %Conduct fast-z calibration and plot results
+            %This will simply run through the Z selected depths 
+            [t,expected,~,~,measured] = obj.hC.hFastZ.testActuator;
+            f=findobj('name','fastZCalib');
+            if isempty(f)
+                f=figure;
+                f.Name='fastZCalib';
+            end
+            thisAxis = gca(f);
+            p=plot(t,expected,t,measured,'parent',thisAxis);
+            p(1).Color=[1,0.25,0.25];
+            p(2).Color=[0.25,0.25,1];
+            set(p,'LineWidth',2)
+
+            thisAxis.Color=[1,1,1]*0.5;
+            thisAxis.XLabel.String = 'Time [s]';
+            thisAxis.YLabel.String = 'Distance [\mum]';
+            grid(thisAxis,'on')
+
+        end
+
+         function readFrameSizeSettings(obj)
+            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
+            if exist(frameSizeFname, 'file')
+                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
+                tFields = fields(tYML);
+                popUpText={};
+                for ii=1:length(tFields)
+                    tSet = tYML.(tFields{ii});
+
+                    % The following is hard-coded in order to make it more likely an error will be
+                    % generated here rather than down the line
+                    obj.frameSizeSettings(ii).objective = tSet.objective;
+                    obj.frameSizeSettings(ii).pixelsPerLine = tSet.pixelsPerLine;
+                    obj.frameSizeSettings(ii).linesPerFrame = tSet.linesPerFrame;
+                    obj.frameSizeSettings(ii).zoomFactor = tSet.zoomFactor;
+                    obj.frameSizeSettings(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
+                    obj.frameSizeSettings(ii).fastMult = tSet.fastMult;
+                    obj.frameSizeSettings(ii).slowMult = tSet.slowMult;
+                    obj.frameSizeSettings(ii).objRes = tSet.objRes;
+
+                    %This is used by StitchIt to correct barrel or pincushion distortion
+                    if isfield(tSet,'lensDistort')
+                        obj.frameSizeSettings(ii).lensDistort = tSet.lensDistort;
+                    else
+                        obj.frameSizeSettings(ii).lensDistort = [];
+                    end
+                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
+                    if isfield(tSet,'affineMat')
+                        obj.frameSizeSettings(ii).affineMat = tSet.affineMat;
+                    else
+                        obj.frameSizeSettings(ii).affineMat = [];
+                    end
+                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
+                    if isfield(tSet,'stitchingVoxelSize')
+                        obj.frameSizeSettings(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
+                    else
+                        thisStruct(ii).stitchingVoxelSize = [];
+                    end
+                end
+
+            else % Report no frameSize file found
+                fprintf('\n\n SIBT finds no frame size file found at %s\n\n', frameSizeFname)
+                obj.frameSizeSettings=struct;
+            end
+        end % readFrameSizeSettings
+
 
     end %Close SIBT methods
 

@@ -11,7 +11,8 @@ function BakingTray(varargin)
     % 'useExisting' - [false by default] if true, any existing BT object in the 
     %                 base workspace is used to start BakingTray
     % 'dummyMode' - [false by default] if true we run BakingTray in dummy mode, 
-    %               which simulates the hardware.
+    %               which simulates the hardware. If ScanImage is present on start
+    %               then we connect to it. 
     %
     %
     % Rob Campbell - 2016
@@ -48,8 +49,16 @@ function BakingTray(varargin)
         %If not, we build BT and place it in the base workspace
         try
             hBT = BT(BTargs{:});
+            if dummyMode==true
+                W = evalin('base','whos');
+                if ismember('hSI',{W.name});
+                    hBT.scanner=SIBT;
+                    hBT.scanner.parent=hBT;
+                end
+
+            end
             % Place the BT object in the base workspace as a variable called "hBT"
-            assignin('base','hBT',hBT)
+            assignin('base','hBT',hBT);
         catch ME
 
             fprintf('Build of BT failed\n')
@@ -83,7 +92,7 @@ function BakingTray(varargin)
 
     % Now we make the view
     hBTview = BakingTray.gui.view(hBT);
-    assignin('base','hBTview',hBTview)
+    assignin('base','hBTview',hBTview);
     fprintf('BakingTray has started\n')
     %That was easy!
 
