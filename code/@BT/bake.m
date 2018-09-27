@@ -279,7 +279,7 @@ function bake(obj,varargin)
                 tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
                 TMP=scanimage.util.opentif(tmp_fname);
                 scanSettings = TMP.SI;
-                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath));
+                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
                 save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
             end
         end

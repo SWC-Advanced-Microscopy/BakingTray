@@ -118,13 +118,19 @@ classdef view < handle
             obj.menu.api = uimenu(obj.menu.main,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
 
             %If the user runs ScanImage, prompt to connect to ScanImage
+            %TODO: these menu items should react to whether or not the scanner is connected
             settings=BakingTray.settings.readComponentSettings;
             if strcmp(settings.scanner.type,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
             end
 
+
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
+            
+            %TODO: this item should only appear if the scanner if ScanImage
+            obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
+
 
             obj.menu.about = uimenu(obj.menu.main,'Label','About','Callback',@obj.about);
             obj.menu.quit = uimenu(obj.menu.main,'Label','Quit','Callback',@obj.closeBakingTray);
@@ -354,12 +360,12 @@ classdef view < handle
                 obj.recipeEntryBoxes.other{end}.TooltipString = ...
                  sprintf(['Instruct ScanImage to use this tile size (cols x rows) to use during acquisition.\n', ...
                           'Note: that the current tile size and image resolution are listed in the status\n', ...
-                          'text and in ScanImage. These are the values the acquisition will follow.'])
+                          'text and in ScanImage. These are the values the acquisition will follow.']);
             end
 
             % If we are using ScanImage and we find a frameSize file, populate the tile size property.
             % Otherwise disable and supply a message if needed. 
-            obj.readFrameSizeSettings
+            obj.importFrameSizeSettings
 
 
             if obj.model.isScannerConnected
@@ -463,10 +469,11 @@ classdef view < handle
                 return
             end
 
-            if strcmp(propertyPath{2},'numOpticalPlanes')
+            if strcmp(propertyPath{2},'numOpticalPlanes') || strcmp(propertyPath{2},'sliceThickness')
                 % If the number of planes were changed, we update the z-stack settings in the scanner software. 
                 obj.model.scanner.applyZstackSettingsFromRecipe;
             end
+
         end %updateRecipePropertyInRecipeClass
 
 
@@ -537,6 +544,30 @@ classdef view < handle
                 success = obj.model.attachRecipe(fullPath);
             else
                 % Attempt to resume the acquisition 
+                % First we set the tile size in the GUI to what is in the recipe
+                thisRecipe=BakingTray.settings.readRecipe(fullPath);
+
+                tileOptions = obj.recipeEntryBoxes.other{1}.UserData;
+                currentTileSize = obj.model.recipe.Tile;
+                pixLin = [tileOptions.pixelsPerLine];
+                linFrm = [tileOptions.linesPerFrame];
+                zmFact = [tileOptions.zoomFactor];
+
+                % Find which line in the tile-size drop down this corresponds to 
+                % TODO - this should be implemented in the scanner, I think.
+                ind = (pixLin==thisRecipe.Tile.nColumns) .* ...
+                      (linFrm==thisRecipe.Tile.nRows) .* ...
+                      (zmFact==thisRecipe.ScannerSettings.zoomFactor); %TODO: this line is dangerous. Not all scanners will have this
+                ind = find(ind);
+                if ~isempty(ind) && length(ind)==1
+                    obj.recipeEntryBoxes.other{1}.Value=ind;
+                    obj.updateStatusText
+                else
+                    fprintf(['Image settings do not match known values.\n', ...
+                        'Attempting to resume but not updating "Tile Size" in BakingTray GUI\n'])
+                end
+
+                % Now we do the resumption
                 success = obj.model.resumeAcquisition(fullPath);
             end
 
@@ -638,62 +669,29 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
-        function readFrameSizeSettings(obj)            
-            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
-            if exist(frameSizeFname, 'file')
-                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
-                tFields = fields(tYML);
-                popUpText={};                    
-                for ii=1:length(tFields)
-                    tSet = tYML.(tFields{ii});
+        function importFrameSizeSettings(obj)
+            obj.model.scanner.readFrameSizeSettings;
 
-                    % The following is hard-coded in order to make it more likely an error will be
-                    % generated here rather than down the line
+            thisStruct = obj.model.scanner.frameSizeSettings;
+            if ~isempty(thisStruct)
+                for ii=1:length(thisStruct)
 
                     % The popUpText is that which appears in the main GUI under the "Tile Size" pop-up menu
                     popUpText{ii} = sprintf('%dx%d %0.2f um/pix zm %0.1f', ...
-                        tSet.pixelsPerLine, tSet.linesPerFrame, tSet.nominalMicronsPerPixel, tSet.zoomFactor);
-
-                    thisStruct(ii).objective = tSet.objective;
-                    thisStruct(ii).pixelsPerLine = tSet.pixelsPerLine;
-                    thisStruct(ii).linesPerFrame = tSet.linesPerFrame;
-                    thisStruct(ii).zoomFactor = tSet.zoomFactor;
-                    thisStruct(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
-                    thisStruct(ii).fastMult = tSet.fastMult;
-                    thisStruct(ii).slowMult = tSet.slowMult;
-                    thisStruct(ii).objRes = tSet.objRes;
-
-                    %This is used by StitchIt to correct barrel or pincushion distortion
-                    if isfield(tSet,'lensDistort')
-                        thisStruct(ii).lensDistort = tSet.lensDistort;
-                    else
-                        thisStruct(ii).lensDistort = [];
-                    end
-                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
-                    if isfield(tSet,'affineMat')
-                        thisStruct(ii).affineMat = tSet.affineMat;
-                    else
-                        thisStruct(ii).affineMat = [];
-                    end
-                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
-                    if isfield(tSet,'stitchingVoxelSize')
-                        thisStruct(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
-                    else
-                        thisStruct(ii).stitchingVoxelSize = [];
-                    end
+                        thisStruct(ii).pixelsPerLine, thisStruct(ii).linesPerFrame, thisStruct(ii).nominalMicronsPerPixel, thisStruct(ii).zoomFactor);
                 end
-
                 obj.recipeEntryBoxes.other{1}.String = popUpText;
-                obj.recipeEntryBoxes.other{1}.UserData = thisStruct;
-                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); %Cause scanimage to set the image size
+                obj.recipeEntryBoxes.other{1}.UserData = thisStruct; %TODO: ugly because it's a second copy
+                obj.recipeEntryBoxes.other{1}.Callback = @(src,evt) obj.applyScanSettings(src,evt); % Cause scanimage to set the image size
+
             else % Report no frameSize file found
-                fprintf('\n\n No frame size file found at %s\n\n', frameSizeFname)
-                [~,fname,ext]=fileparts(frameSizeFname);
-                obj.recipeEntryBoxes.other{1}.String = ['No ', fname, ext];
+                fprintf('\n\n No frame size file found\n\n')
+                obj.recipeEntryBoxes.other{1}.String = 'No frame size file ';
                 obj.recipeEntryBoxes.other{1}.Enable = 'Off';
             end
+
             obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
-        end % readFrameSizeSettings
+        end % importFrameSizeSettings
 
 
     end %Methods
@@ -883,18 +881,8 @@ classdef view < handle
             obj.model.scanner.setImageSize(src,evt)
 
             %Send copies of stitching-related data to the recipe
-            FrameData = src.UserData(src.Value);
-            if isempty(FrameData.stitchingVoxelSize)
-                scnSet = obj.model.scanner.returnScanSettings;
-                % Just take nominal values. It doesn't matter too much. 
-                mu = mean([scnSet.micronsPerPixel_rows,scnSet.micronsPerPixel_cols]);
-                obj.model.recipe.StitchingParameters.VoxelSize.X=mu;
-                obj.model.recipe.StitchingParameters.VoxelSize.Y=mu;
-            else
-                obj.model.recipe.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
-            end
-            obj.model.recipe.StitchingParameters.lensDistort = FrameData.lensDistort;
-            obj.model.recipe.StitchingParameters.affineMat = FrameData.affineMat;
+            obj.model.recipe.recordScannerSettings;
+
             obj.updateTileSizeLabelText;
         end
 

@@ -673,6 +673,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+
             % Update the preview image in case the recipe has altered since the GUI was opened or
             % since the preview was last taken.
             obj.initialisePreviewImageData;
@@ -682,7 +683,8 @@ classdef acquisition_view < BakingTray.gui.child_view
                 %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)
                 obj.previewImageData(:,:,2:end,:)=[];
             end
-            
+
+            obj.updateImageLUT;
             obj.model.takeRapidPreview
 
             %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run

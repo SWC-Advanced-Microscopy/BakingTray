@@ -105,7 +105,34 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % progress a distance of obj.recipe.mosaic.cutSize mm at a speed of obj.recipe.SLICER.cuttingSpeed
     obj.setXvelocity(cuttingSpeed);
     cuttingMove=abs(obj.recipe.mosaic.cutSize)*obj.recipe.SYSTEM.cutterSide;
-    obj.moveXYby(cuttingMove, 0, 1); %start cutting the block
+    
+    obj.moveXby(cuttingMove); %Start cutting and return (don't block)
+    pause(0.05)
+    
+    targetPos = obj.getXpos + cuttingMove; % Where the cutting move should finish
+    
+    while 1 %Blocking loop until we have reached the cut end position
+       if ~obj.xAxis.isMoving % Uses the controller API routine (if availble)
+           break
+       end
+       % Some stages are sensitive and the vibratome motion causes them to 
+       % think the stage has not settled. So we add the following
+       % statements to catch this
+       if obj.recipe.SYSTEM.cutterSide==1 && obj.getXpos >= targetPos
+           disp('ABORT CUT: we are at the cutting end point and this was not caught by the controller API command')
+            obj.xAxis.stopAxis;
+           break
+       elseif obj.recipe.SYSTEM.cutterSide==-1 && obj.getXpos <= targetPos
+           obj.xAxis.stopAxis;
+           break
+       end
+       
+       % To honour abort command 
+       if obj.abortSlice
+           return
+       end
+       pause(0.025)
+    end
 
     if obj.abortSlice
         return

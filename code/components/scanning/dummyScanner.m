@@ -205,6 +205,9 @@ classdef dummyScanner < scanner
             sr=[];
         end
 
+        function applyScanSettings(~,~)
+        end
+
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
         % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
@@ -218,7 +221,9 @@ classdef dummyScanner < scanner
 
         end
 
-
+        function readFrameSizeSettings
+            %TODO: will ultimately cause problems because it does nothing, but it's unlikely this will be an issue in practice
+        end
 
     end %close methods
 
