@@ -295,7 +295,11 @@ classdef recipe < handle
                 if strcmp(obj.mosaic.scanmode,'ribbon')
                     obj.VoxelSize.Z = round( (obj.mosaic.sliceThickness*1E3) / obj.mosaic.numOpticalPlanes,1);
                 else
-                    obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
+                    if obj.ScannerSettings.numOpticalSlices == 1
+                        obj.VoxelSize.Z = obj.mosaic.sliceThickness * 1E3;
+                    elseif obj.ScannerSettings.numOpticalSlices > 1
+                        obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;                        
+                    end
                 end
 
                 obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
@@ -368,7 +372,6 @@ classdef recipe < handle
 
             % TODO: add error checks
             if isempty(obj.parent)
-                success=false;
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
                 return
             end
@@ -385,14 +388,13 @@ classdef recipe < handle
 
             % TODO: add error checks
             if isempty(obj.parent)
-                success=false;
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
                 return
             end
             hBT=obj.parent;
             [x,y]=hBT.getXYpos;
             obj.CuttingStartPoint.X = x;
-            obj.CuttingStartPoint.Y = y;
+            obj.CuttingStartPoint.Y = 0; % By default force cutting to be centred on blade
         end % setCurrentPositionAsCuttingPosition
 
         function setFrontLeftFromVentralMidLine(obj)
@@ -406,7 +408,6 @@ classdef recipe < handle
             %
             % This method sets the recipe.FrontLeft .X and .Y values. It doesn't move the stage.
             if isempty(obj.parent)
-                success=false;
                 fprintf('ERROR in setFrontLeftFromVentralMidLine: recipe class has nothing bound to property "parent". Can not access BT.\n')
                 return
             end
@@ -416,7 +417,6 @@ classdef recipe < handle
             tp=obj.tilePattern(true,true);
 
             if isempty(tp)
-                success=false;
                 fprintf('ERROR in setFrontLeftFromVentralMidLine: tile position data are empty. Likely an invalid setting. Can not proceed.\n')
                 return
             end
