@@ -7,6 +7,15 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+8th January 2019
+- USER: Add ability to send Slack messages. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
+- USER: Add default front/left. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
+ Instructions:
+ For the above, the easiest way is to move your system ini file to the back up settings dir. 
+ Then run BakingTray.settings.readSystemSettings and manually add back your original settings 
+ whilst editing the new values. 
+
+
 29th September 2018
 - Various bug fixes
 

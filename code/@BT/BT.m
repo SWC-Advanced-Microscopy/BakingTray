@@ -559,6 +559,9 @@ classdef BT < loghandler
             if nargin<3
                 fname=obj.acquisitionLogFileName;
             end
+            if isempty(fname)
+                return
+            end
             fid = fopen(fname,'a+');
             if fid<1
                 fprintf('FAILED to write to acquisition log file at %s\n',fname)
