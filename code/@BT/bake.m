@@ -339,8 +339,8 @@ function bakeCleanupFun(obj)
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
         % to indicate that acquisition is done 
         minSections=25;
-        if sectionInd>minSections
-            obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', sectionInd))
+        if obj.currentSectionNumber>minSections
+            obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', obj.currentSectionNumber))
         end
 
         obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));
@@ -350,7 +350,7 @@ function bakeCleanupFun(obj)
         else
             pause(10) %it takes a little while for the laser to turn off
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
-            if sectionInd>minSections
+            if obj.currentSectionNumber>minSections
                 BakingTray.slack.(msg)
             end
             obj.acqLogWriteLine(msg);
