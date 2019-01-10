@@ -153,6 +153,7 @@ classdef recipe < handle
         % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
         SYSTEM
         SLICER
+        SLACK
     end %close protected properties
 
     properties (Hidden)
@@ -248,7 +249,7 @@ classdef recipe < handle
             % We do not want to ever read these settings from the recipe file. 
             obj.SYSTEM = sysSettings.SYSTEM;
             obj.SLICER = sysSettings.SLICER;
-
+            obj.SLACK = sysSettings.SLACK;
             obj.fname=recipeFname;
 
 
