@@ -340,7 +340,7 @@ function bakeCleanupFun(obj)
         % to indicate that acquisition is done 
         minSections=25;
         if sectionInd>minSections
-            BakingTray.slack.(sprintf('Acquisition finished on BrainSaw after %d sections.', sectionInd)
+            obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', sectionInd))
         end
 
         obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));

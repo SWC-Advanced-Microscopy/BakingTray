@@ -4,12 +4,12 @@ function slack(obj,message)
     % BT.slack(message)
     %
 
-    if ~isfield(BT.recipe,'SLACK')
+    if ~isfield(obj.recipe,'SLACK')
         fprintf('No SLACK field defined in recipe. Not sending Slack message.\n')
         return
     end
 
-    SLACK = BT.recipe.SLACK;
+    SLACK = obj.recipe.SLACK;
     if isempty(SLACK.hook)
         msg = sprintf('No Slack hook defined. BT.slack will do nothing.\n');
         obj.acqLogWriteLine(msg);
