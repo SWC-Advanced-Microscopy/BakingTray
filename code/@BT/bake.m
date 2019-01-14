@@ -351,7 +351,7 @@ function bakeCleanupFun(obj)
             pause(10) %it takes a little while for the laser to turn off
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             if obj.currentSectionNumber>minSections
-                BakingTray.slack(msg)
+                obj.slack(msg)
             end
             obj.acqLogWriteLine(msg);
         end
