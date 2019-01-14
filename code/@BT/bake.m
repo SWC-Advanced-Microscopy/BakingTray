@@ -337,10 +337,13 @@ function bakeCleanupFun(obj)
     if obj.isLaserConnected & ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
-        % to indicate that acquisition is done 
+        % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
             obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', obj.currentSectionNumber))
+        else
+            fprintf('Not sending Slack message because only %d sections completed, which less than threshold of %d\n',...
+                obj.currentSectionNumber, minSections)
         end
 
         obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));
