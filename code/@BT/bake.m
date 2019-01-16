@@ -204,6 +204,21 @@ function bake(obj,varargin)
             end
 
             % ===> Now the scanning runs <===
+
+            % If this is the first pass through the loop and we're using ScanImage, dump
+            % the settings to a file. TODO: eventually we need to decide what to do with other
+            % scan systems and abstract this code. 
+            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+                d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
+                if ~isempty(d)
+                    tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
+                    TMP=scanimage.util.opentif(tmp_fname);
+                    scanSettings = TMP.SI;
+                    saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                    save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+                end
+            end
+
             if ~obj.runTileScan
                 fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
                 return
@@ -272,19 +287,6 @@ function bake(obj,varargin)
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
 
-        % If this is the first pass through the loop and we're using ScanImage, dump
-        % the settings to a file. TODO: eventually we need to decide what to do with other
-        % scan systems and abstract this code. 
-        if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-            d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
-            if ~isempty(d)
-                tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
-                TMP=scanimage.util.opentif(tmp_fname);
-                scanSettings = TMP.SI;
-                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
-                save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
-            end
-        end
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
