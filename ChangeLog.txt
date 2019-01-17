@@ -8,6 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
+- USER: resonant scanner remains on after preview scan to encourage it to settle. It will still be switched off at the end of the acquisition. 
 
 8th January 2019
 - USER: Add ability to send Slack messages. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
