@@ -46,6 +46,7 @@ function setImageSize(obj,pixelsPerLine,evnt)
         pixEqLin = settings.pixelsPerLine==settings.linesPerFrame; % Is the setting asking for a square frame?
         fastMult = settings.fastMult;
         slowMult = settings.slowMult;
+        zoomFact = settings.zoomFactor;
         objRes = settings.objRes;
 
     else
@@ -95,6 +96,8 @@ function setImageSize(obj,pixelsPerLine,evnt)
             end
 
     end
+
+    obj.hC.hRoiManager.scanZoomFactor = zoomFact;
 
     % Issue a warning if the FOV of the image has changed after changing the number of pixels. 
     after = obj.returnScanSettings;
