@@ -32,7 +32,8 @@ The current feature set is as follows:
 * Easy control of illumination as a function of depth via ScanImage. 
 * Integrates with our [StitchIt](https://github.com/BaselLaserMouse/StitchIt) software for assembling the stitched images from raw tiles. 
 * Easily resume of a previously halted acquisition. 
-* Modular API allows developers to easily extend the software or adapt it to different hardware. 
+* Modular API allows developers to easily extend the software or adapt it to different hardware.
+* Slack messages on acquisition completion.
 
 ### Getting started ###
 See [the wiki](https://github.com/BaselLaserMouse/BakingTray/wiki)
