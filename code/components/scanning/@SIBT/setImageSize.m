@@ -54,6 +54,7 @@ function setImageSize(obj,pixelsPerLine,evnt)
         fastMult = [];
         slowMult = [];
         objRes = [];
+        zoomFact =[];
     end
 
     %Let's record the image size
@@ -96,8 +97,10 @@ function setImageSize(obj,pixelsPerLine,evnt)
             end
 
     end
-
-    obj.hC.hRoiManager.scanZoomFactor = zoomFact;
+    
+    if ~isempty(zoomFact)
+        obj.hC.hRoiManager.scanZoomFactor = zoomFact;
+    end
 
     % Issue a warning if the FOV of the image has changed after changing the number of pixels. 
     after = obj.returnScanSettings;

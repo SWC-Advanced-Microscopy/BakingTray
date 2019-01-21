@@ -193,7 +193,7 @@ function bake(obj,varargin)
                 obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
             end
 
-            if ~obj.scanner.armScanner;
+            if ~obj.scanner.armScanner
                 disp('FAILED TO START -- COULD NOT ARM SCANNER')
                 return
             end
@@ -202,9 +202,26 @@ function bake(obj,varargin)
             if sectionInd==1
                 obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
             end
+            
+            % For syncAndCrunch to be happy we need to write the currently
+            % displayed channels. A bit of hack, but it's easiest solution
+            % for now. Alternative would be to have S&C rip it out of the
+            % TIFF header. 
+            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+                scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+            end
+
 
             % ===> Now the scanning runs <===
+            if ~obj.runTileScan
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+                return
+            end
 
+            % Now we save to full scan settings by stripping data from a
+            % tiff file.
             % If this is the first pass through the loop and we're using ScanImage, dump
             % the settings to a file. TODO: eventually we need to decide what to do with other
             % scan systems and abstract this code. 
@@ -217,11 +234,6 @@ function bake(obj,varargin)
                     saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
                     save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
                 end
-            end
-
-            if ~obj.runTileScan
-                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-                return
             end
 
             if obj.abortAcqNow
