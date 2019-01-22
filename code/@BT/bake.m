@@ -17,6 +17,8 @@ function bake(obj,varargin)
     %
     %
     % Rob Campbell - Basel, Feb, 2017
+    %
+    % See also BT.runTileScan
 
 
     obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
@@ -143,12 +145,12 @@ function bake(obj,varargin)
 
 
     %loop and tile scan
-    for ii=1:obj.recipe.mosaic.numSections
+    for sectionInd=1:obj.recipe.mosaic.numSections
 
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
 
-        obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
+        obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
         if obj.currentSectionNumber<0
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
@@ -163,7 +165,7 @@ function bake(obj,varargin)
 
 
         tLine = sprintf('%s -- STARTING section number %d (%d of %d) at z=%0.4f in directory %s\n',...
-            currentTimeStr() ,obj.currentSectionNumber, ii, obj.recipe.mosaic.numSections, obj.getZpos, ...
+            currentTimeStr() ,obj.currentSectionNumber, sectionInd, obj.recipe.mosaic.numSections, obj.getZpos, ...
             strrep(obj.currentTileSavePath,'\','\\') );
         obj.acqLogWriteLine(tLine)
         startAcq=now;
@@ -191,20 +193,47 @@ function bake(obj,varargin)
                 obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
             end
 
-            if ~obj.scanner.armScanner;
+            if ~obj.scanner.armScanner
                 disp('FAILED TO START -- COULD NOT ARM SCANNER')
                 return
             end
 
             % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-            if ii==1
+            if sectionInd==1
                 obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
             end
+            
+            % For syncAndCrunch to be happy we need to write the currently
+            % displayed channels. A bit of hack, but it's easiest solution
+            % for now. Alternative would be to have S&C rip it out of the
+            % TIFF header. 
+            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+                scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+            end
+
 
             % ===> Now the scanning runs <===
             if ~obj.runTileScan
                 fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
                 return
+            end
+
+            % Now we save to full scan settings by stripping data from a
+            % tiff file.
+            % If this is the first pass through the loop and we're using ScanImage, dump
+            % the settings to a file. TODO: eventually we need to decide what to do with other
+            % scan systems and abstract this code. 
+            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+                d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
+                if ~isempty(d)
+                    tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
+                    TMP=scanimage.util.opentif(tmp_fname);
+                    scanSettings = TMP.SI;
+                    saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                    save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+                end
             end
 
             if obj.abortAcqNow
@@ -247,7 +276,7 @@ function bake(obj,varargin)
             obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
-            if ii<obj.recipe.mosaic.numSections || obj.sliceLastSection
+            if sectionInd<obj.recipe.mosaic.numSections || obj.sliceLastSection
                 obj.sliceSample;
             end
         else
@@ -270,19 +299,6 @@ function bake(obj,varargin)
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
 
-        % If this is the first pass through the loop and we're using ScanImage, dump
-        % the settings to a file. TODO: eventually we need to decide what to do with other
-        % scan systems and abstract this code. 
-        if ii==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-            d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
-            if ~isempty(d)
-                tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
-                TMP=scanimage.util.opentif(tmp_fname);
-                scanSettings = TMP.SI;
-                saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
-                save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
-            end
-        end
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
@@ -291,7 +307,7 @@ function bake(obj,varargin)
             break
         end
 
-    end % for ii=1:obj.recipe.mosaic.numSections
+    end % for sectionInd=1:obj.recipe.mosaic.numSections
 
 
     fprintf('Finished data acquisition\n')
@@ -333,6 +349,17 @@ function bakeCleanupFun(obj)
 
 
     if obj.isLaserConnected & ~obj.leaveLaserOn
+        % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
+        % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
+        % to indicate that acquisition is done.
+        minSections=25;
+        if obj.currentSectionNumber>minSections
+            obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', obj.currentSectionNumber))
+        else
+            fprintf('Not sending Slack message because only %d sections completed, which less than threshold of %d\n',...
+                obj.currentSectionNumber, minSections)
+        end
+
         obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));
         success=obj.laser.turnOff;
         if ~success
@@ -340,6 +367,9 @@ function bakeCleanupFun(obj)
         else
             pause(10) %it takes a little while for the laser to turn off
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
+            if obj.currentSectionNumber>minSections
+                obj.slack(msg)
+            end
             obj.acqLogWriteLine(msg);
         end
     else 
@@ -348,7 +378,7 @@ function bakeCleanupFun(obj)
         % (but this means we have to set this each time)
         fprintf(['Acquisition finished and Laser will NOT be turned off.\n',...
             'BT.bake is setting the "leaveLaserOn" flag to false: laser will attempt to turn off next time.\n'])
-        obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));        
+        obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));
         obj.leaveLaserOn=false;
     end
 

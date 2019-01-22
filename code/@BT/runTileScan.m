@@ -5,7 +5,7 @@ function runSuccess = runTileScan(obj)
     % 
     % Purpose
     % The method moves the sample to the front/left position, initialises some variables
-    % then initiates the scan cycle. 
+    % then initiates the scan cycle. This method is called by BT.bake.
 
     runSuccess=false;
 
