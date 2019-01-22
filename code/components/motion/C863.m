@@ -1,15 +1,15 @@
-classdef C663 < genericPIcontroller
+classdef C863 < genericPIcontroller
 % C863 is a class that inherits linearcontroller and defines the interface between
-% BakingTray and C-663 stepper motor controllers from PI using PI's GCS controller 
+% BakingTray and C-863 stepper motor controllers from PI using PI's GCS controller 
 % class. In effect, this is a glue class.
 %
-% C663 is a class that inherits linearcontroller and defines the interface between
+% C863 is a class that inherits linearcontroller and defines the interface between
 % BakingTray and PI's GCS controller class. In effect, this is a glue class.
 %
 % All abstract methods should (where possible) have doc text only in the abstract method class file.
 %
 %
-% To use the C663 controller, install the PI MATLAB support package. Ensure that the instances of
+% To use the C863 controller, install the PI MATLAB support package. Ensure that the instances of
 % the class can be created and behave as expected. e.g. that the .MOV method can be used to
 % move the stage. So go through PI's example MATLAB scripts and ensure all makes sense.
 %
@@ -19,16 +19,16 @@ classdef C663 < genericPIcontroller
 % 
 % >> STAGE = genericPIstage;
 % >> STAGE.axisName='someName'; %Does not matter for this toy example
-% >> PIC663 = C663(STAGE); %Create  control class
+% >> PIC863 = C863(STAGE); %Create  control class
 % >> controllerID.interface='usb'; %We will connect via USB...
-% >> controllerID.ID= '116010269'; %Using the serial number of the C663
+% >> controllerID.ID= '116010269'; %Using the serial number of the C863
 % >> controllerID.controllerModel='C-663';
 % Now we are ready to communicate with the device and connect to it:
 %
-% >> PIC663.connect(controllerID)
+% >> PIC863.connect(controllerID)
 % Loading PI_MATLAB_Driver_GCS2 ...
 % PI_MATLAB_Driver_GCS2 loaded successfully.
-% Attempting to connect to C-C663 with serial number 116010269
+% Attempting to connect to C-C863 with serial number 116010269
 
 
     properties
@@ -40,7 +40,7 @@ classdef C663 < genericPIcontroller
 
     methods
         % Constructor
-        function obj=C663(stageObject,logObject)
+        function obj=C863(stageObject,logObject)
             if nargin<1
               stageObject=[];
             end
@@ -48,18 +48,19 @@ classdef C663 < genericPIcontroller
                 logObject=[];
             end
             obj = obj@genericPIcontroller(stageObject,logObject);
+
         end % Constructor
 
-
-        %There is no enable and disable with this controller
-        function success=enableAxis(obj)
-          success=true;
-        end
-
-        function success=disableAxis(obj)
-          success=true;
-        end
-
+        % TODO: for now we don't query the controller as it's far too slow
+        function success = isControllerConnected(obj)
+            success = false;
+            if isempty(obj.hC)
+              fprintf('The controller property "hC" is empty.\n')
+              obj.logMessage(inputname(1),dbstack,7,'No attempt to connect to the controller has been made')
+              return
+            end
+            success=true;
+        end %isControllerConnected
 
     end %close 
 

@@ -27,8 +27,8 @@ function settings=componentSettings
     % Laser
     % BakingTray communicates with the laser in order to stop acquiring if it loses modelock
     % and to turn off the laser at the end of acquisition. 
-    laser.type=''; % One of: 'maitai', 'dummyLaser'
-    laser.COM=[];  % COM port number on which the laser is attached.
+    laser.type=''; % One of: 'maitai', 'chameleon', or 'dummyLaser'
+    laser.COM=[];  % COM port number on which the laser is attached. e.g. the scalar 1
 
 
 

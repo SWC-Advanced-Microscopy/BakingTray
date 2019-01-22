@@ -80,32 +80,17 @@ switch controllerName
         component.setAcceleration(1);
         component.setMaxVelocity(3);
 
-    case 'C891'
+    case {'C891', 'C663', 'C863'}
         % Likely this will be used to control an X or Y stage
         stageComponents = buildSingleAxisGenericPIstage(stages);
         if isempty(stageComponents)
             return
         end
 
-        component = C891(stageComponents);
+        component = eval([controllerName,'(stageComponents)']);
         
         controllerID.interface='usb';
-        controllerID.controllerModel='C-891';
-
-        controllerID.ID=controllerParams.connectAt;
-        component.connect(controllerID); %Connect to the controller
-
-     case 'C663'
-        % Likely this will be used to control an X or Y stage
-        stageComponents = buildSingleAxisGenericPIstage(stages);
-        if isempty(stageComponents)
-            return
-        end
-
-        component = C663(stageComponents);
-
-        controllerID.interface='usb';
-        controllerID.controllerModel='C-663';
+        controllerID.controllerModel=strrep(controllerName,'C','C-');
 
         controllerID.ID=controllerParams.connectAt;
         component.connect(controllerID); %Connect to the controller
@@ -182,11 +167,12 @@ function stageComponents = build_BSC201_APT_stages(stages)
 
 
 function stageComponents = buildSingleAxisGenericPIstage(stages)
-    %Returns a structure of stage components for the PI C891
+    %Returns a structure of stage components for the PI controller
+    %NOTE: this function only handles PI controllers with one stage connected
 
     stageComponents=[];
     if size(stages,1)>1
-        fprintf('%s - The C891 can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
+        fprintf('%s - The PI controller can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
         return
     end
 
@@ -211,7 +197,7 @@ function stageComponents = buildSingleAxisGenericPIstage(stages)
             stageComponents.minPos=stageSettings.minPos;
             stageComponents.maxPos=stageSettings.maxPos;
         otherwise
-           fprintf('%s - Unknown C891 stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
+           fprintf('%s - Unknown PI stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
     end
 
 
