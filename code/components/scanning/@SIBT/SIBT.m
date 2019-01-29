@@ -21,6 +21,7 @@ classdef SIBT < scanner
         % If true you get debug messages printed during scanning and when listener callbacks are hit
         verbose=false;
         settings=struct('tileRotate',-1, 'doResetTrippedPMT',0);
+        leaveResonantScannerOnWhenArmed = true
     end
 
     properties (Hidden)
@@ -242,7 +243,10 @@ classdef SIBT < scanner
             end
             success=true;
 
-
+            if strcmpi(obj.scannerType, 'resonant')
+                % This will only be turned off again when the teardown method is run
+                obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
+            end
 
             fprintf('Armed scanner: %s\n', datestr(now))
         end %armScanner
@@ -532,7 +536,7 @@ classdef SIBT < scanner
         function tearDown(obj)
             % Ensure resonant scanner is off
             if strcmpi(obj.scannerType, 'resonant')
-                obj.hC.hScan2D.keepResonantScannerOn=0;
+                obj.hC.hScan2D.keepResonantScannerOn=false;
             end
 
             % Turn off PMTs

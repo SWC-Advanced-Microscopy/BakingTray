@@ -95,7 +95,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     end
 
 
-    pause(0.2) % wait 200 ms
+    pause(1) % a second before carrying on
 
     % start cutter and verify that it started
     obj.logMessage(inputname(1),dbstack,4,'Starting to cut')
@@ -156,7 +156,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     pause(obj.recipe.SLICER.postCutDelay/2)
 
     % initiate post-cut slice-removal dance
-    swipeSize = 5;
+    swipeSize = 4;
     obj.moveXYby(0,swipeSize, 1, 0.3,1); %swipe (with 1 second time-out)
     if obj.abortSlice
         return
