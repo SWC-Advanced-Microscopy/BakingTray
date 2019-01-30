@@ -257,6 +257,7 @@ function bake(obj,varargin)
             if ~isReady
                 %TODO: this should be able to send a Slack message or e-mail to the user
                 msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
+                obj.slack(msg)
                 fprintf(msg)
                 obj.acqLogWriteLine(msg)
                 return
