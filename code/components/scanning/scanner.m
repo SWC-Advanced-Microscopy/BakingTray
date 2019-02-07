@@ -314,10 +314,34 @@ classdef (Abstract) scanner < handle & loghandler
         %
         %
         % Inputs
-        % scanSettings - a structure containing scanner settings in a known format such that they can be applied to the 
-        %                scanner instance, changing it's settings.
+        % scanSettings - a structure containing scanner settings in a known format such that they can be 
+        %                applied to the scanner instance, changing it's settings.
 
 
+        getNumAverageFrames(obj)
+        % getNumAverageFrames(obj)
+        % 
+        % Return the number of frames that will be averaged for each saved frame
+        %
+        % Inputs
+        % none
+        %
+        % Outputs
+        % nAveFrames - a scalar. e.g. 1 would mean no averaging. 10 would mean 10 frames per x/y/z position 
+        %              are averaged.
+        %
+
+
+        setNumAverageFrames(obj,nFramesToAverage)
+        % setNumAverageFrames(obj,nFramesToAverage)
+        %
+        % Instruct the scanner to average this number of frames per x/y position
+        %
+        % Inputs
+        % nFramesToAverage - must be a >0 scalar
+        %
+
+        
      end % close abstract methods
 
 
