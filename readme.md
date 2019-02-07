@@ -8,8 +8,8 @@
 BakingTray is an open-source serial section 2-photon imaging system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
-This software is aimed at technically-minded people who want an open source STP solution that can be modified for their needs. 
-Setting up BakingTray requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
+This software is aimed at technically-minded people who want an open source serial-section solution that can be modified for their needs. 
+Setting up BakingTray from scratch on your rig requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
 _This is not a turn-key solution_.
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
 
