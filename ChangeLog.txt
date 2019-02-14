@@ -9,7 +9,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 14th February 2019
 - USER: default front/left is now fully implemented
-
+- USER: dev branch allows averaging in z-stacks with suitable ScanImage release
 
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
