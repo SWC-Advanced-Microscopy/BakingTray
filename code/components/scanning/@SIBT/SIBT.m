@@ -642,6 +642,22 @@ classdef SIBT < scanner
         end % readFrameSizeSettings
 
 
+        function nFrames = getNumAverageFrames(obj);
+            nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
+        end % getNumAverageFrames
+
+
+        function setNumAverageFrames(obj,nFrames)
+            if ~isscalar(nFrames)
+                return
+            end
+            if nFrames<1
+                return
+            end
+            obj.hC.hDisplay.displayRollingAverageFactor=nFrames;
+        end % setNumAverageFrames
+
+
     end %Close SIBT methods
 
     methods % SIBT methods in external files

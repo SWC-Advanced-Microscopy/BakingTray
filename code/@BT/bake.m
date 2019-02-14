@@ -257,6 +257,7 @@ function bake(obj,varargin)
             if ~isReady
                 %TODO: this should be able to send a Slack message or e-mail to the user
                 msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
+                obj.slack(msg)
                 fprintf(msg)
                 obj.acqLogWriteLine(msg)
                 return
@@ -354,7 +355,8 @@ function bakeCleanupFun(obj)
         % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
-            obj.slack(sprintf('Acquisition finished on BrainSaw after %d sections.', obj.currentSectionNumber))
+            obj.slack(sprintf('Acquisition of %s finished on BrainSaw after %d sections.', ...
+                obj.recipe.sample.ID, obj.currentSectionNumber))
         else
             fprintf('Not sending Slack message because only %d sections completed, which less than threshold of %d\n',...
                 obj.currentSectionNumber, minSections)

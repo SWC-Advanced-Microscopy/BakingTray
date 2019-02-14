@@ -57,7 +57,7 @@ function applyScanSettings(obj,scanSettings)
         return
     end
 
-    % Find tif files in the last directory
+    % Find TIFF files in the last directory
     lastSectionDir = fullfile(rawDataDir,sectionDirs(end).name);
     tiffs = dir(fullfile(lastSectionDir,'*.tif'));
     if isempty(tiffs)
@@ -66,8 +66,10 @@ function applyScanSettings(obj,scanSettings)
         return
     end
 
-    % Read the ScanImage settings from this file
-    TMP=scanimage.util.opentif(fullfile(lastSectionDir,tiffs(end).name));
+    % Read the ScanImage settings from the first file. In the event of a hard crash, like a power-down,
+    % the last few images will be garbage so we don't read the last image. 
+    % TODO: consider reading the penultimate directory instead.
+    TMP=scanimage.util.opentif(fullfile(lastSectionDir,tiffs(1).name));
     hSI_Settings = TMP.SI;
 
     % Apply the important settings to the running instance of ScanImage
