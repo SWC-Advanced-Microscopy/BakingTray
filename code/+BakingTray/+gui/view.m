@@ -575,6 +575,11 @@ classdef view < handle
                 obj.connectRecipeListeners
                 obj.updateAllRecipeEditBoxesAndStatusText
                 obj.updateRecipeFname
+
+                %If the prepare GUI is open, we force an update
+                if ~isempty(obj.view_prepare)
+                    obj.view_prepare.updateCuttingConfigurationText
+                end
             end
         end %loadRecipe
 
@@ -984,7 +989,6 @@ classdef view < handle
 
 
     end %Hidden methods
-
 
 
 

@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+14th February 2019
+- USER: default front/left is now fully implemented
+
+
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
 - USER: resonant scanner remains on after preview scan to encourage it to settle. It will still be switched off at the end of the acquisition. 
@@ -14,7 +18,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 8th January 2019
 - USER: Add ability to send Slack messages. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
-- USER: Add default front/left. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE **
+- DEVELOPER: default front/left present in sys INI file but not implemented fully. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE **
  Instructions:
  For the above, the easiest way is to move your system ini file to the back up settings dir. 
  Then run BakingTray.settings.readSystemSettings and manually add back your original settings 
