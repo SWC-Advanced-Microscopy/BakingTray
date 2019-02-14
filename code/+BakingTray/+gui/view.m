@@ -877,12 +877,18 @@ classdef view < handle
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
 
+            % Disable the listeners on the scanner temporarily otherwise 
+            % we get things that look like error messages
+            obj.scannerListeners{1}.Enabled=false; 
+
             %Set the scanner settings
             obj.model.scanner.setImageSize(src,evt)
 
+            obj.scannerListeners{1}.Enabled=true;
             %Send copies of stitching-related data to the recipe
             obj.model.recipe.recordScannerSettings;
 
+            obj.updateAllRecipeEditBoxesAndStatusText %Manually call scanner listener callback
             obj.updateTileSizeLabelText;
         end
 
