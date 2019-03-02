@@ -5,7 +5,8 @@
 </a>
 
 ### What is it?
-BakingTray is an open-source serial section 2-photon imaging system inspired the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)) but runs  within [MATLAB](http://www.mathworks.com/) using the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
+BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)).
+BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
 This software is aimed at technically-minded people who want an open source serial-section solution that can be modified for their needs. 
