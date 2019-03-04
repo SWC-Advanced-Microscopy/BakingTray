@@ -271,8 +271,8 @@ function bake(obj,varargin)
         end
 
         % If too many channels are being displayed, fix this before carrying on
-        chanDisp=hBT.scanner.channelsToDisplay;
-        if length(chanDisp)>1 && isa(hBT.scanner,'SIBT')
+        chanDisp=obj.scanner.channelsToDisplay;
+        if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
             % A bit horrible, but it will work
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
