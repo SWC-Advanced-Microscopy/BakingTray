@@ -108,7 +108,7 @@ classdef SIBT < scanner
 
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
-
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
 
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
