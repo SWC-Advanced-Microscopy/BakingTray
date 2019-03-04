@@ -610,7 +610,7 @@ classdef BT < loghandler
                 approxTimePerSection = round(approxTimePerSection + (numTilesPerOpticalSection*0.35));
 
                 %Estimate cut time
-                cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 5; 
+                cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 12;
                 out.timePerSectionInSeconds = approxTimePerSection+cutTime;
                 out.timeLeftInSeconds = out.timePerSectionInSeconds * obj.recipe.mosaic.numSections; %Use all sections because nothing would have been imaged
             else
