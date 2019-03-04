@@ -418,6 +418,9 @@ classdef SIBT < scanner
 
             % Turn off PMTs
             obj.hC.hPmts.powersOn(:) = 0;
+
+            % Reset averging to 1 at the end of acquision
+            obj.hC.hDisplay.displayRollingAverageFactor=1;
         end
 
 
