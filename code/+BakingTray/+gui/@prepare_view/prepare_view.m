@@ -2,6 +2,8 @@ classdef prepare_view < BakingTray.gui.child_view
     % bakingtray.gui.prepare_view handles motion commands, cutting, setting of start position
     %
     % obj=bakingtray.gui.prepare_view(hBT,hBTview)
+    %
+
     properties
 
         %Buttons
@@ -27,7 +29,7 @@ classdef prepare_view < BakingTray.gui.child_view
         plan_panel
         sliceNtimes_panel
 
-        suppressToolTips=true
+        suppressToolTips=false
         labels=struct
 
         jogSizeCoarseOrFine='fine' %can also be "coarse" TODO: add a radio button and callback to switch between coarse and fine 
@@ -328,6 +330,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Position', [159,64,39,17], 'Tag', 'CuttingStartPoint||X');
 
             obj.editBox.cut_Y = uicontrol(commonXYEditBoxProps{:}, ...
+                'Enable','Off', ...
                 'ToolTipString', 'Y cutting position', ...
                 'Callback', @obj.updateRecipeFrontLeftOrCutPointOnEditBoxChange, ...
                 'Position', [159+63,64,39,17], 'Tag', 'CuttingStartPoint||Y');

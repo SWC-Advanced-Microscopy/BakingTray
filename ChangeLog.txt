@@ -6,10 +6,16 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+4th March 2019
+- USER: Improved acquisition time estimates (includes taking into account averaging)
+- USER: Averaging disables when sample is complete
+- Small GUI improvement: disable cut Y pos edit box
+- Double-check laser is off-line before bailing out
+
 
 14th February 2019
 - USER: default front/left is now fully implemented
-
+- USER: dev branch allows averaging in z-stacks with suitable ScanImage release
 
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
