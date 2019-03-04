@@ -251,11 +251,17 @@ function bake(obj,varargin)
 
 
         % If the laser is off-line for some reason (e.g. lack of modelock, we quit
-        % so we don't cut and the sample is safe. 
+        % so we don't cut and the sample is safe.
         if obj.isLaserConnected
+
             [isReady,msg]=obj.laser.isReady;
             if ~isReady
-                %TODO: this should be able to send a Slack message or e-mail to the user
+                % Otherwise pause and check it's really down before carrying on
+                pause(3)
+                [isReady,msg]=obj.laser.isReady;
+            end
+
+            if ~isReady
                 msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
                 obj.slack(msg)
                 fprintf(msg)
@@ -264,7 +270,12 @@ function bake(obj,varargin)
             end
         end
 
-
+        % If too many channels are being displayed, fix this before carrying on
+        chanDisp=hBT.scanner.channelsToDisplay;
+        if length(chanDisp)>1 && isa(hBT.scanner,'SIBT')
+            % A bit horrible, but it will work
+            obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
+        end
 
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
@@ -299,7 +310,6 @@ function bake(obj,varargin)
             currentTimeStr() ,obj.currentSectionNumber, prettyTime(elapsedTimeInSeconds) ));
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
-
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.

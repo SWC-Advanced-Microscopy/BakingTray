@@ -217,7 +217,6 @@ classdef SIBT < scanner
             obj.hC.hDisplay.volumeDisplayStyle='Tiled';
             obj.hC.hDisplay.selectedZs=[];
 
-           
             success=true;
             fprintf('\nDisarmed scanner: %s\n', datestr(now))
         end %disarmScanner
