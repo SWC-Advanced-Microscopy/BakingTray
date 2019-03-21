@@ -307,7 +307,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Callback', @obj.setVentralMidline_callback );
 
 
-            % Text exit boxes for the cutting start point and position
+            % Text edit boxes for the cutting start point and position
             commonXYtextProps={'Color','w', 'FontSize', obj.fSize, 'Units','Pixels'};
             obj.labels.cut_X = annotation(obj.plan_panel, 'textbox', commonXYtextProps{:}, ...
                 'Position', [135, 65, 10, 18], 'String', 'X=');
@@ -531,7 +531,7 @@ classdef prepare_view < BakingTray.gui.child_view
             for ii=1:length(editBoxes)
                 obj.editBox.(editBoxes{ii}).Enable=toggleState;
             end
-
+            obj.editBox.cut_Y.Enable='Off'; % At least for now, this is always disabled
             switch toggleState
             case 'on'
                 start(obj.prepareViewUpdateTimer);
