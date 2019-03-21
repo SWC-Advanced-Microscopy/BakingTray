@@ -6,6 +6,7 @@
 
 ### What is it?
 BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)).
+The software is for research and development purposes. 
 BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
@@ -35,6 +36,12 @@ The current feature set is as follows:
 * Easily resume of a previously halted acquisition. 
 * Modular API allows developers to easily extend the software or adapt it to different hardware.
 * Slack messages on acquisition completion.
+
+
+### Experimental features
+* Stage-scanning with a resonant scanner
+* Wide-field camera tile-scanning
+
 
 ### Getting started ###
 See [the wiki](https://github.com/BaselLaserMouse/BakingTray/wiki)
