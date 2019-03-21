@@ -408,5 +408,8 @@ function bakeCleanupFun(obj)
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
+    
+    % Move the X/Y stage to a nice finish postion, ready for next sample
+    obj.moveXYto(obj.recipe.FrontLeft.X,0)
 
 end %bakeCleanupFun
