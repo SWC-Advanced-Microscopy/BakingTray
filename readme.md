@@ -10,7 +10,7 @@ The software is for research and development purposes.
 BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
 ### Who is it for?
-This software is aimed at technically-minded people who want an open source serial-section solution that can be modified for their needs. 
+This software is aimed at technically-minded people who want to experiment with serial-section imaging and have full control over all aspects of the process. 
 Setting up BakingTray from scratch on your rig requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
 _This is not a turn-key solution_.
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
