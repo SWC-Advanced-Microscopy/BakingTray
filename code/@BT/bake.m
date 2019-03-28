@@ -271,8 +271,8 @@ function bake(obj,varargin)
         end
 
         % If too many channels are being displayed, fix this before carrying on
-        chanDisp=hBT.scanner.channelsToDisplay;
-        if length(chanDisp)>1 && isa(hBT.scanner,'SIBT')
+        chanDisp=obj.scanner.channelsToDisplay;
+        if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
             % A bit horrible, but it will work
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
@@ -408,5 +408,8 @@ function bakeCleanupFun(obj)
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
+    
+    % Move the X/Y stage to a nice finish postion, ready for next sample
+    obj.moveXYto(obj.recipe.FrontLeft.X,0)
 
 end %bakeCleanupFun

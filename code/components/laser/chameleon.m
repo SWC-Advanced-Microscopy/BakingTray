@@ -502,6 +502,9 @@ classdef chameleon < laser & loghandler
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
+            
+            % If the laser is echoing back the command string, remove it
+            reply = strrep(reply,commandString,'');
 
             success=true;
         end
