@@ -63,7 +63,7 @@ controllerSuperClassName = 'linearcontroller'; %The name of the abstract class t
 
 
 
-%Build the correct object based on "controllertName"
+%Build the correct object based on "controllerName"
 component = [];
 switch controllerName
     case 'BSC201_APT'
@@ -88,8 +88,15 @@ switch controllerName
         end
 
         component = eval([controllerName,'(stageComponents)']);
-        
-        controllerID.interface='usb';
+
+
+        if ~isstruct(controllerParams.connectAt) %Nasty hack because old config files look like this
+            % New config files should follow protocol in genericPI controller
+            controllerID.interface='usb';
+            controllerID.ID=controllerParams.connectAt;
+        else
+            controllerID = controllerParams.connectAt;
+        end
         controllerID.controllerModel=strrep(controllerName,'C','C-');
 
         controllerID.ID=controllerParams.connectAt;

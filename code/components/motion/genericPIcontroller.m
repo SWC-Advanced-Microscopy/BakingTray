@@ -248,7 +248,7 @@ classdef genericPIcontroller < linearcontroller
             end
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-            success=obj.hC.MOV('1',obj.attachedStage.transformDistance(targetPosition));
+            obj.hC.MOV('1',obj.attachedStage.transformDistance(targetPosition));
         end %absoluteMove
 
 
