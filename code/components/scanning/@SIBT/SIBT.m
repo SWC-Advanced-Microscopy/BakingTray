@@ -166,12 +166,13 @@ classdef SIBT < scanner
                 % Now set the number of slices and the distance in z over which to image
                 sliceThicknessInUM = thisRecipe.mosaic.sliceThickness*1E3;
 
-                if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes;
+
+                if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes
                     obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
                 end
 
-                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/obj.hC.hStackManager.numSlices; 
-                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices; %Will be uniformly spaced always!
+                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/obj.hC.hStackManager.numSlices
+                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices;
                 end
 
 

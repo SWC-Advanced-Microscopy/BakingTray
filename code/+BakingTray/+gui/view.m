@@ -229,9 +229,9 @@ classdef view < handle
             obj.button_start = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
-                'Position', [180,6, 55, 20], ...
-                'Callback',@obj.START, ...
-                'String', 'Start', ....
+                'Position', [180,6, 70, 20], ...
+                'Callback',@obj.previewSample, ...
+                'String', 'Preview', ....
                 'ForegroundColor','k');
             if ~obj.suppressToolTips
                 obj.button_start.TooltipString='Begin acquisition';
@@ -585,7 +585,7 @@ classdef view < handle
 
 
 
-        function START(obj,~,~)
+        function previewSample(obj,~,~)
             if isempty(obj.view_prepare)
                 % The user must be resuming since they never prepared anything
                 warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
@@ -632,7 +632,7 @@ classdef view < handle
                 %otherwise raise it (TODO: currently not possible since button is disabled when acq GUI starts)
                 figure(obj.view_acquire.hFig)
             end
-        end %START
+        end %previewSample
 
 
         %The following methods are callbacks from the menu
@@ -859,10 +859,8 @@ classdef view < handle
 
         function updateReadyToAcquireElements(obj,~,~)
             if obj.model.recipe.acquisitionPossible
-                obj.button_start.String='START';
                 obj.button_start.ForegroundColor=[0,0.75,0];
             else
-                obj.button_start.String='Start';
                 obj.button_start.ForegroundColor='k';
             end
         end %updateReadyToAcquireElements
