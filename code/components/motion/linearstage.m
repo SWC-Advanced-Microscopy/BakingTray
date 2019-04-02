@@ -41,10 +41,26 @@ classdef (Abstract) linearstage < handle
          % objects. see buildConnectedControllers.m
 
        transformDistance = @(x) x
-         % This anonymous function should be called at the begining of all
-         % linearcontroller methods to transform the distance input. By default,
+         % LEGACY - GET RID OF THIS AND REPLACE WITH FOLLOWING TWO
+         % This anonymous function can be used to transform the distance input. By default,
          % the method does nothing (as above). However, it can be used to do things like
          % invert axis: @(x) -1*x 
+         % For example of use see BSC201_APT
+
+
+        transformInputDistance = @(x) x
+         % This anonymous function can be used to transform the distance input by the user. 
+         % By default, the method does nothing (as above). However, it can be used to do things 
+         % like invert axis: @(x) -1*x or transform an input distance in mm to a value in encoder
+         % ticks, if that's what the controller expects
+
+
+        transformOutputDistance = @(x) x
+         % This anonymous function can be used to transform the distance returned by the controller
+         % to the user. By default, the method does nothing (as above). However, it can be used to 
+         % do things like invert axis: @(x) -1*x or transform an input distance to mm from a value 
+         % in encoder ticks, if that's what the controller is returning
+
 
 
        axisName
