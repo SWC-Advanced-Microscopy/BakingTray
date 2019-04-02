@@ -6,21 +6,55 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+21st March 2019
+- Tweaks to acquisition time estimate
+- USER: Y stage moves to zero at the end of acquisition and before "sliceOnce"
+- USER: Y cut pos edit box always disabled
+
+4th March 2019
+- USER: Improved acquisition time estimates (includes taking into account averaging)
+- USER: Averaging disables when sample is complete
+- Small GUI improvement: disable cut Y pos edit box
+- Double-check laser is off-line before bailing out
+
+
+14th February 2019
+- USER: default front/left is now fully implemented
+- USER: dev branch allows averaging in z-stacks with suitable ScanImage release
+
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
 - USER: resonant scanner remains on after preview scan to encourage it to settle. It will still be switched off at the end of the acquisition. 
 
+
 8th January 2019
 - USER: Add ability to send Slack messages. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
-- USER: Add default front/left. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE**
+- DEVELOPER: default front/left present in sys INI file but not implemented fully. **YOU WILL NEED TO UPDATE YOUR SYSTEM INI FILE **
  Instructions:
  For the above, the easiest way is to move your system ini file to the back up settings dir. 
  Then run BakingTray.settings.readSystemSettings and manually add back your original settings 
  whilst editing the new values. 
 
 
+19 December 2018
+- DEVELOPER: Bugfix -- write correct z-voxel size when imaging only one optical plane
+
+
 29th September 2018
 - Various bug fixes
+
+
+27 August 2018
+- Improve slicing command so the blade vibration does not lead to the motor controller hanging on some cuts.
+
+
+21st July 2018
+- USER: Now we re-apply PMT, beam power, and averaging when resuming
+- USER: add time to full recipe save name
+
+
+20th July 2018
+- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
 
 
 5th July 2018

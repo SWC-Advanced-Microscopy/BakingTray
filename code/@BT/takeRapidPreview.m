@@ -36,6 +36,7 @@ function takeRapidPreview(obj)
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
     %TODO: all this needs shim methods in SIBT
     scanPixPerLine = obj.scanner.getPixelsPerLine;
+    frameAve = obj.scanner.getNumAverageFrames;
 
     if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
         binFactor = obj.scanner.hC.hScan2D.pixelBinFactor;
@@ -56,8 +57,11 @@ function takeRapidPreview(obj)
         obj.scanner.hC.hScan2D.sampleRate=1.25E6;
     end
 
-    %Image just one plane. 
+
+    %Image just one plane without averaging
     obj.recipe.mosaic.numOpticalPlanes=1;
+    obj.scanner.setNumAverageFrames(1);
+
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
@@ -93,6 +97,8 @@ function takeRapidPreview(obj)
     obj.recipe.mosaic.numOpticalPlanes = numZ;
     obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
     obj.recipe.sample.ID=ID;
+
+    obj.scanner.setNumAverageFrames(frameAve);
 
     obj.lastTilePos.X=0;
     obj.lastTilePos.Y=0;

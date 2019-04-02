@@ -40,6 +40,8 @@ classdef stressTestTilePreviewBuffer < handle
         %constructor
         function obj=stressTestTilePreviewBuffer
 
+
+            % Get ScanImage object from base workspace
             W = evalin('base','whos');
             SIexists = ismember('hSI',{W.name});
             if ~SIexists
@@ -56,21 +58,14 @@ classdef stressTestTilePreviewBuffer < handle
                 return
             end
 
+
             % Log default state of the shutters because we will disable during acquisition and re-enable when we disarm
             obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
 
-            % Add armed listeners. These are listeners that will run during acquisition.
-            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
-            obj.disableArmedListeners
 
-            % Set some default settings (mainly for Z-stacks) to make the acquisition more similar
-            % how we normally acquire data. 
-            obj.hC.hFastZ.waveformType = 'step';     fprintf('Setting up z-scanning with "step" waveform\n')
-            obj.hC.hFastZ.numVolumes=1;              fprintf('Setting numVolumes to 1\n')
-            obj.hC.hFastZ.enable=1;                  fprintf('Enable fast z\n')
-            obj.hC.hStackManager.framesPerSlice = 1; fprintf('Set frames per slice to 1\n')            
-            obj.hC.hStackManager.stackReturnHome = 1;   fprintf('Set return z to home to true\n')
-            obj.hC.hDisplay.volumeDisplayStyle='Tiled'; fprintf('Setting volume display style from 3D to Tiled\n')
+            % Add "armed" listeners. These are listeners that will run during acquisition.
+            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone); %Run after each "tile" is done
+            obj.disableArmedListeners
         end % constructor
 
 
@@ -97,10 +92,24 @@ classdef stressTestTilePreviewBuffer < handle
                     fprintf('Failed to set up trigger. The scannerType property should be "linear" or resonant"\n')
             end
 
-            if obj.hC.hDisplay.displayRollingAverageFactor>1
-                fprintf('Setting display rolling average to 1\n')
-                obj.hC.hDisplay.displayRollingAverageFactor=1;
+            % Set some default settings (mainly for Z-stacks) to make the acquisition more similar
+            % how we normally acquire data. 
+            obj.hC.hFastZ.waveformType = 'step';     fprintf('Setting up z-scanning with "%s" waveform\n', obj.hC.hFastZ.waveformType)
+            obj.hC.hFastZ.numVolumes=1;              fprintf('Setting numVolumes to %d\n', obj.hC.hFastZ.numVolumes)
+            obj.hC.hFastZ.enable=1;                  fprintf('Enable fast z\n')
+            obj.hC.hStackManager.stackReturnHome = 1;   fprintf('Set return z to home to true\n')
+            obj.hC.hDisplay.volumeDisplayStyle='Tiled'; fprintf('Setting volume display style to %s\n',obj.hC.hDisplay.volumeDisplayStyle)
+
+
+            % Apply averaging as needed
+            aveFrames = obj.hC.hDisplay.displayRollingAverageFactor;  
+            if aveFrames>1
+                fprintf('Setting up averaging of %d frames\n', aveFrames)
             end
+            obj.hC.hScan2D.logAverageFactor = 1; % To avoid warning
+            obj.hC.hStackManager.framesPerSlice = aveFrames;
+            obj.hC.hScan2D.logAverageFactor = aveFrames;
+
 
             obj.enableArmedListeners
             obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters
@@ -145,6 +154,7 @@ classdef stressTestTilePreviewBuffer < handle
 
 
 
+
         %---------------------------------------------------------------
         % Listener callback functions
         function tileAcqDone(obj,~,~)
@@ -152,7 +162,7 @@ classdef stressTestTilePreviewBuffer < handle
             % run repeatedly until all images have been acquired. It is run each time an acquisition
             % completes. 
 
-            for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
+            for z=1:obj.hC.hDisplay.displayRollingAverageFactor:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
                 % scanimage stores image data in a data structure called 'stripeData'
                 %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
                 lastStripe = obj.hC.hDisplay.stripeDataBuffer{z};
@@ -193,6 +203,8 @@ classdef stressTestTilePreviewBuffer < handle
 
             switch obj.hC.acqState
                 case 'loop'
+                    pause(0.1)
+                    fprintf('Triggering next acquisition\n')
                     obj.hC.hScan2D.trigIssueSoftwareAcq;
                 case 'idle'
                     obj.disarmScanner

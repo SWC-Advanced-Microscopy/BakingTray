@@ -229,9 +229,9 @@ classdef view < handle
             obj.button_start = uicontrol(...
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
-                'Position', [180,6, 55, 20], ...
-                'Callback',@obj.START, ...
-                'String', 'Start', ....
+                'Position', [180,6, 70, 20], ...
+                'Callback',@obj.previewSample, ...
+                'String', 'Preview', ....
                 'ForegroundColor','k');
             if ~obj.suppressToolTips
                 obj.button_start.TooltipString='Begin acquisition';
@@ -575,12 +575,17 @@ classdef view < handle
                 obj.connectRecipeListeners
                 obj.updateAllRecipeEditBoxesAndStatusText
                 obj.updateRecipeFname
+
+                %If the prepare GUI is open, we force an update
+                if ~isempty(obj.view_prepare)
+                    obj.view_prepare.updateCuttingConfigurationText
+                end
             end
         end %loadRecipe
 
 
 
-        function START(obj,~,~)
+        function previewSample(obj,~,~)
             if isempty(obj.view_prepare)
                 % The user must be resuming since they never prepared anything
                 warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
@@ -627,7 +632,7 @@ classdef view < handle
                 %otherwise raise it (TODO: currently not possible since button is disabled when acq GUI starts)
                 figure(obj.view_acquire.hFig)
             end
-        end %START
+        end %previewSample
 
 
         %The following methods are callbacks from the menu
@@ -854,10 +859,8 @@ classdef view < handle
 
         function updateReadyToAcquireElements(obj,~,~)
             if obj.model.recipe.acquisitionPossible
-                obj.button_start.String='START';
                 obj.button_start.ForegroundColor=[0,0.75,0];
             else
-                obj.button_start.String='Start';
                 obj.button_start.ForegroundColor='k';
             end
         end %updateReadyToAcquireElements
@@ -877,12 +880,18 @@ classdef view < handle
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
 
+            % Disable the listeners on the scanner temporarily otherwise 
+            % we get things that look like error messages
+            obj.scannerListeners{1}.Enabled=false; 
+
             %Set the scanner settings
             obj.model.scanner.setImageSize(src,evt)
 
+            obj.scannerListeners{1}.Enabled=true;
             %Send copies of stitching-related data to the recipe
             obj.model.recipe.recordScannerSettings;
 
+            obj.updateAllRecipeEditBoxesAndStatusText %Manually call scanner listener callback
             obj.updateTileSizeLabelText;
         end
 
@@ -978,7 +987,6 @@ classdef view < handle
 
 
     end %Hidden methods
-
 
 
 
