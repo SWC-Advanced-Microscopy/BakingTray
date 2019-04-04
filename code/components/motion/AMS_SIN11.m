@@ -102,7 +102,7 @@ classdef AMS_SIN11 < linearcontroller
                 end
                 n=n+1;
             end
-            obj.hC.Terminator='LF';
+
             if obj.hC.BytesAvailable>0
                 reply = fread(obj.hC,obj.hC.BytesAvailable);
                 fprintf('\nDevice returned: %s\n', char(reply))
@@ -127,7 +127,7 @@ classdef AMS_SIN11 < linearcontroller
 
 
         % Create serial connection to the device
-
+        obj.hC.Terminator='LF';
         obj.isControllerConnected; %Needs to be run twice, don't know why
         success = obj.isControllerConnected; %Check that the object is connected
 
@@ -375,7 +375,7 @@ classdef AMS_SIN11 < linearcontroller
         fprintf('\n')
 
         obj.sendAndReceiveSerial([obj.axID,'O0']); %Set this as zero (home)
-        obj.stageRefCompleted=true
+        obj.stageRefCompleted=true;
 
       end %reference stage
 
