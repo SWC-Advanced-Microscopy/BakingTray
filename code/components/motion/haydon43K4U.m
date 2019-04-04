@@ -18,7 +18,7 @@ methods
     
     %Constructor
     function obj = haydon43K4U(obj)
-        obj.axisID = 'A'; % We have just one axis on the controller
+        obj.axisID = ''; % We have just one axis on the controller and run in "single mode"
 
         obj.transformInputDistance = @(x) x/obj.scaleFactor; %mm to ticks
         obj.transformOutputDistance = @(x) x*obj.scaleFactor; %ticks to mm

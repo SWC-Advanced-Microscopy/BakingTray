@@ -76,8 +76,9 @@ classdef AMS_SIN11 < linearcontroller
         % connectionDetails should supply the COM port
 
         obj.hC=serial(connectionDetails,'BaudRate',9600,'TimeOut',4);
-
-        try 
+        obj.hC.Terminator='CR';
+ 
+        try
           fopen(obj.hC); %TODO: could test the output to determine if the port was opened
           pause(1)
         catch ME
@@ -90,34 +91,18 @@ classdef AMS_SIN11 < linearcontroller
         if isempty(obj.hC) 
           success=false;
         else
-            obj.hC.Terminator='';
-            fprintf(obj.hC, '&');
-            fprintf('Waiting for response from AMS SIN11')
-            n=1;
-            while obj.hC.BytesAvailable==0
-                fprintf('.')
-                pause(0.25)
-                if n>30
-                   break
-                end
-                n=n+1;
-            end
+          fwrite(obj.hC, ' '); %space to run in single mode
+          pause(0.5)
+          [success,response]=obj.sendAndReceiveSerial('X');
 
-            if obj.hC.BytesAvailable>0
-                reply = fread(obj.hC,obj.hC.BytesAvailable);
-                fprintf('\nDevice returned: %s\n', char(reply))
-            else
-                reply=[];
-            end
-
-          if ~isempty(reply)
-            success=true;
+          if success && length(response)>0
+            fprintf('\nDevice returned:\n %s\n', response)
           else
             fprintf('Failed to communicate with AMS SIN11\n');
             success=false;
           end
-        end
 
+        end
 
         if ~obj.isStageConnected
           obj.logMessage(inputname(1),dbstack,7,'Not completing connection routine. Closing')
@@ -127,14 +112,11 @@ classdef AMS_SIN11 < linearcontroller
 
 
         % Create serial connection to the device
-        obj.hC.Terminator='LF';
-        obj.isControllerConnected; %Needs to be run twice, don't know why
+
         success = obj.isControllerConnected; %Check that the object is connected
 
         %Ensure that the stage will operate in the way desired (correct zero point, etc)
         %using properties the user set before running the connect method
-
-        %TODO - home the stage
         if ~obj.isStageReferenced && ~isempty(obj.attachedStage)
           obj.referenceStage;
         end
@@ -150,10 +132,11 @@ classdef AMS_SIN11 < linearcontroller
           fprintf('No attempt to connect to the controller has been made\n')
           return
         end
-
+        success=true;
+        return
         try 
-          [~,reply]=obj.sendAndReceiveSerial('&V');
-          success = ~isempty(regexp(reply,'v\d+\.\d+', 'once'));
+          [~,reply]=obj.sendAndReceiveSerial('');
+          success = strfind(reply,'#');
         catch
           fprintf('Failed to communicate with AMS_SIN11 controller\n')
         end
@@ -367,6 +350,9 @@ classdef AMS_SIN11 < linearcontroller
 
         fprintf('Homing axis on AMS_SIN11')
         obj.relativeMove(1); %move up one mm to pre-load
+        while obj.isMoving
+          pause(0.5)
+        end
         obj.sendAndReceiveSerial([obj.axID,'M-20000']); %go all the way down
         while obj.isMoving
           pause(0.2)
