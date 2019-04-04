@@ -20,6 +20,7 @@ classdef maitai < laser & loghandler
         %constructor
         function obj = maitai(serialComms,logObject)
         % function obj = maitai(serialComms,logObject)
+        % serialComms is a string indicating the serial port we should connect to
 
             if nargin<1
                 error('maitai requires at least one input argument: you must supply the laser COM port as a string')
@@ -32,7 +33,7 @@ classdef maitai < laser & loghandler
             obj.maxWavelength=1100;
             obj.minWavelength=700;
             obj.friendlyName = 'MaiTai';
-            
+
             fprintf('\nSetting up MaiTai laser communication on serial port %s\n', serialComms);
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;

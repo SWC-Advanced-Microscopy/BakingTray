@@ -73,6 +73,51 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = connect(obj,connectionDetails)
+        % connectionDetails should supply the COM port
+
+        obj.hC=serial(connectionDetails,'BaudRate',9600,'TimeOut',4);
+
+        try 
+          fopen(obj.hC); %TODO: could test the output to determine if the port was opened
+          pause(1)
+        catch ME
+          fprintf(' * ERROR: Failed to connect to AMS SIN11:\n%s\n\n', ME.message)
+          success=false;
+          return
+        end
+        flushinput(obj.hC)
+
+        if isempty(obj.hC) 
+          success=false;
+        else
+            obj.hC.Terminator='';
+            fprintf(obj.hC, '&');
+            fprintf('Waiting for response from AMS SIN11')
+            n=1;
+            while obj.hC.BytesAvailable==0
+                fprintf('.')
+                pause(0.25)
+                if n>30
+                   break
+                end
+                n=n+1;
+            end
+            obj.hC.Terminator='LF';
+            if obj.hC.BytesAvailable>0
+                reply = fread(obj.hC,obj.hC.BytesAvailable);
+                fprintf('\nDevice returned: %s\n', char(reply))
+            else
+                reply=[];
+            end
+
+          if ~isempty(reply)
+            success=true;
+          else
+            fprintf('Failed to communicate with AMS SIN11\n');
+            success=false;
+          end
+        end
+
 
         if ~obj.isStageConnected
           obj.logMessage(inputname(1),dbstack,7,'Not completing connection routine. Closing')
@@ -83,14 +128,14 @@ classdef AMS_SIN11 < linearcontroller
 
         % Create serial connection to the device
 
-
+        obj.isControllerConnected; %Needs to be run twice, don't know why
         success = obj.isControllerConnected; %Check that the object is connected
 
         %Ensure that the stage will operate in the way desired (correct zero point, etc)
         %using properties the user set before running the connect method
 
         %TODO - home the stage
-        if ~obj.isStageReferenced & ~isempty(obj.attachedStage)
+        if ~obj.isStageReferenced && ~isempty(obj.attachedStage)
           obj.referenceStage;
         end
 
@@ -107,8 +152,8 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         try 
-          reply = obj.sendAndReceiveSerial('&V');
-          success = ~isempty(regexp(reply,'v\d+\.\d+'));
+          [~,reply]=obj.sendAndReceiveSerial('&V');
+          success = ~isempty(regexp(reply,'v\d+\.\d+', 'once'));
         catch
           fprintf('Failed to communicate with AMS_SIN11 controller\n')
         end
@@ -118,7 +163,7 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function moving = isMoving(obj, ~)
-        moving=obj.sendAndReceiveSerial([obj.axID,'^']);
+        [~,moving]=obj.sendAndReceiveSerial([obj.axID,'^']);
         moving = str2double(moving);
       end %isMoving
 
@@ -133,7 +178,7 @@ classdef AMS_SIN11 < linearcontroller
           return
         end
 
-        pos=obj.sendReceiveSerial([obj.axisPosition,'Z']);
+        [~,pos]=obj.sendAndReceiveSerial([obj.axID,'Z']);
         pos = str2double(pos);
         pos = obj.attachedStage.transformOutputDistance(pos);
         obj.attachedStage.currentPosition=pos;
@@ -162,7 +207,13 @@ classdef AMS_SIN11 < linearcontroller
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
         distanceToMove=obj.attachedStage.transformInputDistance(distanceToMove);
-        obj.sendAndReceiveSerial([obj.axisID,distanceToMove]);
+        distanceToMove = num2str(round(distanceToMove));
+        if distanceToMove>0
+            plusSign='+';
+        else
+            plusSign='';
+        end
+        obj.sendAndReceiveSerial([obj.axID,plusSign,num2str(distanceToMove)]);
         success=true;
 
       end %relativeMove
@@ -171,7 +222,6 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = absoluteMove(obj, targetPosition)
-        %TODO: figure out what output we get from the ActiveX stuff if the stage failed to move. 
         success=obj.isAxisReady;
         if ~success
           return
@@ -189,7 +239,8 @@ classdef AMS_SIN11 < linearcontroller
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
         targetPosition=obj.attachedStage.transformInputDistance(targetPosition);
-        obj.sendAndReceiveSerial([obj.axisID,'R',targetPosition]);
+        targetPosition = num2str(round(targetPosition));
+        obj.sendAndReceiveSerial([obj.axID,'R',targetPosition]);
       end %absoluteMove
 
 
@@ -201,7 +252,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
 
-        obj.sendAndReceiveSerial([obj.axisID,'@']);
+        obj.sendAndReceiveSerial([obj.axID,'@']);
         pause(0.5)
         success = ~obj.isMoving;
 
@@ -228,19 +279,11 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function minPos=getMinPos(obj)
-        [minPos,ID]=getMinPos@linearcontroller(obj);
-
-        if isempty(minPos)
-          obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MIN POS.')  %TODO!
-        end
+        [minPos,~]=getMinPos@linearcontroller(obj);
       end
 
       function maxPos=getMaxPos(obj)
-        [maxPos,ID]=getMaxPos@linearcontroller(obj);
-
-        if isempty(maxPos)
-          obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MAX POS.') %TODO!
-        end
+        [maxPos,~]=getMaxPos@linearcontroller(obj);
       end
 
 
@@ -302,18 +345,14 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - -
       function success=enableAxis(obj)
-        %NOTE: can not return false if the command failed
+        % Does nothing
         success=obj.isAxisReady;
-        if ~success
-          return
-        end
-        %TODO
       end %enableAxis
 
 
       function success=disableAxis(obj)
+        % Does nothing
         success=obj.isAxisReady;
-        %TODO
       end %disableAxis
 
 
@@ -408,8 +447,8 @@ classdef AMS_SIN11 < linearcontroller
             end
 
             %Strip the command string and axis name
-            reply = regexprep(reply,commandString,'');
-            reply = regexprep(reply,[' ',obj.axID,' '],'');
+            reply = strrep(reply,commandString,'');
+            reply = regexprep(reply,[' ?',obj.axID,' ?'],'');
 
             success=true;
         end
