@@ -1,8 +1,16 @@
 classdef FaulhaberMCDC < cutter & loghandler
     % Faulhaber motor controller. Before use, set up your controller with the 
-    % motor you have and the encoder. Run IXRMOD if you have no encoder. Save
-    % the settings to the controller's EEPROM with EEPSAV. That way you do not
-    % need to supply additional settings every time you connect to the motor
+    % motor you have and the encoder. 
+    %
+    % BEFORE RUNNING:
+    % Run the IXRMOD command if you have no encoder. Save the settings to the 
+    % controller's EEPROM with EEPSAV. That way you do not need to supply 
+    % additional settings every time you connect to the motor.
+    % You can do the above at the command line as follows:
+    % >> F=FaulhaberMCDC('COMXX');
+    % >> F.sendReceiveSerial('IXRMOD')
+    % >> F.sendReceiveSerial('EEPSAV')
+    %
     %
     % For more information on the cutter, see the abstract class.
     %
