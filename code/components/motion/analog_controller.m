@@ -31,7 +31,7 @@ classdef analog_controller < linearcontroller
         if nargin<2
           logObject=[];
         end
-
+        obj.maxStages=1;
         if ~isempty(stageObject)
           obj.attachLinearStage(stageObject);
         end

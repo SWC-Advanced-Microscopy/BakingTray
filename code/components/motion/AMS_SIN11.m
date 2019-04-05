@@ -47,7 +47,7 @@ classdef AMS_SIN11 < linearcontroller
         if nargin<2
           logObject=[];
         end
-
+        obj.maxStages=1; %The interface can handle multiple stages but this isn't functional
         if ~isempty(stageObject)
           obj.attachLinearStage(stageObject);
           obj.axID = obj.attachedStage.axisID;

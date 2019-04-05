@@ -44,6 +44,9 @@ classdef (Abstract) linearcontroller < handle & loghandler
                      % way is most suitable for the hardware at hand. e.g. see how this is
                      % used in genericPIcontroller. This property may not be needed. 
 
+        maxStages   % A scalar indicating what is the maximum number of stages a controller 
+                    % can handle. 
+
     end %close public properties
 
 
