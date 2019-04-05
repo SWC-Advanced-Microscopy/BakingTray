@@ -73,9 +73,23 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = connect(obj,connectionDetails)
-        % connectionDetails should supply the COM port
+        % connectionDetails should supply the serial params in this form:
+        % connectionDetails.COM = 'COM2'
+        % connectionDetails.baudrate = 9600 %Optional
+        if isstr(connectionDetails)
+          connectionDetails.COM = connectionDetails;
+        end
+        if ~isstruct(connectionDetails)
+          fprintf('AMS_SIN11.connect expected connectionDetails to be a structure or COM port ID\n');
+          delete(obj)
+          return
+        end
 
-        obj.hC=serial(connectionDetails,'BaudRate',9600,'TimeOut',4);
+        if ~isfield(connectionDetails,'baudrate')
+          connectionDetails.baudrate = 9600;
+        end
+
+        obj.hC=serial(connectionDetails.COM,'BaudRate',connectionDetails.baudrate,'TimeOut',4);
         obj.hC.Terminator='CR';
  
         try

@@ -87,9 +87,11 @@ switch controllerName
             return
         end
 
+        %TODO - likely all controllers can be done as below and we get rid of switch statement
         component = eval([controllerName,'(stageComponents)']);
 
-
+        %If connectAt is not a structure, then this is the old way of defining the 
+        %controller parameters.
         if ~isstruct(controllerParams.connectAt) %Nasty hack because old config files look like this
             % New config files should follow protocol in genericPI controller
             controllerID.interface='usb';
@@ -101,6 +103,15 @@ switch controllerName
 
         controllerID.ID=controllerParams.connectAt;
         component.connect(controllerID); %Connect to the controller
+
+    case 'AMS_SIN11'
+        % Likely used to control Z stage
+        stageComponents = BUILD_GENERIC_STAGE(stages);
+        if isempty(stageComponents)
+            return
+        end
+        component = AMS_SIN11(stageComponents);
+        component.connect(controllerParams.connectAt);
 
     case 'dummy_linearcontroller'
         stageComponents = BUILD_GENERIC_STAGE(stages);

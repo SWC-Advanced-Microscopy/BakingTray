@@ -105,7 +105,7 @@ classdef genericPIcontroller < linearcontroller
                 fprintf('Attempting to connect to %s with serial number %s\n', connectionDetails.controllerModel, connectionDetails.ID);
                 obj.hC = PI_Controller.ConnectUSB(connectionDetails.ID);
               case 'rs232'
-                fprintf('Attempting RS232 connection on port %s with baud rate %d\n',connectionDetails.COM, connectionDetails.baudrate);
+                fprintf('Attempting RS232 connection on port %d with baud rate %d\n',connectionDetails.COM, connectionDetails.baudrate);
                 obj.hC = PI_Controller.ConnectRS232(connectionDetails.COM, connectionDetails.baudrate);
               case 'tcpip'
                 fprintf('Attempting TCP/IP connection on ip %s port %s\n',connectionDetails.ip, connectionDetails.port);
