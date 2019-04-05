@@ -17,19 +17,29 @@ classdef C863 < genericPIcontroller
 %
 % e.g.
 % 
+% %% Make a stage and attach it to the controller object
 % >> STAGE = genericPIstage;
 % >> STAGE.axisName='someName'; %Does not matter for this toy example
 % >> PIC863 = C863(STAGE); %Create  control class
+%
+% %% EITHER connect to the controller using USB with the controller serial number 
 % >> controllerID.interface='usb'; %We will connect via USB...
 % >> controllerID.ID= '116010269'; %Using the serial number of the C863
-% >> controllerID.controllerModel='C-663';
+% >> controllerID.controllerModel='C-863';
 % Now we are ready to communicate with the device and connect to it:
 %
 % >> PIC863.connect(controllerID)
 % Loading PI_MATLAB_Driver_GCS2 ...
 % PI_MATLAB_Driver_GCS2 loaded successfully.
 % Attempting to connect to C-C863 with serial number 116010269
-
+%
+%
+% %% OR connect using RS232 by supplying a COM port ID
+% >> controllerID.interface='rs232'; % Connect via RS232
+% >> controllerID.COM= 20; % At port COM20
+% >> controllerID.baudrate= 115200; % At this baudrate
+% >> controllerID.controllerModel='C-863';
+% >> PIC863.connect(controllerID)
 
     properties
 
