@@ -68,7 +68,7 @@ component = [];
 switch controllerName
     case 'BSC201_APT'
         % Likely this will be used to control the Z-stage
-        stageComponents = build_BSC201_APT_stages(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
@@ -82,7 +82,7 @@ switch controllerName
 
     case {'C891', 'C663', 'C863'}
         % Likely this will be used to control an X or Y stage
-        stageComponents = buildSingleAxisGenericPIstage(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
@@ -103,7 +103,7 @@ switch controllerName
         component.connect(controllerID); %Connect to the controller
 
     case 'dummy_linearcontroller'
-        stageComponents = buildDummyStage(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         component = dummy_linearcontroller(stageComponents);
 
     case 'analog_controller'
@@ -131,81 +131,28 @@ end
 
 
 %----------------------------------------------------------------------------------------------------
-function stageComponents = build_BSC201_APT_stages(stages)
+function stageComponents = BUILD_GENERIC_STAGE(stages)
+    % This function is used to create a stage component that can be attached to a linearController. 
+    % This generic function is designed to work with most stages. If you need something very 
+    % specific then you might need to write a new build sub-function for your particular device. 
+    % Hopefully, however, all customisation can be done within the stage and controller classes
+    % and in the componentSettings script. 
 
-    stageComponents=[];
-    stageComponentName = stages{1,1};
+    stageComponents=[]; % In case function ends prematurely
+    stageComponentName = stages{1,1}; %Should be the name of a valid class in the path
     stageSettings = stages{1,2};
 
     if ~checkArgs(stageComponentName,stageSettings)
         return
     end
 
-    switch stageComponentName
-        case 'DRV014'
-            %The DRV014 will only be used as the Z stage so we can hard-code various things here
-            stageComponents=DRV014;
+    stageComponents = eval(stageComponent);
 
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-            fprintf('%s - Unknown BSC201_APT stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
-    end
+    %User settings
+    stageComponents.axisName=stageSettings.axisName;
+    stageComponents.minPos=stageSettings.minPos;
+    stageComponents.maxPos=stageSettings.maxPos;
 
-
-
-function stageComponents = buildSingleAxisGenericPIstage(stages)
-    %Returns a structure of stage components for the PI controller
-    %NOTE: this function only handles PI controllers with one stage connected
-
-    stageComponents=[];
-    stageComponentName = stages{1,1};
-    stageSettings = stages{1,2};
-
-    if ~checkArgs(stageComponentName,stageSettings)
-        return
-    end
-
-    switch stageComponentName
-        case 'genericPIstage'
-            stageComponents=genericPIstage;
-
-            %Optionally invert the stage coordinates
-            if stageSettings.invertAxis
-                stageComponents.stageComponents(ii).transformDistance = @(x) -1*x; 
-            end
-
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-           fprintf('%s - Unknown PI stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
-    end
-
-
-
-function stageComponents = buildDummyStage(stages)
-    %Returns a structure of stage components for the dummy linear stage
-    stageComponentName = stages{1,1};
-    stageSettings = stages{1,2};
-
-    if ~checkArgs(stageComponentName,stageSettings)
-        return
-    end
-
-    switch stageComponentName
-        case 'dummy_linearstage'
-            stageComponents=dummy_linearstage;
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-           fprintf('%s - Unknown dummy_linearstage stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
-    end
 
 
 function success = checkArgs(stageComponentName,stageSettings)
@@ -219,6 +166,12 @@ function success = checkArgs(stageComponentName,stageSettings)
 
     if ~isstruct(stageSettings)
         fprintf('Can not build stage. Stage component settings is a %s. Expected a structure\n', class(stageSettings))
+        success=false;
+        return
+    end
+
+    if ~exist(stageComponentName,'file')
+        fprintf('Can not find the stage component class %s in the MATLAB path\n' stageComponentName)
         success=false;
         return
     end
