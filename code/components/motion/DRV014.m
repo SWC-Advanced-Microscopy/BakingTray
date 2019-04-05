@@ -9,14 +9,20 @@ properties
     positionUnits
     
     %Referencing variables. Fill these in for defining how the actuator
-    %will be referenced
-    %other than the default for any one of them
-    limitSwitch %which limit switch will be the reference switch for zero
-    homingDir %which direction to travel for setting the reference?
-    %The velocity and offset for reaching the zero position
-    homeVel
-    zeroOffset
+    %will be referenced. Here we set the limit switches and homing direction 
+    %so that the retracted position will be the zero position. We assume the 
+    %device will be used as the Z jack and so the safest way to set it up
+    %is with zero being that the stage is lowered.
+    limitSwitch=4 %which limit switch will be the reference switch for zero
+    homingDir=1   %which direction to travel for setting the reference?
 
+    %The velocity and offset for reaching the zero position
+    homeVel=1.5;
+    zeroOffset=0.5;
+    
+    %Invert the positions so that more positive numbers mean that the actuator 
+    %are more extended.
+    transformDistance = @(x) -1*x;
 end
 
 methods

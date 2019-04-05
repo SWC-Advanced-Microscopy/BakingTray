@@ -150,19 +150,7 @@ function stageComponents = build_BSC201_APT_stages(stages)
         case 'DRV014'
             %The DRV014 will only be used as the Z stage so we can hard-code various things here
             stageComponents=DRV014;
-            %Set the limit switches and homing direction so that the retracted position will
-            %be the zero position. This stuff is specific to this stage and controller and is
-            %the safest way to set it up since it means zero is with the stage lowered.
-            stageComponents.homingDir=1; 
-            stageComponents.limitSwitch=4;
-
-            %Invert the positions, so that more positive numbers mean that the actuator is more extended.
-            stageComponents.transformDistance = @(x) -1*x; %to invert the position locations
-
-            %The velocity and offset for reaching the zero position. 
-            stageComponents.homeVel=1.5;
-            stageComponents.zeroOffset = 0.5;
-
+            
             %User settings
             stageComponents.axisName=stageSettings.axisName;
             stageComponents.minPos=stageSettings.minPos;
@@ -248,7 +236,7 @@ function success = checkArgs(stageComponentName,stageSettings)
     if ~isfield(stageSettings,'axisName') || ~isfield(stageSettings,'minPos') || ~isfield(stageSettings,'maxPos') 
         fprintf('%s - stageSettings of %s do not appear valid: \n',mfilename,stageComponentName)
         disp(stageSettings)
-        fprintf('Settings must have fields: axisName, minPos, and maxPos\n')
+        fprintf('Settings must at least have fields: axisName, minPos, and maxPos\n')
         fprintf('QUITTING\n')
         success=false;
         return
