@@ -138,6 +138,10 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
     % Hopefully, however, all customisation can be done within the stage and controller classes
     % and in the componentSettings script. 
 
+    if size(stages,1)>1
+        error('BUILD_GENERIC_STAGE can not yet handle multiple stages per controller')
+    end
+
     stageComponents=[]; % In case function ends prematurely
     stageComponentName = stages{1,1}; %Should be the name of a valid class in the path
     stageSettings = stages{1,2};
@@ -148,7 +152,16 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
 
     stageComponents = eval(stageComponentName);
 
-    %User settings
+    %User settings 
+    % TODO - convert a loop that goes through structure fields
+    % TODO - deal with multiple satges
+    if ~isempty(stageSettings.transformOutputDistance)
+        stageComponents.transformOutputDistance = stageSettings.transformOutputDistance;
+    end
+    if ~isempty(stageSettings.transformInputDistance)
+        stageComponents.transformInputDistance = stageSettings.transformInputDistance;
+    end
+
     stageComponents.axisName=stageSettings.axisName;
     stageComponents.minPos=stageSettings.minPos;
     stageComponents.maxPos=stageSettings.maxPos;
