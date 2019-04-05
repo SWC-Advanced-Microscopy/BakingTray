@@ -33,6 +33,9 @@ classdef BSC201_APT < linearcontroller
 % H=DRV014_BSC101_connect; %TODO: what is this??
 % myDevice = BSC201(H);
 
+
+% NOTE: this class using the now legacy "transformDistance" property. 
+
     properties 
         % controllerID - the information necessary to build a connected object
         %
@@ -59,6 +62,8 @@ classdef BSC201_APT < linearcontroller
         if nargin<2
           logObject=[];
         end
+
+        obj.maxStages=1;
 
         if ~isempty(stageObject)
           obj.attachLinearStage(stageObject);

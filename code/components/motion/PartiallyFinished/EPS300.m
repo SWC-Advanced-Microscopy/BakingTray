@@ -160,7 +160,7 @@ classdef EPS300 < linearcontroller
         pos = str2double(str);
 
         st = obj.returnStageObject;
-        pos = st.transformDistance(pos);
+        pos = st.transformOutputDistance(pos);
       end %axisPosition
 
 
@@ -192,7 +192,7 @@ classdef EPS300 < linearcontroller
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
 
         st = obj.returnStageObject;
-        cmd = sprintf('%sPR%f', ID, st.transformDistance(distanceToMove) );
+        cmd = sprintf('%sPR%f', ID, st.transformInputDistance(distanceToMove) );
         obj.serialSendReceive(cmd);
 
         success=true;
@@ -220,7 +220,7 @@ classdef EPS300 < linearcontroller
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
 
         st = obj.returnStageObject;
-        cmd = sprintf('%sPA%f', ID, st.transformDistance(targetPosition)); %TODO: check this
+        cmd = sprintf('%sPA%f', ID, st.transformInputDistance(targetPosition)); %TODO: check this
         obj.serialSendReceive(cmd);
 
         success=true;

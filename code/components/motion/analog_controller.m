@@ -133,7 +133,7 @@ classdef analog_controller < linearcontroller
       function success = relativeMove(obj, distanceToMove)
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
         st = obj.returnStageObject;
-        distanceToMove=st.transformDistance(distanceToMove);
+        distanceToMove=st.transformInputDistance(distanceToMove);
         obj.writeAbsPosAsVoltage(distanceToMove,true) %perform relative move
         success=true;
       end %relativeMove
@@ -145,6 +145,7 @@ classdef analog_controller < linearcontroller
         success = false;
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
         st = obj.returnStageObject;
+        targetPosition=st.transformInputDistance(targetPosition);
         obj.writeAbsPosAsVoltage(targetPosition) %perform absolute move
         success=true;
       end %absoluteMove
@@ -175,7 +176,7 @@ classdef analog_controller < linearcontroller
 
         if isempty(minPos)
           minPos = obj.hC.qTMN(ID); 
-          minPos = st.transformDistance(minPos);
+          minPos = st.transformOutputDistance(minPos);
         end
       end
 
@@ -184,7 +185,7 @@ classdef analog_controller < linearcontroller
 
         if isempty(maxPos)
           maxPos = obj.hC.qTMX(ID); 
-          maxPos = st.transformDistance(maxPos);
+          maxPos = st.transformOutputDistance(maxPos);
         end
       end
 

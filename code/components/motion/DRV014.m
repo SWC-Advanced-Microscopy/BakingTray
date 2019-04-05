@@ -21,7 +21,8 @@ properties
     zeroOffset=0.5;
     
     %Invert the positions so that more positive numbers mean that the actuator 
-    %are more extended.
+    %are more extended. 
+    % TODO this is a legacy property. Ignore it. 
     transformDistance = @(x) -1*x;
 end
 

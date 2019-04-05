@@ -195,7 +195,7 @@ classdef genericPIcontroller < linearcontroller
               return
             end
             pos = obj.hC.qPOS('1');
-            pos = obj.attachedStage.transformDistance(pos);
+            pos = obj.attachedStage.transformOutputDistance(pos);
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -228,7 +228,7 @@ classdef genericPIcontroller < linearcontroller
           % </redundant>
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-            distanceToMove=obj.attachedStage.transformDistance(distanceToMove);
+            distanceToMove=obj.attachedStage.transformInputDistance(distanceToMove);
             obj.hC.MVR('1',distanceToMove);
 
         end %relativeMove
@@ -248,7 +248,7 @@ classdef genericPIcontroller < linearcontroller
             end
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-            obj.hC.MOV('1',obj.attachedStage.transformDistance(targetPosition));
+            obj.hC.MOV('1',obj.attachedStage.transformInputDistance(targetPosition));
         end %absoluteMove
 
 
@@ -284,7 +284,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(minPos)
               minPos = obj.hC.qTMN('1'); 
-              minPos = obj.attachedStage.transformDistance(minPos);
+              minPos = obj.attachedStage.transformOutputDistance(minPos);
             end
         end
 
@@ -293,7 +293,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(maxPos)
               maxPos = obj.hC.qTMX('1'); 
-              maxPos = obj.attachedStage.transformDistance(maxPos);
+              maxPos = obj.attachedStage.transformOutputDistance(maxPos);
             end
         end
 
@@ -431,10 +431,10 @@ classdef genericPIcontroller < linearcontroller
           printAxisStatus@linearcontroller(obj); %call the superclass
 
           minPos = obj.hC.qTMN('1'); 
-          minPos = obj.attachedStage.transformDistance(minPos);
+          minPos = obj.attachedStage.transformOutputDistance(minPos);
 
           maxPos = obj.hC.qTMX('1'); 
-          maxPos = obj.attachedStage.transformDistance(maxPos);
+          maxPos = obj.attachedStage.transformOutputDistance(maxPos);
           fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
                 minPos, maxPos)
         end

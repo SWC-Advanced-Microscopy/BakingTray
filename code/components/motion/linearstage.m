@@ -40,13 +40,6 @@ classdef (Abstract) linearstage < handle
          % controller, you should define the axisID property for each manually when you build the
          % objects. see buildConnectedControllers.m
 
-       transformDistance = @(x) x
-         % LEGACY - GET RID OF THIS AND REPLACE WITH FOLLOWING TWO
-         % This anonymous function can be used to transform the distance input. By default,
-         % the method does nothing (as above). However, it can be used to do things like
-         % invert axis: @(x) -1*x 
-         % For example of use see BSC201_APT
-
 
         transformInputDistance = @(x) x
          % This anonymous function can be used to transform the distance input by the user. 

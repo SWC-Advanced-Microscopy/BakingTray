@@ -95,7 +95,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % - First check if controller is connected with isControllerConnected. 
         % - Only proceed if this is true.
         % - Reads the current position in the current units.
-        % - transform position with linearstage.transformDistance
+        % - transform position with linearstage.transformOutputDistance
         % - Write it to the axis currentPosition property and return it as an output argument. 
         %   Note that the *transformed* position should be written here. e.g.
         %     POS = obj.hC.getPosition;
@@ -132,7 +132,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         %
         % Behavior
         % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Convert distanceToMove with linearstage.transformDistance
+        % Convert distanceToMove with linearstage.transformInputDistance
         % Call controller API methods or initiate RS232 calls.
         %
         %
@@ -147,7 +147,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         %
         % Behavior 
         % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Convert targetPosition with linearstage.transformDistance
+        % Convert targetPosition with linearstage.transformInputDistance
         % Call controller API methods or initiate RS232 calls.
         %
         %

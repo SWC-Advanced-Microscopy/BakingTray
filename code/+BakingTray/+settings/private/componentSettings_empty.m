@@ -102,12 +102,21 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt=''; 
 
     motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
-    % Set invertAxis so more positive motions achieve the following:
-    %   - the X stage goes to the right (the X stage handles the motion along the axis between the objective and blade holder)
-    %   - the Y stage away from you, assuming you are viewing the system such that positive X motions move the X stage to the right. 
-    %     i.e. if the blade holder is to the east of the the objective, positive Y motions should move the sample to the north.
-    %   - the Z stage moves up with more positive numbers.
-    motionAxis(nC).stage.settings.invertAxis=false;
+    % The transformInputDistance and transformOutputDistance fields are anonymous functions. They
+    % convert user-supplied command positions (input) and controller-provided postions (output)
+    % in order to satisfy the following:
+    % - All units in mm (note some controllers can have the units changed: this is easier)
+    % - The X stage handles the motion along the axis between the objective and blade holder. Zero is 
+    %   middle of travel range and positive numbers move the stage to the right as you look at it. 
+    % - The Y stage moves the sample toward or away from you. Zero is middle of stage travel range
+    %   and positive is away from you. 
+    % - The Z stage moves up with more positive numbers. Zero is retracted.
+    %
+    % If the anonymous function fields are left empty, no transformation is applied. Examples:
+    % the function @(x) -1*x; will invert the position scale. 
+
+    motionAxis(nC).stage.settings.transformInputDistance=[];
+    motionAxis(nC).stage.settings.transformOutputDistance=[];
     motionAxis(nC).stage.settings.axisName=''; %One of: xAxis, yAxis, or zAxis
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];
@@ -127,7 +136,8 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt=''; 
 
     motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.invertAxis=false;
+    motionAxis(nC).stage.settings.transformInputDistance=[];
+    motionAxis(nC).stage.settings.transformOutputDistance=[];
     motionAxis(nC).stage.settings.axisName=''; 
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];
@@ -138,7 +148,8 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt=[];
 
     motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.invertAxis=false;
+    motionAxis(nC).stage.settings.transformInputDistance=[];
+    motionAxis(nC).stage.settings.transformOutputDistance=[];
     motionAxis(nC).stage.settings.axisName='';
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];
