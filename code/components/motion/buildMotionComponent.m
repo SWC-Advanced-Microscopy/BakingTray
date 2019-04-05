@@ -134,11 +134,6 @@ end
 function stageComponents = build_BSC201_APT_stages(stages)
 
     stageComponents=[];
-    if size(stages,1)>1
-        fprintf('%s - The BSC201 can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
-        return
-    end
-
     stageComponentName = stages{1,1};
     stageSettings = stages{1,2};
 
@@ -150,7 +145,7 @@ function stageComponents = build_BSC201_APT_stages(stages)
         case 'DRV014'
             %The DRV014 will only be used as the Z stage so we can hard-code various things here
             stageComponents=DRV014;
-            
+
             %User settings
             stageComponents.axisName=stageSettings.axisName;
             stageComponents.minPos=stageSettings.minPos;
@@ -166,11 +161,6 @@ function stageComponents = buildSingleAxisGenericPIstage(stages)
     %NOTE: this function only handles PI controllers with one stage connected
 
     stageComponents=[];
-    if size(stages,1)>1
-        fprintf('%s - The PI controller can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
-        return
-    end
-
     stageComponentName = stages{1,1};
     stageSettings = stages{1,2};
 

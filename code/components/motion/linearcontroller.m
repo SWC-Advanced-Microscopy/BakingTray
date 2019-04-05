@@ -296,6 +296,10 @@ classdef (Abstract) linearcontroller < handle & loghandler
                 error('Field stage.settings.axisName is incorrect. It should be one of: xAxis, yAxis, or zAxis. You supplied %s',linearStageObject.axisName)
             end
 
+            if length(linearStageObject)>obj.maxStages
+                error('Attempting to attach %d stages to a controller that only accepts %d\n', ...
+                    length(linearStageObject), obj.maxStages)
+            end
             obj.attachedStage = linearStageObject;
         end
 
