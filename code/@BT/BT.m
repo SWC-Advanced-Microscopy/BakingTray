@@ -119,6 +119,10 @@ classdef BT < loghandler
             params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(x))
             params.parse(varargin{:});
 
+            % Test read of the system settings file. It will be created if not present. 
+            % Nothing is done with the system settings at this point.
+            BakingTray.settings.readSystemSettings;
+
             %Read the component settings found by BakingTray.settings.readComponentSettings
             %if none were provided. The most likely reason for providing a different file
             %is to set up dummy components.
