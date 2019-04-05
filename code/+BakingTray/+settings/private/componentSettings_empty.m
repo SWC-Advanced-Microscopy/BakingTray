@@ -45,7 +45,7 @@ function settings=componentSettings
     %-------------------------------------------------------------------------------------------
     % Scanner
     % Scanning is achieved using separate piece of software which BakingTray controls via an API.
-    % Currently only ScanImage 5.2 is supported, although in principle you could write your own
+    % Currently only ScanImage is supported, although in principle you could write your own
     % scanning code. ScanImage can be freely downloaded here:
     % http://scanimage.vidriotechnologies.com/display/SIH/ScanImage+Home
     scanner.type=''; % One of: 'SIBT', 'dummyScanner'
@@ -92,8 +92,14 @@ function settings=componentSettings
     %-------------------------------------------------------------------------------------------
 
     nC=1;
-    motionAxis(nC).type=''; % One of: 'C891', 'BSC201_APT', 'dummy_linearcontroller'
-    motionAxis(nC).settings.connectAt=''; %If using a C891, this will need to be a string defining the serial number 
+    % The "type" refers to the motion controller being used for this axis. 
+    motionAxis(nC).type=''; % One of: 'C891', 'C863', 'C663','BSC201_APT', 'dummy_linearcontroller'
+                            % There may be other available controllers. See
+                            % the components/motion directory.
+    % "connectAt" defines where to look for the connection. This could be a COM port (e.g. COM11) or, 
+    % for some PI devices like the C891, this could be a string defining
+    % the serial number. 
+    motionAxis(nC).settings.connectAt=''; 
 
     motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
     % Set invertAxis so more positive motions achieve the following:
