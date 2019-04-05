@@ -6,6 +6,12 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+5th April 2019
+- DEVELOPER: linearstage.transformDistance replaced by two new properties for handling input and output separately. 
+- DEVELOPER: simplify buildMotionComponent
+- DEVELOP: DRV014 class internalises settings previously in buildMotionComponent
+- USER: ** invert field removed from componentSettings.m ** You will need to use new model. Send issue if stuck. 
+
 21st March 2019
 - Tweaks to acquisition time estimate
 - USER: Y stage moves to zero at the end of acquisition and before "sliceOnce"
