@@ -50,6 +50,7 @@ classdef genericPIcontroller < linearcontroller
               logObject=[];
             end
 
+            obj.maxStages=1;
             if ~isempty(stageObject)
               obj.attachLinearStage(stageObject);
             end

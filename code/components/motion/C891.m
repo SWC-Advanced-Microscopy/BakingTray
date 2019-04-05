@@ -52,7 +52,7 @@ classdef C891 < genericPIcontroller
             if nargin<2
                 logObject=[];
             end
-            obj.maxStages=1;
+
             obj = obj@genericPIcontroller(stageObject,logObject);
 
             %Build a map structure that allows us to read off desired controller parameters

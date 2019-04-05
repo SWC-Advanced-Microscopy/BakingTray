@@ -47,7 +47,7 @@ classdef C663 < genericPIcontroller
             if nargin<2
                 logObject=[];
             end
-            obj.maxStages=1;
+
             obj = obj@genericPIcontroller(stageObject,logObject);
         end % Constructor
 

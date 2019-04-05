@@ -146,7 +146,7 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
         return
     end
 
-    stageComponents = eval(stageComponent);
+    stageComponents = eval(stageComponentName);
 
     %User settings
     stageComponents.axisName=stageSettings.axisName;
@@ -171,7 +171,7 @@ function success = checkArgs(stageComponentName,stageSettings)
     end
 
     if ~exist(stageComponentName,'file')
-        fprintf('Can not find the stage component class %s in the MATLAB path\n' stageComponentName)
+        fprintf('Can not find the stage component class %s in the MATLAB path\n', stageComponentName)
         success=false;
         return
     end
