@@ -9,6 +9,8 @@ classdef analog_controller < linearcontroller
     properties 
       NIdevice = '' %String containing the NI device ID
       outputPort =  '' %Name of the analog output port (e.g. 'AO0')
+
+      % NOTE - these properties are different to those for the other motion control classes
       voltsPerMicron = [] %the number of volts through the analog output that will translate to a motion of one micron
       
       %We won't use the max and min properties in the stage object since the only analog controller I have 

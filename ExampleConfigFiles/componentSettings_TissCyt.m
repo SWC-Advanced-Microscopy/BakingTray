@@ -100,8 +100,9 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt.controllerModel='C-863';
 
     motionAxis(nC).stage.type='genericPIstage'; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
-    motionAxis(nC).stage.settings.transformInputDistance=@(x) -(x-150);
-    motionAxis(nC).stage.settings.transformOutputDistance=@(x) -(x-150);
+    motionAxis(nC).stage.settings.invertDistance=-1; %To invert command
+    motionAxis(nC).stage.settings.positionOffset=150; %So zero is stage mid-point
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1; %Leave unchanged: controller is in mm
     motionAxis(nC).stage.settings.axisName='xAxis'; %One of: xAxis, yAxis, or zAxis
     motionAxis(nC).stage.settings.minPos=-100;
     motionAxis(nC).stage.settings.maxPos=100;
@@ -125,8 +126,9 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt.controllerModel='C-863';
 
     motionAxis(nC).stage.type='genericPIstage';
-    motionAxis(nC).stage.settings.transformInputDistance=@(x) -(x-25);
-    motionAxis(nC).stage.settings.transformOutputDistance=@(x) -(x-25);
+    motionAxis(nC).stage.settings.invertDistance=-1; %To invert command
+    motionAxis(nC).stage.settings.positionOffset=25; %So zero is stage mid-point
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1; %Leave unchanged: controller is in mm
     motionAxis(nC).stage.settings.axisName='yAxis'; 
     motionAxis(nC).stage.settings.minPos=-15;
     motionAxis(nC).stage.settings.maxPos=15;
@@ -138,9 +140,9 @@ function settings=componentSettings
     motionAxis(nC).settings.connectAt.baudrate=9600;
 
     motionAxis(nC).stage.type='haydon43K4U';
-    scaleFactor = 1.5305E-04; %mm  per command "tick"
-    motionAxis(nC).stage.settings.transformInputDistance = @(x) x/scaleFactor; %mm to ticks
-    motionAxis(nC).stage.settings.transformOutputDistance= @(x) x*scaleFactor; %ticks to mm
+    motionAxis(nC).stage.settings.invertDistance=1; %Do not invert distance
+    motionAxis(nC).stage.settings.positionOffset=0; %So zero remains at the lowered position of the stage
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1.5305E-04; %mm  per command "tick"
     motionAxis(nC).stage.settings.axisName='zAxis';
     motionAxis(nC).stage.settings.minPos=0;
     motionAxis(nC).stage.settings.maxPos=40;

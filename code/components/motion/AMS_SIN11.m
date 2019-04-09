@@ -177,7 +177,7 @@ classdef AMS_SIN11 < linearcontroller
 
         [~,pos]=obj.sendAndReceiveSerial([obj.axID,'Z']);
         pos = str2double(pos);
-        pos = obj.attachedStage.transformOutputDistance(pos);
+        pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
         obj.attachedStage.currentPosition=pos;
       end %axisPosition
 
@@ -203,7 +203,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-        distanceToMove=obj.attachedStage.transformInputDistance(distanceToMove);
+        distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
         distanceToMove = num2str(round(distanceToMove));
         if distanceToMove>0
             plusSign='+';
@@ -235,9 +235,9 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-        targetPosition=obj.attachedStage.transformInputDistance(targetPosition);
+        targetPosition = obj.attachedStage.invertDistance * (targetPositionB-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
         targetPosition = num2str(round(targetPosition));
-        obj.sendAndReceiveSerial([obj.axID,'R',targetPosition]);
+        obj.sendAndReceiveSerial([obj.axID,'R',targetPosition]); %make motion relative to zero position
       end %absoluteMove
 
 

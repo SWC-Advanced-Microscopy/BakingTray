@@ -95,12 +95,16 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % - First check if controller is connected with isControllerConnected. 
         % - Only proceed if this is true.
         % - Reads the current position in the current units.
-        % - transform position with linearstage.transformOutputDistance
+        % - transform position so it behaves as expected (see notes on wiki)
         % - Write it to the axis currentPosition property and return it as an output argument. 
-        %   Note that the *transformed* position should be written here. e.g.
-        %     POS = obj.hC.getPosition;
-        %     POS = obj.attachedStage.transformdDstance(POS);
-        %     obj.attachedStage.currentPosition=POS;
+        % The method should therefor be something like this:
+        % 
+        %   check all is good
+        %   POS = obj.hC.getPosition; %Somehow get stage postion
+        %   POS = obj.attachedStage.invertDistance * (POS-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
+        %   obj.attachedStage.currentPosition=POS; 
+        %
+        % See genericPIcontroller.n for an example
         % - Returns empty if a stage is not connected and so it failed to read the position.
         %
         % Inputs
@@ -131,10 +135,13 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % relativeMove 
         %
         % Behavior
-        % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Convert distanceToMove with linearstage.transformInputDistance
-        % Call controller API methods or initiate RS232 calls.
+        % - First check if controller is connected with isControllerConnected. 
+        % - Only proceed if above is true.
+        % - Convert distanceToMove: 
+        %   distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
+        % - Execute motion command with controller API, RS232 call or whatever. 
         %
+        % For example see genericPIcontroller
         %
         % Inputs
         % distanceToMove - required. signed number defining relative distance to move (in microns?)
@@ -146,9 +153,13 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % absoluteMove
         %
         % Behavior 
-        % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Convert targetPosition with linearstage.transformInputDistance
-        % Call controller API methods or initiate RS232 calls.
+        % - First check if controller is connected with isControllerConnected. 
+        % - Only proceed if above is true.
+        % - Convert distanceToMove: 
+        %  targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+        % - Execute motion command with controller API, RS232 call or whatever. 
+        %
+        % For example see genericPIcontroller
         %
         %
         % Inputs

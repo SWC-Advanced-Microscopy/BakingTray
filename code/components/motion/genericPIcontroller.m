@@ -196,7 +196,7 @@ classdef genericPIcontroller < linearcontroller
               return
             end
             pos = obj.hC.qPOS('1');
-            pos = obj.attachedStage.transformOutputDistance(pos);
+            pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -229,7 +229,7 @@ classdef genericPIcontroller < linearcontroller
           % </redundant>
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-            distanceToMove=obj.attachedStage.transformInputDistance(distanceToMove);
+            distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
             obj.hC.MVR('1',distanceToMove);
 
         end %relativeMove
@@ -249,7 +249,8 @@ classdef genericPIcontroller < linearcontroller
             end
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-            obj.hC.MOV('1',obj.attachedStage.transformInputDistance(targetPosition));
+            targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+            obj.hC.MOV('1',targetPosition);
         end %absoluteMove
 
 

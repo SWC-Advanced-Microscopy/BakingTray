@@ -164,19 +164,20 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
     stageComponents = eval(stageComponentName);
 
     %User settings 
-    % TODO - convert a loop that goes through structure fields
-    % TODO - deal with multiple satges
-    if ~isempty(stageSettings.transformOutputDistance)
-        stageComponents.transformOutputDistance = stageSettings.transformOutputDistance;
+    % TODO - deal with multiple stages
+    settingsFields = fields(stageSettings);
+    for ii=1:length(settingsFields)
+        tField = settingsFields{ii};
+        if ~isprop(stageComponents,tField)
+            fprintf('Stage %s has no property %s. Skipping this setting.\n', ...
+            stageComponentName,tField );
+            continue
+        end
+        if isempty(stageSettings.(tField))
+            continue
+        end
+        stageComponents.(tField) = stageSettings.(tField);
     end
-    if ~isempty(stageSettings.transformInputDistance)
-        stageComponents.transformInputDistance = stageSettings.transformInputDistance;
-    end
-
-    stageComponents.axisName=stageSettings.axisName;
-    stageComponents.minPos=stageSettings.minPos;
-    stageComponents.maxPos=stageSettings.maxPos;
-
 
 
 function success = checkArgs(stageComponentName,stageSettings)
