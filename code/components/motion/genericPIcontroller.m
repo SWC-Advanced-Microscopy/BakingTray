@@ -313,12 +313,13 @@ classdef genericPIcontroller < linearcontroller
         function success = setMaxVelocity(obj, velocity)
             ready=obj.isAxisReady;
             success = false;
+
             if ~ready || ~isnumeric(velocity)
               return
             end
 
             obj.hC.VEL('1',velocity);
-            success = obj.setMaxVelocity==velocity;
+            success = obj.getMaxVelocity==velocity;
         end
 
         function velocity = getInitialVelocity(obj)
