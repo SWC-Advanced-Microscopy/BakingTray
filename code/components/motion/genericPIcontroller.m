@@ -317,7 +317,8 @@ classdef genericPIcontroller < linearcontroller
               return
             end
 
-            success=obj.hC.VEL('1',velocity);
+            obj.hC.VEL('1',velocity);
+            success = obj.setMaxVelocity==velocity;
         end
 
         function velocity = getInitialVelocity(obj)
@@ -347,7 +348,8 @@ classdef genericPIcontroller < linearcontroller
               success = false;
               return
             end
-            success=obj.hC.ACC('1',acceleration);
+            obj.hC.ACC('1',acceleration);
+            success = obj.getAcceleration==acceleration;
         end
 
 
