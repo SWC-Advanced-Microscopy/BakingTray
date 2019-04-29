@@ -289,7 +289,12 @@ function bake(obj,varargin)
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
             if sectionInd<obj.recipe.mosaic.numSections || obj.sliceLastSection
-                obj.sliceSample;
+                %But don't slice if the user asked for an abort and sliceLastSection is false
+                if obj.abortAfterSectionComplete && ~obj.sliceLastSection
+                    % pass
+                else
+                    obj.sliceSample;
+                end
             end
         else
             fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
