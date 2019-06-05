@@ -76,8 +76,10 @@ classdef AMS_SIN11 < linearcontroller
         % connectionDetails should supply the serial params in this form:
         % connectionDetails.COM = 'COM2'
         % connectionDetails.baudrate = 9600 %Optional
-        if isstr(connectionDetails)
-          connectionDetails.COM = connectionDetails;
+        if ischar(connectionDetails)
+          tmp=connectionDetails;
+          connectionDetails=struct;
+          connectionDetails.COM = tmp;
         end
         if ~isstruct(connectionDetails)
           fprintf('AMS_SIN11.connect expected connectionDetails to be a structure or COM port ID\n');
@@ -185,7 +187,6 @@ classdef AMS_SIN11 < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = relativeMove(obj,distanceToMove)
-        %TODO: figure out what output we get from the ActiveX stuff if the stage failed to move. 
         success=obj.isAxisReady;
         if ~success
           return
@@ -196,7 +197,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         %Check that it's OK to move here
-        willMoveTo = distanceToMove+obj.axisPosition;
+        willMoveTo = obj.axisPosition+distanceToMove;
         if ~obj.isMoveInBounds(willMoveTo)
           success=false;
           return
@@ -204,13 +205,14 @@ classdef AMS_SIN11 < linearcontroller
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
         distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
-        distanceToMove = num2str(round(distanceToMove));
         if distanceToMove>0
             plusSign='+';
         else
-            plusSign='';
+            plusSign='-';
         end
-        obj.sendAndReceiveSerial([obj.axID,plusSign,num2str(distanceToMove)]);
+        distanceToMove = num2str(round(distanceToMove));
+
+        obj.sendAndReceiveSerial([obj.axID,plusSign,distanceToMove]);
         success=true;
 
       end %relativeMove
@@ -235,7 +237,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-        targetPosition = obj.attachedStage.invertDistance * (targetPositionB-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+        targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
         targetPosition = num2str(round(targetPosition));
         obj.sendAndReceiveSerial([obj.axID,'R',targetPosition]); %make motion relative to zero position
       end %absoluteMove
