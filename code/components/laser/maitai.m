@@ -143,6 +143,11 @@ classdef maitai < laser & loghandler
                 obj.isLaserReady=false;
                 return
             end
+            if ~obj.isPoweredOn
+                msg='Laser seems not to be powered on. Pump power is very low';
+                obj.isLaserReady=false;
+                return
+            end
             if ~obj.emissionPossible
                 msg='Laser is switched off and is not emitting';
                 obj.isLaserReady=false;
