@@ -27,9 +27,16 @@ function tileAcqDone(obj,~,~)
 
 
     % Import the last frames and downsample them
+    debugMessages=false;
+
     if obj.parent.importLastFrames && strcmp(obj.parent.recipe.mosaic.scanmode,'tile') %TODO: hack until ribbon is working
         msg='';
-        for z=1:length(obj.hC.hDisplay.stripeDataBuffer) %Loop through depths
+        planeNum=1; %This counter indicates the current z-plane
+        %Loop through the buffer, pulling out the first frame from each depth
+        for z = 1 : obj.hC.hDisplay.displayRollingAverageFactor : length(obj.hC.hDisplay.stripeDataBuffer)
+            if debugMessages
+                fprintf('%s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n',mfilename,z)
+            end
             % scanimage stores image data in a data structure called 'stripeData'
             %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
             lastStripe = obj.hC.hDisplay.stripeDataBuffer{z};
@@ -43,20 +50,20 @@ function tileAcqDone(obj,~,~)
                 msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell with length >1',z);
             end
 
-            if ~isempty(msg)
+            if ~isempty(msg) %if true there was an error
                 msg = [msg, 'NOT EXTRACTING TILE DATA IN SIBT.tileAcqDone'];
                 obj.logMessage('acqDone',dbstack,6,msg);
                 break
             end
 
             for ii = 1:length(lastStripe.roiData{1}.channels) % Loop through channels
-                obj.parent.downSampledTileBuffer(:, :, lastStripe.frameNumberAcq, lastStripe.roiData{1}.channels(ii)) = ...
+                if debugMessages
+                    fprintf('\t%s placing channel %d in scanner downSampledTileBuffer plane %d\n', ...
+                        mfilename,lastStripe.roiData{1}.channels(ii), planeNum)
+                end
+                obj.parent.downSampledTileBuffer(:, :, planeNum, lastStripe.roiData{1}.channels(ii)) = ...
                     int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileRotate),...
                         [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
-            end
-
-            if obj.hC.hScan2D.logAverageFactor>1
-                obj.parent.downSampledTileBuffer = obj.parent.downSampledTileBuffer(:,:,1,:);
             end
 
             if obj.verbose
@@ -66,6 +73,7 @@ function tileAcqDone(obj,~,~)
                     lastStripe.frameNumberAcqMode, ...
                     lastStripe.frameTimestamp)
             end
+            planeNum=planeNum+1;
         end % z=1:length...
     end % if obj.parent.importLastFrames
 

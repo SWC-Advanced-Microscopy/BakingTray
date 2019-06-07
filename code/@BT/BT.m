@@ -605,13 +605,18 @@ classdef BT < loghandler
                     numTilesPerOpticalSection = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
                 end
 
-                approxTimePerSection = scnSet.framePeriodInSeconds * obj.recipe.mosaic.numOpticalPlanes * numTilesPerOpticalSection;
-                %now guesstimate 350 ms per X/Y move plus something added on for buffering time. 
-                approxTimePerSection = round(approxTimePerSection + (numTilesPerOpticalSection*0.35));
+                approxTimePerSection = scnSet.framePeriodInSeconds * ...
+                                    obj.recipe.mosaic.numOpticalPlanes * ...
+                                    numTilesPerOpticalSection * ...
+                                    scnSet.averageEveryNframes;
+                % Guesstimate 375 ms per X/Y move plus something added on for buffering time.
+                motionTime = numTilesPerOpticalSection*0.375;
+                approxTimePerSection = round(approxTimePerSection + motionTime);
+                out.motionTime = motionTime;
 
                 %Estimate cut time
-                cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 5; 
-                out.timePerSectionInSeconds = approxTimePerSection+cutTime;
+                out.cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 12;
+                out.timePerSectionInSeconds = approxTimePerSection+out.cutTime;
                 out.timeLeftInSeconds = out.timePerSectionInSeconds * obj.recipe.mosaic.numSections; %Use all sections because nothing would have been imaged
             else
                 fprintf('Failed to calculate sample completion time\n')

@@ -251,19 +251,46 @@ function bake(obj,varargin)
 
 
         % If the laser is off-line for some reason (e.g. lack of modelock, we quit
-        % so we don't cut and the sample is safe. 
+        % so we don't cut and the sample is safe.
         if obj.isLaserConnected
+
             [isReady,msg]=obj.laser.isReady;
             if ~isReady
-                %TODO: this should be able to send a Slack message or e-mail to the user
+                % Otherwise pause and check it's really down before carrying on
+                pause(3)
+                [isReady,msg]=obj.laser.isReady;
+            end
+            if ~obj.laser.isPoweredOn
+                obj.acqLogWriteLine('LASER TURNED OFF: Trying to turn on laser\n');
+                obj.slack('BrainSaw laser turned off. Trying to turn it on again');
+                obj.laser.turnOn
+                pause(3)
+                obj.laser.openShutter
+                pause(2)
+                for ii=1:15
+                    if obj.laser.isReady
+                        obj.acqLogWriteLine('LASER RECOVERED\n');
+                        obj.slack('BrainSaw managed to recover the laser.');
+                        break
+                    end
+                    pause(10)
+                end
+            end
+            if ~isReady
                 msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
+                obj.slack(msg)
                 fprintf(msg)
                 obj.acqLogWriteLine(msg)
                 return
             end
         end
 
-
+        % If too many channels are being displayed, fix this before carrying on
+        chanDisp=obj.scanner.channelsToDisplay;
+        if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
+            % A bit horrible, but it will work
+            obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
+        end
 
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
@@ -277,7 +304,12 @@ function bake(obj,varargin)
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
             if sectionInd<obj.recipe.mosaic.numSections || obj.sliceLastSection
-                obj.sliceSample;
+                %But don't slice if the user asked for an abort and sliceLastSection is false
+                if obj.abortAfterSectionComplete && ~obj.sliceLastSection
+                    % pass
+                else
+                    obj.sliceSample;
+                end
             end
         else
             fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
@@ -298,7 +330,6 @@ function bake(obj,varargin)
             currentTimeStr() ,obj.currentSectionNumber, prettyTime(elapsedTimeInSeconds) ));
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
-
 
         if obj.abortAfterSectionComplete
             %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
@@ -397,5 +428,8 @@ function bakeCleanupFun(obj)
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
+    
+    % Move the X/Y stage to a nice finish postion, ready for next sample
+    obj.moveXYto(obj.recipe.FrontLeft.X,0)
 
 end %bakeCleanupFun

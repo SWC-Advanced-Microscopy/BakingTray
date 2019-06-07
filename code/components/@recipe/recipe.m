@@ -229,15 +229,6 @@ classdef recipe < handle
             obj.sample = params.sample;
             obj.mosaic = params.mosaic;
 
-            if inputArgs.Results.resume
-                fprintf('Retaining front/left and cutting start-point from %s\n', strrep(recipeFname,'\','\\'))
-                obj.CuttingStartPoint.X = params.CuttingStartPoint.X;
-                obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
-                obj.FrontLeft.X = params.FrontLeft.X;
-                obj.FrontLeft.Y = params.FrontLeft.Y;
-            end %if inputArgs.Results.resume
-
-
             %Add the system settings from the settings file. 
             sysSettings = BakingTray.settings.readSystemSettings;
 
@@ -251,6 +242,19 @@ classdef recipe < handle
             obj.SLICER = sysSettings.SLICER;
             obj.SLACK = sysSettings.SLACK;
             obj.fname=recipeFname;
+
+
+            if inputArgs.Results.resume
+                fprintf('Retaining front/left and cutting start-point from %s\n', strrep(recipeFname,'\','\\'))
+                obj.CuttingStartPoint.X = params.CuttingStartPoint.X;
+                obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
+                obj.FrontLeft.X = params.FrontLeft.X;
+                obj.FrontLeft.Y = params.FrontLeft.Y;
+            else %otherwise use defaults
+                obj.FrontLeft.X = obj.SYSTEM.defaultFrontLeft{1};
+                obj.FrontLeft.Y = obj.SYSTEM.defaultFrontLeft{2};
+            end %if inputArgs.Results.resume
+
 
 
             %Put listeners on some of the properties and use these to update the acquisitionPossible property
@@ -624,7 +628,7 @@ classdef recipe < handle
                                     minSampleSizeY=tileY;
                                 end
 
-                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 20);
+                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 30);
                                 fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 20);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)
                                     fieldValue=[];

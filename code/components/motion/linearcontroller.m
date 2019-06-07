@@ -41,7 +41,8 @@ classdef (Abstract) linearcontroller < handle & loghandler
 
         controllerID % The information required by the method that connects to the 
                      % the controller at connect-time. This can be specified in whatever
-                     % way is most suitable for the hardware at hand. 
+                     % way is most suitable for the hardware at hand. e.g. see how this is
+                     % used in genericPIcontroller. This property may not be needed. 
 
     end %close public properties
 
