@@ -628,7 +628,7 @@ classdef recipe < handle
                                     minSampleSizeY=tileY;
                                 end
 
-                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 20);
+                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 30);
                                 fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 20);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)
                                     fieldValue=[];
