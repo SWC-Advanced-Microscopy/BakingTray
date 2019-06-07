@@ -8,7 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 7th June 2019
 - USER: BakingTray can now often recover modelock failures of the laser
- 
+- USER: Confirmation dialog prior to Bake 
 
 21st March 2019
 - Tweaks to acquisition time estimate

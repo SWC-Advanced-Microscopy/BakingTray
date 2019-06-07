@@ -1,5 +1,7 @@
 classdef acquisition_view < BakingTray.gui.child_view
-
+    % BakingTray.gui.acquisition_vies
+    %
+    % This class defines the GUI which shows the sample preview
 
     properties
         imageAxes %The preview image sits here
@@ -567,6 +569,21 @@ classdef acquisition_view < BakingTray.gui.child_view
                 end
                return
             end
+
+            % Allow the user to confirm they want to bake
+            ohYes='Yes!';
+            noWay= 'No way';
+            choice = questdlg('Are you sure you want to Bake this sample?', '', ohYes, noWay, noWay);
+
+            switch choice
+                case ohYes
+                    % pass
+                case noWay
+                    return
+                otherwise
+                    return
+            end 
+
 
             % Update the preview image in case the recipe has altered since the GUI was opened or
             % since the preview was last taken.
