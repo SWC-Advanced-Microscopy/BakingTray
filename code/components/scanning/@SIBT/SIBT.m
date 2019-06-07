@@ -282,6 +282,15 @@ classdef SIBT < scanner
             end
         end %close resetTrippedPMTs
 
+        function enabledPMTs=getEnabledPMTs(obj)
+            % function enabledPMTs=getEnabledPMTs(obj)
+            %
+            % Purpose
+            % Return a vector indicating which PMTs are currently enabled
+            enabledPMTs = find(obj.hC.hPmts.powersOn);
+            enabledPMTs = enabledPMTs(:);
+        end
+
         function framePeriod = getFramePeriod(obj) %TODO: this isn't in the abstract class.
             %return the frame period (how long it takes to acquire a frame) in seconds
             framePeriod = obj.hC.hRoiManager.scanFramePeriod;
@@ -389,7 +398,7 @@ classdef SIBT < scanner
                 end
                 %Then something has changed
                 obj.flipScanSettingsChanged
-                obj.channelsToSave = theseChans; %store the currently selected channels to save
+                obj.channelsToSave = theseChans(:); %store the currently selected channels to save
             end
 
         end %channelsToAcquire
@@ -397,6 +406,7 @@ classdef SIBT < scanner
 
         function theseChans = channelsToDisplay(obj)
             theseChans = obj.hC.hChannels.channelDisplay;
+            theseChans = theseChans(:);
         end %channelsToDisplay
 
 
