@@ -9,7 +9,7 @@ function [success,msg] = armScanner(obj)
     % We'll need to enable external triggering on the correct terminal line. 
     % Safest to instruct ScanImage of this each time. 
     switch obj.scannerType
-        case 'resonant'
+        case {'resonant','rg'}
             %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
             trigLine='PFI1';
         case 'linear'
