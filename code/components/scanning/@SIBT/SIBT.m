@@ -440,7 +440,11 @@ classdef SIBT < scanner
 
 
         function verStr = getVersion(obj)
-            verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
+            % Return a string listing the current version of ScanImage and current version of MATLAB
+            verStr=sprintf('ScanImage v%s.%s on MATLAB %s', ...
+                obj.hC.VERSION_MAJOR, ...
+                obj.hC.VERSION_MINOR, ...
+                version);
         end % getVersion
 
 
