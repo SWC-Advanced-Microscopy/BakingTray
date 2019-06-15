@@ -37,8 +37,7 @@ function pTimeStr = prettyTime(timeInSeconds)
     secs=round(timeInSeconds);
 
     pTimeStr=''; % Prettified time string
-    if hrs>0 , pTimeStr=sprintf('%pTimeStr%d hrs ' ,pTimeStr,hrs);  end
-    if mins>0, pTimeStr=sprintf('%pTimeStr%d mins ',pTimeStr,mins); end
-    if secs>0, pTimeStr=sprintf('%pTimeStr%d secs' ,pTimeStr,secs); end
-
+    if hrs>0 , pTimeStr=sprintf('%s%d hrs ' ,pTimeStr,hrs);  end
+    if mins>0, pTimeStr=sprintf('%s%d mins ',pTimeStr,mins); end
+    if secs>0, pTimeStr=sprintf('%s%d secs' ,pTimeStr,secs); end
 end
