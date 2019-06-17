@@ -261,9 +261,9 @@ function bake(obj,varargin)
                 [isReady,msg]=obj.laser.isReady;
             end
             if ~isReady
-                msg = sprintf('LASER NOT RUNNING: %s\n',msg);
+                msg = sprintf('LASER NOT RUNNING (Section %s): %s\n', obj.currentSectionNumber, msg);
                 obj.acqLogWriteLine(msg);
-                msg = sprintf('%s\n BrainSaw trying to recover it.\n',msg)
+                msg = sprintf('%s\nBrainSaw trying to recover it.\n',msg)
                 obj.slack(msg);
                 obj.laser.turnOn
                 pause(3)
