@@ -17,7 +17,7 @@ function takeNslices(obj,~,~)
     obj.takeNSlices_button.ForegroundColor='r';
 
     for ii=1:slicesToTake
-        if ~obj.model.checkIfCuttingIsPossible;
+        if ~obj.model.checkIfCuttingIsPossible
             %If the user breaks off the previous section with the blade beyond the cutting start point
             %then no further sections will be cut. However, cutting will restart if the user happened to
             %to abort cutting during the return of the sample to the start point. 

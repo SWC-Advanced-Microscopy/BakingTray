@@ -260,7 +260,24 @@ function bake(obj,varargin)
                 pause(3)
                 [isReady,msg]=obj.laser.isReady;
             end
-
+            if ~isReady
+                msg = sprintf('LASER NOT RUNNING (Section %s): %s\n', obj.currentSectionNumber, msg);
+                obj.acqLogWriteLine(msg);
+                msg = sprintf('%s\nBrainSaw trying to recover it.\n',msg)
+                obj.slack(msg);
+                obj.laser.turnOn
+                pause(3)
+                obj.laser.openShutter
+                pause(2)
+                for ii=1:15
+                    if obj.laser.isReady
+                        obj.acqLogWriteLine('LASER RECOVERED\n');
+                        obj.slack('BrainSaw managed to recover the laser.');
+                        break
+                    end
+                    pause(10)
+                end
+            end
             if ~isReady
                 msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
                 obj.slack(msg)
@@ -289,7 +306,12 @@ function bake(obj,varargin)
             currentTimeStr(), obj.currentTilePosition-1, prettyTime((now-startAcq)*24*60^2)) );
 
             if sectionInd<obj.recipe.mosaic.numSections || obj.sliceLastSection
-                obj.sliceSample;
+                %But don't slice if the user asked for an abort and sliceLastSection is false
+                if obj.abortAfterSectionComplete && ~obj.sliceLastSection
+                    % pass
+                else
+                    obj.sliceSample;
+                end
             end
         else
             fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)

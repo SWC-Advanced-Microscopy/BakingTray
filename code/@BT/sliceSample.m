@@ -38,6 +38,8 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         cuttingSpeed=obj.recipe.mosaic.cuttingSpeed;
     end
 
+    verbose=false; % Enable for debugging messages
+
     %Record in the recipe what are the values we are going to cut at. See the main recipe class help text. 
     obj.recipe.lastSliceThickness=sliceThickness;
     obj.recipe.lastCuttingSpeed=cuttingSpeed;
@@ -51,6 +53,10 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     % Log initial (current) position and velocity settings
     [state.xInit,state.yInit] = obj.getXYpos;
+    if verbose
+        fprintf('Position before cutting: x=%0.2f y=%0.2f\n',...
+            state.xInit, state.yInit)
+    end
 
     %Record the default move speed
     moveStepSpeed = obj.recipe.SYSTEM.xySpeed;
@@ -105,12 +111,12 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % progress a distance of obj.recipe.mosaic.cutSize mm at a speed of obj.recipe.SLICER.cuttingSpeed
     obj.setXvelocity(cuttingSpeed);
     cuttingMove=abs(obj.recipe.mosaic.cutSize)*obj.recipe.SYSTEM.cutterSide;
-    
+
     obj.moveXby(cuttingMove); %Start cutting and return (don't block)
     pause(0.05)
-    
+
     targetPos = obj.getXpos + cuttingMove; % Where the cutting move should finish
-    
+
     while 1 %Blocking loop until we have reached the cut end position
        if ~obj.xAxis.isMoving % Uses the controller API routine (if availble)
            break
@@ -187,9 +193,8 @@ end
 
 
 function cleanupSlicer(obj,state)
-
+    verbose=false; % Enable for debugging messages
     obj.logMessage(inputname(1),dbstack,2,'Entering cleanUpSlicer')
-
 
     %Stop vibrating
     obj.cutter.stopVibrate;
@@ -200,6 +205,10 @@ function cleanupSlicer(obj,state)
     if ~obj.abortSlice
         obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
         obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
+        if verbose
+            fprintf('Moving back to x=%0.2f and y=%0.2f\n', ...
+                state.xInit, state.yInit)
+        end
         obj.moveXYto(state.xInit,state.yInit,1); %blocking so control returns only once the process is finished
     end
 

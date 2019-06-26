@@ -33,6 +33,7 @@ classdef SIBT < scanner
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
                                       %If a setting has changeded, the flipScanSettingsChanged method is run
+        averageSavedFrames=true; %If false, with averaging enabled we save each frame separately
     end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
@@ -198,7 +199,11 @@ classdef SIBT < scanner
             end
             obj.hC.hScan2D.logAverageFactor = 1; % To avoid warning
             obj.hC.hStackManager.framesPerSlice = aveFrames;
-            obj.hC.hScan2D.logAverageFactor = aveFrames;
+            if obj.averageSavedFrames
+                obj.hC.hScan2D.logAverageFactor = aveFrames;            
+            else
+                obj.hC.hScan2D.logAverageFactor = 1;
+            end
             
         end % applyZstackSettingsFromRecipe
 
@@ -276,6 +281,15 @@ classdef SIBT < scanner
                 end
             end
         end %close resetTrippedPMTs
+
+        function enabledPMTs=getEnabledPMTs(obj)
+            % function enabledPMTs=getEnabledPMTs(obj)
+            %
+            % Purpose
+            % Return a vector indicating which PMTs are currently enabled
+            enabledPMTs = find(obj.hC.hPmts.powersOn);
+            enabledPMTs = enabledPMTs(:);
+        end
 
         function framePeriod = getFramePeriod(obj) %TODO: this isn't in the abstract class.
             %return the frame period (how long it takes to acquire a frame) in seconds
@@ -384,7 +398,7 @@ classdef SIBT < scanner
                 end
                 %Then something has changed
                 obj.flipScanSettingsChanged
-                obj.channelsToSave = theseChans; %store the currently selected channels to save
+                obj.channelsToSave = theseChans(:); %store the currently selected channels to save
             end
 
         end %channelsToAcquire
@@ -392,11 +406,19 @@ classdef SIBT < scanner
 
         function theseChans = channelsToDisplay(obj)
             theseChans = obj.hC.hChannels.channelDisplay;
+            theseChans = theseChans(:);
         end %channelsToDisplay
 
 
         function scannerType = scannerType(obj)
+            % Since SI 5.6, scanner type "resonant" is returned as "rg"
+            % This method returns either "resonant" or "linear"
             scannerType = lower(obj.hC.hScan2D.scannerType);
+            if strcmpi('RG',scannerType)
+                scannerType = 'resonant';
+            elseif strcmpi('GG')
+                scannerType='linear';
+            end 
         end %scannerType
 
 
@@ -425,7 +447,11 @@ classdef SIBT < scanner
 
 
         function verStr = getVersion(obj)
-            verStr=sprintf('ScanImage v%s.%s', obj.hC.VERSION_MAJOR, obj.hC.VERSION_MINOR);
+            % Return a string listing the current version of ScanImage and current version of MATLAB
+            verStr=sprintf('ScanImage v%s.%s on MATLAB %s', ...
+                obj.hC.VERSION_MAJOR, ...
+                obj.hC.VERSION_MINOR, ...
+                version);
         end % getVersion
 
 

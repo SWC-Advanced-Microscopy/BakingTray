@@ -176,7 +176,7 @@ classdef chameleon < laser & loghandler
             end
         end
 
-        function powerOnState = isPoweredOn(obj)
+        function [powerOnState,reply] = isPoweredOn(obj)
            	[success,reply]=obj.sendAndReceiveSerial('?L');
             if ~success
                 powerOnState=0;

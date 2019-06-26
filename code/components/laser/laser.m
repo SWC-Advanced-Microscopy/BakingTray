@@ -114,7 +114,7 @@ classdef (Abstract) laser < handle
         % Outputs
         % success - true or false depending on whether the command succeeded
 
-        powerOnState = isPoweredOn(obj)
+        [powerOnState,details] = isPoweredOn(obj)
         % isPoweredOn
         %
         % Behavior
@@ -125,6 +125,7 @@ classdef (Abstract) laser < handle
         %
         % Outputs
         % powerOnState - true/false. If powered on, set to true.
+        % details - optional second argument containing a string with further information
 
 
 
