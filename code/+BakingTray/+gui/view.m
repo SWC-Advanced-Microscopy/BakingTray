@@ -675,6 +675,10 @@ classdef view < handle
         end %saveRecipeToDisk
 
         function importFrameSizeSettings(obj)
+            % Import scanner frame sizes and set up text pop-up box
+            if isempty(obj.model.scanner)
+                return
+            end
             obj.model.scanner.readFrameSizeSettings;
 
             thisStruct = obj.model.scanner.frameSizeSettings;
