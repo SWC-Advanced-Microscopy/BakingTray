@@ -682,6 +682,7 @@ classdef view < handle
             obj.model.scanner.readFrameSizeSettings;
 
             thisStruct = obj.model.scanner.frameSizeSettings;
+
             if ~isempty(thisStruct)
                 for ii=1:length(thisStruct)
 

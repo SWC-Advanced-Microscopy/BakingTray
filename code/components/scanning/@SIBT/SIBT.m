@@ -416,7 +416,7 @@ classdef SIBT < scanner
             scannerType = lower(obj.hC.hScan2D.scannerType);
             if strcmpi('RG',scannerType)
                 scannerType = 'resonant';
-            elseif strcmpi('GG')
+            elseif strcmpi('GG',scannerType)
                 scannerType='linear';
             end 
         end %scannerType
@@ -542,8 +542,11 @@ classdef SIBT < scanner
                 end
 
             else % Report no frameSize file found
-                fprintf('\n\n SIBT finds no frame size file found at %s\n\n', frameSizeFname)
-                obj.frameSizeSettings=struct;
+                docURL = 'https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Calibrating-the-number-of-microns-per-pixel-with-ScanImage';
+                fprintf('\n\n SIBT finds no frame size file found at %s\n\nPlease see:\n%s\n', ...
+                    frameSizeFname, docURL)
+
+                obj.frameSizeSettings=[];
             end
         end % readFrameSizeSettings
 
