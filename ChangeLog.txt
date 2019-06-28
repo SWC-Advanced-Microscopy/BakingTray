@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+28th June 2019
+- USER: Add options for setting pixel bin factor and sample rate for linear scanners
+- USER: BUGFIX -- Fail gracefully if an error happens during preview scan. 
+
 10th June 2019
 - USER: BakingTray is now compatible with ScanImage 5.6
 

@@ -704,11 +704,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.updateImageLUT;
             try
                 obj.model.takeRapidPreview
-            catch ME
-                obj.model.scanner.abortScanning;
-                obj.model.scanner.disarmScanner;
-                obj.model.acquisitionInProgress=false;
-                rethrow(ME)
+            catch 
             end
 
             %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
