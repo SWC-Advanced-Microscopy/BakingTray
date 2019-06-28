@@ -111,6 +111,12 @@ classdef SIBT < scanner
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
 
+            % Watch the pixel bin factor and sample rate if we have linear scanners
+            if strcmp('linear',obj.scannerType)
+                obj.listeners{end+1}=addlistener(obj.hC.hScan2D, 'pixelBinFactor', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
+                obj.listeners{end+1}=addlistener(obj.hC.hScan2D, 'sampleRate', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            end
+
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
@@ -432,6 +438,16 @@ classdef SIBT < scanner
         end %getChannelLUT
 
 
+        function SR=getSampleRate(obj)
+            SR=obj.hC.hScan2D.sampleRate;
+        end
+
+
+        function pixBin=getPixelBinFactor(obj)
+            pixBin=obj.hC.hScan2D.pixelBinFactor;
+        end
+
+
         function tearDown(obj)
             % Ensure resonant scanner is off
             if strcmpi(obj.scannerType, 'resonant')
@@ -520,6 +536,15 @@ classdef SIBT < scanner
                     obj.frameSizeSettings(ii).fastMult = tSet.fastMult;
                     obj.frameSizeSettings(ii).slowMult = tSet.slowMult;
                     obj.frameSizeSettings(ii).objRes = tSet.objRes;
+                    obj.frameSizeSettings(ii).sampRate = [];
+                    obj.frameSizeSettings(ii).pixBin = [];
+
+                    if isfield(tSet,'sampRate')
+                        obj.frameSizeSettings(ii).sampRate = tSet.sampRate;
+                    end
+                    if isfield(tSet,'pixBin')
+                        obj.frameSizeSettings(ii).pixBin = tSet.pixBin;
+                    end
 
                     %This is used by StitchIt to correct barrel or pincushion distortion
                     if isfield(tSet,'lensDistort')

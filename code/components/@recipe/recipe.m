@@ -334,7 +334,8 @@ classdef recipe < handle
                     fprintf('Recipe can not find scanner stitching settings\n')
                 end
 
-                if isstruct(FrameData) && isempty(FrameData.stitchingVoxelSize)
+                if isstruct(FrameData) && ...
+                    (~isfield(FrameData,'stitchingVoxelSize') || isempty(FrameData.stitchingVoxelSize))
                     scnSet = obj.parent.scanner.returnScanSettings;
                     % Just take nominal values. It doesn't matter too much. 
                     mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
