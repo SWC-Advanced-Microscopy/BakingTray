@@ -603,7 +603,22 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.updateImageLUT;
             obj.model.leaveLaserOn=false; % TODO: For now always set the laser to switch off when starting [17/08/2017]
-            obj.model.bake;
+            try
+                obj.model.bake;
+            catch ME
+                disp('BAKE FAILED IN acquisition_view. CAUGHT_ERROR')
+                disp(ME.message)
+                obj.button_BakeStop.Enable='on'; 
+                return
+            end
+            
+            if obj.checkBoxLaserOff.Value
+                % If the laser was slated to turn off then we also close
+                % the acquisition GUI. This is because a lot of silly bugs
+                % seem to crop up after an acquisition but they go away if
+                % the user closes and re-opens the window.
+                obj.delete
+            end
 
         end %bake_callback
 
