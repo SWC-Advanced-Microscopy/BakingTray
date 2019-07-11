@@ -148,6 +148,9 @@ classdef genericPIcontroller < linearcontroller
             return
           end
           success=true;
+
+          % The PI code turns on a load of warnings. So we turn them off here
+          warning off 
         end %connect
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
