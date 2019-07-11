@@ -19,6 +19,11 @@ classdef BT < loghandler
                 % can turn off the laser at the end of the experiment and stop acquisition if the 
                 % laser fails. If it's missing, these features just aren't available.
         recipe  % The details for the experiment go here
+
+        % These properties control the three axis sample stage. 
+        xAxis
+        yAxis
+        zAxis
         buildFailed=true  % True if BT failed to build all components
     end %close properties
 
@@ -26,14 +31,6 @@ classdef BT < loghandler
     properties (Hidden)
         % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
-    end
-
-    properties (Hidden,Transient)
-        % These properties control the three axis sample stage. 
-        % We hide them because we want to make sure the user doesn't use them, as this might not be safe. 
-        xAxis
-        yAxis
-        zAxis
     end
 
     properties (SetAccess=immutable,Hidden)
