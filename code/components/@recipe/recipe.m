@@ -347,9 +347,18 @@ classdef recipe < handle
                     fprintf('NOT USING PRE-DEFINED STITCHING PARAMS! NONE AVILABLE\n')
                 end
 
-                if isstruct(FrameData)
-                    obj.StitchingParameters.lensDistort = FrameData.lensDistort;
-                    obj.StitchingParameters.affineMat = FrameData.affineMat;
+                if isstruct(FrameData) 
+                    if ~isempty(FrameData.lensDistort)
+                        obj.StitchingParameters.lensDistort = FrameData.lensDistort;
+                    else
+                        obj.StitchingParameters.lensDistort.rows=0;
+                        obj.StitchingParameters.lensDistort.cols=0;
+                    end
+                    if ~isempty(FrameData.affineMat)
+                        obj.StitchingParameters.affineMat = FrameData.affineMat;
+                    else
+                        obj.StitchingParameters.affineMat = eye(3);
+                    end
                 end
 
                 success=true;
