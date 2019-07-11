@@ -93,8 +93,8 @@ function tileAcqDone(obj,~,~)
 
 
     %Optionally reset tripped PMTs
-    if obj.settings.doResetTrippedPMT
-        obj.reseTrippedPMTs
+    if obj.settings.hardware.doResetTrippedPMT
+        obj.resetTrippedPMTs
     end
 
     % Increment the counter and make the new position the current one
