@@ -286,7 +286,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(minPos)
               minPos = obj.hC.qTMN('1'); 
-              minPos = obj.attachedStage.transformOutputDistance(minPos);
+              minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
             end
         end
 
@@ -295,7 +295,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(maxPos)
               maxPos = obj.hC.qTMX('1'); 
-              maxPos = obj.attachedStage.transformOutputDistance(maxPos);
+              maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
             end
         end
 
@@ -436,12 +436,17 @@ classdef genericPIcontroller < linearcontroller
           printAxisStatus@linearcontroller(obj); %call the superclass
 
           minPos = obj.hC.qTMN('1'); 
-          minPos = obj.attachedStage.transformOutputDistance(minPos);
-
           maxPos = obj.hC.qTMX('1'); 
-          maxPos = obj.attachedStage.transformOutputDistance(maxPos);
-          fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
+          fprintf('Controller raw minPos = %0.2f mm ; Controller raw maxPos = %0.2f mm\n', ... 
                 minPos, maxPos)
+
+          minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+          maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+
+          fprintf('Controller converted minPos = %0.2f mm ; Controller converted maxPos = %0.2f mm\n', ... 
+                minPos, maxPos)
+
+
         end
 
 
