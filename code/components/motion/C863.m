@@ -73,6 +73,17 @@ classdef C863 < genericPIcontroller
             success=true;
         end %isControllerConnected
 
+        function success = referenceStage(obj)
+
+          if obj.isStageReferenced
+            fprintf('Stage already referenced\n')
+            success=true;
+            return
+          else
+            %Reference the stage
+            obj.hC.FRF('1')
+          end
+        end
     end %close 
 
 

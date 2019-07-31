@@ -26,6 +26,7 @@ function settings = readSIBTSettings
     end
 
     % Now read the settings file
+    fprintf('Reading SIBT settings from %s\n', settingsFile)
     settings = BakingTray.yaml.ReadYaml(settingsFile);
 
 

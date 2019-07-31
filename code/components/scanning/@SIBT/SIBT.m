@@ -18,8 +18,8 @@ classdef SIBT < scanner
 
     properties
         % If true you get debug messages printed during scanning and when listener callbacks are hit
-        verbose=false;
-        settings=readSIBTsettings;
+        verbose=false
+        settings
         leaveResonantScannerOnWhenArmed = true
     end
 
@@ -44,6 +44,7 @@ classdef SIBT < scanner
                 API=[];
             end
             obj.connect(API);
+            obj.settings = readSIBTsettings;
             obj.scannerID='ScanImage via SIBT';
         end %constructor
 

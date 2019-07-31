@@ -34,7 +34,7 @@ classdef C891 < genericPIcontroller
 % See the doc text for the controllerID property in C891.m
 %
 %
-%
+
 
     properties
 
@@ -134,6 +134,7 @@ classdef C891 < genericPIcontroller
         % The following have been tested with the V508 stages
         function success = referenceStage(obj)
           if obj.isStageReferenced
+            fprintf('Stage already referenced\n')
             success=true;
             return
           else

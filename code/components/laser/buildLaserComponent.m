@@ -31,7 +31,6 @@ if ~ischar(componentName)
 end
 
 
-validComponents = {'dummyLaser','maitai'}; %The available laser components
 validComponentSuperClassName = 'laser'; %The name of the abstract class that all laser components must inherit
 
 
@@ -43,9 +42,8 @@ switch componentName
         COMPORT = BakingTray.settings.parseComPort(varargin{1});
         component = maitai(COMPORT);
     case 'chameleon'
-        fprintf(['%s - chameleon class exists but is not tested %s.\n', ...
-            'Please manually edit the code and proceed at your own risk, or file an issue on GitHub\n'], mfilename);
-        component=[];
+        COMPORT = BakingTray.settings.parseComPort(varargin{1});
+        component = chameleon(COMPORT);
         return
     otherwise
         fprintf('ERROR: unknown laser component "%s" SKIPPING BUILDING\n', componentName)

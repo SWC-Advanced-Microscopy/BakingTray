@@ -426,13 +426,13 @@ classdef genericPIcontroller < linearcontroller
 
         function success = referenceStage(obj)
           % This could be different between stages and controllers, so define in controller class for now
+          fprintf('\n** Stage referencing not implemented for this controller. **\n\n')
           success=true;
         end
 
 
         function isReferenced = isStageReferenced(obj)
-          % This could be different between stages and controllers, so define in controller class for now
-          isReferenced = true;
+          isReferenced=obj.hC.qFRF('1');
         end
 
         function printAxisStatus(obj)
