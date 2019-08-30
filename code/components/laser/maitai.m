@@ -124,8 +124,10 @@ classdef maitai < laser & loghandler
             end
         end
 
-        function powerOnState = isPoweredOn(obj)
-            if obj.readPumpPower>10
+        function [powerOnState,details] = isPoweredOn(obj)
+            pPower=obj.readPumpPower;
+            details=num2str(pPower);
+            if pPower>10
                 powerOnState=true;
             else
                 powerOnState=false;
@@ -321,6 +323,7 @@ classdef maitai < laser & loghandler
 
         % MaiTai specific
         function laserPower = readPumpPower(obj)
+            % Return pump power as a scalar
             [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');
             if ~success
                 laserPower=[];

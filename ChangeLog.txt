@@ -6,14 +6,24 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+26th June 2019
+- USER: a bunch of bug fixes. Some fairly significant
+
+10th June 2019
+- USER: BakingTray is now compatible with ScanImage 5.6
+
+
 7th June 2019
 - USER: BakingTray can now often recover modelock failures of the laser
- 
+- USER: Confirmation dialog prior to Bake 
+- USER: Checks that the correct PMTs are enabled before Bake
+
 
 21st March 2019
 - Tweaks to acquisition time estimate
 - USER: Y stage moves to zero at the end of acquisition and before "sliceOnce"
 - USER: Y cut pos edit box always disabled
+
 
 4th March 2019
 - USER: Improved acquisition time estimates (includes taking into account averaging)
@@ -25,6 +35,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 14th February 2019
 - USER: default front/left is now fully implemented
 - USER: dev branch allows averaging in z-stacks with suitable ScanImage release
+
 
 17th January 2019
 - USER: scan zoom factor automatically set in ScanImage. But can still be over-ridden afterwards if needed. 
@@ -66,6 +77,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - Bug fixes to box drawing routine. 
 - Add a (currently hidden) option to kick the section off the block in the event of it sticking
 - Bugfixes to the dummy classes so the system runs without hardware. 
+
 
 15th June 2018
 - No longer need to move sample away from the blade before starting the setup cuts

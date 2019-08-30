@@ -260,9 +260,11 @@ function bake(obj,varargin)
                 pause(3)
                 [isReady,msg]=obj.laser.isReady;
             end
-            if ~obj.laser.isPoweredOn
-                obj.acqLogWriteLine('LASER TURNED OFF: Trying to turn on laser\n');
-                obj.slack('BrainSaw laser turned off. Trying to turn it on again');
+            if ~isReady
+                msg = sprintf('LASER NOT RUNNING (Section %s): %s\n', obj.currentSectionNumber, msg);
+                obj.acqLogWriteLine(msg);
+                msg = sprintf('%s\nBrainSaw trying to recover it.\n',msg)
+                obj.slack(msg);
                 obj.laser.turnOn
                 pause(3)
                 obj.laser.openShutter
