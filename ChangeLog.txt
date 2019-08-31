@@ -6,6 +6,11 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+
+30 August 2019
+- DEVELOPER: Update dummy mode so it works again
+
+
 26th June 2019
 - USER: a bunch of bug fixes. Some fairly significant
 

@@ -29,6 +29,9 @@ classdef dummyScanner < scanner
         imageStackVoxelSizeXY %voxel size of loaded stack in x/y
         imageStackVoxelSizeZ %voxel size of loaded stack in z
         maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
+
+        numOpticalPlanes=1
+        averageEveryNframes=1;
     end
 
     methods
@@ -68,6 +71,9 @@ classdef dummyScanner < scanner
         end %armScanner
 
         function abortScanning(obj)
+        end
+
+        function showFastZCalib(~,~,~)
         end
 
         function success = acquireTile(obj,~)
@@ -137,6 +143,7 @@ classdef dummyScanner < scanner
         end %isAcquiring
 
         function OUT = returnScanSettings(obj)
+            %TODO - these settings can't be changed by interacting the GUI
             OUT.pixelsPerLine=512;
             OUT.linesPerFrame=512;
             OUT.micronsBetweenOpticalPlanes=10;
@@ -155,6 +162,11 @@ classdef dummyScanner < scanner
             OUT.beamPower= 10; %percent
             OUT.scannerType='simulated';
             OUT.scannerID=obj.scannerID;
+            OUT.slowMult = 1;
+            OUT.fastMult = 1;
+            OUT.zoomFactor =1;
+            OUT.numOpticalSlices=obj.numOpticalPlanes;
+            OUT.averageEveryNframes=obj.averageEveryNframes;
         end
 
         function pauseAcquisition(obj)
@@ -182,7 +194,7 @@ classdef dummyScanner < scanner
             scannerType = 'linear';
         end %scannerType
 
-        function setImageSize(~,~)
+        function setImageSize(obj,~,~)
         end
 
         function pixPerLine = getPixelsPerLine(obj)
@@ -209,10 +221,11 @@ classdef dummyScanner < scanner
         end
 
         function nFrames = getNumAverageFrames(~);
-            nFrames=1;
+            nFrames=obj.averageEveryNframes;
         end
 
         function setNumAverageFrames(~,~)
+            fprintf('** dummyScanner.setNumAverageFrames does nothing\n')
         end
         
         %---------------------------------------------------------------
@@ -224,13 +237,57 @@ classdef dummyScanner < scanner
             obj.imageStackVoxelSizeZ = voxelSize(2);
 
             %set the recipe to match the data
-            obj.parent.recipe.mosaic.numOpticalPlanes=1;
+            obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
 
         end
 
-        function readFrameSizeSettings
-            %TODO: will ultimately cause problems because it does nothing, but it's unlikely this will be an issue in practice
+        function readFrameSizeSettings(obj)
+            % Right now we just copy this from SIBT (31/08/2019 -- Rob Campbella)
+            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
+            if exist(frameSizeFname, 'file')
+                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
+                tFields = fields(tYML);
+                popUpText={};
+                for ii=1:length(tFields)
+                    tSet = tYML.(tFields{ii});
+
+                    % The following is hard-coded in order to make it more likely an error will be
+                    % generated here rather than down the line
+                    obj.frameSizeSettings(ii).objective = tSet.objective;
+                    obj.frameSizeSettings(ii).pixelsPerLine = tSet.pixelsPerLine;
+                    obj.frameSizeSettings(ii).linesPerFrame = tSet.linesPerFrame;
+                    obj.frameSizeSettings(ii).zoomFactor = tSet.zoomFactor;
+                    obj.frameSizeSettings(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
+                    obj.frameSizeSettings(ii).fastMult = tSet.fastMult;
+                    obj.frameSizeSettings(ii).slowMult = tSet.slowMult;
+                    obj.frameSizeSettings(ii).objRes = tSet.objRes;
+
+                    %This is used by StitchIt to correct barrel or pincushion distortion
+                    if isfield(tSet,'lensDistort')
+                        obj.frameSizeSettings(ii).lensDistort = tSet.lensDistort;
+                    else
+                        obj.frameSizeSettings(ii).lensDistort = [];
+                    end
+                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
+                    if isfield(tSet,'affineMat')
+                        obj.frameSizeSettings(ii).affineMat = tSet.affineMat;
+                    else
+                        obj.frameSizeSettings(ii).affineMat = [];
+                    end
+                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
+                    if isfield(tSet,'stitchingVoxelSize')
+                        obj.frameSizeSettings(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
+                    else
+                        thisStruct(ii).stitchingVoxelSize = [];
+                    end
+                end
+
+            else % Report no frameSize file found
+                fprintf('\n\n dummyScanner finds no frame size file found at %s\n\n', frameSizeFname)
+                obj.frameSizeSettings=struct;
+            end
         end
+
 
     end %close methods
 

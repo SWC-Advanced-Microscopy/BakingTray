@@ -119,9 +119,10 @@ classdef view < handle
 
             %If the user runs ScanImage, prompt to connect to ScanImage
             %TODO: these menu items should react to whether or not the scanner is connected
-            settings=BakingTray.settings.readComponentSettings;
-            if strcmp(settings.scanner.type,'SIBT')
+            if isa(obj.model.scanner,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
+            else
+                fprintf('BakingTray is configured to run without ScanImage\n')
             end
 
 
@@ -752,7 +753,7 @@ classdef view < handle
                 if scannerID ~= false
                     %If the user is to run ScanImage, prompt them to start it
                     scnSet = obj.model.scanner.returnScanSettings;
-                else 
+                else
                     settings=BakingTray.settings.readComponentSettings;
                     if strcmp(settings.scanner.type,'SIBT')
                         scannerID='START SCANIMAGE AND CONNECT IT';

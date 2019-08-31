@@ -121,11 +121,11 @@ classdef BT < loghandler
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
             %if none were provided. The most likely reason for providing a different file
-            %is to set up dummy components.
+            %is to set up dummy components. See optional input arguments of BakingTray.m
             obj.componentSettings=params.Results.componentSettings;
 
             if isempty(obj.componentSettings)
-                fprintf('BT is reading default component settings\n')
+                fprintf('BT.BT is reading default component settings with BakingTray.settings.readComponentSettings\n')
                 obj.componentSettings=BakingTray.settings.readComponentSettings;
             end
 
@@ -165,6 +165,7 @@ classdef BT < loghandler
             end
 
             %Attach the default recipe
+            fprintf('BT.BT is loading default recipe\n')
             obj.attachRecipe;
 
             % Read the stage positions so they are stored in the stage objects. This ensures that any 

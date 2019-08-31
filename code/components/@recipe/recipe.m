@@ -303,7 +303,7 @@ classdef recipe < handle
                     if obj.ScannerSettings.numOpticalSlices == 1
                         obj.VoxelSize.Z = obj.mosaic.sliceThickness * 1E3;
                     elseif obj.ScannerSettings.numOpticalSlices > 1
-                        obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;                        
+                        obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
                     end
                 end
 
