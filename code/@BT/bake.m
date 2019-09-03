@@ -261,9 +261,9 @@ function bake(obj,varargin)
                 [isReady,msg]=obj.laser.isReady;
             end
             if ~isReady
-                msg = sprintf('LASER NOT RUNNING (Section %s): %s\n', obj.currentSectionNumber, msg);
+                msg = sprintf('LASER NOT RUNNING (Section %d): %s\n', obj.currentSectionNumber, msg);
                 obj.acqLogWriteLine(msg);
-                msg = sprintf('%s\nBrainSaw trying to recover it.\n',msg)
+                msg = sprintf('%s\nBrainSaw trying to recover it.\n',msg);
                 obj.slack(msg);
                 obj.laser.turnOn
                 pause(3)
@@ -329,7 +329,7 @@ function bake(obj,varargin)
 
         elapsedTimeInSeconds=(now-startAcq)*24*60^2;
         obj.acqLogWriteLine(sprintf('%s -- FINISHED section number %d, section completed in %s\n',...
-            currentTimeStr() ,obj.currentSectionNumber, prettyTime(elapsedTimeInSeconds) ));
+            currentTimeStr(), obj.currentSectionNumber, prettyTime(elapsedTimeInSeconds) ));
 
         obj.sectionCompletionTimes(end+1)=elapsedTimeInSeconds;
 
@@ -388,7 +388,7 @@ function bakeCleanupFun(obj)
         % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
-            obj.slack(sprintf('Acquisition of %s finished on BrainSaw after %d sections.', ...
+            obj.slack(sprintf('Acquisition of %s finished after %d sections.', ...
                 obj.recipe.sample.ID, obj.currentSectionNumber))
         else
             fprintf('Not sending Slack message because only %d sections completed, which less than threshold of %d\n',...

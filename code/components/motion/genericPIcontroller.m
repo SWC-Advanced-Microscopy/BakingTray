@@ -50,6 +50,7 @@ classdef genericPIcontroller < linearcontroller
               logObject=[];
             end
 
+            obj.maxStages=1;
             if ~isempty(stageObject)
               obj.attachLinearStage(stageObject);
             end
@@ -71,7 +72,7 @@ classdef genericPIcontroller < linearcontroller
         function success = connect(obj,connectionDetails)
 
           if ~isstruct(connectionDetails)
-            success=false;
+            success = false;
             return
           end
 
@@ -84,13 +85,13 @@ classdef genericPIcontroller < linearcontroller
           % Ensure the controller we are connecting is one that is supported. More controllers likely will work, but 
           % to keep safe we hard code the names of the tested ones here and report if it's not one of them.
           % Names must be in the form returned by obj.hC.qIDN (see obj.isControllerConnected)
-          knownWorkingControllers = {'C-891', 'C-663'}; 
+          knownWorkingControllers = {'C-891', 'C-863', 'C-663'}; 
           switch connectionDetails.controllerModel
             case knownWorkingControllers
               % pass
             otherwise
               % We haven't tested this controller or there is a typo
-              fprintf('Controller %s is untested. Proceed with caution!', connectionDetails.controllerModel)
+              fprintf('Controller %s is untested. Proceed with caution!\n', connectionDetails.controllerModel)
           end
 
 
@@ -104,7 +105,7 @@ classdef genericPIcontroller < linearcontroller
                 fprintf('Attempting to connect to %s with serial number %s\n', connectionDetails.controllerModel, connectionDetails.ID);
                 obj.hC = PI_Controller.ConnectUSB(connectionDetails.ID);
               case 'rs232'
-                fprintf('Attempting RS232 connection on port %s with baud rate %d\n',connectionDetails.COM, connectionDetails.baudrate);
+                fprintf('Attempting RS232 connection on port %d with baud rate %d\n',connectionDetails.COM, connectionDetails.baudrate);
                 obj.hC = PI_Controller.ConnectRS232(connectionDetails.COM, connectionDetails.baudrate);
               case 'tcpip'
                 fprintf('Attempting TCP/IP connection on ip %s port %s\n',connectionDetails.ip, connectionDetails.port);
@@ -120,7 +121,7 @@ classdef genericPIcontroller < linearcontroller
             catch
               fprintf('\n\n *** Failed to establish connection to PI %s controller.\n', connectionDetails.controllerModel)
               fprintf(' *** Cycle the power on the unit and try again.  \n\n')
-              success=false;
+              success = false;
               rethrow(lasterror)
           end
 
@@ -128,40 +129,49 @@ classdef genericPIcontroller < linearcontroller
           connected = obj.isControllerConnected;
           if ~connected
             fprintf('Failed to connect to controller\n')
-            success=false;
+            success = false;
             return
           end
 
           %Check that an axis is connected
           if isempty(obj.hC.qSAI_ALL)
             fprintf('No stages found on %s controller. FAILED TO CONNECT.\n',  obj.controllerID.controllerModel)
-            success=false;
+            success = false;
             return
           end
-
 
           %Enable the stage
           enabled = obj.enableAxis;
           if ~enabled
             fprintf('Failed to enable axis on %s\n', obj.controllerID.controllerModel)
-            success=false;
+            success = false;
             return
           end
+          success=true;
 
+          % The PI code turns on a load of warnings. So we turn them off here
+          warning off 
         end %connect
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = isControllerConnected(obj)
-            success=false;
+            success = false;
             if isempty(obj.hC)
+              fprintf('The controller property "hC" is empty.\n')
               obj.logMessage(inputname(1),dbstack,7,'No attempt to connect to the controller has been made')
               return
             end
 
             try 
               reply=obj.hC.qIDN; %Contains a string bearing the name of the controller (e.g. C-891)
-              if ~isempty(strfind(reply, obj.controllerID.controllerModel))
+              if isempty(reply)
+                  fprintf('No reply from PI controller with qIDN command\n')
+              elseif ~isempty(strfind(reply, obj.controllerID.controllerModel))
                 success=true;
+              else
+                  fprintf('You asked to connect to a %s controller but it returned:\n%s\n',...
+                      obj.controllerID.controllerModel, reply)
+                  fprintf('You may need make a new class for this controller\n')
               end
             catch
               obj.logMessage(inputname(1),dbstack,7,'Failed to communicate with %s controller', obj.controllerID.controllerModel)
@@ -189,7 +199,7 @@ classdef genericPIcontroller < linearcontroller
               return
             end
             pos = obj.hC.qPOS('1');
-            pos = obj.attachedStage.transformDistance(pos);
+            pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -216,14 +226,14 @@ classdef genericPIcontroller < linearcontroller
           %Check that it's OK to move here
             willMoveTo = distanceToMove+obj.axisPosition;
             if ~obj.isMoveInBounds(willMoveTo)
-              success=false;
+              success = false;
               return
             end
           % </redundant>
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-            distanceToMove=obj.attachedStage.transformDistance(distanceToMove);
-            success=obj.hC.MVR('1',distanceToMove);
+            distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
+            obj.hC.MVR('1',distanceToMove);
 
         end %relativeMove
 
@@ -237,12 +247,13 @@ classdef genericPIcontroller < linearcontroller
             end
 
             if ~obj.isMoveInBounds(targetPosition)
-              success=false;
+              success = false;
               return
             end
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-            success=obj.hC.MOV('1',obj.attachedStage.transformDistance(targetPosition));
+            targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+            obj.hC.MOV('1',targetPosition);
         end %absoluteMove
 
 
@@ -266,7 +277,7 @@ classdef genericPIcontroller < linearcontroller
           %The units of the C-891 are fixed at mm and can't be queried %TODO -- is this the case for all PI controllers?
             if ~strcmp(controllerUnits,'mm')
               obj.logMessage(inputname(1),dbstack,6,'C-891 units work only in mm') % TODO!
-              success=false;
+              success = false;
             end
             success=true;
         end %setPositionUnits
@@ -278,7 +289,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(minPos)
               minPos = obj.hC.qTMN('1'); 
-              minPos = obj.attachedStage.transformDistance(minPos);
+              minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
             end
         end
 
@@ -287,7 +298,7 @@ classdef genericPIcontroller < linearcontroller
 
             if isempty(maxPos)
               maxPos = obj.hC.qTMX('1'); 
-              maxPos = obj.attachedStage.transformDistance(maxPos);
+              maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
             end
         end
 
@@ -305,12 +316,14 @@ classdef genericPIcontroller < linearcontroller
 
         function success = setMaxVelocity(obj, velocity)
             ready=obj.isAxisReady;
-            success=false;
+            success = false;
+
             if ~ready || ~isnumeric(velocity)
               return
             end
 
-            success=obj.hC.VEL('1',velocity);
+            obj.hC.VEL('1',velocity);
+            success = obj.getMaxVelocity==velocity;
         end
 
         function velocity = getInitialVelocity(obj)
@@ -319,7 +332,7 @@ classdef genericPIcontroller < linearcontroller
 
         function success = setInitialVelocity(obj, velocity)
           %This can't be set
-            success=false;
+          success = false;
         end
 
         function accel = getAcceleration(obj)
@@ -337,34 +350,33 @@ classdef genericPIcontroller < linearcontroller
               return
             end
             if ~isnumeric(acceleration)
-              success=false;
+              success = false;
               return
             end
-            success=obj.hC.ACC('1',acceleration);
+            obj.hC.ACC('1',acceleration);
+            success = obj.getAcceleration==acceleration;
         end
 
 
         function success=enableAxis(obj)
             success=obj.isAxisReady;
             if ~success
+              fprintf('Unable to enable axis. It is reported as not being ready\n')
               return
             end
 
-            EAX = obj.hC.EAX('1',1); %enable the axis
-            SVO = obj.hC.SVO('1',1); %enable the servo
-            success = EAX * SVO;
-
-            if ~success
-              msg = sprintf('Failed to communicate with the %s controller to enable axis', obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,5,msg)
-              return
+            if strcmp(obj.controllerID.controllerModel, 'C-891')
+              obj.hC.EAX('1',1); %enable the axis
             end
+    
+            obj.hC.SVO('1',1); %enable the servo
+
 
             %Check the enable state
-            if obj.hC.qEAX('1')==0
+            if strcmp(obj.controllerID.controllerModel, 'C-891') && obj.hC.qEAX('1')==0
               msg = sprintf('%s motor enable state remains off', obj.controllerID.controllerModel);
               obj.logMessage(inputname(1),dbstack,5,msg)
-              success=false;
+              success = false;
               return
             end
 
@@ -372,7 +384,7 @@ classdef genericPIcontroller < linearcontroller
             if obj.hC.qSVO('1')==0
               msg = sprintf('%s servo state remains off', obj.controllerID.controllerModel);
               obj.logMessage(inputname(1),dbstack,5,msg)
-              success=false;
+              success = false;
               return
             end
 
@@ -382,24 +394,22 @@ classdef genericPIcontroller < linearcontroller
         function success=disableAxis(obj)
             success=obj.isAxisReady;
             if ~success
+              fprintf('Unable to disable axis. It is reported as not being ready\n')
               return
             end
 
-            SVO = obj.hC.SVO('1',0); %disable the servo
-            EAX = obj.hC.EAX('1',0); %disable the axis
-            success = EAX * SVO;
+            obj.hC.SVO('1',0); %disable the servo
 
-            if ~success
-              msg = sprintf('Failed to communicate with the %s controller to disable axis', obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,5,msg)
-              return
+            if strcmp(obj.controllerID.controllerModel, 'C-891')
+              obj.hC.EAX('1',0); %disable the axis
             end
+
 
             %Check the enable state
-            if obj.hC.qEAX('1')==1
+            if strcmp(obj.controllerID.controllerModel, 'C-891') && obj.hC.qEAX('1')==1
               msg = sprintf('%s motor enable state remains on', obj.controllerID.controllerModel);
               obj.logMessage(inputname(1),dbstack,5,msg)
-              success=false;
+              success = false;
               return
             end
 
@@ -407,39 +417,39 @@ classdef genericPIcontroller < linearcontroller
             if obj.hC.qSVO('1')==1
               msg = sprintf('%s servo state remains on', obj.controllerID.controllerModel);
               obj.logMessage(inputname(1),dbstack,5,msg)
-              success=false;
+              success = false;
               return
             end
 
         end %disableAxis
 
-        function success = referenceStage(obj)
-          if obj.isStageReferenced
-            success=true;
-            return
-          else
-            %Disable servo and reference the stage
-            obj.hC.SVO('1',false);
-            obj.hC.FRF('1')
-            obj.hC.SVO('1',true);
-          end
 
+        function success = referenceStage(obj)
+          % This could be different between stages and controllers, so define in controller class for now
+          fprintf('\n** Stage referencing not implemented for this controller. **\n\n')
+          success=true;
         end
 
+
         function isReferenced = isStageReferenced(obj)
-          isReferenced = obj.hC.qFRF('1');
+          isReferenced=obj.hC.qFRF('1');
         end
 
         function printAxisStatus(obj)
           printAxisStatus@linearcontroller(obj); %call the superclass
 
           minPos = obj.hC.qTMN('1'); 
-          minPos = obj.attachedStage.transformDistance(minPos);
-
           maxPos = obj.hC.qTMX('1'); 
-          maxPos = obj.attachedStage.transformDistance(maxPos);
-          fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
+          fprintf('Controller raw minPos = %0.2f mm ; Controller raw maxPos = %0.2f mm\n', ... 
                 minPos, maxPos)
+
+          minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+          maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
+
+          fprintf('Controller converted minPos = %0.2f mm ; Controller converted maxPos = %0.2f mm\n', ... 
+                minPos, maxPos)
+
+
         end
 
 

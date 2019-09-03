@@ -11,7 +11,7 @@ function settings=default_BT_Settings
     % settings.SLACK.hook=[]; % This is the hook for sending messages
     %
     % settings.SLICER.approachSpeed=25.0; %Speed with which the blade approaches the agar block
-    % settings.SLICER.vibrateRate=60.0;   %Cutter vibration rate
+    % settings.SLICER.vibrateRate=10.0;   %Cutter vibration rate
     % settings.SLICER.postCutDelay=6.0;   %How long to wait after cutting for the slice to settle
     % settings.SLICER.postCutVibrate=3.0; %How fast to vibrate during the wait period
 
@@ -26,7 +26,7 @@ function settings=default_BT_Settings
     settings.SLACK.hook=[];
 
     settings.SLICER.approachSpeed=25.0;
-    settings.SLICER.vibrateRate=60.0;
+    settings.SLICER.vibrateRate=10.0;
     settings.SLICER.postCutDelay=6.0;
     settings.SLICER.postCutVibrate=3.0;
 

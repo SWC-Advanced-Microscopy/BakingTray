@@ -79,29 +79,47 @@ function takeRapidPreview(obj)
         disp('FAILED TO START -- COULD NOT ARM SCANNER')
     else
         %This initiates the tile scan
-        obj.runTileScan;
+        try
+            obj.runTileScan;
+        catch ME
+             obj.scanner.abortScanning;
+             %obj.scanner.disarmScanner;
+             %obj.acquisitionInProgress=false;
+             tidyUpAfterPreview
+             disp(' RAPID PREVIEW FAILED ')
+           	 rethrow(ME)
+        end
     end
 
 
-    %Tidy up
-    obj.scanner.disarmScanner;
-    obj.acquisitionInProgress=false;
+    
 
-    obj.scanner.setImageSize(scanPixPerLine); % Return to original image size
+    
+    tidyUpAfterPreview
 
-    if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
-        obj.scanner.hC.hScan2D.pixelBinFactor = binFactor;
-        obj.scanner.hC.hScan2D.sampleRate = sampleRate;
+    
+    % Nested functions follow
+    function tidyUpAfterPreview
+        %Tidy up: put all settings back to what they were
+        disp('TIDYING')
+        obj.scanner.disarmScanner;
+        obj.acquisitionInProgress=false;
+
+        obj.scanner.setImageSize(scanPixPerLine); % Return to original image size
+
+        if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
+            obj.scanner.hC.hScan2D.pixelBinFactor = binFactor;
+            obj.scanner.hC.hScan2D.sampleRate = sampleRate;
+        end
+
+        obj.recipe.mosaic.numOpticalPlanes = numZ;
+        obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
+        obj.recipe.sample.ID=ID;
+
+        obj.scanner.setNumAverageFrames(frameAve);
+
+        obj.lastTilePos.X=0;
+        obj.lastTilePos.Y=0;
     end
-
-    obj.recipe.mosaic.numOpticalPlanes = numZ;
-    obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
-    obj.recipe.sample.ID=ID;
-
-    obj.scanner.setNumAverageFrames(frameAve);
-
-    obj.lastTilePos.X=0;
-    obj.lastTilePos.Y=0;
-
 
 end 

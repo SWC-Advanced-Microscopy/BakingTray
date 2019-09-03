@@ -1,5 +1,5 @@
 function setImageSize(obj,pixelsPerLine,evnt)
-    % Set image size
+    % Set image size or apply frame size setting
     %
     % Purpose
     % Change the number of pixels per line and ensure that the number of lines per frame changes 
@@ -25,6 +25,16 @@ function setImageSize(obj,pixelsPerLine,evnt)
     %                 objRes: 59.5500
     %
     % This information is then used to apply the scan settings. 
+    % See BakingTray.gui.view.applyScanSettings callback for more info
+
+    % Assign some defaults that we will re-assign if the folling if statement is true
+    pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
+    fastMult = [];
+    slowMult = [];
+    objRes = [];
+    zoomFact =[];
+    pixBin = [];
+    sampRate = [];
 
     if isa(pixelsPerLine,'matlab.ui.control.UIControl') % Will be true if we're using a pop-up menu to set the image size
         if ~isprop(pixelsPerLine,'UserData')
@@ -48,13 +58,11 @@ function setImageSize(obj,pixelsPerLine,evnt)
         slowMult = settings.slowMult;
         zoomFact = settings.zoomFactor;
         objRes = settings.objRes;
+        if strcmp('linear',obj.scannerType)
+            pixBin = settings.pixBin;
+            sampRate = settings.sampRate;
+        end
 
-    else
-        pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
-        fastMult = [];
-        slowMult = [];
-        objRes = [];
-        zoomFact =[];
     end
 
     %Let's record the image size
@@ -100,6 +108,14 @@ function setImageSize(obj,pixelsPerLine,evnt)
     
     if ~isempty(zoomFact)
         obj.hC.hRoiManager.scanZoomFactor = zoomFact;
+    end
+
+    if ~isempty(pixBin)
+        obj.hC.hScan2D.pixelBinFactor = pixBin;
+    end
+
+    if ~isempty(sampRate)
+        obj.hC.hScan2D.sampleRate = sampRate;
     end
 
     % Issue a warning if the FOV of the image has changed after changing the number of pixels. 

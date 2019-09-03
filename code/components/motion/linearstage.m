@@ -29,41 +29,36 @@ classdef (Abstract) linearstage < handle
 
     properties
 
-      axisID
-         % This is a very important property: it is the property used by the hardware controller
-         % (i.e. the class that inherits linearcontroller) to identify the stage axis and send 
-         % commands to it. Thus, the value of axisID must be compatible with the controller and 
-         % you should expect it it to be sent to the controller unmodified. With controllers that 
-         % can have only one stage attaged, e.g. a C891 with a PI V-551 stage, the axisID property
-         % is defined in the V551 class. In that case it will always be the string '1', because 
-         % this is what the C-891 controller expects. In cases where there are multiple axes per 
-         % controller, you should define the axisID property for each manually when you build the
-         % objects. see buildConnectedControllers.m
-
-       transformDistance = @(x) x
-         % LEGACY - GET RID OF THIS AND REPLACE WITH FOLLOWING TWO
-         % This anonymous function can be used to transform the distance input. By default,
-         % the method does nothing (as above). However, it can be used to do things like
-         % invert axis: @(x) -1*x 
-         % For example of use see BSC201_APT
-
-
-        transformInputDistance = @(x) x
-         % This anonymous function can be used to transform the distance input by the user. 
-         % By default, the method does nothing (as above). However, it can be used to do things 
-         % like invert axis: @(x) -1*x or transform an input distance in mm to a value in encoder
-         % ticks, if that's what the controller expects
-
-
-        transformOutputDistance = @(x) x
-         % This anonymous function can be used to transform the distance returned by the controller
-         % to the user. By default, the method does nothing (as above). However, it can be used to 
-         % do things like invert axis: @(x) -1*x or transform an input distance to mm from a value 
-         % in encoder ticks, if that's what the controller is returning
+        axisID
+        % This is a very important property: it is the property used by the hardware controller
+        % (i.e. the class that inherits linearcontroller) to identify the stage axis and send 
+        % commands to it. Thus, the value of axisID must be compatible with the controller and 
+        % you should expect it it to be sent to the controller unmodified. With controllers that 
+        % can have only one stage attaged, e.g. a C891 with a PI V-551 stage, the axisID property
+        % is defined in the V551 class. In that case it will always be the string '1', because 
+        % this is what the C-891 controller expects. In cases where there are multiple axes per 
+        % controller, you should define the axisID property for each manually when you build the
+        % objects. see buildConnectedControllers.m
 
 
 
-       axisName
+        invertDistance = 1
+        % If -1, motion target positions are inverted. If 1 they are not inverted. 
+        % This is done to ensure that positive X motions are rightwards, positive Y motions are 
+        % away, and positive z-motions are upwards. 
+
+        positionOffset = 0
+        % This property may be changed to ensure that the mid-point of X and Y motions is 
+        % the middle of the stage. This isn't critical, but it's more intuitive for the user. 
+        % Also to ensure that the fully retracted Z axis is zero. 
+
+        controllerUnitsInMM = 1
+        % If the motion controller expects inputs in, say, number of stepper motor steps then 
+        % we need to convert this to mm. So if there are 10,000 steps in a mm this value will 
+        % be 1/10000. 
+
+
+        axisName
         % This string defines the name (role) of the axis within BakingTray. 
         % The BakingTray object expects it to be one of the following
         % strings: 
@@ -76,7 +71,7 @@ classdef (Abstract) linearstage < handle
         % 'slowZ' - slow objective focus (NOT SUPPORTED RIGHT NOW)
 
 
-        % The maximum and minimum allowable positions of the stage
+        % The maximum and minimum allowable positions of the stage in mm.
         % If missing, then linearcontroller will attempt to fill these in
         % using linearcontroller.attachLinearStage. ** NOTE: you are responsible for
         % ensuring your hardware does not cause damage. **

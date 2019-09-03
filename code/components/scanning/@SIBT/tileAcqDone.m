@@ -3,7 +3,8 @@ function tileAcqDone(obj,~,~)
     % that performs the tile scanning. It is an "implicit" loop, since it is called 
     % repeatedly until all tiles have been acquired.
 
-    %Log the X and Y positions in the grid associated with the tile data from the last acquired position
+    %Log the X and Y positions in the grid associated with the tile data
+    %from the last acquired position
     if ~isempty(obj.parent.positionArray)
         obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
         obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
@@ -61,9 +62,22 @@ function tileAcqDone(obj,~,~)
                     fprintf('\t%s placing channel %d in scanner downSampledTileBuffer plane %d\n', ...
                         mfilename,lastStripe.roiData{1}.channels(ii), planeNum)
                 end
-                obj.parent.downSampledTileBuffer(:, :, planeNum, lastStripe.roiData{1}.channels(ii)) = ...
-                    int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileRotate),...
-                        [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
+
+                % TODO: fix this ugly mess
+                if obj.settings.tileAcq.tileFlipUD
+                    obj.parent.downSampledTileBuffer(:, :, planeNum, lastStripe.roiData{1}.channels(ii)) = ...
+                        int16(flipud( imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileAcq.tileRotate),...
+                            [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear') ));
+                elseif obj.settings.tileAcq.tileFlipLR
+                     obj.parent.downSampledTileBuffer(:, :, planeNum, lastStripe.roiData{1}.channels(ii)) = ...
+                        int16(fliplr( imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileAcq.tileRotate),...
+                            [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear') ));
+                else
+                     obj.parent.downSampledTileBuffer(:, :, planeNum, lastStripe.roiData{1}.channels(ii)) = ...
+                        int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileAcq.tileRotate),...
+                            [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
+                end
+
             end
 
             if obj.verbose
@@ -79,8 +93,8 @@ function tileAcqDone(obj,~,~)
 
 
     %Optionally reset tripped PMTs
-    if obj.settings.doResetTrippedPMT
-        obj.reseTrippedPMTs
+    if obj.settings.hardware.doResetTrippedPMT
+        obj.resetTrippedPMTs
     end
 
     % Increment the counter and make the new position the current one

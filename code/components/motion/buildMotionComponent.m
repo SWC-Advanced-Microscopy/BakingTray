@@ -63,12 +63,12 @@ controllerSuperClassName = 'linearcontroller'; %The name of the abstract class t
 
 
 
-%Build the correct object based on "controllertName"
+%Build the correct object based on "controllerName"
 component = [];
 switch controllerName
     case 'BSC201_APT'
         % Likely this will be used to control the Z-stage
-        stageComponents = build_BSC201_APT_stages(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
@@ -80,38 +80,32 @@ switch controllerName
         component.setAcceleration(1);
         component.setMaxVelocity(3);
 
-    case 'C891'
+    case {'C891', 'C663', 'C863'}
         % Likely this will be used to control an X or Y stage
-        stageComponents = buildSingleAxisGenericPIstage(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
 
-        component = C891(stageComponents);
-        
-        controllerID.interface='usb';
-        controllerID.controllerModel='C-891';
+        %TODO - likely all controllers can be done as below and we get rid of switch statement
+        component = eval([controllerName,'(stageComponents)']);
 
-        controllerID.ID=controllerParams.connectAt;
+        controllerID = controllerParams.connectAt;
+        controllerID.controllerModel=strrep(controllerName,'C','C-');
+
         component.connect(controllerID); %Connect to the controller
 
-     case 'C663'
-        % Likely this will be used to control an X or Y stage
-        stageComponents = buildSingleAxisGenericPIstage(stages);
+    case 'AMS_SIN11'
+        % Likely used to control Z stage
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
-
-        component = C663(stageComponents);
-
-        controllerID.interface='usb';
-        controllerID.controllerModel='C-663';
-
-        controllerID.ID=controllerParams.connectAt;
-        component.connect(controllerID); %Connect to the controller
+        component = AMS_SIN11(stageComponents);
+        component.connect(controllerParams.connectAt);
 
     case 'dummy_linearcontroller'
-        stageComponents = buildDummyStage(stages);
+        stageComponents = BUILD_GENERIC_STAGE(stages);
         component = dummy_linearcontroller(stageComponents);
 
     case 'analog_controller'
@@ -139,101 +133,41 @@ end
 
 
 %----------------------------------------------------------------------------------------------------
-function stageComponents = build_BSC201_APT_stages(stages)
+function stageComponents = BUILD_GENERIC_STAGE(stages)
+    % This function is used to create a stage component that can be attached to a linearController. 
+    % This generic function is designed to work with most stages. If you need something very 
+    % specific then you might need to write a new build sub-function for your particular device. 
+    % Hopefully, however, all customisation can be done within the stage and controller classes
+    % and in the componentSettings script. 
 
-    stageComponents=[];
     if size(stages,1)>1
-        fprintf('%s - The BSC201 can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
-        return
+        error('BUILD_GENERIC_STAGE can not yet handle multiple stages per controller')
     end
 
-    stageComponentName = stages{1,1};
+    stageComponents=[]; % In case function ends prematurely
+    stageComponentName = stages{1,1}; %Should be the name of a valid class in the path
     stageSettings = stages{1,2};
 
     if ~checkArgs(stageComponentName,stageSettings)
         return
     end
 
-    switch stageComponentName
-        case 'DRV014'
-            %The DRV014 will only be used as the Z stage so we can hard-code various things here
-            stageComponents=DRV014;
-            %Set the limit switches and homing direction so that the retracted position will
-            %be the zero position. This stuff is specific to this stage and controller and is
-            %the safest way to set it up since it means zero is with the stage lowered.
-            stageComponents.homingDir=1; 
-            stageComponents.limitSwitch=4;
+    stageComponents = eval(stageComponentName);
 
-            %Invert the positions, so that more positive numbers mean that the actuator is more extended.
-            stageComponents.transformDistance = @(x) -1*x; %to invert the position locations
-
-            %The velocity and offset for reaching the zero position. 
-            stageComponents.homeVel=1.5;
-            stageComponents.zeroOffset = 0.5;
-
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-            fprintf('%s - Unknown BSC201_APT stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
-    end
-
-
-
-function stageComponents = buildSingleAxisGenericPIstage(stages)
-    %Returns a structure of stage components for the PI C891
-
-    stageComponents=[];
-    if size(stages,1)>1
-        fprintf('%s - The C891 can only handle one stage. You defined %d stages\n',mfilename,size(stages,1))
-        return
-    end
-
-    stageComponentName = stages{1,1};
-    stageSettings = stages{1,2};
-
-    if ~checkArgs(stageComponentName,stageSettings)
-        return
-    end
-
-    switch stageComponentName
-        case 'genericPIstage'
-            stageComponents=genericPIstage;
-
-            %Optionally invert the stage coordinates
-            if stageSettings.invertAxis
-                stageComponents.stageComponents(ii).transformDistance = @(x) -1*x; 
-            end
-
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-           fprintf('%s - Unknown C891 stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
-    end
-
-
-
-function stageComponents = buildDummyStage(stages)
-    %Returns a structure of stage components for the dummy linear stage
-    stageComponentName = stages{1,1};
-    stageSettings = stages{1,2};
-
-    if ~checkArgs(stageComponentName,stageSettings)
-        return
-    end
-
-    switch stageComponentName
-        case 'dummy_linearstage'
-            stageComponents=dummy_linearstage;
-            %User settings
-            stageComponents.axisName=stageSettings.axisName;
-            stageComponents.minPos=stageSettings.minPos;
-            stageComponents.maxPos=stageSettings.maxPos;
-        otherwise
-           fprintf('%s - Unknown dummy_linearstage stage component: %s -- SKIPPING\n',mfilename,stageComponentName)
+    %User settings 
+    % TODO - deal with multiple stages
+    settingsFields = fields(stageSettings);
+    for ii=1:length(settingsFields)
+        tField = settingsFields{ii};
+        if ~isprop(stageComponents,tField)
+            fprintf('Stage %s has no property %s. Skipping this setting.\n', ...
+            stageComponentName,tField );
+            continue
+        end
+        if isempty(stageSettings.(tField))
+            continue
+        end
+        stageComponents.(tField) = stageSettings.(tField);
     end
 
 
@@ -252,10 +186,16 @@ function success = checkArgs(stageComponentName,stageSettings)
         return
     end
 
+    if ~exist(stageComponentName,'file')
+        fprintf('Can not find the stage component class %s in the MATLAB path\n', stageComponentName)
+        success=false;
+        return
+    end
+
     if ~isfield(stageSettings,'axisName') || ~isfield(stageSettings,'minPos') || ~isfield(stageSettings,'maxPos') 
         fprintf('%s - stageSettings of %s do not appear valid: \n',mfilename,stageComponentName)
         disp(stageSettings)
-        fprintf('Settings must have fields: axisName, minPos, and maxPos\n')
+        fprintf('Settings must at least have fields: axisName, minPos, and maxPos\n')
         fprintf('QUITTING\n')
         success=false;
         return
