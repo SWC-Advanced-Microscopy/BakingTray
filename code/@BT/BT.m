@@ -24,13 +24,14 @@ classdef BT < loghandler
         xAxis
         yAxis
         zAxis
-        buildFailed=true  % True if BT failed to build all components
+        buildFailed=true  % True if BT failed to build all components at startup
     end %close properties
 
 
     properties (Hidden)
         % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
+        logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
     end
 
     properties (SetAccess=immutable,Hidden)

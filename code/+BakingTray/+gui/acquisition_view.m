@@ -39,7 +39,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     end
 
     properties (SetObservable,Transient)
-        previewImageData=[]; %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
+        previewImageData=[]  %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
         previewTilePositions %This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
     end %close hidden transient observable properties
 
@@ -449,6 +449,17 @@ classdef acquisition_view < BakingTray.gui.child_view
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';
                 %obj.button_Pause.Enable='off';
+
+                %If we are acquiring data, save the current preview stack to disk
+                if exist(obj.model.logPreviewImageDataToDir,'dir') && obj.model.acquisitionInProgress
+                    tDate = datestr(now,'YYYY_MM_DD');
+                    fname=sprintf('%s_section_%d_%s.mat', ...
+                                    obj.model.recipe.sample.ID, ...
+                                    obj.model.currentSectionNumber, ...
+                                    tDate);
+                    save(fname,obj.previewImageData)
+                end
+
             else
                 obj.updateStatusText
                 %obj.updateBakeButtonState  % TODO: why is this here?
