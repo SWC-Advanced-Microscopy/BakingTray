@@ -238,9 +238,8 @@ classdef BSC201_APT < linearcontroller
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
         obj.hC.SetRelMoveDist(0,obj.attachedStage.invertDistance * distanceToMove);
-        obj.hC.MoveRelative(0,0); %TODO: is that right??? Why is this here?
+        obj.hC.MoveRelative(0,0);
         success=true;
-
       end %relativeMove
 
 
@@ -259,8 +258,8 @@ classdef BSC201_APT < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-        obj.hC.SetAbsMovePos(0,obj.attachedStage.invertDistance * targetPosition);
-        obj.hC.MoveAbsolute(0,0);%TODO: is that right??? Why is this here?
+        obj.hC.SetAbsMovePos(0, obj.attachedStage.invertDistance * targetPosition);
+        obj.hC.MoveAbsolute(0,0);
       end %absoluteMove
 
 
