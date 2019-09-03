@@ -378,11 +378,13 @@ classdef SIBT < scanner
 
 
         function pauseAcquisition(obj)
+            % see SIBT.tileAcqDone to understand how this works
             obj.acquisitionPaused=true;
         end %pauseAcquisition
 
 
         function resumeAcquisition(obj)
+            % see SIBT.tileAcqDone to understand how this works
             obj.acquisitionPaused=false;
         end %resumeAcquisition
 

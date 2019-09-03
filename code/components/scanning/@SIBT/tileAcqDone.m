@@ -118,8 +118,15 @@ function tileAcqDone(obj,~,~)
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
 
-    % Initiate the next position
+    % Initiate the next position so long as we aren't paused
+    nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled
     while obj.acquisitionPaused
+        nPauses = nPauses+1;
+        if nPauses>100
+            nPauses=0;
+            [isReady,msg]=obj.parent.laser.isReady;
+            continue
+        end
         pause(0.25)
     end
 
