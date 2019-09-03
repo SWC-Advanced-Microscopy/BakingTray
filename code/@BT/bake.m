@@ -374,6 +374,7 @@ function bakeCleanupFun(obj)
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
     obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
     obj.scanner.disarmScanner;
+    obj.scanner.averageSavedFrames=true; % Just in case a testing session was done before
     obj.acquisitionInProgress=false;
     obj.sectionCompletionTimes=[]; %clear the array of completion times. 
 
