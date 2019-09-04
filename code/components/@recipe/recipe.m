@@ -152,14 +152,11 @@ classdef recipe < handle
         % These properties are populated by structures that can be set by the user only by editing 
         % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
         SYSTEM
+        SLICER
         SLACK
     end %close protected properties
 
     properties (Hidden)
-        % These properties are populated by structures that are set by the user editting the 
-        % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
-        SLICER
-
         % The acquisition property is set by other functions and isn't important to the user, so we hide it
         % NOTE: hidden properties we want to write to the recipe YAML need to be listed explicitly in 
         % recipe.writeFullRecipeForAcquisition
