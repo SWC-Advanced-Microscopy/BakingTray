@@ -22,7 +22,8 @@ classdef FaulhaberMCDC < cutter & loghandler
         %controllerID should be a cell array of strings that can be fed to the serial port command. 
         %e.g. controllerID = {'COM1','BaudRate',4800};
 
-        motorMaxSpeed = 20; %max motor speed in cycles per second
+        motorMaxSpeed = 60; %max motor speed in cycles per second. NOTE: we later normalise by this 
+                            %number os it's a bad idea to change it. 
         maxControlValue=30000; %TODO: find the max control value. e.g. when motor 
                                 %commanded to this setting it should produdce motorMaxSpeed cycles/sec
     end %close public properties
