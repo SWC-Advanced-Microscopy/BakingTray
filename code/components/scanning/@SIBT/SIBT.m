@@ -414,9 +414,9 @@ classdef SIBT < scanner
             % Since SI 5.6, scanner type "resonant" is returned as "rg"
             % This method returns either "resonant" or "linear"
             scannerType = lower(obj.hC.hScan2D.scannerType);
-            if strcmpi('RG',scannerType)
+            if strcmpi('RG',scannerType) || strcmpi('resonant',scannerType) 
                 scannerType = 'resonant';
-            elseif strcmpi('GG')
+            elseif strcmpi('GG',scannerType)
                 scannerType='linear';
             end 
         end %scannerType
