@@ -7,6 +7,14 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+4rd September 2019
+- DEVELOPER: dummyScanner displays current tile to screen. 
+- USER: Bugfix to slicing speed. 
+
+
+3rd September 2019
+- USER: MaiTai laser does not automatically turn off if system has been paused for long periods.
+
 
 30 August 2019
 - DEVELOPER: Update dummy mode so it works again
