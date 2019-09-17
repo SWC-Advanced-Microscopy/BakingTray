@@ -30,8 +30,13 @@ classdef dummyScanner < scanner
         imageStackVoxelSizeZ %voxel size of loaded stack in z
         maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
 
+        currentPhysicalSection=1
+        currentOpticalPlane=1
+
         numOpticalPlanes=1
         averageEveryNframes=1;
+
+        hCurrentImFig
     end
 
     methods
@@ -46,6 +51,7 @@ classdef dummyScanner < scanner
         %destructor
         function delete(obj)
             obj.hC=[];
+            obj.delete(obj.hCurrentImFig)
         end %destructor
 
 
@@ -74,63 +80,12 @@ classdef dummyScanner < scanner
         end
 
         function showFastZCalib(~,~,~)
+            % SIBT does this and so we also do here
         end
-
-        function success = acquireTile(obj,~)
-            % ===========>   TODO: this is currently broken   <==============
-            %If image stack data have been added, then we can fake acquisition of an image. Otherwise skip.
-            if isempty(obj.imageStackData)
-                success=true;
-                return
-            end
-
-            thisSection = obj.imageStackData(:,:,obj.currentDepth);
-            if isempty(thisSection)
-                fprintf('No data attached. Skipping image generation\n')
-                return
-            end
-            XYpos=obj.parent.getXYpos;
-            xPosInMicrons = abs(XYpos(1))*1E3 ; %ABS HACK TODO
-            yPosInMicrons = abs(XYpos(2))*1E3 ; %ABS HACK TODO
-
-            %tile step size
-            xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
-            yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
-
-
-            %position in slice is
-            xRange = ceil([xPosInMicrons,xPosInMicrons+xStepInMicrons]/obj.imageStackVoxelSizeXY);
-            yRange = ceil([yPosInMicrons,yPosInMicrons+yStepInMicrons]/obj.imageStackVoxelSizeXY);
-            if xRange(1)==0
-                xRange=xRange+1;
-            end
-            if yRange(1)==0
-                yRange=yRange+1;
-            end
-
-            tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
-            obj.lastAcquiredTile=tile;
-            if obj.displayAcquiredImagesdis
-                clf
-                imagesc(tile)
-                set(gca,'Clim',[0,6.8E3])
-                axis equal off
-                colormap gray
-                set(gcf,'color','k')
-                drawnow
-                pause(0.1)
-            end
-            success=true;
-
-            if obj.writeData
-                %SAVE
-            end
-        end % acquireTile
-
 
         function setUpTileSaving(~)
         end
-        
+
         function disableTileSaving(~)
         end
 
@@ -217,6 +172,10 @@ classdef dummyScanner < scanner
             sr=[];
         end
 
+        function applyZstackSettingsFromRecipe(obj,~,~)
+            obj.numOpticalPlanes=obj.parent.recipe.mosaic.numOpticalPlanes;
+        end
+
         function applyScanSettings(~,~)
         end
 
@@ -226,19 +185,6 @@ classdef dummyScanner < scanner
 
         function setNumAverageFrames(~,~)
             fprintf('** dummyScanner.setNumAverageFrames does nothing\n')
-        end
-        
-        %---------------------------------------------------------------
-        % The following methods are specific to the dummy_scanner class. They allow the scanner
-        % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
-        function attachExistingData(obj,imageStack,voxelSize)
-            obj.imageStackData=imageStack;
-            obj.imageStackVoxelSizeXY = voxelSize(1);
-            obj.imageStackVoxelSizeZ = voxelSize(2);
-
-            %set the recipe to match the data
-            obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
-
         end
 
         function readFrameSizeSettings(obj)
@@ -286,7 +232,96 @@ classdef dummyScanner < scanner
                 fprintf('\n\n dummyScanner finds no frame size file found at %s\n\n', frameSizeFname)
                 obj.frameSizeSettings=struct;
             end
+        end % function readFrameSizeSettings(obj)
+
+
+        %---------------------------------------------------------------
+        % The following methods are specific to the dummy_scanner class. They allow the scanner
+        % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
+        function attachExistingData(obj,imageStack,voxelSize)
+            %  function attachExistingData(obj,imageStack,voxelSize)
+            %
+            %  e.g.
+            %  TT = load3DTiff('someData.tiff');
+            %  hBT.scanner.attachExistingData(TT,[7,10])
+
+            obj.imageStackData=imageStack;
+            obj.imageStackVoxelSizeXY = voxelSize(1);
+            obj.imageStackVoxelSizeZ = voxelSize(2);
+
+            %set the recipe to match the data
+            obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
+            obj.currentPhysicalSection=1
+            obj.currentOpticalPlane=1
         end
+
+        function varargout = acquireTile(obj,~)
+            %If image stack data have been added, then we can fake acquisition of an image. Otherwise skip.
+            if isempty(obj.imageStackData)
+                success=false;
+                if nargout>0
+                    varargout{1}=success;
+                end
+                return
+            end
+
+            tDepth = obj.numOpticalPlanes * (obj.currentPhysicalSection-1) + obj.currentOpticalPlane;
+            if size(obj.imageStackData,3)<tDepth
+                fprintf('Current desired depth %d is out of bounds. Loaded stack has %d planes.\n',...
+                    tDepth, size(obj.imageStackData,3))
+                return
+            end
+            thisSection = obj.imageStackData(:,:,tDepth);
+
+            [X,Y]=obj.parent.getXYpos;
+            xPosInMicrons = abs(X)*1E3 ; %ABS HACK TODO
+            yPosInMicrons = abs(Y)*1E3 ; %ABS HACK TODO
+
+            %tile step size
+            xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
+            yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
+
+
+            %position in slice is
+            xRange = ceil([xPosInMicrons,xPosInMicrons+xStepInMicrons]/obj.imageStackVoxelSizeXY);
+            yRange = ceil([yPosInMicrons,yPosInMicrons+yStepInMicrons]/obj.imageStackVoxelSizeXY);
+            if xRange(1)==0
+                xRange=xRange+1;
+            end
+            if yRange(1)==0
+                yRange=yRange+1;
+            end
+
+            tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
+            obj.lastAcquiredTile=tile;
+            if obj.displayAcquiredImages
+            % Open figure window as needed
+                f=findobj('Tag','CurrentDummyImFig');
+                if isempty(f)
+                    obj.hCurrentImFig = figure;
+                    obj.hCurrentImFig.Tag='CurrentDummyImFig';
+                else
+                    clf(f)
+                end
+
+                imagesc(tile)
+                %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
+                axis equal off
+                colormap gray
+                set(gcf,'color',[1,0.9,0.9]*0.1)
+                drawnow
+            end
+
+            success=true;
+
+            if nargout>0
+                varargout{1}=success;
+            end
+
+            if obj.writeData
+                %SAVE
+            end
+        end % acquireTile
 
 
     end %close methods

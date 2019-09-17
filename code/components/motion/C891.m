@@ -1,13 +1,16 @@
 classdef C891 < genericPIcontroller
 % C891 is a class that inherits linearcontroller and defines the interface between
-% BakingTray and PI's GCS controller class. In effect, this is a glue class.
+% BakingTray and C-891 direct-drive motor controllers from PI using PI's GCS controller 
+% class. In effect, this is a glue class.
 %
 % All abstract methods should (where possible) have doc text only in the abstract method class file.
 %
 %
-% To use the C891 stage, install the PI MATLAB support package. Ensure that the instances of
-% the class can be created and behave as expected. e.g. that the .MOV method can be used to
-% move the stage. So go through PI's example MATLAB scripts and ensure all makes sense.
+% To use the C891 controller, install the PI MATLAB support package and add it to your MATLAB path.
+% You should find it in C:\Users\Public\PI\PI_MATLAB_Driver_GCS2
+% Ensure that the instances of the class can be created and behave as expected. 
+% e.g. that the .MOV method can be used to move the stage. So go through PI's example MATLAB scripts 
+% and ensure all makes sense.
 %
 % To use this class you need to supply the method of connection and the ID for the connection.
 %
@@ -31,7 +34,7 @@ classdef C891 < genericPIcontroller
 % See the doc text for the controllerID property in C891.m
 %
 %
-%
+
 
     properties
 
@@ -49,6 +52,7 @@ classdef C891 < genericPIcontroller
             if nargin<2
                 logObject=[];
             end
+
             obj = obj@genericPIcontroller(stageObject,logObject);
 
             %Build a map structure that allows us to read off desired controller parameters
@@ -126,6 +130,22 @@ classdef C891 < genericPIcontroller
             fprintf('%s\n',obj.hC.qIDN)
 
         end
+
+        % The following have been tested with the V508 stages
+        function success = referenceStage(obj)
+          if obj.isStageReferenced
+            fprintf('Stage already referenced\n')
+            success=true;
+            return
+          else
+            %Disable servo and reference the stage
+            obj.hC.SVO('1',false);
+            obj.hC.FRF('1')
+            obj.hC.SVO('1',true);
+          end
+
+        end
+
     end
 
 end %close classdef 

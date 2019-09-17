@@ -93,6 +93,13 @@ function BakingTray(varargin)
     % Now we make the view
     hBTview = BakingTray.gui.view(hBT);
     assignin('base','hBTview',hBTview);
+
+    % If necessary, run an optional startup script (must be a script not a function)
+    startupBT = fullfile(BakingTray.settings.settingsLocation,'startup_bt.m');
+    if exist(startupBT,'file')
+        run(startupBT)
+    end
+
     fprintf('BakingTray has started\n')
     %That was easy!
 

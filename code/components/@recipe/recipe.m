@@ -334,7 +334,8 @@ classdef recipe < handle
                     fprintf('Recipe can not find scanner stitching settings\n')
                 end
 
-                if isstruct(FrameData) && isempty(FrameData.stitchingVoxelSize)
+                if isstruct(FrameData) && ...
+                    (~isfield(FrameData,'stitchingVoxelSize') || isempty(FrameData.stitchingVoxelSize))
                     scnSet = obj.parent.scanner.returnScanSettings;
                     % Just take nominal values. It doesn't matter too much. 
                     mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
@@ -346,9 +347,18 @@ classdef recipe < handle
                     fprintf('NOT USING PRE-DEFINED STITCHING PARAMS! NONE AVILABLE\n')
                 end
 
-                if isstruct(FrameData)
-                    obj.StitchingParameters.lensDistort = FrameData.lensDistort;
-                    obj.StitchingParameters.affineMat = FrameData.affineMat;
+                if isstruct(FrameData) 
+                    if ~isempty(FrameData.lensDistort)
+                        obj.StitchingParameters.lensDistort = FrameData.lensDistort;
+                    else
+                        obj.StitchingParameters.lensDistort.rows=0;
+                        obj.StitchingParameters.lensDistort.cols=0;
+                    end
+                    if ~isempty(FrameData.affineMat)
+                        obj.StitchingParameters.affineMat = FrameData.affineMat;
+                    else
+                        obj.StitchingParameters.affineMat = eye(3);
+                    end
                 end
 
                 success=true;

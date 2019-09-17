@@ -27,8 +27,8 @@ function settings=componentSettings
     % Laser
     % BakingTray communicates with the laser in order to stop acquiring if it loses modelock
     % and to turn off the laser at the end of acquisition. 
-    laser.type=''; % One of: 'maitai', 'chameleon', or 'dummyLaser'
-    laser.COM=[];  % COM port number on which the laser is attached. e.g. the scalar 1
+    laser.type='chameleon'; % One of: 'maitai', 'chameleon', or 'dummyLaser'
+    laser.COM=1;  % COM port number on which the laser is attached. e.g. the scalar 1
 
 
 
@@ -36,8 +36,8 @@ function settings=componentSettings
     %-------------------------------------------------------------------------------------------
     % Cutter
     % The cutter component communicates with the vibratome.
-    cutter.type=''; % One of: 'FaulhaberMCDC', 'dummyCutter'.
-    cutter.COM=[];  % COM port number on which the cutter is attached
+    cutter.type='FaulhaberMCDC'; % One of: 'FaulhaberMCDC', 'dummyCutter'.
+    cutter.COM=2;  % COM port number on which the cutter is attached
 
 
 
@@ -48,7 +48,7 @@ function settings=componentSettings
     % Currently only ScanImage is supported, although in principle you could write your own
     % scanning code. ScanImage can be freely downloaded here:
     % http://scanimage.vidriotechnologies.com/display/SIH/ScanImage+Home
-    scanner.type=''; % One of: 'SIBT', 'dummyScanner'
+    scanner.type='SIBT'; % One of: 'SIBT', 'dummyScanner'
 
     % This optionally rotates tiles the preview tiles to ensure that the live preview image looks
     % correct. 0 means no rotation. Rotates by -90 degrees: -1 or +90 degrees: +1; 180 deg: +/-2
@@ -92,34 +92,20 @@ function settings=componentSettings
     %-------------------------------------------------------------------------------------------
 
     nC=1;
-    % The "type" refers to the motion controller being used for this axis. 
-    motionAxis(nC).type=''; % One of: 'C891', 'C863', 'C663','BSC201_APT', 'dummy_linearcontroller'
-                            % There may be other available controllers. See
-                            % the components/motion directory.
-    % "connectAt" defines where to look for the connection. This could be a COM port (e.g. COM11) or, 
-    % for some PI devices like the C891, this could be a string defining
-    % the serial number. 
-    motionAxis(nC).settings.connectAt=''; 
+    motionAxis(nC).type='C863'; % One of: 'C891', 'BSC201_APT', 'dummy_linearcontroller'
 
-    motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
-    % The transformInputDistance and transformOutputDistance fields are anonymous functions. They
-    % convert user-supplied command positions (input) and controller-provided postions (output)
-    % in order to satisfy the following:
-    % - All units in mm (note some controllers can have the units changed: this is easier)
-    % - The X stage handles the motion along the axis between the objective and blade holder. Zero is 
-    %   middle of travel range and positive numbers move the stage to the right as you look at it. 
-    % - The Y stage moves the sample toward or away from you. Zero is middle of stage travel range
-    %   and positive is away from you. 
-    % - The Z stage moves up with more positive numbers. Zero is retracted.
-    %
-    % If the anonymous function fields are left empty, no transformation is applied. Examples:
-    % the function @(x) -1*x; will invert the position scale. 
+    motionAxis(nC).settings.connectAt.interface='rs232';
+    motionAxis(nC).settings.connectAt.COM=20;  %COM20
+    motionAxis(nC).settings.connectAt.baudrate=115200;
+    motionAxis(nC).settings.connectAt.controllerModel='C-863';
 
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
-    motionAxis(nC).stage.settings.axisName=''; %One of: xAxis, yAxis, or zAxis
-    motionAxis(nC).stage.settings.minPos=[];
-    motionAxis(nC).stage.settings.maxPos=[];
+    motionAxis(nC).stage.type='genericPIstage'; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
+    motionAxis(nC).stage.settings.invertDistance=-1; %To invert command
+    motionAxis(nC).stage.settings.positionOffset=150; %So zero is stage mid-point
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1; %Leave unchanged: controller is in mm
+    motionAxis(nC).stage.settings.axisName='xAxis'; %One of: xAxis, yAxis, or zAxis
+    motionAxis(nC).stage.settings.minPos=-100;
+    motionAxis(nC).stage.settings.maxPos=100;
 
     % Note that this settings file assumes that the X and Y axes are handled by separate
     % controller units. In principle it's possible to add two axis to a single controller 
@@ -132,27 +118,34 @@ function settings=componentSettings
 
     % Remainng axes follow and are set up as above
     nC=2;
-    motionAxis(nC).type=''; 
-    motionAxis(nC).settings.connectAt=''; 
+    motionAxis(nC).type='C863'; 
 
-    motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
-    motionAxis(nC).stage.settings.axisName=''; 
-    motionAxis(nC).stage.settings.minPos=[];
-    motionAxis(nC).stage.settings.maxPos=[];
+    motionAxis(nC).settings.connectAt.interface='rs232';
+    motionAxis(nC).settings.connectAt.COM=21;  %COM21
+    motionAxis(nC).settings.connectAt.baudrate=115200;
+    motionAxis(nC).settings.connectAt.controllerModel='C-863';
+
+    motionAxis(nC).stage.type='genericPIstage';
+    motionAxis(nC).stage.settings.invertDistance=-1; %To invert command
+    motionAxis(nC).stage.settings.positionOffset=25; %So zero is stage mid-point
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1; %Leave unchanged: controller is in mm
+    motionAxis(nC).stage.settings.axisName='yAxis'; 
+    motionAxis(nC).stage.settings.minPos=-15;
+    motionAxis(nC).stage.settings.maxPos=15;
 
 
     nC=3;
-    motionAxis(nC).type='';
-    motionAxis(nC).settings.connectAt=[];
+    motionAxis(nC).type='AMS_SIN11';
+    motionAxis(nC).settings.connectAt.COM='COM8';
+    motionAxis(nC).settings.connectAt.baudrate=9600;
 
-    motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
-    motionAxis(nC).stage.settings.axisName='';
-    motionAxis(nC).stage.settings.minPos=[];
-    motionAxis(nC).stage.settings.maxPos=[];
+    motionAxis(nC).stage.type='haydon43K4U';
+    motionAxis(nC).stage.settings.invertDistance=1; %Do not invert distance
+    motionAxis(nC).stage.settings.positionOffset=0; %So zero remains at the lowered position of the stage
+    motionAxis(nC).stage.settings.controllerUnitsInMM=1.5305E-04; %mm  per command "tick"
+    motionAxis(nC).stage.settings.axisName='zAxis';
+    motionAxis(nC).stage.settings.minPos=0;
+    motionAxis(nC).stage.settings.maxPos=40;
 
 
 

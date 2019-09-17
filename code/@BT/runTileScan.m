@@ -28,22 +28,22 @@ function runSuccess = runTileScan(obj)
     % The scanner-specific changes that need to be made will have been implemented in the scaner itself (e.g. in SIBT)
     % by the armScanner method
     switch obj.recipe.mosaic.scanmode
-    case 'tile'
-        %obj.yAxis.disableInMotionTrigger(1,2) % TODO: temporarily disable. Not all stages do this.
+        case 'tile'
+            %obj.yAxis.disableInMotionTrigger(1,2) % TODO: temporarily disable. Not all stages do this.
 
-    case 'ribbon'
-        obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
-        R = obj.scanner.returnScanSettings;
+        case 'ribbon'
+            obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
+            R = obj.scanner.returnScanSettings;
 
-        yRange = range(pos(:,2));
-        timeToImageLines = R.linesPerFrame * R.linePeriodInMicroseconds * 1E-6;
+            yRange = range(pos(:,2));
+            timeToImageLines = R.linesPerFrame * R.linePeriodInMicroseconds * 1E-6;
 
-        ySpeed = yRange / timeToImageLines;
+            ySpeed = yRange / timeToImageLines;
 
-        fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n\n', ...
-            yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
+            fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n\n', ...
+                yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
 
-        obj.setYvelocity(ySpeed);
+            obj.setYvelocity(ySpeed);
 
     end
 

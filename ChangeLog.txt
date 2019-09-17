@@ -7,12 +7,27 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+4rd September 2019
+- DEVELOPER: dummyScanner displays current tile to screen. 
+- USER: Bugfix to slicing speed. 
+
+
+3rd September 2019
+- USER: MaiTai laser does not automatically turn off if system has been paused for long periods.
+
+
 30 August 2019
 - DEVELOPER: Update dummy mode so it works again
 
 
+28th June 2019
+- USER: Add options for setting pixel bin factor and sample rate for linear scanners
+- USER: BUGFIX -- Fail gracefully if an error happens during preview scan. 
+
+
 26th June 2019
 - USER: a bunch of bug fixes. Some fairly significant
+
 
 10th June 2019
 - USER: BakingTray is now compatible with ScanImage 5.6
@@ -22,6 +37,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - USER: BakingTray can now often recover modelock failures of the laser
 - USER: Confirmation dialog prior to Bake 
 - USER: Checks that the correct PMTs are enabled before Bake
+
+
+5th April 2019
+- DEVELOPER: linearstage.transformDistance replaced by two new properties for handling input and output separately. 
+- DEVELOPER: simplify buildMotionComponent
+- DEVELOP: DRV014 class internalises settings previously in buildMotionComponent
+- USER: ** invert field removed from componentSettings.m ** You will need to use new model. Send issue if stuck. 
 
 
 21st March 2019

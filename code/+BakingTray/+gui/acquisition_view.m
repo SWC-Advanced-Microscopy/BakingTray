@@ -39,7 +39,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     end
 
     properties (SetObservable,Transient)
-        previewImageData=[]; %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
+        previewImageData=[]  %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
         previewTilePositions %This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
     end %close hidden transient observable properties
 
@@ -449,6 +449,17 @@ classdef acquisition_view < BakingTray.gui.child_view
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';
                 %obj.button_Pause.Enable='off';
+
+                %If we are acquiring data, save the current preview stack to disk
+                if exist(obj.model.logPreviewImageDataToDir,'dir') && obj.model.acquisitionInProgress
+                    tDate = datestr(now,'YYYY_MM_DD');
+                    fname=sprintf('%s_section_%d_%s.mat', ...
+                                    obj.model.recipe.sample.ID, ...
+                                    obj.model.currentSectionNumber, ...
+                                    tDate);
+                    save(fname,obj.previewImageData)
+                end
+
             else
                 obj.updateStatusText
                 %obj.updateBakeButtonState  % TODO: why is this here?
@@ -603,7 +614,22 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.updateImageLUT;
             obj.model.leaveLaserOn=false; % TODO: For now always set the laser to switch off when starting [17/08/2017]
-            obj.model.bake;
+            try
+                obj.model.bake;
+            catch ME
+                disp('BAKE FAILED IN acquisition_view. CAUGHT_ERROR')
+                disp(ME.message)
+                obj.button_BakeStop.Enable='on'; 
+                return
+            end
+            
+            if obj.checkBoxLaserOff.Value
+                % If the laser was slated to turn off then we also close
+                % the acquisition GUI. This is because a lot of silly bugs
+                % seem to crop up after an acquisition but they go away if
+                % the user closes and re-opens the window.
+                obj.delete
+            end
 
         end %bake_callback
 
@@ -702,7 +728,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
 
             obj.updateImageLUT;
-            obj.model.takeRapidPreview
+            try
+                obj.model.takeRapidPreview
+            catch 
+            end
 
             %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
             obj.button_BakeStop.Enable='on'; 

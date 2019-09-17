@@ -33,6 +33,7 @@ classdef BSC201_APT < linearcontroller
 % H=DRV014_BSC101_connect; %TODO: what is this??
 % myDevice = BSC201(H);
 
+
     properties 
         % controllerID - the information necessary to build a connected object
         %
@@ -59,6 +60,8 @@ classdef BSC201_APT < linearcontroller
         if nargin<2
           logObject=[];
         end
+
+        obj.maxStages=1;
 
         if ~isempty(stageObject)
           obj.attachLinearStage(stageObject);
@@ -208,7 +211,7 @@ classdef BSC201_APT < linearcontroller
         end
         [~,pos]=obj.hC.GetPosition(0,0);
 
-        pos = obj.attachedStage.transformDistance(pos);
+        pos = obj.attachedStage.invertDistance * pos;
         obj.attachedStage.currentPosition=pos;
       end %axisPosition
 
@@ -234,10 +237,9 @@ classdef BSC201_APT < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-        obj.hC.SetRelMoveDist(0,obj.attachedStage.transformDistance(distanceToMove));
-        obj.hC.MoveRelative(0,0); %TODO: is that right??? Why is this here?
+        obj.hC.SetRelMoveDist(0,obj.attachedStage.invertDistance * distanceToMove);
+        obj.hC.MoveRelative(0,0);
         success=true;
-
       end %relativeMove
 
 
@@ -256,8 +258,8 @@ classdef BSC201_APT < linearcontroller
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-        obj.hC.SetAbsMovePos(0,obj.attachedStage.transformDistance(targetPosition));
-        obj.hC.MoveAbsolute(0,0);%TODO: is that right??? Why is this here?
+        obj.hC.SetAbsMovePos(0, obj.attachedStage.invertDistance * targetPosition);
+        obj.hC.MoveAbsolute(0,0);
       end %absoluteMove
 
 
@@ -496,7 +498,8 @@ classdef BSC201_APT < linearcontroller
 
 
         %Note, max and min pos are inverted here:
-        obj.hC.SetStageAxisInfo(c,stageObj.transformDistance(stageObj.maxPos),stageObj.transformDistance(stageObj.minPos),U,ptc,sns);
+        obj.hC.SetStageAxisInfo(c,stageObj.invertDistance*stageObj.maxPos, ...
+          stageObj.invertDistance*stageObj.minPos,U,ptc,sns);
 
         %re-read the parameters to check that they were changed
         [c,maxPos,minPos,U,ptc,sns]=obj.hC.GetStageAxisInfo(0,0,0,0,0,0);
@@ -505,9 +508,9 @@ classdef BSC201_APT < linearcontroller
         maxPos = round(maxPos,5);
         minPos = round(minPos,5);
 
-        if maxPos~=stageObj.transformDistance(stageObj.maxPos) || minPos~=stageObj.transformDistance(stageObj.minPos)
+        if maxPos~=stageObj.invertDistance*stageObj.maxPos || minPos~=stageObj.invertDistance*stageObj.minPos
           msg=sprintf('Failed to set min and max positions on BSC201. maxRequested=%0.2f, maxActual=%0.2f, minRequested=%0.2f, minActual=%0.2f', ...
-            stageObj.transformDistance(stageObj.maxPos) ,maxPos, stageObj.transformDistance(stageObj.minPos) ,minPos)
+            stageObj.invertDistance*stageObj.maxPos ,maxPos, stageObj.invertDistance*stageObj.minPos ,minPos)
           obj.logMessage(inputname(1),dbstack,6,msg)
         else
           success=true;
@@ -548,7 +551,7 @@ classdef BSC201_APT < linearcontroller
         [~,maxPos,minPos,~,~,~]=obj.hC.GetStageAxisInfo(0,0,0,0,0,0);
 
         fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
-              obj.attachedStage.transformDistance(minPos), obj.attachedStage.transformDistance(maxPos))
+              obj.attachedStage.invertDistance*minPos, obj.attachedStage.invertDistance*maxPos)
         if obj.isStageReferenced
           fprintf('Motor is homed\n')
         else

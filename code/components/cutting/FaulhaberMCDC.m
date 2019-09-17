@@ -1,8 +1,16 @@
 classdef FaulhaberMCDC < cutter & loghandler
     % Faulhaber motor controller. Before use, set up your controller with the 
-    % motor you have and the encoder. Run IXRMOD if you have no encoder. Save
-    % the settings to the controller's EEPROM with EEPSAV. That way you do not
-    % need to supply additional settings every time you connect to the motor
+    % motor you have and the encoder. 
+    %
+    % BEFORE RUNNING:
+    % Run the IXRMOD command if you have no encoder. Save the settings to the 
+    % controller's EEPROM with EEPSAV. That way you do not need to supply 
+    % additional settings every time you connect to the motor.
+    % You can do the above at the command line as follows:
+    % >> F=FaulhaberMCDC('COMXX');
+    % >> F.sendReceiveSerial('IXRMOD')
+    % >> F.sendReceiveSerial('EEPSAV')
+    %
     %
     % For more information on the cutter, see the abstract class.
     %
@@ -14,7 +22,8 @@ classdef FaulhaberMCDC < cutter & loghandler
         %controllerID should be a cell array of strings that can be fed to the serial port command. 
         %e.g. controllerID = {'COM1','BaudRate',4800};
 
-        motorMaxSpeed = 60; %max motor speed in cycles per second %TODO: confirm
+        motorMaxSpeed = 60; %max motor speed in cycles per second. NOTE: we later normalise by this 
+                            %number os it's a bad idea to change it. 
         maxControlValue=30000; %TODO: find the max control value. e.g. when motor 
                                 %commanded to this setting it should produdce motorMaxSpeed cycles/sec
     end %close public properties

@@ -1,4 +1,8 @@
 classdef C663 < genericPIcontroller
+% C863 is a class that inherits linearcontroller and defines the interface between
+% BakingTray and C-663 stepper motor controllers from PI using PI's GCS controller 
+% class. In effect, this is a glue class.
+%
 % C663 is a class that inherits linearcontroller and defines the interface between
 % BakingTray and PI's GCS controller class. In effect, this is a glue class.
 %
@@ -43,6 +47,7 @@ classdef C663 < genericPIcontroller
             if nargin<2
                 logObject=[];
             end
+
             obj = obj@genericPIcontroller(stageObject,logObject);
         end % Constructor
 

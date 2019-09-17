@@ -10,7 +10,7 @@ function settings = readSystemSettings
     % The "system settings" are those that describe parameters of the rig that are unlikely to 
     % change between sessions. If no settings have been created then the settings directory 
     % made and a default settings file is created. The user is prompted to edit it and nothing
-    % is returned. If a settings file is present and looks identical to the default on, the user 
+    % is returned. If a settings file is present and looks identical to the default one, the user 
     % is prompted to edit it and nothing is returned. Otherwise the settings file is read and 
     % returned as a structure. 
     %

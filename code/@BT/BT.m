@@ -19,21 +19,19 @@ classdef BT < loghandler
                 % can turn off the laser at the end of the experiment and stop acquisition if the 
                 % laser fails. If it's missing, these features just aren't available.
         recipe  % The details for the experiment go here
-        buildFailed=true  % True if BT failed to build all components
+
+        % These properties control the three axis sample stage. 
+        xAxis
+        yAxis
+        zAxis
+        buildFailed=true  % True if BT failed to build all components at startup
     end %close properties
 
 
     properties (Hidden)
         % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
-    end
-
-    properties (Hidden,Transient)
-        % These properties control the three axis sample stage. 
-        % We hide them because we want to make sure the user doesn't use them, as this might not be safe. 
-        xAxis
-        yAxis
-        zAxis
+        logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
     end
 
     properties (SetAccess=immutable,Hidden)
@@ -118,6 +116,10 @@ classdef BT < loghandler
             params.CaseSensitive = false;
             params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(x))
             params.parse(varargin{:});
+
+            % Test read of the system settings file. It will be created if not present. 
+            % Nothing is done with the system settings at this point.
+            BakingTray.settings.readSystemSettings;
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
             %if none were provided. The most likely reason for providing a different file

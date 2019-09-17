@@ -9,6 +9,8 @@ classdef analog_controller < linearcontroller
     properties 
       NIdevice = '' %String containing the NI device ID
       outputPort =  '' %Name of the analog output port (e.g. 'AO0')
+
+      % NOTE - these properties are different to those for the other motion control classes
       voltsPerMicron = [] %the number of volts through the analog output that will translate to a motion of one micron
       
       %We won't use the max and min properties in the stage object since the only analog controller I have 
@@ -31,7 +33,7 @@ classdef analog_controller < linearcontroller
         if nargin<2
           logObject=[];
         end
-
+        obj.maxStages=1;
         if ~isempty(stageObject)
           obj.attachLinearStage(stageObject);
         end
@@ -133,7 +135,7 @@ classdef analog_controller < linearcontroller
       function success = relativeMove(obj, distanceToMove)
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
         st = obj.returnStageObject;
-        distanceToMove=st.transformDistance(distanceToMove);
+        distanceToMove=st.transformInputDistance(distanceToMove);
         obj.writeAbsPosAsVoltage(distanceToMove,true) %perform relative move
         success=true;
       end %relativeMove
@@ -145,6 +147,7 @@ classdef analog_controller < linearcontroller
         success = false;
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
         st = obj.returnStageObject;
+        targetPosition=st.transformInputDistance(targetPosition);
         obj.writeAbsPosAsVoltage(targetPosition) %perform absolute move
         success=true;
       end %absoluteMove
@@ -175,7 +178,7 @@ classdef analog_controller < linearcontroller
 
         if isempty(minPos)
           minPos = obj.hC.qTMN(ID); 
-          minPos = st.transformDistance(minPos);
+          minPos = st.transformOutputDistance(minPos);
         end
       end
 
@@ -184,7 +187,7 @@ classdef analog_controller < linearcontroller
 
         if isempty(maxPos)
           maxPos = obj.hC.qTMX(ID); 
-          maxPos = st.transformDistance(maxPos);
+          maxPos = st.transformOutputDistance(maxPos);
         end
       end
 
