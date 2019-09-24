@@ -160,7 +160,7 @@ function varargout = affineMatGen(varargin)
                 if mod(aMat(ii,jj),1)==0
                     fprintf('%0.1f',aMat(ii,jj))
                 else
-                    fprintf('%0.4f',aMat(ii,jj))
+                    fprintf('%0.6f',aMat(ii,jj))
                 end
                 if jj<size(aMat,2)
                     fprintf(', ')

@@ -7,6 +7,9 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+24th September 2019
+- USER: add "affineMatGen" tool for easily generating affine transform matrices to paste into config files. 
+
 4rd September 2019
 - DEVELOPER: dummyScanner displays current tile to screen. 
 - USER: Bugfix to slicing speed. 
