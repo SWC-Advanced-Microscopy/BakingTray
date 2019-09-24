@@ -220,6 +220,23 @@ function bake(obj,varargin)
                 return
             end
 
+ 
+            %If requested, save the current preview stack to disk
+            if exist(obj.logPreviewImageDataToDir,'dir')
+                try
+                     fname=sprintf('%s_section_%d_%s.mat', ...
+                                     obj.recipe.sample.ID, ...
+                                     obj.currentSectionNumber, ...
+                                     datestr(now,'YYYY_MM_DD'));
+                     fname = fullfile(obj.logPreviewImageDataToDir,fname);
+                     fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
+                     imData=obj.lastPreviewImageStack;
+                     save(fname,'imData')
+                 catch
+                    fprintf('Failed to save preview stack to log dir\n')
+                 end
+            end
+
             % Now we save to full scan settings by stripping data from a
             % tiff file.
             % If this is the first pass through the loop and we're using ScanImage, dump
