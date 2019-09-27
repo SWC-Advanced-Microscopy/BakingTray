@@ -62,7 +62,7 @@ end
 % Loop through samples and convert to stack
 for ii=1:length(samples)
     pStack=buildStack(dirPath,samples{ii});
-    fname = fullfile(dirPath,sprintf('%s_previewStack.mat',samples{1}));
+    fname = fullfile(dirPath,sprintf('%s_previewStack.mat',samples{ii}));
     fprintf('Saving variable pStack to %s', fname)
     save(fname, '-v7.3', 'pStack')
     fprintf('\n\n')
