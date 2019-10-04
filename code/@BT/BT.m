@@ -62,6 +62,7 @@ classdef BT < loghandler
         % TODO: should channels contain empty slots for non-acquired channels? 
         downSampledTileBuffer = []
         downsamplePixPerLine=125 %TODO: for now this is a value in pixels only. This is brittle! CAUTION
+        lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
         %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
         lastTilePos =  struct('X',0,'Y',0);

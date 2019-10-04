@@ -446,20 +446,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             if obj.verbose, fprintf('In acquisition_view.indicateCutting callback\n'), end
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
+
+                % Dump the current preview image to the model
+                obj.model.lastPreviewImageStack = obj.previewImageData;
+
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';
                 %obj.button_Pause.Enable='off';
-
-                %If we are acquiring data, save the current preview stack to disk
-                if exist(obj.model.logPreviewImageDataToDir,'dir') && obj.model.acquisitionInProgress
-                    tDate = datestr(now,'YYYY_MM_DD');
-                    fname=sprintf('%s_section_%d_%s.mat', ...
-                                    obj.model.recipe.sample.ID, ...
-                                    obj.model.currentSectionNumber, ...
-                                    tDate);
-                    save(fname,obj.previewImageData)
-                end
-
             else
                 obj.updateStatusText
                 %obj.updateBakeButtonState  % TODO: why is this here?
@@ -617,8 +610,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             try
                 obj.model.bake;
             catch ME
-                disp('BAKE FAILED IN acquisition_view. CAUGHT_ERROR')
-                disp(ME.message)
+                fprintf('\nBAKE FAILED IN acquisition_view. CAUGHT THE FOLLOWING ERROR:\n\t%s\n', ME.message)
                 obj.button_BakeStop.Enable='on'; 
                 return
             end
