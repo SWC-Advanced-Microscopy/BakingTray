@@ -149,6 +149,9 @@ classdef genericPIcontroller < linearcontroller
           end
           success=true;
 
+          % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
+          obj.referenceStage;
+
           % The PI code turns on a load of warnings. So we turn them off here
           warning off 
         end %connect
@@ -426,7 +429,7 @@ classdef genericPIcontroller < linearcontroller
 
         function success = referenceStage(obj)
           % This could be different between stages and controllers, so define in controller class for now
-          fprintf('\n** Stage referencing not implemented for this controller. **\n\n')
+          fprintf('\n* Skipping stage referencing: not implemented for this controller.\n')
           success=true;
         end
 

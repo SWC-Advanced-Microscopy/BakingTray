@@ -59,7 +59,6 @@ classdef C863 < genericPIcontroller
             end
 
             obj = obj@genericPIcontroller(stageObject,logObject);
-            obj.referenceStage;
         end % Constructor
 
         % TODO: for now we don't query the controller as it's far too slow
