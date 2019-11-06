@@ -67,8 +67,19 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         end
     end
 
-    %TODO: 
     %Do we have enough travel to make the cut itself?
+    if obj.recipe.SYSTEM.cutterSide == 1
+        if (obj.recipe.CuttingStartPoint.X + obj.recipe.mosaic.cutSize) > obj.xAxis.attachedStage.maxPos
+            msg=sprintf('%sCutting %d mm will lead to an out of bounds stage position. Reduce cut size and try again.\n', ...
+                msg, obj.recipe.mosaic.cutSize);
+        end
+    elseif obj.recipe.SYSTEM.cutterSide == -1
+        if (obj.recipe.CuttingStartPoint.X - obj.recipe.mosaic.cutSize) > obj.xAxis.attachedStage.minPos
+            msg=sprintf('%sCutting %d mm will lead to an out of bounds stage position. Reduce cut size and try again.\n', ...
+                msg, obj.recipe.mosaic.cutSize);
+        end
+    end    
+
 
 
     % Ensure we have enough travel on the Z-stage to acquire all the sections
