@@ -26,12 +26,13 @@ classdef BSC201_APT < linearcontroller
 %
 %
 % Step 2:
-% Instantiating an object from this class can be done by providing as an input argument
-% the ouput of the DRV014_BSC101_connect command. (TODO: for now).
-%
 % e.g. 
-% H=DRV014_BSC101_connect; %TODO: what is this??
+% H=DRV014;
+% H.axisName='something';
+% H.minPos = 0;
+% H.maxPos = 20;
 % myDevice = BSC201(H);
+% myDevice.connect;
 
 
     properties 
