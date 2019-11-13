@@ -200,7 +200,7 @@ classdef laser_view < BakingTray.gui.child_view
             newValue=get(obj.editWavelength,'String');
 
             newValue=str2double(newValue);
-            if isempty(newValue)
+            if isempty(newValue) || isnan(newValue)
                 %If it wasn't numeric, set it back to what it was before
                 fprintf('Not a valid wavelength value\n');
                 set(obj.editWavelength,'String',obj.model.laser.targetWavelength)
