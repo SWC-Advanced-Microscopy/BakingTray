@@ -18,7 +18,7 @@ function varargout = returnDiskSpace(spaceInPath)
     %
     % Rob Campbell - Basel 2017
 
-    if nargin<1
+    if nargin<1 || isempty(spaceInPath)
         spaceInPath=pwd;
     end
 

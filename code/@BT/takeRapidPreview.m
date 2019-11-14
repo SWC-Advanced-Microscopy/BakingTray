@@ -92,16 +92,13 @@ function takeRapidPreview(obj)
     end
 
 
-    
 
-    
     tidyUpAfterPreview
 
-    
+
     % Nested functions follow
     function tidyUpAfterPreview
         %Tidy up: put all settings back to what they were
-        disp('TIDYING')
         obj.scanner.disarmScanner;
         obj.acquisitionInProgress=false;
 
