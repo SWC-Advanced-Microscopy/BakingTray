@@ -8,7 +8,7 @@ function takeRapidPreview(obj)
         return
     end
 
-    if ~isa(obj.scanner,'SIBT')
+    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
         fprintf('Only acquisition with ScanImage supported at the moment.\n')
         return
     end
