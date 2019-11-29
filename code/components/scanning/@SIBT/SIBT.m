@@ -176,7 +176,7 @@ classdef SIBT < scanner
 
 
                 if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes
-                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
+                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes + thisRecipe.mosaic.extraOpticalPlanes;
                 end
 
                 if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/obj.hC.hStackManager.numSlices
