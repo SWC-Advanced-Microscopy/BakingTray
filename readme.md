@@ -5,7 +5,7 @@
 </a>
 
 ### What is it?
-BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) project ([Economo et al](https://elifesciences.org/articles/10566)).
+BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) ([Economo, et al](https://elifesciences.org/articles/10566)) and [MouseLight](https://github.com/MouseLightPipeline) ([Winnubst, et al](https://www.sciencedirect.com/science/article/pii/S0092867419308426?via%3Dihub)) projects.
 The software is for research and development purposes. 
 BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
 
@@ -32,22 +32,18 @@ The current feature set is as follows:
 * PMTs and laser automatically switched off at the end of the acquisition.
 * Support for multiple lasers via Scanimage.
 * Easy control of illumination as a function of depth via ScanImage. 
-* Integrates with our [StitchIt](https://github.com/BaselLaserMouse/StitchIt) software for assembling the stitched images from raw tiles. 
+* Integrates with our [StitchIt](https://github.com/SainsburyWellcomeCentre/StitchIt) software for assembling the stitched images from raw tiles. 
 * Easily resume a previously halted acquisition. 
 * Modular API allows developers to easily extend the software or adapt it to different hardware.
 * Slack messages on acquisition completion.
 
 
-### Experimental features
-* Stage-scanning with a resonant scanner
-* Wide-field camera tile-scanning
-
-
 ### Getting started ###
-See [the wiki](https://github.com/BaselLaserMouse/BakingTray/wiki)
+See [the wiki](https://github.com/SainsburyWellcomeCentre/BakingTray/wiki)
 
 
 ### Related work
+* Winnubst *et al*. Reconstruction of 1,000 Projection Neurons Reveals New Cell Types and Organization of Long-Range Connectivity in the Mouse Brain. Cell 2019
 * Economo *et al*. A New Platform for Brain-Wide Imaging and Reconstruction of Neurons. eLife 2016
 * Li *et al*. Micro-Optical Sectioning Tomography to Obtain a High-Resolution Atlas of the Mouse Brain. Science. 2010
 * Mayerich *et al*. Knife-edge scanning microscopy for imaging and reconstruction of three-dimensional anatomical structures… J. Microscopy. 2008

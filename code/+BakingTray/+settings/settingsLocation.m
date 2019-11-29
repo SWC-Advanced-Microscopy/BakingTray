@@ -19,10 +19,6 @@ function settingsDir=settingsLocation
     settingsDir = fullfile(installDir,'SETTINGS');
 
     %Make the settings directory if needed
-    if ~exist('settingsDir')
-        mkdir(settingsDir)
-    end
-
     if ~exist(settingsDir,'dir')
         success=mkdir(settingsDir);
         if ~success

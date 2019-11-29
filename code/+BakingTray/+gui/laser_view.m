@@ -200,7 +200,7 @@ classdef laser_view < BakingTray.gui.child_view
             newValue=get(obj.editWavelength,'String');
 
             newValue=str2double(newValue);
-            if isempty(newValue)
+            if isempty(newValue) || isnan(newValue)
                 %If it wasn't numeric, set it back to what it was before
                 fprintf('Not a valid wavelength value\n');
                 set(obj.editWavelength,'String',obj.model.laser.targetWavelength)
@@ -233,9 +233,7 @@ classdef laser_view < BakingTray.gui.child_view
             %Now start a timer that will keep updating the wavelength text box until the laser has settled
             %It does this because readWavelength updates the property that fires this callback.
             %This callback then calls readWavelength with a delay via the timer and so there is a 
-            %while loop. 
-            
-            
+            %while loop.             
             if isa(obj.currentWavelengthTimer,'timer') && ...
                 strcmp(obj.currentWavelengthTimer.Running,'off')
                 start(obj.currentWavelengthTimer)
@@ -268,6 +266,7 @@ classdef laser_view < BakingTray.gui.child_view
 
     methods (Hidden)
         %This function restarts the timer and updates the GUI until the wavelength has settled
+        %see also: obj.setReadWavelengthTextPanel
         function updateCurrentWavelength(obj)
             if ~obj.model.laser.isControllerConnected
                 return
@@ -384,9 +383,9 @@ classdef laser_view < BakingTray.gui.child_view
             if ~isvalid(obj.model.laser)
                 return
             end
-            %TODO: let's see if this improves stability of the serial comms
+
             if obj.model.laser.hC.BytesAvailable>0
-                fprintf('Skipping updateCurrentWavelength timer callback due to bytes still present for reading in serial buffer\n')
+                fprintf('Skipping regularGUIupdater timer callback due to bytes still present for reading in serial buffer\n')
                 return
             end
 
