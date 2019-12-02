@@ -80,8 +80,6 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     end
 
     for tF = theseFields'
-        tF
-        tRecipe
         if ~isfield(tRecipe,tF{1})
             msg=sprintf('BakingTray.settings.readRecipe finds no field "%s" in %s. NOT A RECIPE FILE\n',tF{1},recipeFname);
             fprintf(msg);
