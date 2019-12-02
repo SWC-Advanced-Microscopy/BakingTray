@@ -55,7 +55,7 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
 
 
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    % Check for gross errors in the recipeLoad the recipe:
+    % Check for gross errors in the recipe:
     % Ensure that this is a valid recipe by confirming that all fields in the default recipe
     % are present and that the data types are the same. If the recipe is judged invalid, an
     % empty matrix is returned.
@@ -80,7 +80,8 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     end
 
     for tF = theseFields'
-
+        tF
+        tRecipe
         if ~isfield(tRecipe,tF{1})
             msg=sprintf('BakingTray.settings.readRecipe finds no field "%s" in %s. NOT A RECIPE FILE\n',tF{1},recipeFname);
             fprintf(msg);
