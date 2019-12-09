@@ -15,6 +15,7 @@ function tileAcqDone(obj,~,~)
     % That causes us to re-enter this callback once the frames in that tile position have been 
     % completed. 
 
+
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     if ~isempty(obj.parent.positionArray)
         obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
@@ -122,10 +123,10 @@ function tileAcqDone(obj,~,~)
 
 
 
-    % Store stage positions. This is done after all tiles in the z-stack have been acquired
+    % Store stage positions. this is done after all tiles in the z-stack have been acquired
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
     % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
-    % You won't get the real stage positions.
+    % you won't get the real stage positions
     obj.parent.logPositionToPositionArray(doFakeLog)
 
     if obj.hC.hChannels.loggingEnable==true
@@ -152,5 +153,4 @@ function tileAcqDone(obj,~,~)
                           % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
                           % to soft-trigger another acquisition.
                           % See also: BT.runTileScan
-
 
