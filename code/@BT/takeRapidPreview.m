@@ -122,9 +122,6 @@ function takeRapidPreview(obj)
         obj.recipe.sample.ID=ID;
 
         obj.scanner.setNumAverageFrames(frameAve);
-
-        obj.lastTilePos.X=0;
-        obj.lastTilePos.Y=0;
     end
 
 end 
