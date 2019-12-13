@@ -1,11 +1,11 @@
 function logPositionToPositionArray(obj,fakeLog)
-	% Log the current X/Y position to the position array matrix
+    % Log the current X/Y position to the position array matrix
     %
     % function logPositionToPositionArray(obj,fakeLog)
     %
     % Purpose
-	% This is used during acquisition to keep track of the actual
-	% stage position before each tile was acquired. The data are
+    % This is used during acquisition to keep track of the actual
+    % stage position before each tile was acquired. The data are
     % logged in BT.positionArray. Columns 5 and 6 are the recorded
     % x and y positions respectively. 
     %
@@ -14,10 +14,10 @@ function logPositionToPositionArray(obj,fakeLog)
     % the actual position. False by default
 
 
-	if isempty(obj.currentSectionNumber)
-		obj.logMessage(inputname(1),dbstack,6,'no current section number defined. Can not log position to array')
-		return
-	end
+    if isempty(obj.currentSectionNumber)
+        obj.logMessage(inputname(1),dbstack,6,'no current section number defined. Can not log position to array')
+        return
+    end
 
     if nargin<2
         fakeLog=false;
