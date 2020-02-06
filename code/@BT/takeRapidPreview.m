@@ -53,7 +53,7 @@ function takeRapidPreview(obj)
 
     % This is a nasty hack for ensuring fast scanning galvos proceeds at a reasonable frame rate
     if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
-        obj.scanner.hC.hScan2D.pixelBinFactor=8;
+        obj.scanner.hC.hScan2D.pixelBinFactor=12;
         obj.scanner.hC.hScan2D.sampleRate=1.25E6;
     end
 
