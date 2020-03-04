@@ -77,8 +77,8 @@ switch controllerName
         component.connect([],0); %Connect to the controller with a new figure window
         component.hC.SetBLashDist(0,0);  %switch off backlash compensation
         %The following are reasonable settings that avoid stepper motor slipping even under load
-        component.setAcceleration(1);
-        component.setMaxVelocity(3);
+        component.setAcceleration(0.5);
+        component.setMaxVelocity(2);
 
     case {'C891', 'C663', 'C863'}
         % Likely this will be used to control an X or Y stage
