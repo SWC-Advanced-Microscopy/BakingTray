@@ -16,6 +16,8 @@ classdef (Abstract) scanner < handle & loghandler
     
     properties (Hidden)
         parent  %A copy of the parent object (likely BakingTray) to which this component is attached
+        averageSavedFrames=true; %If false, with averaging enabled we save each frame separately.
+                                 %The implementation of this needs to be handled by the concrete scanner class
     end
 
     properties (SetAccess=protected)

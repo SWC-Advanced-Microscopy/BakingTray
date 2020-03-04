@@ -33,7 +33,6 @@ classdef SIBT < scanner
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
                                       %If a setting has changeded, the flipScanSettingsChanged method is run
-        averageSavedFrames=true; %If false, with averaging enabled we save each frame separately
     end
 
     methods %This is the main methods block. These methods are declared in the scanner abstract class
