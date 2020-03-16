@@ -7,6 +7,21 @@ classdef soloist < linearcontroller
 %
 % To use soloist, install the Aerotech support files that came with your device. You should
 % ensure you ask Aerotech to supply the MATLAB libraries with the product. 
+%
+%
+% Examples
+% %% Make a stage and attach it to the controller object
+% >> STAGE = AVS_100_25;
+% >> STAGE.axisName='someName'; %Does not matter for this toy example
+% >> SOLO = soloist(STAGE); %Create  control class
+%
+% %% Connect to the controller over ethernet
+% >> controllerID.interface='ethernet';
+% >> controllerID.ID= '613880-1-1'; %The controller name
+%
+% Now we are ready to communicate with the device and connect to it:
+%
+% >> SOLO.connect(controllerID)
 
 
     properties
@@ -15,15 +30,15 @@ classdef soloist < linearcontroller
       %
       %
       % This class is written assuming you are connecting over ethernet.
+      % The controller ID string should be that shown in the Aerotech
+      % config software where you mapped the device. At the moment this 
+      % is just a safety feature to confirm that we have connected to the
+      % correct device. 
       %
       % Ethernet
       % controllerID.interface='ethernet'
-      % controllerID.ID='123456789012'
+      % controllerID.ID='63231-1-1'
       %
-      % Serial [NOT IMPLEMENTED]
-      % controllerID.interface='rs232'
-      % controllerID.COM='COM1'
-      % controllerID.baudrate=115200
 
 
       aerotechLibPath = 'C:\Program Files (x86)\Aerotech\Soloist\Matlab\x64'
@@ -79,7 +94,8 @@ classdef soloist < linearcontroller
           end
 
           if ~isfield(connectionDetails,'interface')
-            fprintf('No connectionDetails.interface field. Can not connect to %s.\n', connectionDetails.controllerModel)
+            fprintf('No connectionDetails.interface field. Can not connect to %s.\n', ...
+                connectionDetails.controllerModel)
             success = false;
             return
           end
@@ -93,7 +109,7 @@ classdef soloist < linearcontroller
           end
 
           if length(H)>1
-            fprintf('Found more than one Soloist device. This situation is not catered for.\n');
+            fprintf('Found more than one Soloist device. This situation is not catered for.\n')
             success=false;
             return
           end
@@ -103,9 +119,15 @@ classdef soloist < linearcontroller
           obj.hC = H; % This is the handle that needs to fed into all the Soloist commands.
 
           tName = SoloistInformationGetName(obj.hC);
+          if ~strcmp(tName,connectionDetails.ID)
+            fprintf('You requested to connect to device %s but device %s was found.\nQUITTING\n', ...
+            tName, connectionDetails.ID);
+            success=false;
+            return
+          end
           fprintf('Connected to %s\n', tName)
 
-          % TODO Check that an axis is connected
+          % TODO - Check that an axis is connected
           if 0
             fprintf('No stages found on %s controller. FAILED TO CONNECT.\n',  tName)
             success = false;
@@ -186,7 +208,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            pos = SoloistStatusGetItem(H, SoloistStatusItem(1));
+            pos = SoloistStatusGetItem(obj.hC, SoloistStatusItem(1));
             pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
@@ -221,7 +243,7 @@ classdef soloist < linearcontroller
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
             distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
-            SoloistMotionMoveInc(obj.hC,distanceToMove,obj.attachedStage.defaultSpeed)
+            SoloistMotionMoveInc(obj.hC,distanceToMove,obj.attachedStage.maxMoveVelocity)
 
         end %relativeMove
 
@@ -241,7 +263,7 @@ classdef soloist < linearcontroller
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
             targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-            SoloistMotionMoveAbs(obj.hC,targetPosition,obj.attachedStage.defaultSpeed)
+            SoloistMotionMoveAbs(obj.hC,targetPosition,obj.attachedStage.maxMoveVelocity)
         end %absoluteMove
 
 
@@ -421,12 +443,12 @@ classdef soloist < linearcontroller
 
       function setToNonBlocking(obj)
         % Conduct motions in background (non-blocking)
-        SoloistMotionWaitMode(H,0)
+        SoloistMotionWaitMode(obj.hC,0)
       end %setToNonBlocking
 
       function setToBlocking(obj)
         % Conduct motions in the foreground (blocking)
-        SoloistMotionWaitMode(H,1)
+        SoloistMotionWaitMode(obj.hC,1)
       end %setToBlocking
 
     end % Hidden methods
