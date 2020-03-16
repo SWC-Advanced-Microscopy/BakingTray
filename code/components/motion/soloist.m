@@ -65,6 +65,7 @@ classdef soloist < linearcontroller
         function delete(obj)
             if ~isempty(obj.hC)
               fprintf('Closing connection to %s controller\n', 'Soloist')
+              obj.disableAxis
               SoloistDisconnect(obj.hC)
             end
         end % Destructor
@@ -91,12 +92,17 @@ classdef soloist < linearcontroller
             return
           end
 
-          % TODO: Somehow test whether this is the correct device. 
-          
+          if length(H)>1
+            fprintf('Found more than one Soloist device. This situation is not catered for.\n');
+            success=false;
+            return
+          end
+
+          % TODO: Somehow test whether this is the correct device?
 
           obj.hC = H; % This is the handle that needs to fed into all the Soloist commands.
 
-          tName = SoloistInformationGetName;
+          tName = SoloistInformationGetName(obj.hC);
           fprintf('Connected to %s\n', tName)
 
           % TODO Check that an axis is connected
@@ -105,6 +111,13 @@ classdef soloist < linearcontroller
             success = false;
             return
           end
+
+          % Set motions to be non-blocking by default
+          obj.setToNonBlocking
+
+          % The AVS-100 came with a rather fast acceleration out of the box. We tone it
+          % down a little here.
+          obj.setAcceleration(obj.attachedStage.defaultAcceleration)
 
           %Enable the stage
           enabled = obj.enableAxis;
@@ -132,16 +145,13 @@ classdef soloist < linearcontroller
             end
 
             try 
-              reply=obj.hC.qIDN; %Contains a string bearing the name of the controller (e.g. C-891)
-              if isempty(reply)
-                  fprintf('No reply from PI controller with qIDN command\n')
-              elseif ~isempty(strfind(reply, obj.controllerID.controllerModel))
-                success=true;
-              else
-                  fprintf('You asked to connect to a %s controller but it returned:\n%s\n',...
-                      obj.controllerID.controllerModel, reply)
-                  fprintf('You may need make a new class for this controller\n')
-              end
+                %Contains a string bearing the name of the controller
+                reply = SoloistInformationGetName(obj.hC);
+                if isempty(reply)
+                    fprintf('No reply from PI controller with qIDN command\n')
+                else
+                    success=true;
+                end
             catch
               obj.logMessage(inputname(1),dbstack,7,'Failed to communicate with %s controller', obj.controllerID.controllerModel)
             end
@@ -155,7 +165,15 @@ classdef soloist < linearcontroller
             if ~moving %unlikely to be moving if the stage isn't set up, so return false
               return
             end
-            moving = obj.hC.IsMoving('1');
+
+            %TODO - better use SoloistAxisStatus('MoveActive') once we work out how to do that
+
+            currentSpeed = SoloistStatusGetItem(H, SoloistStatusItem(43)); % Current speed
+            if currentSpeed ~= 0 
+                moving=true;
+            else
+                moving=false;
+            end
         end %isMoving
 
 
@@ -167,7 +185,8 @@ classdef soloist < linearcontroller
               pos=[];
               return
             end
-            pos = obj.hC.qPOS('1');
+
+            pos = SoloistStatusGetItem(H, SoloistStatusItem(1));
             pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
@@ -233,7 +252,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            SoloistMotionHalt(obj.hC)
+            SoloistMotionAbort(obj.hC)
         end %stopAxis
 
 
@@ -255,20 +274,10 @@ classdef soloist < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function minPos=getMinPos(obj)
             minPos=getMinPos@linearcontroller(obj);
-
-            if isempty(minPos)
-              minPos = obj.hC.qTMN('1'); 
-              minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-            end
         end
 
         function maxPos=getMaxPos(obj)
             maxPos=getMaxPos@linearcontroller(obj);
-
-            if isempty(maxPos)
-              maxPos = obj.hC.qTMX('1'); 
-              maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-            end
         end
 
 
@@ -280,7 +289,7 @@ classdef soloist < linearcontroller
               velocity=[];
               return
             end
-            velocity=obj.hC.qVEL('1');
+            velocity=obj.attachedStage.maxVelocity;
         end
 
         function success = setMaxVelocity(obj, velocity)
@@ -291,8 +300,14 @@ classdef soloist < linearcontroller
               return
             end
 
-            obj.hC.VEL('1',velocity);
-            success = obj.getMaxVelocity==velocity;
+            % The target velocity is not stored in the controller so
+            % we must instead store in the stage object
+            if velocity>obj.attachedStage.velocityCapMax
+                fprintf('Capping velocity to %d\n',obj.attachedStage.velocityCapMax)
+                velocity=obj.attachedStage.velocityCapMax;
+            end
+
+            obj.attachedStage.maxVelocity = velocity;
         end
 
         function velocity = getInitialVelocity(obj)
@@ -310,7 +325,8 @@ classdef soloist < linearcontroller
               accel=[];
               return
             end
-            accel=obj.hC.qACC('1');
+            fprintf('ACCELERATION FROM SOLOIST NOT READ BACK\n');
+            accel=1;
         end
 
         function success = setAcceleration(obj, acceleration)
@@ -322,8 +338,9 @@ classdef soloist < linearcontroller
               success = false;
               return
             end
-            obj.hC.ACC('1',acceleration);
-            success = obj.getAcceleration==acceleration;
+
+            SoloistMotionSetupRampRateAccel(obj.hC,acceleration)
+            success=true;
         end
 
 
@@ -349,29 +366,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            obj.hC.SVO('1',0); %disable the servo
-
-            if strcmp(obj.controllerID.controllerModel, 'C-891')
-              obj.hC.EAX('1',0); %disable the axis
-            end
-
-
-            %Check the enable state
-            if strcmp(obj.controllerID.controllerModel, 'C-891') && obj.hC.qEAX('1')==1
-              msg = sprintf('%s motor enable state remains on', obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,5,msg)
-              success = false;
-              return
-            end
-
-            %Check the servo state
-            if obj.hC.qSVO('1')==1
-              msg = sprintf('%s servo state remains on', obj.controllerID.controllerModel);
-              obj.logMessage(inputname(1),dbstack,5,msg)
-              success = false;
-              return
-            end
-
+            SoloistMotionDisable(obj.hC)
         end %disableAxis
 
 
@@ -382,24 +377,13 @@ classdef soloist < linearcontroller
 
 
         function isReferenced = isStageReferenced(obj)
-          isReferenced=obj.hC.qFRF('1');
+            %TODO - where to feed the following?
+            SoloistAxisStatus('Homed')
+            isReferenced=true; %TODO - TEMP HACK FOR NOW
         end
 
         function printAxisStatus(obj)
           printAxisStatus@linearcontroller(obj); %call the superclass
-
-          minPos = obj.hC.qTMN('1'); 
-          maxPos = obj.hC.qTMX('1'); 
-          fprintf('Controller raw minPos = %0.2f mm ; Controller raw maxPos = %0.2f mm\n', ... 
-                minPos, maxPos)
-
-          minPos = (minPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-          maxPos = (maxPos-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-
-          fprintf('Controller converted minPos = %0.2f mm ; Controller converted maxPos = %0.2f mm\n', ... 
-                minPos, maxPos)
-
-
         end
 
 
@@ -408,7 +392,7 @@ classdef soloist < linearcontroller
     methods (Hidden)
       function libsPresent = aerotechLibsPresent(obj)
         % Return true if the Aerotech MATLAB libraries are present
-        libsPresent = ~isempty(which(obj.solistConnectFunctionName))
+        libsPresent = exist(obj.solistConnectFunctionName,'file');
       end % aerotechLibsPresent
 
       function success = addAerotechLibsToPath(obj)
@@ -434,6 +418,16 @@ classdef soloist < linearcontroller
 
         success=true;
       end %addAerotechLibsToPath
+
+      function setToNonBlocking(obj)
+        % Conduct motions in background (non-blocking)
+        SoloistMotionWaitMode(H,0)
+      end %setToNonBlocking
+
+      function setToBlocking(obj)
+        % Conduct motions in the foreground (blocking)
+        SoloistMotionWaitMode(H,1)
+      end %setToBlocking
 
     end % Hidden methods
 
