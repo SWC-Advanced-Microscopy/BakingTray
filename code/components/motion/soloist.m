@@ -80,8 +80,8 @@ classdef soloist < linearcontroller
         function delete(obj)
             if ~isempty(obj.hC)
               fprintf('Closing connection to %s controller\n', 'Soloist')
-              obj.disableAxis
-              SoloistDisconnect(obj.hC)
+              obj.disableAxis;
+              SoloistDisconnect(obj.hC);
             end
         end % Destructor
 
@@ -114,8 +114,6 @@ classdef soloist < linearcontroller
             return
           end
 
-          % TODO: Somehow test whether this is the correct device?
-
           obj.hC = H; % This is the handle that needs to fed into all the Soloist commands.
 
           tName = SoloistInformationGetName(obj.hC);
@@ -135,11 +133,11 @@ classdef soloist < linearcontroller
           end
 
           % Set motions to be non-blocking by default
-          obj.setToNonBlocking
+          obj.setToNonBlocking;
 
           % The AVS-100 came with a rather fast acceleration out of the box. We tone it
           % down a little here.
-          obj.setAcceleration(obj.attachedStage.defaultAcceleration)
+          obj.setAcceleration(obj.attachedStage.defaultAcceleration);
 
           %Enable the stage
           enabled = obj.enableAxis;
@@ -188,14 +186,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            %TODO - better use SoloistAxisStatus('MoveActive') once we work out how to do that
-
-            currentSpeed = SoloistStatusGetItem(H, SoloistStatusItem(43)); % Current speed
-            if currentSpeed ~= 0 
-                moving=true;
-            else
-                moving=false;
-            end
+            moving = obj.readAxisBit(4);
         end %isMoving
 
 
@@ -374,8 +365,7 @@ classdef soloist < linearcontroller
             end
 
             SoloistMotionEnable(obj.hC)
-
-            %TODO - Check the enable state
+            success = obj.readAxisBit(1)
 
             success=true;
         end %enableAxis
@@ -394,14 +384,12 @@ classdef soloist < linearcontroller
 
         function success = referenceStage(obj)
           SoloistMotionHome(obj.hC)
-          success=true;
+          success=obj.isStageReferenced;
         end
 
 
         function isReferenced = isStageReferenced(obj)
-            %TODO - where to feed the following?
-            SoloistAxisStatus('Homed')
-            isReferenced=true; %TODO - TEMP HACK FOR NOW
+            isReferenced = obj.readAxisBit(2);
         end
 
         function printAxisStatus(obj)
@@ -411,45 +399,55 @@ classdef soloist < linearcontroller
 
     end %close methods
 
+
     methods (Hidden)
-      function libsPresent = aerotechLibsPresent(obj)
-        % Return true if the Aerotech MATLAB libraries are present
-        libsPresent = exist(obj.solistConnectFunctionName,'file');
-      end % aerotechLibsPresent
+        function libsPresent = aerotechLibsPresent(obj)
+            % Return true if the Aerotech MATLAB libraries are present
+            libsPresent = exist(obj.solistConnectFunctionName,'file');
+        end % aerotechLibsPresent
 
-      function success = addAerotechLibsToPath(obj)
-        % Add the Aerotech MATLAB libraries to the path if needed
-        if obj.aerotechLibsPresent
-          success=true;
-          return
-        end
 
-        if exist(obj.aerotechLibPath,'dir')
-          fprintf('CAN NOT FIND AEROTECH MATLAB LIBRARIES AT: %s\n',obj.addAerotechLibsToPath)
-          success=false;
-          return
-        end
+        function success = addAerotechLibsToPath(obj)
+            % Add the Aerotech MATLAB libraries to the path if needed
+            if obj.aerotechLibsPresent
+              success=true;
+                return
+            end
 
-        addpath(obj.aerotechLibPath)
+            if exist(obj.aerotechLibPath,'dir')
+                fprintf('CAN NOT FIND AEROTECH MATLAB LIBRARIES AT: %s\n',obj.addAerotechLibsToPath)
+                success=false;
+                return
+            end
+  
+            if ~obj.aerotechLibsPresent
+                fprintf('AEROTECH LIBRAY PATH DOES NOT CONTAIN EXPECTED FUNCTIONS AT: %s\n',obj.addAerotechLibsToPath)
+                success=false;
+                return
+            end
 
-        if ~obj.aerotechLibsPresent
-          fprintf('AEROTECH LIBRAY PATH DOES NOT CONTAIN EXPECTED FUNCTIONS AT: %s\n',obj.addAerotechLibsToPath)
-          success=false;
-          return
-        end
+            success=true;
+        end %addAerotechLibsToPath
 
-        success=true;
-      end %addAerotechLibsToPath
 
-      function setToNonBlocking(obj)
-        % Conduct motions in background (non-blocking)
-        SoloistMotionWaitMode(obj.hC,0)
-      end %setToNonBlocking
+        function setToNonBlocking(obj)
+            % Conduct motions in background (non-blocking)
+            SoloistMotionWaitMode(obj.hC,0)
+        end %setToNonBlocking
 
-      function setToBlocking(obj)
-        % Conduct motions in the foreground (blocking)
-        SoloistMotionWaitMode(obj.hC,1)
-      end %setToBlocking
+
+        function setToBlocking(obj)
+            % Conduct motions in the foreground (blocking)
+            SoloistMotionWaitMode(obj.hC,1)
+        end %setToBlocking
+
+
+        function tBit = readAxisBit(obj,bitToRead)
+            % Reads axis status bit and returns as a number (1 or 0)
+            bitToRead = bitToRead-1;
+            binWord = dec2bin(SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisStatus')));
+            tBit = str2num(binWord(end-bitToRead));
+        end % readAxisBit
 
     end % Hidden methods
 
