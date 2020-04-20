@@ -255,7 +255,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
     methods %These are non-critical abstract methods (TODO: check this is true)
 
         %As positionUnits, but for the stage's target, or maximum, velocity
-        velocity = getMaxVelocity(obj)
+        velocity = getMaxVelocity(obj) %The target speed not stage absolute max
         success = setMaxVelocity(obj,velocity)
         %true/false
 

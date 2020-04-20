@@ -37,14 +37,22 @@ classdef dummyScanner < scanner
         averageEveryNframes=1;
 
         hCurrentImFig
+
+        focusTimer % Used to handle ScanImage "focus-like" streaming to an image window
     end
 
     methods
 
         %constructor
-        function obj=dummy_scanner(imageSource)
+        function obj=dummyScanner(imageSource)
             obj.channelsToSave=1;
             obj.scannerID='dummyScanner';
+
+            obj.focusTimer = timer;
+            obj.focusTimer.Name = 'focus image updater';
+            obj.focusTimer.Period = 0.25;
+            obj.focusTimer.TimerFcn = @(~,~) obj.updateFocusWindow;
+            obj.focusTimer.ExecutionMode = 'fixedDelay';
         end %constructor
 
 
@@ -52,6 +60,11 @@ classdef dummyScanner < scanner
         function delete(obj)
             obj.hC=[];
             obj.delete(obj.hCurrentImFig)
+            
+            if isa(obj.focusTimer,'timer')
+                stop(obj.focusTimer)
+                delete(obj.focusTimer)
+            end
         end %destructor
 
 
@@ -251,9 +264,10 @@ classdef dummyScanner < scanner
 
             %set the recipe to match the data
             obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
-            obj.currentPhysicalSection=1
-            obj.currentOpticalPlane=1
+            obj.currentPhysicalSection=1;
+            obj.currentOpticalPlane=1;
         end
+
 
         function varargout = acquireTile(obj,~)
             %If image stack data have been added, then we can fake acquisition of an image. Otherwise skip.
@@ -304,7 +318,8 @@ classdef dummyScanner < scanner
                     clf(f)
                 end
 
-                imagesc(tile)
+                tileIm=imagesc(tile);
+                tileIm.Tag='tileImage';
                 %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
                 axis equal off
                 colormap gray
@@ -323,7 +338,35 @@ classdef dummyScanner < scanner
             end
         end % acquireTile
 
+        function startFocus(obj)
+            % Runs the acquire tile method continuously with a timer
+            obj.displayAcquiredImages=true;
+            obj.acquireTile % Ensure window is present
+            start(obj.focusTimer)
+        end % start focus
+
+        function stopFocus(obj)
+            % Stops simulated focus acquisition
+            stop(obj.focusTimer)
+            obj.displayAcquiredImages=true;
+        end % stop focus
 
     end %close methods
+
+    methods (Hidden=true)
+        function updateFocusWindow(obj,~,~)
+            % Focus timer callback
+            obj.displayAcquiredImages=false; % Because this method does it
+            f=findobj('Tag','CurrentDummyImFig');
+            if isempty(f)
+                return
+            end
+            tObj=findobj('Tag','tileImage');
+            obj.acquireTile;
+            tObj.CData=obj.lastAcquiredTile;
+            drawnow
+            obj.displayAcquiredImages=true;
+        end % updateFocusWindow
+    end % Hidden methods
 
 end %close classdef 

@@ -73,7 +73,7 @@ classdef dummy_linearcontroller < linearcontroller
 
         thisStage = obj.attachedStage;
         thisStage.currentPosition = obj.hiddenCurrentPosition;
-        pos = thisStage.transformOutputDistance(thisStage.currentPosition);
+        pos = thisStage.currentPosition;
         if isempty(pos)
           fprintf('WARNING: position of dummy linear stage is reported as empty\n')
         end

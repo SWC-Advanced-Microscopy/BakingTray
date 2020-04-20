@@ -123,6 +123,7 @@ classdef recipe < handle
                     'cuttingSpeed', 0.5, ...       % Number defining how fast the blade should move through the sample (mm/s)
                     'cutSize', 20, ...             % Number defining the distance in mm to cut
                     'sliceThickness', 0.1, ...     % Number defining the thickness in mm to cut
+                    'numOverlapZPlanes', 0, ...   % Number of extra optical planes to add. Allows for z overlap in a slightly crappy way.
                     'numOpticalPlanes', 2, ...     % Integer defining the number of optical planes (layers) to image
                     'overlapProportion', 0.05, ... % Value from 0 to 0.5 defining how much overlap there should be between adjacent tiles
                     'sampleSize', struct('X',1, 'Y',1), ...  % The size of the sample in mm
@@ -614,6 +615,8 @@ classdef recipe < handle
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'sliceThickness'
                             fieldValue = obj.checkFloat(fieldValue,0.01,1); %Allow slices up to 1 mm thick
+                        case 'numOverlapZPlanes'
+                            fieldValue = obj.checkInteger(fieldValue);
                         case 'numOpticalPlanes'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'overlapProportion'
@@ -731,16 +734,19 @@ classdef recipe < handle
 
     methods (Hidden)
         % Convenience methods that aren't methods
-        function value=checkInteger(~,value)
+        function value=checkInteger(~,value,allowZero)
             % Confirm that an input is a positive integer
             % Returns empty if the input is not valid. 
             % Empty values aren't assigned to a property by the setters
+            if nargin<3
+                allowZero=false;
+            end
             if ~isnumeric(value) || ~isscalar(value)
                 value=[];
                 return
             end
 
-            if value<=0
+            if allowZero==false && value<=0
                 value=[];
                 return
             end

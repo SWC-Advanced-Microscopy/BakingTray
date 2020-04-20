@@ -8,7 +8,7 @@ function takeRapidPreview(obj)
         return
     end
 
-    if ~isa(obj.scanner,'SIBT')
+    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
         fprintf('Only acquisition with ScanImage supported at the moment.\n')
         return
     end
@@ -92,16 +92,13 @@ function takeRapidPreview(obj)
     end
 
 
-    
 
-    
     tidyUpAfterPreview
 
-    
+
     % Nested functions follow
     function tidyUpAfterPreview
         %Tidy up: put all settings back to what they were
-        disp('TIDYING')
         obj.scanner.disarmScanner;
         obj.acquisitionInProgress=false;
 

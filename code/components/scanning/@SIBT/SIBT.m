@@ -175,11 +175,11 @@ classdef SIBT < scanner
 
 
                 if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes
-                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes;
+                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes + thisRecipe.mosaic.numOverlapZPlanes;
                 end
 
-                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/obj.hC.hStackManager.numSlices
-                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/obj.hC.hStackManager.numSlices;
+                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
+                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
                 end
 
 
