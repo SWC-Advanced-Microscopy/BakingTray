@@ -60,7 +60,7 @@ classdef dummyScanner < scanner
         function delete(obj)
             obj.hC=[];
             obj.delete(obj.hCurrentImFig)
-            
+
             if isa(obj.focusTimer,'timer')
                 stop(obj.focusTimer)
                 delete(obj.focusTimer)
@@ -200,143 +200,32 @@ classdef dummyScanner < scanner
             fprintf('** dummyScanner.setNumAverageFrames does nothing\n')
         end
 
-        function readFrameSizeSettings(obj)
-            % Right now we just copy this from SIBT (31/08/2019 -- Rob Campbella)
-            frameSizeFname=fullfile(BakingTray.settings.settingsLocation,'frameSizes.yml');
-            if exist(frameSizeFname, 'file')
-                tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
-                tFields = fields(tYML);
-                popUpText={};
-                for ii=1:length(tFields)
-                    tSet = tYML.(tFields{ii});
-
-                    % The following is hard-coded in order to make it more likely an error will be
-                    % generated here rather than down the line
-                    obj.frameSizeSettings(ii).objective = tSet.objective;
-                    obj.frameSizeSettings(ii).pixelsPerLine = tSet.pixelsPerLine;
-                    obj.frameSizeSettings(ii).linesPerFrame = tSet.linesPerFrame;
-                    obj.frameSizeSettings(ii).zoomFactor = tSet.zoomFactor;
-                    obj.frameSizeSettings(ii).nominalMicronsPerPixel = tSet.nominalMicronsPerPixel;
-                    obj.frameSizeSettings(ii).fastMult = tSet.fastMult;
-                    obj.frameSizeSettings(ii).slowMult = tSet.slowMult;
-                    obj.frameSizeSettings(ii).objRes = tSet.objRes;
-
-                    %This is used by StitchIt to correct barrel or pincushion distortion
-                    if isfield(tSet,'lensDistort')
-                        obj.frameSizeSettings(ii).lensDistort = tSet.lensDistort;
-                    else
-                        obj.frameSizeSettings(ii).lensDistort = [];
-                    end
-                    %This is used by StitchIt to affine transform the images to correct things like shear and rotation
-                    if isfield(tSet,'affineMat')
-                        obj.frameSizeSettings(ii).affineMat = tSet.affineMat;
-                    else
-                        obj.frameSizeSettings(ii).affineMat = [];
-                    end
-                    %This is used by StitchIt to tweaak the nomincal stitching mics per pixel
-                    if isfield(tSet,'stitchingVoxelSize')
-                        obj.frameSizeSettings(ii).stitchingVoxelSize = tSet.stitchingVoxelSize;
-                    else
-                        thisStruct(ii).stitchingVoxelSize = [];
-                    end
-                end
-
-            else % Report no frameSize file found
-                fprintf('\n\n dummyScanner finds no frame size file found at %s\n\n', frameSizeFname)
-                obj.frameSizeSettings=struct;
-            end
-        end % function readFrameSizeSettings(obj)
 
 
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
         % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
-        function attachExistingData(obj,imageStack,voxelSize)
-            %  function attachExistingData(obj,imageStack,voxelSize)
+        function attachPreviewStack(obj,pStack,voxelSize)
+            %  function attachPreviewStack(obj,pStack)
             %
             %  e.g.
-            %  TT = load3DTiff('someData.tiff');
-            %  hBT.scanner.attachExistingData(TT,[7,10])
+            %  load some_pStack
+            %  hBT.scanner.attachExistingData(pStack)
 
-            obj.imageStackData=imageStack;
-            obj.imageStackVoxelSizeXY = voxelSize(1);
-            obj.imageStackVoxelSizeZ = voxelSize(2);
+            % Add data to object
+            obj.imageStackData=pStack.imStack;
+            obj.imageStackVoxelSizeXY = pStack.voxelSizeInMicrons;
+            obj.imageStackVoxelSizeZ = pStack.recipe.mosaic.sliceThickness;
 
-            %set the recipe to match the data
+            % Set the number of optical planes to 1, as we won' be doing this here
+            obj.numOpticalPlanes=1;
             obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
             obj.currentPhysicalSection=1;
             obj.currentOpticalPlane=1;
         end
 
 
-        function varargout = acquireTile(obj,~)
-            %If image stack data have been added, then we can fake acquisition of an image. Otherwise skip.
-            if isempty(obj.imageStackData)
-                success=false;
-                if nargout>0
-                    varargout{1}=success;
-                end
-                return
-            end
 
-            tDepth = obj.numOpticalPlanes * (obj.currentPhysicalSection-1) + obj.currentOpticalPlane;
-            if size(obj.imageStackData,3)<tDepth
-                fprintf('Current desired depth %d is out of bounds. Loaded stack has %d planes.\n',...
-                    tDepth, size(obj.imageStackData,3))
-                return
-            end
-            thisSection = obj.imageStackData(:,:,tDepth);
-
-            [X,Y]=obj.parent.getXYpos;
-            xPosInMicrons = abs(X)*1E3 ; %ABS HACK TODO
-            yPosInMicrons = abs(Y)*1E3 ; %ABS HACK TODO
-
-            %tile step size
-            xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
-            yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
-
-
-            %position in slice is
-            xRange = ceil([xPosInMicrons,xPosInMicrons+xStepInMicrons]/obj.imageStackVoxelSizeXY);
-            yRange = ceil([yPosInMicrons,yPosInMicrons+yStepInMicrons]/obj.imageStackVoxelSizeXY);
-            if xRange(1)==0
-                xRange=xRange+1;
-            end
-            if yRange(1)==0
-                yRange=yRange+1;
-            end
-
-            tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
-            obj.lastAcquiredTile=tile;
-            if obj.displayAcquiredImages
-            % Open figure window as needed
-                f=findobj('Tag','CurrentDummyImFig');
-                if isempty(f)
-                    obj.hCurrentImFig = figure;
-                    obj.hCurrentImFig.Tag='CurrentDummyImFig';
-                else
-                    clf(f)
-                end
-
-                tileIm=imagesc(tile);
-                tileIm.Tag='tileImage';
-                %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
-                axis equal off
-                colormap gray
-                set(gcf,'color',[1,0.9,0.9]*0.1)
-                drawnow
-            end
-
-            success=true;
-
-            if nargout>0
-                varargout{1}=success;
-            end
-
-            if obj.writeData
-                %SAVE
-            end
-        end % acquireTile
 
         function startFocus(obj)
             % Runs the acquire tile method continuously with a timer
