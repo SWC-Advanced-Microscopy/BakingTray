@@ -15,7 +15,6 @@ function takeRapidPreview(obj)
     %
     % 
 
-
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
         return

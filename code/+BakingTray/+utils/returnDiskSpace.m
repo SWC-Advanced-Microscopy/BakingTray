@@ -18,12 +18,23 @@ function varargout = returnDiskSpace(spaceInPath)
     %
     % Rob Campbell - Basel 2017
 
+    % Define empty disk space struct in case of an error
+    diskSpace.freeGB = [];
+    diskSpace.totalGB = [];
+    diskSpace.percentUsed = [];
+
+
     if nargin<1 || isempty(spaceInPath)
         spaceInPath=pwd;
     end
 
+    % Deal with a "~" by substituting it with the root path
+    if strcmp('~',spaceInPath)
+        spaceInPath=filesep;
+    end
+
     % Convert 'C' into 'C:'
-    if length(spaceInPath)==1 && ischar(spaceInPath) && regexp(spaceInPath,'[A-Z]')
+    if length(spaceInPath)==1 && ischar(spaceInPath) && ~isempty(regexp(spaceInPath,'[A-Z]'))
         spaceInPath = [spaceInPath,':'];
     end
 
