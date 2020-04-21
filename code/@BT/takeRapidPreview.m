@@ -89,16 +89,16 @@ function takeRapidPreview(obj)
 
 
     if ~obj.scanner.armScanner
-        disp('FAILED TO START -- COULD NOT ARM SCANNER')
+        fprintf('\n\n ** FAILED TO START RAPID PREVIEW -- COULD NOT ARM SCANNER.\n\n')
     else
         %This initiates the tile scan
         try
             obj.runTileScan;
         catch ME
-             obj.scanner.abortScanning;
-             tidyUpAfterPreview
-             disp(' RAPID PREVIEW FAILED ')
-           	 rethrow(ME)
+            obj.scanner.abortScanning;
+            tidyUpAfterPreview
+            fprintf('\n\n ** RAPID PREVIEW FAILED\n\n')
+            rethrow(ME)
         end
     end
 
