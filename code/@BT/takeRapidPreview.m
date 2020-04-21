@@ -96,8 +96,6 @@ function takeRapidPreview(obj)
             obj.runTileScan;
         catch ME
              obj.scanner.abortScanning;
-             %obj.scanner.disarmScanner;
-             %obj.acquisitionInProgress=false;
              tidyUpAfterPreview
              disp(' RAPID PREVIEW FAILED ')
            	 rethrow(ME)
