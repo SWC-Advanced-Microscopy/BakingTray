@@ -34,6 +34,7 @@ function startPreviewScan(obj,~,~)
     try
         obj.model.takeRapidPreview
     catch ME
+        fprintf('BT.takeRapidPreview failed with error message:\n%s\n',ME.message)
     end
 
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
