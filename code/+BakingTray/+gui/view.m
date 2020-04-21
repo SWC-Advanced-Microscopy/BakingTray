@@ -122,7 +122,7 @@ classdef view < handle
             if isa(obj.model.scanner,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
             elseif isa(obj.model.scanner,'dummyScanner')
-                obj.menu.openDummyScanner = uimenu(obj.menu.scanner,'Label','Open dummy scanner','Callback',@(~,~) obj.model.scanner.createOrFocusFigureWindow);
+                obj.menu.openDummyScanner = uimenu(obj.menu.scanner,'Label','Open dummy scanner','Callback',@(~,~) obj.model.scanner.createFigureWindow);
             else
                 fprintf('BakingTray is configured to run without ScanImage\n')
             end
@@ -130,7 +130,7 @@ classdef view < handle
 
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
-            
+
             %TODO: this item should only appear if the scanner if ScanImage
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
 

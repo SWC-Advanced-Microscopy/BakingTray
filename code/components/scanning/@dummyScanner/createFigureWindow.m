@@ -45,4 +45,3 @@ end
     axis equal off
 
     colormap gray
-

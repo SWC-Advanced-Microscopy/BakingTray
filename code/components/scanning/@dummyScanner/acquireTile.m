@@ -51,7 +51,7 @@ function varargout = acquireTile(obj,~,~)
 
     if obj.displayAcquiredImages
         % Open figure window as needed
-        obj.createOrFocusFigureWindow
+        obj.createFigureWindow
 
         % Update the current section
         obj.hWholeSectionPlt.CData=thisSection;
