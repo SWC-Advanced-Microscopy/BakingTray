@@ -11,7 +11,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - DEVELOPER: 
    * dummyScanner uses previewStacks as dataset format.
    * dummyScanner has a basic UI: it can be started from the main BT menu and has a simple GUI with features available from menu.
-
+   * Restructure acquisition_view into separate files
 
 
 6th November 2019
