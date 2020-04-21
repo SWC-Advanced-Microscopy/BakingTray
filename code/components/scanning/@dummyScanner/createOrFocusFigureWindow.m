@@ -1,49 +1,48 @@
-function createOrFocusFigureWindow(obj,~,~)
+function createFigureWindow(obj,~,~)
 % Create a figure window into which we will place images
-    f=findobj('Tag','CurrentDummyImFig');
-    if isempty(f)
-        obj.hCurrentImFig = figure;
-        set(obj.hCurrentImFig, ...
-            'Tag','CurrentDummyImFig', ...
-            'Name', 'DUMMY SCANNER', ...
-            'CloseRequestFcn',@obj.figCloseFcn);
+f=findobj('Tag','CurrentDummyImFig');
+if ~isempty(f) && isvalid(f)
+    return
+end
 
-        obj.hCurrentImFig.Position(3)=750;
-        obj.hCurrentImFig.Position(4)=920;
+    obj.hCurrentImFig = figure;
+    set(obj.hCurrentImFig, ...
+        'Tag','CurrentDummyImFig', ...
+        'Name', 'DUMMY SCANNER', ...
+        'CloseRequestFcn',@obj.figCloseFcn);
 
-        % Modify to suit our needs
-        set(obj.hCurrentImFig,'color',[1,0.9,0.9]*0.1)
+    obj.hCurrentImFig.Position(3)=750;
+    obj.hCurrentImFig.Position(4)=920;
 
-        % Menus
-        allhandles = findall(obj.hCurrentImFig);
-        menuhandles = findobj(allhandles,'type','uimenu');
-        delete(findobj(menuhandles,'tag','figMenuHelp'));
+    % Modify to suit our needs
+    set(obj.hCurrentImFig,'color',[1,0.9,0.9]*0.1)
 
-        obj.scannerMenu = uimenu(obj.hCurrentImFig,'Label','Scanner');
+    % Menus
+    allhandles = findall(obj.hCurrentImFig);
+    menuhandles = findobj(allhandles,'type','uimenu');
+    delete(findobj(menuhandles,'tag','figMenuHelp'));
 
-        obj.acquireTileMenu = uimenu(obj.scannerMenu,'label', 'Acquire Tile', ...
-                    'Callback', @obj.acquireTile);
+    obj.scannerMenu = uimenu(obj.hCurrentImFig,'Label','Scanner');
 
-        obj.focusStartStopMenu = uimenu(obj.scannerMenu,'label', 'Start Focus', ...
-                    'Callback', @obj.startFocus);
+    obj.acquireTileMenu = uimenu(obj.scannerMenu,'label', 'Acquire Tile', ...
+                'Callback', @obj.acquireTile);
 
-        % Create two sub-plots. One will show the whole section, the other the current frame
-        obj.hWholeSectionAx = axes('Position',[0.025,0.45,0.95,0.5]);
-        obj.hWholeSectionPlt = imagesc(ones(100,250));
-        obj.hWholeSectionPlt.Tag='sectionImage';
-        hold on
-        obj.hTileLocationBox = plot(nan,nan,'x-r','LineWidth',2,'MarkerSize',15);
-        hold off
-        axis equal off
+    obj.focusStartStopMenu = uimenu(obj.scannerMenu,'label', 'Start Focus', ...
+                'Callback', @obj.startFocus);
 
-        obj.hCurrentFrameAx = axes('Position',[0.275,0.01,0.45,0.45]);
-        obj.hCurrentFramePlt = imagesc(ones(50));
-        obj.hCurrentFramePlt.Tag='tileImage';
-        axis equal off
+    % Create two sub-plots. One will show the whole section, the other the current frame
+    obj.hWholeSectionAx = axes('Position',[0.025,0.45,0.95,0.5]);
+    obj.hWholeSectionPlt = imagesc(ones(100,250));
+    obj.hWholeSectionPlt.Tag='sectionImage';
+    hold on
+    obj.hTileLocationBox = plot(nan,nan,'x-r','LineWidth',2,'MarkerSize',15);
+    hold off
+    axis equal off
 
-        colormap gray
-    else
-        % Focus on figure window
-        figure(f)
-        %clf(f)
-    end
+    obj.hCurrentFrameAx = axes('Position',[0.275,0.01,0.45,0.45]);
+    obj.hCurrentFramePlt = imagesc(ones(50));
+    obj.hCurrentFramePlt.Tag='tileImage';
+    axis equal off
+
+    colormap gray
+
