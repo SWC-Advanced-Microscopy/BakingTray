@@ -2,6 +2,19 @@ function takeRapidPreview(obj)
     % Runs one section with faster scan settings to see what the sample looks like
     %
     % function BT.takeRapidPreview
+    %
+    % Purpose
+    % During sample set-up the user images the face of the block to determine where 
+    % draw the imaging area. This is called a "preview scan" and is of lower resolution
+    % than the final scan. In addition, the preview scan acquires only one optical plane,
+    % even if the final acquisition will involved multiple planes. This method performs
+    % preview scan. It first sets scan parameters to the required lower resolution,
+    % performs the scan, then returns the scan parameters to their original values. To
+    % indicate that the settings are at the lower resolution, the sample ID is changed
+    % to the string "FASTPREVIEW" for the duration of the preview scan.
+    %
+    % 
+
 
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
