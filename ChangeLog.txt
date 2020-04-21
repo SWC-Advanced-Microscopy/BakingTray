@@ -7,6 +7,12 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+21st April 2020
+- DEVELOPER: 
+   * dummyScanner uses previewStacks as dataset format.
+   * dummyScanner has a basic UI: it can be started from the main BT menu and has a simple GUI with features available from menu.
+
+
 
 6th November 2019
 - USER: potential out of bounds stage errors are caught before cutting begins.

@@ -121,6 +121,8 @@ classdef view < handle
             %TODO: these menu items should react to whether or not the scanner is connected
             if isa(obj.model.scanner,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
+            elseif isa(obj.model.scanner,'dummyScanner')
+                obj.menu.openDummyScanner = uimenu(obj.menu.scanner,'Label','Open dummy scanner','Callback',@(~,~) obj.model.scanner.createOrFocusFigureWindow);
             else
                 fprintf('BakingTray is configured to run without ScanImage\n')
             end

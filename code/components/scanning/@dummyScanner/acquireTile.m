@@ -1,5 +1,6 @@
-function varargout = acquireTile(obj,~)
+function varargout = acquireTile(obj,~,~)
     %If image stack data have been added, then we can fake acquisition of an image. Otherwise skip.
+    % This is also a callback function that is accessed via the "Scanner" menu
     if isempty(obj.imageStackData)
         success=false;
         if nargout>0
@@ -47,24 +48,25 @@ function varargout = acquireTile(obj,~)
     tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
 
     obj.lastAcquiredTile=tile;
-    if obj.displayAcquiredImages
-    % Open figure window as needed
-        f=findobj('Tag','CurrentDummyImFig')
-        if isempty(f)
-            obj.hCurrentImFig = figure;
-            obj.hCurrentImFig.Tag='CurrentDummyImFig';
-        else
-            % Focus on figure window
-            figure(f)
-            clf(f)
-        end
 
-        tileIm=imagesc(tile);
-        tileIm.Tag='tileImage';
+    if obj.displayAcquiredImages
+        % Open figure window as needed
+        obj.createOrFocusFigureWindow
+
+        % Update the current section
+        obj.hWholeSectionPlt.CData=thisSection;
+        set(obj.hWholeSectionAx,'XLim', [1,size(thisSection,2)]);
+        set(obj.hWholeSectionAx,'YLim', [1,size(thisSection,1)]);
+
+        % Update the current tile position
+        obj.hTileLocationBox.XData=mean(yRange);
+        obj.hTileLocationBox.YData=mean(xRange);
+
+        obj.hCurrentFramePlt.CData=tile;
+        set(obj.hCurrentFrameAx,'XLim', [1,size(tile,2)]);
+        set(obj.hCurrentFrameAx,'YLim', [1,size(tile,1)]);
         %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
-        axis equal off
-        colormap gray
-        set(gcf,'color',[1,0.9,0.9]*0.1)
+
         drawnow
     end
 

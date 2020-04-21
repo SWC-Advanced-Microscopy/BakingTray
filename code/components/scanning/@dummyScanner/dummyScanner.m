@@ -21,9 +21,9 @@ classdef dummyScanner < scanner
         simulateAcquisition = false %if true, we attempt to load an existing dataset to simulate acquisition
         displayAcquiredImages=true
         lastAcquiredTile
-    end
 
-    properties (Hidden)
+        hCurrentImFig  % Handle to the figure window
+
         %The following properties are highly specific to dummy_scanner
         imageStackData %Downsampled image stack that we "image"
         imageStackVoxelSizeXY %voxel size of loaded stack in x/y
@@ -33,10 +33,23 @@ classdef dummyScanner < scanner
         currentPhysicalSection=1
         currentOpticalPlane=1
 
+    end
+
+    properties (Hidden)
         numOpticalPlanes=1
         averageEveryNframes=1;
 
-        hCurrentImFig
+        % Handles to menu items that perform basic actions
+        scannerMenu
+        acquireTileMenu
+        focusStartStopMenu
+
+        hWholeSectionAx
+        hWholeSectionPlt
+        hCurrentFrameAx
+        hCurrentFramePlt
+
+        hTileLocationBox % Box laid over the section image so we can see where we are
 
         focusTimer % Used to handle ScanImage "focus-like" streaming to an image window
     end
@@ -58,8 +71,8 @@ classdef dummyScanner < scanner
 
         %destructor
         function delete(obj)
+            delete(obj.hCurrentImFig)
             obj.hC=[];
-            obj.delete(obj.hCurrentImFig)
 
             if isa(obj.focusTimer,'timer')
                 stop(obj.focusTimer)
@@ -227,34 +240,57 @@ classdef dummyScanner < scanner
 
 
 
-        function startFocus(obj)
+        function startFocus(obj,~,~)
             % Runs the acquire tile method continuously with a timer
             obj.displayAcquiredImages=true;
             obj.acquireTile % Ensure window is present
             start(obj.focusTimer)
+
+            % Update the focus menu
+            obj.focusStartStopMenu.Text='Stop Focus';
+            obj.focusStartStopMenu.Callback=@obj.stopFocus;
         end % start focus
 
-        function stopFocus(obj)
+        function stopFocus(obj,~,~)
             % Stops simulated focus acquisition
             stop(obj.focusTimer)
             obj.displayAcquiredImages=true;
+
+            % Update the focus menu
+            obj.focusStartStopMenu.Text='Start Focus';
+            obj.focusStartStopMenu.Callback=@obj.startFocus;
         end % stop focus
 
     end %close methods
 
     methods (Hidden=true)
+        function figCloseFcn(obj,~,~)
+            if strcmp(obj.focusTimer.Running,'on')
+                fprintf('Stopping focus\n')
+                obj.stopFocus
+            end
+            delete(obj.hCurrentImFig)
+        end
+
         function updateFocusWindow(obj,~,~)
-            % Focus timer callback
-            obj.displayAcquiredImages=false; % Because this method does it
             f=findobj('Tag','CurrentDummyImFig');
             if isempty(f)
                 return
             end
-            tObj=findobj('Tag','tileImage');
-            obj.acquireTile;
-            tObj.CData=obj.lastAcquiredTile;
-            drawnow
-            obj.displayAcquiredImages=true;
+
+            try
+                % Focus timer callback
+                %obj.displayAcquiredImages=false; % Because this method does it
+
+                %tObj=findobj('Tag','tileImage');
+                obj.acquireTile;
+                %tObj.CData=obj.lastAcquiredTile;
+                %drawnow
+                %obj.displayAcquiredImages=true;
+            catch ME 
+                disp(ME.message)
+                obj.stopFocus
+            end
         end % updateFocusWindow
     end % Hidden methods
 
