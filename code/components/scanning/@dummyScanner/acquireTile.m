@@ -47,6 +47,11 @@ function varargout = acquireTile(obj,~,~)
     end
     tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
 
+    % Place tile into the BakingTray downsampled tile buffer
+    if obj.placeInDownSampledTileBuffer
+        obj.parent.downSampledTileBuffer=tile;
+    end
+
     obj.lastAcquiredTile=tile;
 
     if obj.displayAcquiredImages

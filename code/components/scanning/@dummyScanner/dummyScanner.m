@@ -13,12 +13,11 @@ classdef dummyScanner < scanner
         logFileCounter
         inAcquiringMode=false;
 
-        %The following properties are highly specific to dummy_scanner
-        writeData=false %Only writes data to disk if this is true. 
-        existingDataDir %Directory containing existing data set that we will use 
-        metaData %meta data of already existin dataset
+        % The following properties are highly specific to dummy_scanner
+        writeData=false % Only writes data to disk if this is true. 
+        existingDataDir %D irectory containing existing data set that we will use 
+        metaData % meta data of already existin dataset
 
-        simulateAcquisition = false %if true, we attempt to load an existing dataset to simulate acquisition
         displayAcquiredImages=true
         lastAcquiredTile
 
@@ -36,6 +35,8 @@ classdef dummyScanner < scanner
     end
 
     properties (Hidden)
+        placeInDownSampledTileBuffer=false; %Changed by arm/disarm scanner
+
         numOpticalPlanes=1
         averageEveryNframes=1;
 
@@ -94,11 +95,13 @@ classdef dummyScanner < scanner
 
         function success = armScanner(obj,~)
             obj.inAcquiringMode=true;
+            obj.placeInDownSampledTileBuffer=true;
             success=true;
         end %armScanner
 
         function success = disarmScanner(obj,~)
             obj.inAcquiringMode=false;
+            obj.placeInDownSampledTileBuffer=false;
             success=true;
         end %armScanner
 
@@ -178,7 +181,8 @@ classdef dummyScanner < scanner
         function setImageSize(obj,~,~)
         end
 
-        function pixPerLine = getPixelsPerLine(obj)
+        function pixelsPerLine = getPixelsPerLine(obj)
+            % TODO: This may not match the data we have loaded!
             S=obj.returnScanSettings;
             pixelsPerLine=S.pixelsPerLine;
         end
@@ -205,12 +209,11 @@ classdef dummyScanner < scanner
         function applyScanSettings(~,~)
         end
 
-        function nFrames = getNumAverageFrames(~);
+        function nFrames = getNumAverageFrames(obj);
             nFrames=obj.averageEveryNframes;
         end
 
         function setNumAverageFrames(~,~)
-            fprintf('** dummyScanner.setNumAverageFrames does nothing\n')
         end
 
 
