@@ -58,6 +58,11 @@ classdef dummyScanner < scanner
         hCurrentFrameAx
         hCurrentFramePlt
 
+        % These values are calculated by attachPreviewStack so that we don't see the padded 
+        % regions when displaying the section image. 
+        sectionImage_ylim
+        sectionImage_xlim
+
         hTileLocationBox % Box laid over the section image so we can see where we are
 
         focusTimer % Used to handle ScanImage "focus-like" streaming to an image window
@@ -222,7 +227,6 @@ classdef dummyScanner < scanner
 
 
         function pixelsPerLine = getPixelsPerLine(obj)
-            % TODO: This may not match the data we have loaded!
             S=obj.returnScanSettings;
             pixelsPerLine=S.pixelsPerLine;
         end
@@ -269,48 +273,6 @@ classdef dummyScanner < scanner
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
         % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
-        function attachPreviewStack(obj,pStack,voxelSize)
-            %  function attachPreviewStack(obj,pStack)
-            %
-            %  e.g.
-            %  load some_pStack
-            %  hBT.scanner.attachExistingData(pStack)
-
-            % Add data to object
-            obj.imageStackData=pStack.imStack;
-            obj.imageStackVoxelSizeXY = pStack.voxelSizeInMicrons;
-            obj.imageStackVoxelSizeZ = pStack.recipe.mosaic.sliceThickness;
-
-            % Set the number of optical planes to 1, as we won' be doing this here
-            obj.numOpticalPlanes=1;
-            obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
-            obj.currentPhysicalSection=1;
-            obj.currentOpticalPlane=1;
-
-            obj.getClim % Set the max plotted value
-
-            % TODO - modify the max positions of the stages so we can't scan outside of the available area
-
-            % Move stages to the middle of the sample area so we are more likely to see something if we take an image
-            midY = (size(obj.imageStackData,2) * obj.imageStackVoxelSizeXY * 1E-3)/2;
-            midX = (size(obj.imageStackData,1) * obj.imageStackVoxelSizeXY * 1E-3)/2;
-            obj.parent.moveXYto(midX,midY)
-
-            % Set the sample size to something reasonable based on the area of the sample
-            OUT.FOV_alongColsinMicrons=pStack.tileSizeInMicrons;
-            OUT.FOV_alongRowsinMicrons=pStack.tileSizeInMicrons;
-
-
-            OUT.pixelsPerLine=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
-            OUT.linesPerFrame=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
-
-            tilesY = floor(size(obj.imageStackData,2) / OUT.pixelsPerLine);
-            tilesX = floor(size(obj.imageStackData,1) / OUT.pixelsPerLine);
-            obj.parent.recipe.mosaic.sampleSize.Y=floor(tilesY);
-            obj.parent.recipe.mosaic.sampleSize.X=floor(tilesX);
-        end
-
-
         function getClim(obj)
             % Uses the loaded image stack to get a reasonable range for the look-up table
             tmp = single(obj.imageStackData(1:10:end));
