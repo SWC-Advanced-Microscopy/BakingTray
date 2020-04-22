@@ -32,6 +32,11 @@ classdef dummyScanner < scanner
         currentPhysicalSection=1
         currentOpticalPlane=1
 
+
+    end
+
+    properties (SetObservable)
+        stack_clim = [0,100] % Reasonable values for the axis range
     end
 
     properties (Hidden)
@@ -275,8 +280,19 @@ classdef dummyScanner < scanner
             obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
             obj.currentPhysicalSection=1;
             obj.currentOpticalPlane=1;
+
+            obj.getClim
         end
 
+
+        function getClim(obj)
+            % Uses the loaded image stack to get a reasonable range for the look-up table
+            tmp = single(obj.imageStackData(1:10:end));
+            [n,x] = hist(tmp,500);
+            cc = cumsum(n)/sum(n);
+            f=find(cc>0.9); % to get 90th percentile
+            obj.stack_clim = [0,x(f(1))];
+        end
 
 
 

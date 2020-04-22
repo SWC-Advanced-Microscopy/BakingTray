@@ -55,16 +55,21 @@ function varargout = acquireTile(obj,~,~)
 
         % Update the current section
         obj.hWholeSectionPlt.CData=thisSection;
-        set(obj.hWholeSectionAx,'XLim', [1,size(thisSection,2)]);
-        set(obj.hWholeSectionAx,'YLim', [1,size(thisSection,1)]);
+        set(obj.hWholeSectionAx, ...
+            'XLim', [1,size(thisSection,2)], ...
+            'YLim', [1,size(thisSection,1)], ...
+            'CLim', obj.stack_clim)
 
         % Update the current tile position
         obj.hTileLocationBox.XData=mean(yRange);
         obj.hTileLocationBox.YData=mean(xRange);
 
         obj.hCurrentFramePlt.CData=tile;
-        set(obj.hCurrentFrameAx,'XLim', [1,size(tile,2)]);
-        set(obj.hCurrentFrameAx,'YLim', [1,size(tile,1)]);
+        set(obj.hCurrentFrameAx, ...
+            'XLim', [1,size(tile,2)], ...
+            'YLim', [1,size(tile,1)], ...
+            'CLim', obj.stack_clim)
+
         %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
 
         drawnow
