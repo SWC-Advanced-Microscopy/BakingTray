@@ -65,12 +65,6 @@ function initiateTileScan(obj)
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
-    if obj.parent.currentTilePosition>size(obj.parent.currentTilePattern,1)
-        fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
-        return
-    end
-
-
 
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
@@ -90,7 +84,12 @@ function initiateTileScan(obj)
 
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-    %pause(0.2)
+    if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
+        fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
+        obj.parent.acquisitionInProgress=false;
+        return
+    end
+
     obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
 
 
