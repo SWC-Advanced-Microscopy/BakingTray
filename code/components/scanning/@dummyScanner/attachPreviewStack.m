@@ -1,4 +1,4 @@
-function attachPreviewStack(obj,pStack,voxelSize)
+function attachPreviewStack(obj,pStack)
     %  function attachPreviewStack(obj,pStack)
     %
     %  e.g.
@@ -46,15 +46,15 @@ function attachPreviewStack(obj,pStack,voxelSize)
     obj.parent.moveXYto(midX,midY)
 
     % Set the sample size to something reasonable based on the area of the sample
-    OUT.FOV_alongColsinMicrons=pStack.tileSizeInMicrons;
-    OUT.FOV_alongRowsinMicrons=pStack.tileSizeInMicrons;
+    obj.scannerSettings.FOV_alongColsinMicrons=pStack.tileSizeInMicrons;
+    obj.scannerSettings.FOV_alongRowsinMicrons=pStack.tileSizeInMicrons;
 
 
-    OUT.pixelsPerLine=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
-    OUT.linesPerFrame=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
+    obj.scannerSettings.pixelsPerLine=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
+    obj.scannerSettings.linesPerFrame=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
 
-    tilesY = floor(size(obj.imageStackData,2) / OUT.pixelsPerLine);
-    tilesX = floor(size(obj.imageStackData,1) / OUT.pixelsPerLine);
+    tilesY = floor(size(obj.imageStackData,2) / obj.scannerSettings.pixelsPerLine);
+    tilesX = floor(size(obj.imageStackData,1) / obj.scannerSettings.pixelsPerLine);
     obj.parent.recipe.mosaic.sampleSize.Y=floor(tilesY);
     obj.parent.recipe.mosaic.sampleSize.X=floor(tilesX);
 
