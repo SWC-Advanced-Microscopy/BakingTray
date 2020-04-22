@@ -56,7 +56,6 @@ function takeRapidPreview(obj)
     end
     numZ = obj.recipe.mosaic.numOpticalPlanes;
 
-    disp('about to set image size') %TODO
     if strcmp(obj.scanner.scannerType,'linear')
         obj.scanner.setImageSize(128); %Set pixels per line, the method takes care of the rest
     else
@@ -72,8 +71,6 @@ function takeRapidPreview(obj)
     %Image just one plane without averaging
     obj.recipe.mosaic.numOpticalPlanes=1;
     obj.scanner.setNumAverageFrames(1);
-
-    disp('Done with scanner settings chnages') %TODO
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
@@ -91,7 +88,6 @@ function takeRapidPreview(obj)
     else
         %This initiates the tile scan
         try
-            disp('Trying to start runTileScan from takeRapidPreview') %TODO
             obj.runTileScan;
         catch ME
             obj.scanner.abortScanning;
