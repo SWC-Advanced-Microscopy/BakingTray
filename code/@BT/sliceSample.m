@@ -23,6 +23,13 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Outputs
     % finished : true/false depending on whether or not it ran to the end
 
+    % Don't waste time slicing if we have a dummy slicer
+    if isa(obj.cutter,'dummyCutter')
+        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
+        finished=true;
+        return
+    end
+
     finished=false;
     obj.isSlicing=true;
     if isempty(obj.cutter)
