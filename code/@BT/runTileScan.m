@@ -61,7 +61,7 @@ function runSuccess = runTileScan(obj)
 
     % Instruct the scanner to initiate the tile scan. This may simply involving issuing a trigger if tile scanning
     % or will initiate a motion that will itself trigger if ribbon scanning.
-    obj.scanner.initiateTileScan; %acquires a stack and triggers scanimage to acquire the rest of the stacks
+    obj.scanner.initiateTileScan; %acquires a stack and triggers the scanner (likely ScanImage) to acquire the rest of the stacks
 
     %block until done
     while 1

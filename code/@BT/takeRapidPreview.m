@@ -56,7 +56,7 @@ function takeRapidPreview(obj)
     end
     numZ = obj.recipe.mosaic.numOpticalPlanes;
 
-
+    disp('about to set image size') %TODO
     if strcmp(obj.scanner.scannerType,'linear')
         obj.scanner.setImageSize(128); %Set pixels per line, the method takes care of the rest
     else
@@ -69,11 +69,11 @@ function takeRapidPreview(obj)
         obj.scanner.hC.hScan2D.sampleRate=1.25E6;
     end
 
-
     %Image just one plane without averaging
     obj.recipe.mosaic.numOpticalPlanes=1;
     obj.scanner.setNumAverageFrames(1);
 
+    disp('Done with scanner settings chnages') %TODO
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
@@ -86,17 +86,19 @@ function takeRapidPreview(obj)
 
     obj.preAllocateTileBuffer
 
-
     if ~obj.scanner.armScanner
         fprintf('\n\n ** FAILED TO START RAPID PREVIEW -- COULD NOT ARM SCANNER.\n\n')
     else
         %This initiates the tile scan
         try
+            disp('Trying to start runTileScan from takeRapidPreview') %TODO
             obj.runTileScan;
         catch ME
             obj.scanner.abortScanning;
             tidyUpAfterPreview
             fprintf('\n\n ** RAPID PREVIEW FAILED\n\n')
+            report=getReport(ME);
+            fprintf(report)
             rethrow(ME)
         end
     end

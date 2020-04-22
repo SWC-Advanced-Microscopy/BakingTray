@@ -37,7 +37,10 @@ classdef dummyScanner < scanner
     properties (Hidden)
         placeInDownSampledTileBuffer=false; %Changed by arm/disarm scanner
 
+        %NOTE: dummyScanner is only tested with the following three 
+        %      properties set to 1.
         numOpticalPlanes=1
+        numChannels=1;
         averageEveryNframes=1;
 
         % Handles to menu items that perform basic actions
@@ -53,6 +56,8 @@ classdef dummyScanner < scanner
         hTileLocationBox % Box laid over the section image so we can see where we are
 
         focusTimer % Used to handle ScanImage "focus-like" streaming to an image window
+
+        settings % to mirror those in SIBT, just in case this is helpful
     end
 
     methods
@@ -67,6 +72,11 @@ classdef dummyScanner < scanner
             obj.focusTimer.Period = 0.25;
             obj.focusTimer.TimerFcn = @(~,~) obj.updateFocusWindow;
             obj.focusTimer.ExecutionMode = 'fixedDelay';
+
+            % Hard-code settings for acquisition behavior
+            obj.settings.tileAcq.tileFlipUD=true; % see initiateTileScan
+            obj.settings.tileAcq.tileFlipLR=false; % see initiateTileScan
+            obj.settings.tileAcq.tileRotate=1;     % see initiateTileScan
         end %constructor
 
 
@@ -96,8 +106,18 @@ classdef dummyScanner < scanner
         function success = armScanner(obj,~)
             obj.inAcquiringMode=true;
             obj.placeInDownSampledTileBuffer=true;
+            % Ensure we run as fast as possible 
+            if isa(obj.parent.xAxis,'dummy_linearcontroller')
+                obj.parent.xAxis.setMaxVelocity(200);
+                obj.parent.xAxis.updateInterval=0.005;
+            end
+            if isa(obj.parent.yAxis,'dummy_linearcontroller')
+                obj.parent.yAxis.setMaxVelocity(200);
+                obj.parent.yAxis.updateInterval=0.005;
+            end
             success=true;
         end %armScanner
+
 
         function success = disarmScanner(obj,~)
             obj.inAcquiringMode=false;
@@ -105,26 +125,29 @@ classdef dummyScanner < scanner
             success=true;
         end %armScanner
 
+
         function abortScanning(obj)
         end
+
 
         function showFastZCalib(~,~,~)
             % SIBT does this and so we also do here
         end
 
+
         function setUpTileSaving(~)
         end
+
 
         function disableTileSaving(~)
         end
 
-        function initiateTileScan(~)
-        end
 
         function acquiring = isAcquiring(obj)
             acquiring=obj.inAcquiringMode;
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
+
 
         function OUT = returnScanSettings(obj)
             %TODO - these settings can't be changed by interacting the GUI
@@ -153,33 +176,41 @@ classdef dummyScanner < scanner
             OUT.averageEveryNframes=obj.averageEveryNframes;
         end
 
+
         function pauseAcquisition(obj)
             obj.acquisitionPaused=true;
         end
+
 
         function resumeAcquisition(obj)
             obj.acquisitionPaused=false;
         end
 
+
         function maxChans = maxChannelsAvailable(obj)
             maxChans=obj.maxChans;
         end
 
+
         function chans = channelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
+
 
         function chans = channelsToDisplay(obj)
             chans=obj.channelsToAcquire;
             chans=chans(1);
         end
 
+
         function scannerType = scannerType(obj)
             scannerType = 'linear';
         end %scannerType
 
+
         function setImageSize(obj,~,~)
         end
+
 
         function pixelsPerLine = getPixelsPerLine(obj)
             % TODO: This may not match the data we have loaded!
@@ -187,31 +218,39 @@ classdef dummyScanner < scanner
             pixelsPerLine=S.pixelsPerLine;
         end
 
+
         function LUT = getChannelLUT(~,~)
             LUT=[0,5E3];
         end
 
+
         function tearDown(~)
         end
+
 
         function verStr=getVersion(~)
             verStr='dummy scanner';
         end
 
+
         function sr = generateSettingsReport(~)
             sr=[];
         end
+
 
         function applyZstackSettingsFromRecipe(obj,~,~)
             obj.numOpticalPlanes=obj.parent.recipe.mosaic.numOpticalPlanes;
         end
 
+
         function applyScanSettings(~,~)
         end
+
 
         function nFrames = getNumAverageFrames(obj);
             nFrames=obj.averageEveryNframes;
         end
+
 
         function setNumAverageFrames(~,~)
         end
