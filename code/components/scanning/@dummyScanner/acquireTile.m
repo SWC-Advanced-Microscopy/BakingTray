@@ -11,7 +11,7 @@ function varargout = acquireTile(obj,~,~)
 
     verbose=true;
 
-    tDepth = obj.numOpticalPlanes * (obj.currentPhysicalSection-1) + obj.currentOpticalPlane;
+    tDepth = obj.numOpticalPlanes * (obj.parent.currentSectionNumber-1) + obj.currentOpticalPlane;
     if size(obj.imageStackData,3)<tDepth
         fprintf('Current desired depth %d is out of bounds. Loaded stack has %d planes.\n',...
             tDepth, size(obj.imageStackData,3))

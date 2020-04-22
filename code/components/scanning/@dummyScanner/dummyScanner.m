@@ -29,7 +29,6 @@ classdef dummyScanner < scanner
         imageStackVoxelSizeZ %voxel size of loaded stack in z
         maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
 
-        currentPhysicalSection=1
         currentOpticalPlane=1
 
 
@@ -164,7 +163,8 @@ classdef dummyScanner < scanner
 
 
         function OUT = returnScanSettings(obj)
-            %TODO - these settings can't be changed by interacting the GUI
+            %Where needed, the following settings are modified
+            %when attachPreviewStack runs. 
             OUT.pixelsPerLine=512;
             OUT.linesPerFrame=512;
             OUT.micronsBetweenOpticalPlanes=10;

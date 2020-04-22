@@ -15,7 +15,6 @@ function attachPreviewStack(obj,pStack,voxelSize)
     % Set the number of optical planes to 1, as we won' be doing this here
     obj.numOpticalPlanes=1;
     obj.parent.recipe.mosaic.numOpticalPlanes=obj.numOpticalPlanes;
-    obj.currentPhysicalSection=1;
     obj.currentOpticalPlane=1;
 
     obj.getClim % Set the max plotted value
@@ -62,6 +61,10 @@ function attachPreviewStack(obj,pStack,voxelSize)
     % Set the front/left so we start at the corner of the sample, not the padded area
     obj.parent.recipe.FrontLeft.X = -padBy * pStack.voxelSizeInMicrons * 1E-3;
     obj.parent.recipe.FrontLeft.Y = -padBy * pStack.voxelSizeInMicrons * 1E-3;
+
+    % Set the number of sections in the recipe file based on the number available in the stack
+    obj.parent.recipe.mosaic.numSections=size(pStack.imStack,3);
+    hBT.currentTilePosition=1;
 
     % Determine reasonable x and y limits for the section image so we don't display
     % the padded area
