@@ -63,6 +63,8 @@ classdef dummyScanner < scanner
         focusTimer % Used to handle ScanImage "focus-like" streaming to an image window
 
         settings % to mirror those in SIBT, just in case this is helpful
+
+        listeners = {}
     end
 
     methods
@@ -77,6 +79,10 @@ classdef dummyScanner < scanner
             obj.focusTimer.Period = 0.25;
             obj.focusTimer.TimerFcn = @(~,~) obj.updateFocusWindow;
             obj.focusTimer.ExecutionMode = 'fixedDelay';
+
+            % Set a listener to flip the channelLookUpTablesChanged flag
+            % whenever stack_clim is changed
+            obj.listeners{1}=addlistener(obj, 'stack_clim', 'PostSet', @obj.flipClimFlag);
 
             % Hard-code settings for acquisition behavior
             obj.settings.tileAcq.tileFlipUD=true; % see initiateTileScan
@@ -222,8 +228,8 @@ classdef dummyScanner < scanner
         end
 
 
-        function LUT = getChannelLUT(~,~)
-            LUT=[0,5E3];
+        function LUT = getChannelLUT(obj,~,~)
+            LUT=obj.stack_clim;
         end
 
 
@@ -291,9 +297,13 @@ classdef dummyScanner < scanner
             [n,x] = hist(tmp,500);
             cc = cumsum(n)/sum(n);
             f=find(cc>0.9); % to get 90th percentile
-            obj.stack_clim = [0,x(f(1))];
+            obj.stack_clim = [0,x(f(1))]; % This is observable and triggers obj.flipClimFlag
         end
 
+        function flipClimFlag(obj,~,~)
+            % Toggle this observable variable to allow other classes to update lookup tables
+            obj.channelLookUpTablesChanged = obj.channelLookUpTablesChanged*-1;
+        end
 
 
         function startFocus(obj,~,~)
