@@ -135,6 +135,12 @@ classdef dummyScanner < scanner
         function success = disarmScanner(obj,~)
             obj.inAcquiringMode=false;
             obj.placeInDownSampledTileBuffer=false;
+            if isa(obj.parent.xAxis,'dummy_linearcontroller')
+                obj.parent.xAxis.instantMotions=false;
+            end
+            if isa(obj.parent.yAxis,'dummy_linearcontroller')
+                obj.parent.yAxis.instantMotions=false;
+            end
             success=true;
         end %armScanner
 
