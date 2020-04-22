@@ -86,7 +86,7 @@ function initiateTileScan(obj)
 
     if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
-        obj.parent.acquisitionInProgress=false;
+        obj.disarmScanner;
         return
     end
 
