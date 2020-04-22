@@ -31,6 +31,7 @@ function varargout = acquireTile(obj,~,~)
     %position in slice is
     xRange = ceil([xPosInMicrons,xPosInMicrons+xStepInMicrons]/obj.imageStackVoxelSizeXY);
     yRange = ceil([yPosInMicrons,yPosInMicrons+yStepInMicrons]/obj.imageStackVoxelSizeXY);
+
     if xRange(1)==0
         xRange=xRange+1;
     end

@@ -287,7 +287,27 @@ classdef dummyScanner < scanner
             obj.currentPhysicalSection=1;
             obj.currentOpticalPlane=1;
 
-            obj.getClim
+            obj.getClim % Set the max plotted value
+
+            % TODO - modify the max positions of the stages so we can't scan outside of the available area
+
+            % Move stages to the middle of the sample area so we are more likely to see something if we take an image
+            midY = (size(obj.imageStackData,2) * obj.imageStackVoxelSizeXY * 1E-3)/2;
+            midX = (size(obj.imageStackData,1) * obj.imageStackVoxelSizeXY * 1E-3)/2;
+            obj.parent.moveXYto(midX,midY)
+
+            % Set the sample size to something reasonable based on the area of the sample
+            OUT.FOV_alongColsinMicrons=pStack.tileSizeInMicrons;
+            OUT.FOV_alongRowsinMicrons=pStack.tileSizeInMicrons;
+
+
+            OUT.pixelsPerLine=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
+            OUT.linesPerFrame=round(OUT.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
+
+            tilesY = floor(size(obj.imageStackData,2) / OUT.pixelsPerLine);
+            tilesX = floor(size(obj.imageStackData,1) / OUT.pixelsPerLine);
+            obj.parent.recipe.mosaic.sampleSize.Y=floor(tilesY);
+            obj.parent.recipe.mosaic.sampleSize.X=floor(tilesX);
         end
 
 
