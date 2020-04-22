@@ -90,7 +90,7 @@ function initiateTileScan(obj)
 
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-    pause(0.2)
+    %pause(0.2)
     obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
 
 

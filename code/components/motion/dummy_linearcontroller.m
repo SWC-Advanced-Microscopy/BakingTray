@@ -2,7 +2,11 @@ classdef dummy_linearcontroller < linearcontroller
 
     properties (Hidden)
         positionTimer %to simulate the non-instantaneous motion of the stage
-        updateInterval = 0.05; %every 10 ms update the currentPosition property during a motion
+        instantMotions = true  %If true, the stages move instantly to target position. If false,
+                               %the max speed and update interval are used by the positionTimer to execute
+                               %a simple gradual motion. This is used for testing the GUI. 
+        updateInterval = 0.05  %every 10 ms update the currentPosition property during a motion
+        isStageMoving = false 
         hiddenCurrentPosition % Used to implement a gradual motion with a timer: see obj.updatePosition
         targetPosition
         speed
@@ -82,8 +86,8 @@ classdef dummy_linearcontroller < linearcontroller
 
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      function moving = isMoving(~,~)
-        moving=false; %What to do about this? Should moves just be instant?
+      function moving = isMoving(obj,~,~)
+        moving=obj.isStageMoving;
       end %isMoving
 
 
@@ -115,7 +119,10 @@ classdef dummy_linearcontroller < linearcontroller
         end
 
         obj.targetPosition=willMoveTo;
-        if strcmp(obj.positionTimer.Running,'off')
+        if obj.instantMotions
+          obj.hiddenCurrentPosition = obj.targetPosition;
+          obj.attachedStage.currentPosition = obj.targetPosition;
+        elseif strcmp(obj.positionTimer.Running,'off')
           start(obj.positionTimer)
         end
 
@@ -145,7 +152,10 @@ classdef dummy_linearcontroller < linearcontroller
 
         obj.targetPosition=targetPosition;
 
-        if strcmp(obj.positionTimer.Running,'off')
+        if obj.instantMotions
+          obj.hiddenCurrentPosition = obj.targetPosition;
+          obj.attachedStage.currentPosition = obj.targetPosition;
+        elseif strcmp(obj.positionTimer.Running,'off')
           start(obj.positionTimer)
         end
         success=true;
@@ -243,7 +253,7 @@ classdef dummy_linearcontroller < linearcontroller
         % dummy_linearController specific stuff
         function obj = updatePosition(obj)
             %Increment current position. If we're still not at the correct position, re-start the timer
-
+            obj.isStageMoving=true;
             updateStep = obj.getMaxVelocity*obj.updateInterval;
             if abs(obj.targetPosition-obj.hiddenCurrentPosition)<updateStep
               updateStep = abs(obj.targetPosition-obj.hiddenCurrentPosition);
@@ -261,6 +271,7 @@ classdef dummy_linearcontroller < linearcontroller
 
             if abs(delta)<=updateStep
                 obj.hiddenCurrentPosition = obj.targetPosition;
+                obj.isStageMoving=false;
                 stop(obj.positionTimer)
             elseif strcmp(obj.positionTimer.Running,'off')
                 start(obj.positionTimer)

@@ -108,12 +108,10 @@ classdef dummyScanner < scanner
             obj.placeInDownSampledTileBuffer=true;
             % Ensure we run as fast as possible 
             if isa(obj.parent.xAxis,'dummy_linearcontroller')
-                obj.parent.xAxis.setMaxVelocity(200);
-                obj.parent.xAxis.updateInterval=0.005;
+                obj.parent.xAxis.instantMotions=true;
             end
             if isa(obj.parent.yAxis,'dummy_linearcontroller')
-                obj.parent.yAxis.setMaxVelocity(200);
-                obj.parent.yAxis.updateInterval=0.005;
+                obj.parent.yAxis.instantMotions=true;
             end
             success=true;
         end %armScanner
