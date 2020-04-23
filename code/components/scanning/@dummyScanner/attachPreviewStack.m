@@ -25,7 +25,7 @@ function attachPreviewStack(obj,pStack)
 
     % pad sample by about a tile preparation for autoROI. The pad value will be pi, 
     % so we can find it later and remove it from stats or whatever as needed. 
-    padBy = round(ceil(pStack.tileSizeInMicrons/pStack.voxelSizeInMicrons)*1.25);
+    padBy = round(ceil(pStack.tileSizeInMicrons/pStack.voxelSizeInMicrons)*2);
     obj.imageStackData = padarray(obj.imageStackData,[padBy,padBy,0],pi);
 
 
@@ -37,8 +37,9 @@ function attachPreviewStack(obj,pStack)
     obj.parent.xAxis.attachedStage.maxPos = 0;
     obj.parent.yAxis.attachedStage.maxPos = 0;
 
-    obj.parent.xAxis.attachedStage.minPos = -floor(im_mmX) - pStack.tileSizeInMicrons*1E-3;
-    obj.parent.yAxis.attachedStage.minPos = -floor(im_mmY) - pStack.tileSizeInMicrons*1E-3;
+    obj.parent.xAxis.attachedStage.minPos = -floor(im_mmX) + pStack.tileSizeInMicrons*1E-3;
+    obj.parent.yAxis.attachedStage.minPos = -floor(im_mmY) + pStack.tileSizeInMicrons*1E-3;
+
 
     % Move to the middle of the FOV
     midY = -im_mmY/2;
@@ -53,8 +54,9 @@ function attachPreviewStack(obj,pStack)
     obj.scannerSettings.pixelsPerLine=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
     obj.scannerSettings.linesPerFrame=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
 
-    tilesY = floor(size(obj.imageStackData,2) / obj.scannerSettings.pixelsPerLine);
-    tilesX = floor(size(obj.imageStackData,1) / obj.scannerSettings.pixelsPerLine);
+    % Calculate the number of tiles in X and Y using the un-padded (original data)
+    tilesY = floor(size(pStack.imStack,2) / obj.scannerSettings.pixelsPerLine);
+    tilesX = floor(size(pStack.imStack,1) / obj.scannerSettings.pixelsPerLine);
     obj.parent.recipe.mosaic.sampleSize.Y=floor(tilesY);
     obj.parent.recipe.mosaic.sampleSize.X=floor(tilesX);
 
