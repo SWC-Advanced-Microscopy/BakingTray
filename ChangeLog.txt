@@ -12,6 +12,8 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
    * downsampled tile size set using the number of microns per pixel rather than a fixed size in pixels.
    * previewScans and Bake largely work with the dummyScanner.
    * x/y speed set to default value on startup.
+   * The update interval for the preview image can now be altered using a property. 
+   * Add option to disable axis ready check during acquisition
 
 21st April 2020
 - DEVELOPER: 

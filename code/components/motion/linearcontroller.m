@@ -363,6 +363,10 @@ classdef (Abstract) linearcontroller < handle & loghandler
             %   ready is true if the object is set up and ready to perform axis motions or 
             %   query the axis, etc. false otherwise.
 
+            if obj.parent.disabledAxisReadyCheckDuringAcq && obj.parent.acquisitionInProgress 
+                ready=true;
+                return
+            end
 
             ready=false;
 
