@@ -17,7 +17,10 @@ function runSuccess = runTileScan(obj)
     % Move to the front left position
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
     obj.toFrontLeft;
-    pause(1) %Wait a second for stuff to settle just in case (this may be a fast move)
+
+    if ~isa(obj.xAxis,'dummy_linearcontroller')
+        pause(1) %Wait a second for stuff to settle just in case (this may be a fast move)
+    end
 
     % Log this first location to disk, otherwise it won't be recorded.
     obj.currentTilePosition=1;
