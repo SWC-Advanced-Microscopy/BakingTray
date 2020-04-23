@@ -399,7 +399,7 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.Y=0;
 
 
-    if obj.isLaserConnected & ~obj.leaveLaserOn
+    if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
         % to indicate that acquisition is done.
@@ -417,7 +417,9 @@ function bakeCleanupFun(obj)
         if ~success
             obj.acqLogWriteLine(sprintf('Laser turn off command reports it did not work\n'));
         else
-            pause(10) %it takes a little while for the laser to turn off
+            if ~isa(obj.laser,'dummyLaser')
+                pause(10) %it takes a little while for the laser to turn off
+            end
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             if obj.currentSectionNumber>minSections
                 obj.slack(msg)
@@ -448,7 +450,7 @@ function bakeCleanupFun(obj)
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
-    
+
     % Move the X/Y stage to a nice finish postion, ready for next sample
     obj.moveXYto(obj.recipe.FrontLeft.X,0)
 
