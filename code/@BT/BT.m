@@ -6,6 +6,10 @@ classdef BT < loghandler
 % happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
 % an abstract class.
 %
+% Also see the bootstrap function "BakingTray.m", which starts an instance of BakingTray 
+% in a user-friendly manner.
+%
+% Examples
 % e.g.
 %  B=buildDummyControllers;
 %  hBT=BT(B);
@@ -61,7 +65,7 @@ classdef BT < loghandler
         % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
         % TODO: should channels contain empty slots for non-acquired channels? 
         downSampledTileBuffer = []
-        downsamplePixPerLine=125 %TODO: for now this is a value in pixels only. This is brittle! CAUTION
+        downsampleMicronsPerPixel = 20;
         lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
         %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
@@ -71,11 +75,6 @@ classdef BT < loghandler
     end
 
     properties (Hidden,SetObservable,AbortSet,Transient,Dependent)
-        %The getter for this property calculates the number of mm per pixel for the
-        %preview tile size. This, in combination with BT.recipe.tilePattern, can be 
-        %use to determine where in the final tile grid each tile is placed. 
-        downsampleTileMMperPixel %TODO: non-square images
-
         % The following dependent properties make file paths (but don't check if the paths are valid)
         pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
         thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
@@ -220,7 +219,7 @@ classdef BT < loghandler
             obj.yAxis.printAxisStatus
             obj.zAxis.printAxisStatus
         end
-        
+
         function varargout=moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Absolute move position defined by xPos and yPos
             % Wait for motion to complete before returning if blocking is true. 
@@ -779,17 +778,6 @@ classdef BT < loghandler
 
     methods
         %These methods are getters and setters
-        function mmPerPixel = get.downsampleTileMMperPixel(obj)
-            if ~obj.isRecipeConnected || ~obj.isScannerConnected
-                mmPerPixel=[];
-                return
-            end
-            scnSet=obj.scanner.returnScanSettings;
-            downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
-            %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
-            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3;
-        end
-
         function out = get.pathToSectionDirs(obj)
             % This is the full path to the sample directory
             out = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);

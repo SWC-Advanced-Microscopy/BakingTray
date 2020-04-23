@@ -16,7 +16,7 @@ function initialisePreviewImageData(obj,tp)
 
 
     tp=abs(tp);
-    tp=ceil(tp/obj.model.downsampleTileMMperPixel);
+    tp=ceil(tp/ (obj.model.downsampleMicronsPerPixel*1E-3) );
     obj.previewTilePositions=tp;
 
     ovLap = obj.model.recipe.mosaic.overlapProportion+1;

@@ -14,9 +14,8 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
     xAxisCoord = coords(1);
     yAxisCoord = coords(2);
 
-    %Determine the size of the image in mm
-    mmPerPixelDownSampled = (obj.model.recipe.ScannerSettings.pixelsPerLine / obj.model.downsamplePixPerLine) * ...
-         obj.model.recipe.ScannerSettings.micronsPerPixel_cols * 1E-3;
+    % Determine the size of the image in mm
+    mmPerPixelDownSampled = obj.model.downsampleMicronsPerPixel * 1E-3;
 
     % How the figure is set up:
     % * The Y axis of the image (rows) corresponds to motion of the X stage. 

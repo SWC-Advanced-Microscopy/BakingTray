@@ -7,6 +7,12 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+23nd April 2020
+- DEVELOPER:
+   * downsampled tile size set using the number of microns per pixel rather than a fixed size in pixels.
+   * previewScans and Bake largely work with the dummyScanner.
+   * x/y speed set to default value on startup.
+
 21st April 2020
 - DEVELOPER: 
    * dummyScanner uses previewStacks as dataset format.
