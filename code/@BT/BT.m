@@ -119,7 +119,8 @@ classdef BT < loghandler
             params.parse(varargin{:});
 
             % Test read of the system settings file. It will be created if not present. 
-            % Nothing is done with the system settings at this point.
+            % Nothing is done with the system settings at this point. The settings are 
+            % are read by the recipe file. 
             BakingTray.settings.readSystemSettings;
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
@@ -176,9 +177,10 @@ classdef BT < loghandler
             [x,y]=obj.getXYpos;
             z=obj.getZpos;
 
+            % Ensure that x/y stage speeds are what they should be
+            obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
+
             obj.buildFailed=false;
-
-
 
         end %Constructor
 
