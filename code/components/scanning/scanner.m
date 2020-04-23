@@ -139,7 +139,9 @@ classdef (Abstract) scanner < handle & loghandler
         % 
         % Behavior
         % Conduct any operations necessary to allow for image saving. e.g.
-        % may need to tell the scanner what the path and filenames are.
+        % may need to tell the scanner what the path and filenames are. This method
+        % is called once per section to update things like the directory into which
+        % data are to be saved.
 
         disableTileSaving(obj)
         % disableTileSaving
@@ -346,5 +348,18 @@ classdef (Abstract) scanner < handle & loghandler
         
      end % close abstract methods
 
+     % The following concrete methods are shared by all scanner classes
+     methods
+        function fname = returnTileFname(obj)
+            % Return the file name stem for the images and this x/y position
+            fname = sprintf('%s-%04d', obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber);
+        end
 
+        function fname = returnRibbonFname(obj)
+            % Return the file name stem for the ribbon image at this x/y position
+            fname = sprintf('%s-%04d-%02d', obj.parent.recipe.sample.ID, ...
+                obj.parent.currentSectionNumber, obj.parent.currentOpticalSectionNumber);
+        end
+
+     end
 end %close classdef

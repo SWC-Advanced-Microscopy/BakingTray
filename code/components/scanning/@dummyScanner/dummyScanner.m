@@ -6,8 +6,6 @@ classdef dummyScanner < scanner
 % Optional loading of data from disk to simulate acquisition 
 
     properties
-        TStream %A cell array of tiffstreams objects that hold the image data
-                %one per channel. Hold data for the current section only.
         logFilePath
         logFileStem
         logFileCounter
