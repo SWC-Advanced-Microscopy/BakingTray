@@ -43,4 +43,4 @@ function initialisePreviewImageData(obj,tp)
     obj.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
 
     fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
-end %initialisePreviewImageData. 
+end %initialisePreviewImageData

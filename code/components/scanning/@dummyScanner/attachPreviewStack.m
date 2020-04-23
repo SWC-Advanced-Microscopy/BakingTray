@@ -62,6 +62,10 @@ function attachPreviewStack(obj,pStack)
     obj.parent.recipe.FrontLeft.X = -padBy * pStack.voxelSizeInMicrons * 1E-3;
     obj.parent.recipe.FrontLeft.Y = -padBy * pStack.voxelSizeInMicrons * 1E-3;
 
+    % Set scanner pixel size
+    obj.scannerSettings.micronsPerPixel_cols = pStack.voxelSizeInMicrons;
+    obj.scannerSettings.micronsPerPixel_rows = pStack.voxelSizeInMicrons;
+
     % Set the number of sections in the recipe file based on the number available in the stack
     obj.parent.recipe.mosaic.numSections=size(pStack.imStack,3);
     hBT.currentTilePosition=1;
