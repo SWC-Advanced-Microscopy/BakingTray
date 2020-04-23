@@ -20,7 +20,7 @@ function initiateTileScan(obj)
 
     %Initiate move to the next X/Y position (blocking motion)
     obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
-        obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
+        obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), false);
 
 
     % Import the last frames and downsample them
