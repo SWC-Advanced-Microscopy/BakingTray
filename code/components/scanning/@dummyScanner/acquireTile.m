@@ -9,7 +9,6 @@ function varargout = acquireTile(obj,~,~)
         return
     end
 
-    verbose=true;
 
     tDepth = obj.numOpticalPlanes * (obj.parent.currentSectionNumber-1) + obj.currentOpticalPlane;
     if size(obj.imageStackData,3)<tDepth
@@ -39,13 +38,6 @@ function varargout = acquireTile(obj,~,~)
         yRange=yRange+1;
     end
 
-    if verbose
-        txt=sprintf('Getting tile x=%d:%d - y=%d:%d  -  image %dx%d\n', ...
-            min(xRange), max(xRange), ...
-            min(yRange), max(yRange), ...
-            size(thisSection));
-        %disp(txt)
-    end
     tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
 
     obj.lastAcquiredTile=tile; % So it's available to dummyScanner.initiateTileScan
@@ -70,11 +62,9 @@ function varargout = acquireTile(obj,~,~)
             'XLim', [1,size(tile,2)], ...
             'YLim', [1,size(tile,1)], ...
             'CLim', obj.stack_clim)
-
-        %set(gca,'Clim',[min(thisSection(:)), max(thisSection(:))])
-
         drawnow
     end
+
 
     success=true;
 
@@ -83,6 +73,13 @@ function varargout = acquireTile(obj,~,~)
     end
 
     if obj.writeData
-        %SAVE
+        fname = sprintf('%s_%05d.tif',fullfile(obj.logFilePath,obj.logFileStem),obj.logFileCounter);
+        obj.logFileCounter = obj.logFileCounter + 1;
+
+        % Build a meta-data structure containing the fields StitchIt needs to assemble the stacks
+        metaData = sprintf(['SI.hFastZ.numFramesPerVolume = []\n', ...
+                            'SI.hChannels.channelSave = 1\n', ...
+                            'SI.hChannels.channelsActive = 1\n']);
+        writeSignedTiff(tile,fname,metaData)
     end
 end % acquireTile

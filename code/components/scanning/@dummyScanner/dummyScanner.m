@@ -142,6 +142,7 @@ classdef dummyScanner < scanner
             if isa(obj.parent.yAxis,'dummy_linearcontroller')
                 obj.parent.yAxis.instantMotions=false;
             end
+            obj.disableTileSaving;
             success=true;
         end %armScanner
 
@@ -155,11 +156,16 @@ classdef dummyScanner < scanner
         end
 
 
-        function setUpTileSaving(~)
+        function setUpTileSaving(obj)
+            obj.logFilePath = obj.parent.currentTileSavePath;
+            obj.logFileCounter = 1; % Start each section with the index at 1. 
+            obj.logFileStem = obj.returnTileFname;
+            obj.writeData = true;
         end
 
 
-        function disableTileSaving(~)
+        function disableTileSaving(obj)
+            obj.writeData=false;
         end
 
 
@@ -310,19 +316,13 @@ classdef dummyScanner < scanner
             end
 
             try
-                % Focus timer callback
-                %obj.displayAcquiredImages=false; % Because this method does it
-
-                %tObj=findobj('Tag','tileImage');
                 obj.acquireTile;
-                %tObj.CData=obj.lastAcquiredTile;
-                %drawnow
-                %obj.displayAcquiredImages=true;
             catch ME 
                 disp(ME.message)
                 obj.stopFocus
             end
         end % updateFocusWindow
+
     end % Hidden methods
 
 end %close classdef 
