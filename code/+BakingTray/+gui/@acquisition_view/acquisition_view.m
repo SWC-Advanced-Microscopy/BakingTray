@@ -12,7 +12,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
-
+        updatePreviewEveryNTiles=10 % Update the preview image each time a multiple of updatePreviewEveryNTiles has been acquired
 
         %This button initiate bake and then switches to being a stop button
         button_BakeStop
