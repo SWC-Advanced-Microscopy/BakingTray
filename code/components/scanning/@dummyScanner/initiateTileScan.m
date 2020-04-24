@@ -18,16 +18,20 @@ function initiateTileScan(obj)
 
 
     % Now log this tile position so we later can save it to disk
-    obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
-    obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
-    obj.parent.lastTileIndex = obj.parent.currentTilePosition;
+    if obj.parent.currentTilePosition <= size(obj.parent.currentTilePattern,1)
+        obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
+        obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
+        obj.parent.lastTileIndex = obj.parent.currentTilePosition;
+    end
+
     if verbose
         fprintf('Acquired tile at %d/%d\n', obj.parent.lastTileIndex,size(obj.parent.positionArray,1))
     end
 
 
-    %Initiate move to the *next* X/Y position
-    if 1+obj.parent.currentTilePosition <= size(obj.parent.currentTilePattern,1)
+    %Initiate move to the *next* X/Y position. With real hardware this is so the motion is initiated right
+    %away and whilst the stages are settling we can extract tile data and so on
+    if (1+obj.parent.currentTilePosition) <= size(obj.parent.currentTilePattern,1)
         obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
             obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), false);
     end
@@ -79,6 +83,7 @@ function initiateTileScan(obj)
 
     if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
+        obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time
         obj.disarmScanner;
         return
     end
