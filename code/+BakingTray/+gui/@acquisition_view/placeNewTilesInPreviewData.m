@@ -51,6 +51,7 @@ function placeNewTilesInPreviewData(obj,~,~)
         end
 
         obj.model.downSampledTileBuffer(:) = 0; %wipe the buffer 
+        drawnow
     end % obj.model.lastTilePos.X>0 && obj.model.lastTilePos.Y>0
 
 end %placeNewTilesInPreviewData
