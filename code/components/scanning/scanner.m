@@ -37,7 +37,7 @@ classdef (Abstract) scanner < handle & loghandler
                 % i.e. any setting that might impact image size, FOV, frame rate, size of the final
                 % acquisition (e.g. number of channels), etc. This setting will be monitored by 
                 % at least BakingTray.gui.view and BakingTray.gui.acquisition_view
-        frameSizeSettings =struct % This struct contains the available frame size options along with the
+        frameSizeSettings=struct % This struct contains the available frame size options along with the
                                   % the stitching parameters. Can be scanner-specific. See SIBT.
     end
 
@@ -52,6 +52,7 @@ classdef (Abstract) scanner < handle & loghandler
             obj.scanSettingsChanged = obj.scanSettingsChanged*-1;
         end
     end
+
     % The following are all critical methods that your class should define
     % You should also define a suitable destructor to clean up after you class
     methods (Abstract)
