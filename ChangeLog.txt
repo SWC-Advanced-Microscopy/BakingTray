@@ -9,6 +9,8 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 24th April 2020
 - DEVELOPER:
    * dummyScanner correctly saves tiles for stitching via BT.bake
+   * verbose in recipe now stops the messages relating to the scanner settings parameters not being available.
+
 
 23rd April 2020
 - DEVELOPER:

@@ -140,7 +140,7 @@ function bake(obj,varargin)
     end
 
     % Store the current tile pattern, as it's generated on the fly and 
-    % and this is time-consuming to put into the tile acq callback. 
+    % and this is too time-consuming to put into the tile acq callback. 
     obj.currentTilePattern=obj.recipe.tilePattern;
 
 
