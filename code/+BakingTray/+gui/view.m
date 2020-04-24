@@ -233,7 +233,7 @@ classdef view < handle
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
                 'Position', [180,6, 70, 20], ...
-                'Callback',@obj.previewSample, ...
+                'Callback',@obj.startPreviewSampleGUI, ...
                 'String', 'Preview', ....
                 'ForegroundColor','k');
             if ~obj.suppressToolTips
@@ -588,7 +588,7 @@ classdef view < handle
 
 
 
-        function previewSample(obj,~,~)
+        function startPreviewSampleGUI(obj,~,~)
             if isempty(obj.view_prepare)
                 % The user must be resuming since they never prepared anything
                 warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
@@ -635,7 +635,7 @@ classdef view < handle
                 %otherwise raise it (TODO: currently not possible since button is disabled when acq GUI starts)
                 figure(obj.view_acquire.hFig)
             end
-        end %previewSample
+        end %startPreviewSampleGUI
 
 
         %The following methods are callbacks from the menu
