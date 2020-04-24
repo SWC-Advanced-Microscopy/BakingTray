@@ -1,5 +1,11 @@
 function initiateTileScan(obj)
+    % This method rolls together what takes place in SIBT.initiateTileScan and SIBT.tileAcqDone
+    %
+    % Purpose
+    % Moves the virtual stages. Acquires a tile. Moves the stages. Calls itself
+    % recursively until all done. 
 
+    verbose = false;
 
     if strcmp(obj.parent.recipe.mosaic.scanmode,'ribbon')
         fprintf('** dummyScanner can not handle ribbon scanning\n')

@@ -19,24 +19,24 @@ function varargout = acquireTile(obj,~,~)
     thisSection = obj.imageStackData(:,:,tDepth);
 
     [X,Y]=obj.parent.getXYpos;
-    xPosInMicrons = abs(X)*1E3 ; %ABS HACK TODO
-    yPosInMicrons = abs(Y)*1E3 ; %ABS HACK TODO
+    xPosInMicrons = abs(X)*1E3 ;
+    yPosInMicrons = abs(Y)*1E3 ;
+
+    xPosInPixels = round(xPosInMicrons / obj.imageStackVoxelSizeXY);
+    yPosInPixels = round(yPosInMicrons / obj.imageStackVoxelSizeXY);
 
     %tile step size
     xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
     yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
 
+    xStepInPixels = round(xStepInMicrons / obj.imageStackVoxelSizeXY);
+    yStepInPixels = round(yStepInMicrons / obj.imageStackVoxelSizeXY);
 
-    %position in slice is
-    xRange = ceil([xPosInMicrons,xPosInMicrons+xStepInMicrons]/obj.imageStackVoxelSizeXY);
-    yRange = ceil([yPosInMicrons,yPosInMicrons+yStepInMicrons]/obj.imageStackVoxelSizeXY);
 
-    if xRange(1)==0
-        xRange=xRange+1;
-    end
-    if yRange(1)==0
-        yRange=yRange+1;
-    end
+    % Position of the tile in the slice:
+    xRange = [xPosInPixels,xPosInPixels+xStepInPixels];
+    yRange = [yPosInPixels,yPosInPixels+yStepInPixels];
+
 
     tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
 
