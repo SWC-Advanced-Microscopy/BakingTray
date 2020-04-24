@@ -44,7 +44,7 @@ function placeNewTilesInPreviewData(obj,~,~)
 
         %Only update the section image every so often to avoid slowing down the acquisition
         n=obj.model.currentTilePosition;
-        if n==1 || mod(n,obj.updatePreviewEveryNTiles)==0 || n==length(obj.model.positionArray)
+        if n==1 || mod(n,obj.updatePreviewEveryNTiles)==0 || n>=length(obj.model.positionArray)
             obj.updateSectionImage
         end
 
