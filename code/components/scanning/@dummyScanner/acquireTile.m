@@ -18,6 +18,8 @@ function varargout = acquireTile(obj,~,~)
     end
     thisSection = obj.imageStackData(:,:,tDepth);
 
+
+
     [X,Y]=obj.parent.getXYpos;
     xPosInMicrons = abs(X)*1E3 ;
     yPosInMicrons = abs(Y)*1E3 ;
@@ -77,7 +79,8 @@ function varargout = acquireTile(obj,~,~)
         obj.logFileCounter = obj.logFileCounter + 1;
 
         % Build a meta-data structure containing the fields StitchIt needs to assemble the stacks
-        metaData = sprintf(['SI.hFastZ.numFramesPerVolume = []\n', ...
+        metaData = sprintf(['SI.hChannels.channelOffset = 0\n', ...
+                            'SI.hFastZ.numFramesPerVolume = []\n', ...
                             'SI.hChannels.channelSave = 1\n', ...
                             'SI.hChannels.channelsActive = 1\n']);
         writeSignedTiff(tile,fname,metaData)
