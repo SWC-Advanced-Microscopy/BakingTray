@@ -92,6 +92,7 @@ classdef dummyScanner < scanner
             obj.settings.tileAcq.tileFlipLR=false; % see initiateTileScan
             obj.settings.tileAcq.tileRotate=1;     % see initiateTileScan
 
+            obj.readFrameSizeSettings; % Populate the frame setings 
             obj.scannerSettings = obj.returnDefaultScanSettings;
         end %constructor
 
