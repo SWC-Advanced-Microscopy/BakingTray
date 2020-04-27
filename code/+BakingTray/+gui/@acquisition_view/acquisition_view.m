@@ -181,7 +181,12 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.statusText.String=' ** CUTTING SAMPLE **';
 
                 % Dump the current preview image to the model
-                obj.model.lastPreviewImageStack = obj.previewImageData; %TODO- should we simply store these data only in the model?
+                % TODO- should we simply store these data only in the model?
+                if obj.rotateSectionImage90degrees
+                    obj.model.lastPreviewImageStack = rot90(obj.previewImageData);
+                else
+                    obj.model.lastPreviewImageStack = obj.previewImageData;
+                end
 
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';

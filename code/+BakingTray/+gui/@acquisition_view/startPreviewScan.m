@@ -31,6 +31,7 @@ function startPreviewScan(obj,~,~)
 
     obj.updateImageLUT;
 
+    % Take the preview scan
     try
         obj.model.takeRapidPreview
     catch ME
@@ -42,5 +43,10 @@ function startPreviewScan(obj,~,~)
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
 
     % Copy data to the model (TODO: should we only keep it there?)
-    obj.model.lastPreviewImageStack = obj.previewImageData;
+    if obj.rotateSectionImage90degrees
+        obj.model.lastPreviewImageStack = rot90(obj.previewImageData);
+    else
+        obj.model.lastPreviewImageStack = obj.previewImageData;
+    end
+
 end %startPreviewScan

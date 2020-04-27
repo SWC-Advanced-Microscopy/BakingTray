@@ -12,6 +12,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - DEVELOPER: began work on auto-ROI feature in new branch: "autoROI"
 - DEVELOPER: removed ribbon-scanning code (autoROI)
 - DEVELOPER: renamed default property value recipe.mosaic.scanmode from 'tile' to 'tiled: manual ROI' (autoROI)
+- DEVELOPER: preview stack is returned rotated correctly so only axis xy is needed for it to look as it should
 
 24th April 2020
 - DEVELOPER:

@@ -30,6 +30,8 @@ classdef BT < loghandler
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
         disabledAxisReadyCheckDuringAcq=false %If true, we don't check whether stages are ready to move before each motion when we are in an acquisition
+        lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
+        %The X and Y positions in the grid at which the above tiles were obtained
     end %close properties
 
 
@@ -66,8 +68,6 @@ classdef BT < loghandler
         % TODO: should channels contain empty slots for non-acquired channels? 
         downSampledTileBuffer = []
         downsampleMicronsPerPixel = 20;
-        lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
-        %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
         lastTilePos =  struct('X',0,'Y',0);
         lastTileIndex = 0; %This tells us which row in the tile pattern the last tile came from

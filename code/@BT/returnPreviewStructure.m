@@ -20,7 +20,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     im = im(:,:,chanToKeep);
 
     % Build the output structure
-    pStack.imStack = rot90(im);
+    pStack.imStack = im;
     pStack.recipe = obj.recipe;
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
