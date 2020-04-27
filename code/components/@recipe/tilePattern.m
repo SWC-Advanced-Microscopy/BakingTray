@@ -58,12 +58,12 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     end
 
 
-    %Generate the appropriate style of tile array
+    %Generate the tile array
     switch obj.mosaic.scanmode
-        case 'tile'
+        case 'tiled: manual ROI'
             [tilePosArray,tileIndexArray] = generateTileGrid(obj);
-        case 'ribbon'
-            [tilePosArray,tileIndexArray] = generateRibbonPattern(obj);
+        case 'tiled: auto-ROI'
+            % TODO -- PASS
         otherwise
         tilePosArray=[];
         tileIndexArray=[];
@@ -150,50 +150,6 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
         tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM)*(1-obj.mosaic.overlapProportion);
         tilePosArray(:,2) = (tilePosArray(:,2)*fov_y_MM)*(1-obj.mosaic.overlapProportion);
-
-        tilePosArray = tilePosArray*-1; %because left and forward are negative and we define first position as front left
-        tilePosArray(:,1) = tilePosArray(:,1)+obj.FrontLeft.X;
-        tilePosArray(:,2) = tilePosArray(:,2)+obj.FrontLeft.Y;
-
-
-
-    function [tilePosArray,tileIndexArray] = generateRibbonPattern(obj)
-        % Generate an array of ribbon coordinates to control the stage scanning
-
-        fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
-        pixelSizeAlongScanLine = obj.ScannerSettings.micronsPerPixel_cols;
-
-        fov_y_MM = obj.mosaic.sampleSize.Y; %Maybe this a good starting point 
-
-        % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
-        numY = obj.NumTiles.Y;  %The NumTiles class knows to return 1 in event of ribbon scanning
-        numX = obj.NumTiles.X;
-
-        if obj.verbose
-            fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
-                numX, numY, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
-        end
-
-        tilePosArray = zeros(numY*numX, 2);
-        R=repmat(1:numY,numX,1);
-        tilePosArray(:,2)=R(:);
-        theseCols=1:numX;
-
-        for ii=1:numX:size(tilePosArray,1)
-            tilePosArray(ii:ii+numX-1,1)=theseCols;
-            theseCols=fliplr(theseCols);
-        end
-
-        % Subtract 1 because we want offsets from zero (i.e. how much to move)
-        tileIndexArray = tilePosArray; %Store the tile indexes in the grid
-
-        tilePosArray = tilePosArray-1;
-
-        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM)*(1-obj.mosaic.overlapProportion);
-
-        %For Y we alternate 0 and the opposite side of the sample
-        yPos = repmat([0;fov_y_MM], ceil(size(tilePosArray,1)/2), 1);
-        tilePosArray(:,2) = yPos(1:size(tilePosArray,1));
 
         tilePosArray = tilePosArray*-1; %because left and forward are negative and we define first position as front left
         tilePosArray(:,1) = tilePosArray(:,1)+obj.FrontLeft.X;

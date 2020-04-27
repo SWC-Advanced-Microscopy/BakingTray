@@ -26,28 +26,13 @@ function runSuccess = runTileScan(obj)
     obj.currentTilePosition=1;
     obj.logPositionToPositionArray;
 
-    % Set up stages for the acquisition type.
-    % Also set up triggering on line 1 of the Y stage if we're doing a ribbon scan. Otherwise disable it.
-    % The scanner-specific changes that need to be made will have been implemented in the scaner itself (e.g. in SIBT)
-    % by the armScanner method
+
+    % PLACEHOLDER: in case we need specific actions for acq type. TODO!
     switch obj.recipe.mosaic.scanmode
-        case 'tile'
-            %obj.yAxis.disableInMotionTrigger(1,2) % TODO: temporarily disable. Not all stages do this.
-
-        case 'ribbon'
-            obj.yAxis.enableInMotionTrigger(1,2); %To produce the triggers we need to scan from 
-            R = obj.scanner.returnScanSettings;
-
-            yRange = range(pos(:,2));
-            timeToImageLines = R.linesPerFrame * R.linePeriodInMicroseconds * 1E-6;
-
-            ySpeed = yRange / timeToImageLines;
-
-            fprintf('Scanning each %0.1f mm ribbon (%d scan lines) in %0.2f s at %0.2f mm/s\n\n', ...
-                yRange,  R.linesPerFrame , timeToImageLines, ySpeed);
-
-            obj.setYvelocity(ySpeed);
-
+        case 'tiled: manual ROI'
+            % pass
+        case 'tiled: auto-ROI'
+            % pass
     end
 
     %TODO: ensure the acquisition is stopped before we proceed
@@ -63,8 +48,7 @@ function runSuccess = runTileScan(obj)
     startTime=now;
 
     % Instruct the scanner to initiate the tile scan. This may simply involving issuing a trigger if tile scanning
-    % or will initiate a motion that will itself trigger if ribbon scanning.
-    obj.scanner.initiateTileScan; %acquires a stack and triggers the scanner (likely ScanImage) to acquire the rest of the stacks
+    obj.scanner.initiateTileScan; %acquires a stack and triggers the scanner (e.g. ScanImage) to acquire the rest of the stacks
 
     %block until done
     while 1
@@ -75,10 +59,6 @@ function runSuccess = runTileScan(obj)
     end
 
 
-    %Disable in-motion triggering if it was enabled
-    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        obj.yAxis.disableInMotionTrigger(1,2)
-    end
     %Ensure we are back at normal motion speed
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 
 
@@ -87,10 +67,10 @@ function runSuccess = runTileScan(obj)
     totalTime = totalTime*24*60^2;
 
     switch obj.recipe.mosaic.scanmode
-    case 'tile'
+    case 'tiled: manual ROI'
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
-    case 'ribbon'
-        nTilesToAcquire = obj.recipe.numTilesInOpticalSection;
+    case 'tiled: auto-ROI'
+        % TODO -- UNKNOWN?
     end
 
     fprintf('\nFinished %d tile positions. Acquired %d images per channel (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...

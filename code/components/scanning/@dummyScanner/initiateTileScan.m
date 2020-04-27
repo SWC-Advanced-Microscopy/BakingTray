@@ -7,11 +7,6 @@ function initiateTileScan(obj)
 
     verbose = false;
 
-    if strcmp(obj.parent.recipe.mosaic.scanmode,'ribbon')
-        fprintf('** dummyScanner can not handle ribbon scanning\n')
-        return
-    end
-
     % Performs a tile scan. This method rolls together what is done in SIBT.initiateTileScan
     % and the ScanImage callback SIBT.tileAcqDone.
     obj.acquireTile % Acquire a tile right away because we are already at the front/left position

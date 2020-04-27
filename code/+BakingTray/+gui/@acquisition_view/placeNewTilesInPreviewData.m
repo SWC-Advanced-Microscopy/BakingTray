@@ -16,11 +16,6 @@ function placeNewTilesInPreviewData(obj,~,~)
         fprintf('In acquisition_view.placeNewTilesInPreviewData callback\n')
     end
 
-    %TODO: temporarily do not build preview if ribbon-scanning
-    if strcmp(obj.model.recipe.mosaic.scanmode,'ribbon')
-        return
-    end
-
     obj.updateStatusText
     if obj.model.processLastFrames==false
         return

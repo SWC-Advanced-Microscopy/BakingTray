@@ -130,14 +130,6 @@ function bake(obj,varargin)
     obj.acquisitionInProgress=true;
     obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
-    %Do ribbon-specific stuff (e.g. work out where the z-planes should be)
-    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        obj.scanner.moveFastZTo(0)
-        nOptPlanes = obj.recipe.mosaic.numOpticalPlanes;
-        opticalRibbonPlanesToImage = (0:nOptPlanes-1) * round(obj.recipe.VoxelSize.Z,1);
-    else %We are not ribbon-scanning
-        opticalRibbonPlanesToImage=1; %This needs to be 1 if we are doing tile scanning
-    end
 
     % Store the current tile pattern, as it's generated on the fly and 
     % and this is too time-consuming to put into the tile acq callback. 
@@ -176,95 +168,78 @@ function bake(obj,varargin)
         end
 
 
-        for tDepthInd = 1:length(opticalRibbonPlanesToImage) %One pass through this loop if tile scanning
-            obj.currentOpticalSectionNumber = tDepthInd; %Does nothing if we're not ribbon-scanning
+        if obj.saveToDisk
+            obj.scanner.setUpTileSaving;
 
-            if obj.saveToDisk
+            %Add logger object to the above directory
+            logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
+            obj.attachLogObject(bkFileLogger(logFilePath))
+        end % if obj.saveToDisk
 
-                obj.scanner.setUpTileSaving; % This method is aware of the requirements of ribbon vs tile scanning
+        if ~obj.scanner.armScanner
+            disp('FAILED TO START -- COULD NOT ARM SCANNER')
+            return
+        end
 
-                %Add logger object to the above directory
-                logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
-                obj.attachLogObject(bkFileLogger(logFilePath))
-            end % if obj.saveToDisk
+        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+        if sectionInd==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+        end
 
-            % Move the PIFOC if needed
-            if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-                obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
+        % For syncAndCrunch to be happy we need to write the currently
+        % displayed channels. A bit of hack, but it's easiest solution
+        % for now. Alternative would be to have S&C rip it out of the
+        % TIFF header. 
+        if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+            scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+            saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+            save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+        end
+
+
+        % ===> Now the scanning runs <===
+        if ~obj.runTileScan
+            fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+            return
+        end
+
+        %If requested, save the current preview stack to disk
+        if exist(obj.logPreviewImageDataToDir,'dir')
+            try
+                fname=sprintf('%s_section_%d_%s.mat', ...
+                                obj.recipe.sample.ID, ...
+                                obj.currentSectionNumber, ...
+                                 datestr(now,'YYYY_MM_DD'));
+                fname = fullfile(obj.logPreviewImageDataToDir,fname);
+                fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
+                imData=obj.lastPreviewImageStack;
+                save(fname,'imData')
+            catch
+                fprintf('Failed to save preview stack to log dir\n')
             end
+        end
 
-            if ~obj.scanner.armScanner
-                disp('FAILED TO START -- COULD NOT ARM SCANNER')
-                return
-            end
+        % Now we save to full scan settings by stripping data from a
+        % tiff file.
+        % If this is the first pass through the loop and we're using ScanImage, dump
+        % the settings to a file. TODO: eventually we need to decide what to do with other
+        % scan systems and abstract this code. 
 
-            % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-            if sectionInd==1
-                obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-            end
-            
-            % For syncAndCrunch to be happy we need to write the currently
-            % displayed channels. A bit of hack, but it's easiest solution
-            % for now. Alternative would be to have S&C rip it out of the
-            % TIFF header. 
-            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-                scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+        if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+            d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
+            if ~isempty(d)
+                tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
+                TMP=scanimage.util.opentif(tmp_fname);
+                scanSettings = TMP.SI;
                 saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
                 save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
             end
-
-
-            % ===> Now the scanning runs <===
-            if ~obj.runTileScan
-                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-                return
-            end
-
- 
-            %If requested, save the current preview stack to disk
-            if exist(obj.logPreviewImageDataToDir,'dir')
-                try
-                     fname=sprintf('%s_section_%d_%s.mat', ...
-                                     obj.recipe.sample.ID, ...
-                                     obj.currentSectionNumber, ...
-                                     datestr(now,'YYYY_MM_DD'));
-                     fname = fullfile(obj.logPreviewImageDataToDir,fname);
-                     fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
-                     imData=obj.lastPreviewImageStack;
-                     save(fname,'imData')
-                 catch
-                    fprintf('Failed to save preview stack to log dir\n')
-                 end
-            end
-
-            % Now we save to full scan settings by stripping data from a
-            % tiff file.
-            % If this is the first pass through the loop and we're using ScanImage, dump
-            % the settings to a file. TODO: eventually we need to decide what to do with other
-            % scan systems and abstract this code. 
-            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-                d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
-                if ~isempty(d)
-                    tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
-                    TMP=scanimage.util.opentif(tmp_fname);
-                    scanSettings = TMP.SI;
-                    saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
-                    save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
-                end
-            end
-
-            if obj.abortAcqNow
-                break
-            end
-
-        end % for tDepthInd ...
-
-
-        %Return the PIFOC to zero if needed
-        if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-            obj.currentOpticalSectionNumber=1;
-            obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
         end
+
+        if obj.abortAcqNow
+            break
+        end
+
 
 
         % If the laser is off-line for some reason (e.g. lack of modelock, we quit
@@ -440,13 +415,6 @@ function bakeCleanupFun(obj)
     obj.abortAfterSectionComplete=false;
     obj.abortAcqNow=false;
 
-    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        % Ensure we are back to square pixels (in case of prior riboon scan)
-        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
-        obj.scanner.allowNonSquarePixels=false;
-        obj.scanner.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
-        obj.scanner.moveFastZTo(0)
-    end
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown

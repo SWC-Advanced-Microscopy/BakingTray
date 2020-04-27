@@ -4,11 +4,6 @@ function updateSectionImage(obj,~,~)
     if obj.verbose, fprintf('In acquisition_view.updateSectionImage callback\n'), end
 
 
-    %TODO: Temporarily do not update section imaging if ribbon scanning
-    if strcmp(obj.model.recipe.mosaic.scanmode,'ribbon')
-        return
-    end
-
     if ~obj.doSectionImageUpdate
         return
     end

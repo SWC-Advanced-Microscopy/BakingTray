@@ -495,8 +495,14 @@ classdef recipe < handle
                                 fprintf('ERROR: mosaic.scanmode must be a string!\n')
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
-                            if ~strcmp(fieldValue,'tile') && ~strcmp(fieldValue,'ribbon')
-                                fprintf('ERROR: mosaic.scanmode can only be set to "tile" or "ribbon"\n')
+
+                            % If "tile" we convert to "tiled: manual ROI"
+                            if strcmp(fieldValue,'tile')
+                                fieldValue = 'tiled: manual ROI';
+                            end
+
+                            if ~strcmp(fieldValue,'tiled: manual ROI') && ~strcmp(fieldValue,'tiled: auto-ROI')
+                                fprintf('ERROR: mosaic.scanmode can only be set to "tiled: manual ROI" or "tiled: auto-ROI"\n')
                                 fieldValue=[]; % As above, will stop the assignment.
                             end
 

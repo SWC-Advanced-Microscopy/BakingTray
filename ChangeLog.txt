@@ -8,7 +8,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 
 27th April 20202
-- USER: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere. 
+- USER: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
+- DEVELOPER: began work on auto-ROI feature in new branch: "autoROI"
+- DEVELOPER: removed ribbon-scanning code (autoROI)
+- DEVELOPER: renamed default property value recipe.mosaic.scanmode from 'tile' to 'tiled: manual ROI' (autoROI)
 
 24th April 2020
 - DEVELOPER:

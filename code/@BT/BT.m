@@ -59,7 +59,6 @@ classdef BT < loghandler
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
         sectionCompletionTimes  % A vector containing the number of seconds it took to acquire the data for each section (including cutting)
-        currentOpticalSectionNumber=1 % This is only used for cases where the scanner does not to handle the fast Z.
         currentTilePattern      % The cached currently used tilePattern. Saves having to regenerate each time from the recipe
 
         % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
@@ -88,7 +87,7 @@ classdef BT < loghandler
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
-        abortAcqNow=false   %Used when aborting an acquisition so we break out of the ribbon depth loop in BT.bake
+        abortAcqNow=false  %Used when aborting an acquisition
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
 

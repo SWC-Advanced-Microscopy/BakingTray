@@ -316,11 +316,7 @@ classdef SIBT < scanner
 
 
             switch obj.parent.recipe.mosaic.scanmode
-            case 'tile'
-                obj.hC.hScan2D.logFileStem = obj.returnTileFname;
-            case 'ribbon'
-                obj.hC.hScan2D.logFileStem = obj.returnRibbonFname;
-            end
+            obj.hC.hScan2D.logFileStem = obj.returnTileFname;
 
             obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
@@ -332,45 +328,8 @@ classdef SIBT < scanner
 
 
         function initiateTileScan(obj)
-            % If tile-scanning, we initiate the next tile simply by issuing a software trigger.
-            % If ribbon-scanning, it is triggered from the stage itself when it starts move
-            % and so comes in through the PFI line defined in ScanImage, thus initiateTileScan
-            % must start a stage motion rather than send a trigger
-
-            if isempty(obj.parent)
-                fprintf('SIBT is not attached to BakingTray. Just sending software trigger\n')
-                obj.hC.hScan2D.trigIssueSoftwareAcq;
-                return
-            end
-
-            switch obj.parent.recipe.mosaic.scanmode
-            case 'tile'
-                obj.hC.hScan2D.trigIssueSoftwareAcq;
-            case 'ribbon'
-                % Issue a non-blocking Y motion
-
-                %obj.parent.yAxis.resumeInMotionTrigger(1,2)
-                yA = obj.parent.currentTilePattern(1,2);
-                yB = obj.parent.currentTilePattern(2,2);
-                delta = 0.5; %Inter pulse trigger interval from stage in mm
-                % fprintf('Producing triggers between %0.2f and %0.2f mm\n', yA-delta, yB+delta)
-                if mod(obj.parent.currentTilePosition,2) %If it's odd
-                    obj.parent.yAxis.motionTrigMin(2,yB+delta)
-                    obj.parent.yAxis.motionTrigMax(2, yA-0)
-
-                    fprintf('Initiating a motion to %0.1f\n', obj.parent.currentTilePattern(2,2) )
-                    obj.parent.moveYto(obj.parent.currentTilePattern(2,2), true); 
-                else
-                    obj.parent.yAxis.motionTrigMin(2,yA-delta)
-                    obj.parent.yAxis.motionTrigMax(2,yB+0)
-
-                    fprintf('Initiating a motion to %0.1f\n', obj.parent.currentTilePattern(1,2) )
-                    obj.parent.moveYto(obj.parent.currentTilePattern(1,2), true);
-                end
-                %obj.parent.yAxis.pauseInMotionTrigger(1,2)
-            otherwise
-                % This will never happen
-            end
+            % We are tile-scanning so can initiate the next tile simply by issuing a software trigger.
+            obj.hC.hScan2D.trigIssueSoftwareAcq;
         end
 
 

@@ -355,12 +355,5 @@ classdef (Abstract) scanner < handle & loghandler
             % Return the file name stem for the images and this x/y position
             fname = sprintf('%s-%04d', obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber);
         end
-
-        function fname = returnRibbonFname(obj)
-            % Return the file name stem for the ribbon image at this x/y position
-            fname = sprintf('%s-%04d-%02d', obj.parent.recipe.sample.ID, ...
-                obj.parent.currentSectionNumber, obj.parent.currentOpticalSectionNumber);
-        end
-
      end
 end %close classdef

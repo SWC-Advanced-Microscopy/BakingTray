@@ -37,42 +37,9 @@ function [success,msg] = armScanner(obj)
     msg = sprintf('%sDisabled offset subtraction.\n',msg);
 
 
-    % Set up ScanImage according the type of scan pattern we will use
+    % Set up ScanImage z-stacks
     switch obj.parent.recipe.mosaic.scanmode
-    case 'tile'
-        obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
-    case 'ribbon'
-        R = obj.returnScanSettings;
-        xResInMM = R.micronsPerPixel_cols * 1E-3;
-
-        % TODO - why is this here? It should already be done by BT.bake or BT.takeRapidPreview
-        if isempty(obj.parent.currentTilePattern)
-            obj.parent.currentTilePattern = obj.parent.recipe.tilePattern;
-        end
-
-        yRange = range(obj.parent.currentTilePattern(:,2));
-
-        numLines = round(yRange/xResInMM);
-
-        obj.allowNonSquarePixels=true;
-        if obj.hC.hRoiManager.forceSquarePixels==true
-            obj.hC.hRoiManager.forceSquarePixels=false;
-        end
-
-        %Set linesPerFrame for ribbon scanning
-        linesPerFrame = round(numLines*1.05);
-        if mod(linesPerFrame,2)~=0 %Ensure an odd number of lines
-            linesPerFrame=linesPerFrame+1;
-        end
-
-        if obj.hC.hRoiManager.linesPerFrame ~= linesPerFrame
-            obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
-        end
-
-        %Disable Z-stack
-        obj.hC.hStackManager.numSlices = 1;
-        obj.hC.hStackManager.stackZStepSize = 0;
-    end
+    obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
     % Set the system to display just the first depth in ScanImage. 
     % Should run a little faster this way, especially if we have 

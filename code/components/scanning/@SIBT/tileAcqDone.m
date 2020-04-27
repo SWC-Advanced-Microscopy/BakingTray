@@ -14,23 +14,15 @@ function tileAcqDone(obj,~,~)
     end
 
 
-    switch obj.parent.recipe.mosaic.scanmode
-        case 'tile'
-            %Initiate move to the next X/Y position (blocking motion)
-            obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
-                obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
-        case 'ribbon'
-            %Initiate move to the next X position. Non-blocking, keep Y unchanged.
-            obj.parent.moveXto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), false);
-        otherwise
-            % This can not happen. 
-    end
+    %Initiate move to the next X/Y position (blocking motion)
+    obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+            obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
 
 
     % Import the last frames and downsample them
     debugMessages=false;
 
-    if obj.parent.importLastFrames && strcmp(obj.parent.recipe.mosaic.scanmode,'tile') %TODO: hack until ribbon is working
+    if obj.parent.importLastFrames
         msg='';
         planeNum=1; %This counter indicates the current z-plane
         %Loop through the buffer, pulling out the first frame from each depth
@@ -132,7 +124,6 @@ function tileAcqDone(obj,~,~)
 
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-    obj.initiateTileScan  % Start the next position (initiates a motion if ribbon scanning)
-                          % See also: BT.runTileScan
+    obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
 
 

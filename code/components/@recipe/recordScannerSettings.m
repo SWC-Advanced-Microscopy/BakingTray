@@ -16,14 +16,11 @@ function success=recordScannerSettings(obj)
         obj.VoxelSize.X = obj.ScannerSettings.micronsPerPixel_cols;
         obj.VoxelSize.Y = obj.ScannerSettings.micronsPerPixel_rows;
 
-        if strcmp(obj.mosaic.scanmode,'ribbon')
-            obj.VoxelSize.Z = round( (obj.mosaic.sliceThickness*1E3) / obj.mosaic.numOpticalPlanes,1);
-        else
-            if obj.ScannerSettings.numOpticalSlices == 1
-                obj.VoxelSize.Z = obj.mosaic.sliceThickness * 1E3;
-            elseif obj.ScannerSettings.numOpticalSlices > 1
-                obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
-            end
+        % get z-voxel size
+        if obj.ScannerSettings.numOpticalSlices == 1
+            obj.VoxelSize.Z = obj.mosaic.sliceThickness * 1E3;
+        elseif obj.ScannerSettings.numOpticalSlices > 1
+            obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
         end
 
         obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
