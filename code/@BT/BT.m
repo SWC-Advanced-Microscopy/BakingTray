@@ -363,48 +363,6 @@ classdef BT < loghandler
             success=obj.moveXYto(FL.X,FL.Y,true); %blocking motion
         end
 
-        function success = toSampleSide(obj,side)
-            %Move to the mid-point of the 'front', 'left', 'back', or 'right' sides of the sample
-            success=false;
-            if isempty(obj.recipe)
-                return
-            end
-
-            FL = obj.recipe.FrontLeft;
-            if isempty(FL.X) || isempty(FL.Y)
-                fprintf('Front/Left position has not been set.')
-                return
-            end
-
-            errMsg = sprintf('Input argument side must be one of the strings: "front", "left", "right", or "back"\n');
-            if ~ischar(side)
-                fprintf(errMsg)
-                return
-            end
-
-            %The four most extreme positions
-            TP=obj.recipe.tilePattern;
-            L=max(TP(:,1));
-            R=min(TP(:,1));
-            F=max(TP(:,2));
-            B=min(TP(:,2));
-
-            switch lower(side)
-                case 'front'
-                    success=obj.moveXYto(mean([L,R]),F);
-                case 'back'
-                    success=obj.moveXYto(mean([L,R]),B);
-                case 'left'
-                    success=obj.moveXYto(L,mean([F,B]));
-                case 'right'
-                    success=obj.moveXYto(R,mean([F,B]));
-                otherwise
-                    fprintf(errMsg)
-                    return
-            end
-
-        end
-
 
         % ----------------------------------------------------------------------
         % Public methods for moving the Z stage
