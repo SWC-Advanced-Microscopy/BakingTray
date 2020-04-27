@@ -1,7 +1,7 @@
-function previewFilesToTiffStack(dirPath)
+function previewFilesToStack(dirPath)
 % convert a directory of preview images into single stack
 %
-% function previewFilesToTiffStack(dirPath)
+% function previewFilesToStack(dirPath)
 %
 % * Purpose
 % Running BakingTray with a valid directory defined in hBT.logPreviewImageDataToDir
