@@ -194,10 +194,10 @@ classdef SIBT < scanner
                 obj.hC.hStackManager.numSlices = 1;
                 obj.hC.hStackManager.stackZStepSize = 0;
                 obj.hC.hFastZ.enable=false;
-                
+
             end
-            
-            
+
+
             % Apply averaging as needed
             aveFrames = obj.hC.hDisplay.displayRollingAverageFactor;  
             if aveFrames>1
@@ -206,11 +206,11 @@ classdef SIBT < scanner
             obj.hC.hScan2D.logAverageFactor = 1; % To avoid warning
             obj.hC.hStackManager.framesPerSlice = aveFrames;
             if obj.averageSavedFrames
-                obj.hC.hScan2D.logAverageFactor = aveFrames;            
+                obj.hC.hScan2D.logAverageFactor = aveFrames;
             else
                 obj.hC.hScan2D.logAverageFactor = 1;
             end
-            
+
         end % applyZstackSettingsFromRecipe
 
         function success = disarmScanner(obj)
@@ -277,7 +277,7 @@ classdef SIBT < scanner
                 doReset = zeros(1,length(obj.hC.hPmts.tripped));
                 doReset(obj.channelsToAcquire) = 1;
             end
-            
+
             for ii=1:length(obj.hC.hPmts.tripped)
                 if doReset(ii) && obj.hC.hPmts.tripped(ii)
                     msg = sprintf('Reset tripped PMT #%d', ii);
@@ -317,11 +317,9 @@ classdef SIBT < scanner
 
             switch obj.parent.recipe.mosaic.scanmode
             case 'tile'
-                obj.hC.hScan2D.logFileStem = sprintf('%s-%04d', ...
-                    obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber);
+                obj.hC.hScan2D.logFileStem = obj.returnTileFname;
             case 'ribbon'
-                obj.hC.hScan2D.logFileStem = sprintf('%s-%04d-%02d', ...
-                    obj.parent.recipe.sample.ID, obj.parent.currentSectionNumber, obj.parent.currentOpticalSectionNumber);
+                obj.hC.hScan2D.logFileStem = obj.returnRibbonFname;
             end
 
             obj.hC.hChannels.loggingEnable = true;

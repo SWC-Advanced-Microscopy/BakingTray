@@ -85,10 +85,10 @@ function success=attachMotionAxes(obj,settings)
                 obj.(thisAxisName)=[];
             end
 
-            %Return false if the attachment failed
+
             if ~isempty(obj.(thisAxisName))
                 %Add a link to the BT parent object to the component so this component can access
-                %other attached components
+                %other attached components.
                 obj.(thisAxisName).parent=obj;
             else
                 fprintf('No axis attached for %s\n',thisAxisName)
@@ -97,7 +97,7 @@ function success=attachMotionAxes(obj,settings)
     end
 
 
-
+    % Return false if the attachment failed
     success = ~isempty(obj.xAxis) && ~isempty(obj.yAxis) && ~isempty(obj.zAxis);
 
 end

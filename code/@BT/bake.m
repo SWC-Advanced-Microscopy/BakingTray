@@ -27,7 +27,7 @@ function bake(obj,varargin)
         return
     end
 
-    if ~isa(obj.scanner,'SIBT')
+    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
         fprintf('Only acquisition with ScanImage supported at the moment.\n')
         return
     end
@@ -140,7 +140,7 @@ function bake(obj,varargin)
     end
 
     % Store the current tile pattern, as it's generated on the fly and 
-    % and this is time-consuming to put into the tile acq callback. 
+    % and this is too time-consuming to put into the tile acq callback. 
     obj.currentTilePattern=obj.recipe.tilePattern;
 
 
@@ -399,7 +399,7 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.Y=0;
 
 
-    if obj.isLaserConnected & ~obj.leaveLaserOn
+    if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
         % to indicate that acquisition is done.
@@ -408,7 +408,7 @@ function bakeCleanupFun(obj)
             obj.slack(sprintf('Acquisition of %s finished after %d sections.', ...
                 obj.recipe.sample.ID, obj.currentSectionNumber))
         else
-            fprintf('Not sending Slack message because only %d sections completed, which less than threshold of %d\n',...
+            fprintf('Not sending Slack message because only %d sections completed, which is less than threshold of %d\n',...
                 obj.currentSectionNumber, minSections)
         end
 
@@ -417,7 +417,9 @@ function bakeCleanupFun(obj)
         if ~success
             obj.acqLogWriteLine(sprintf('Laser turn off command reports it did not work\n'));
         else
-            pause(10) %it takes a little while for the laser to turn off
+            if ~isa(obj.laser,'dummyLaser')
+                pause(10) %it takes a little while for the laser to turn off
+            end
             msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             if obj.currentSectionNumber>minSections
                 obj.slack(msg)
@@ -448,7 +450,7 @@ function bakeCleanupFun(obj)
 
     % Must run this last since turning off the PMTs sometimes causes a crash
     obj.scanner.tearDown
-    
+
     % Move the X/Y stage to a nice finish postion, ready for next sample
     obj.moveXYto(obj.recipe.FrontLeft.X,0)
 

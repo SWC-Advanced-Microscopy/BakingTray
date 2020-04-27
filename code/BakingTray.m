@@ -52,6 +52,7 @@ function BakingTray(varargin)
             if dummyMode==true
                 W = evalin('base','whos');
                 if ismember('hSI',{W.name});
+                    fprintf('Found an instance of ScanImage. Attaching it to BakingTray\n')
                     hBT.scanner=SIBT;
                     hBT.scanner.parent=hBT;
                 end
