@@ -752,7 +752,8 @@ classdef view < handle
             end
         end
 
-        function updateStatusText(obj,~,~)
+        function varargout = updateStatusText(obj,~,~)
+            % Update the status text in the main BakingTray GUI window
             if obj.model.isRecipeConnected
                 R=obj.model.recipe;
 
@@ -795,12 +796,10 @@ classdef view < handle
 
 
                     estimatedSize = obj.model.recipe.estimatedSizeOnDisk(tilesPlane.total);
-                    msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
-                        'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
+                    msg = sprintf(['FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
                         'Time left: %s; Per slice: %s\n',  ....
                         'Disk usage: %0.2f GB'], ...
-                        scannerID, R.mosaic.scanmode, ...
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
@@ -817,7 +816,12 @@ classdef view < handle
 
                 % Finally we highlight the tile size label as needed
                 obj.updateTileSizeLabelText(scnSet)
-            end 
+
+                if nargout>0
+                    varargout{1} = msg;
+                end
+
+            end
         end %updateStatusText
 
         function updateTileSizeLabelText(obj,scnSet)
