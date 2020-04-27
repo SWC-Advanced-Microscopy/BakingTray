@@ -81,4 +81,9 @@ function attachPreviewStack(obj,pStack)
     obj.sectionImage_xlim = [padBy+1,size(obj.imageStackData,2)-padBy-1];
     obj.sectionImage_ylim = [padBy+1,size(obj.imageStackData,1)-padBy-1];
 
+
+    % Set more fields in the recipe
+    obj.parent.recipe.sample.ID = pStack.recipe.sample.ID;
+    obj.parent.recipe.mosaic.overlapProportion = pStack.recipe.mosaic.overlapProportion;
+
 end

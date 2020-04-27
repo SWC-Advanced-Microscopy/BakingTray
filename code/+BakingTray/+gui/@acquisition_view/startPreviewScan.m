@@ -40,4 +40,7 @@ function startPreviewScan(obj,~,~)
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
     obj.button_BakeStop.Enable='on'; 
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
+
+    % Copy data to the model (TODO: should we only keep it there?)
+    obj.model.lastPreviewImageStack = obj.previewImageData;
 end %startPreviewScan
