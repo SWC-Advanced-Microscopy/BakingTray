@@ -116,7 +116,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
 
 
-    function [tilePosArray,tileIndexArray] = generateTileGrid(obj)
+    function [tilePosArray,tileIndexArray] = generateTileGrid(obj,ROIparams)
         % Generate a grid of tiles in the correct order for sampling the specimen
         % in an "S". The tile grid is based on the following variables:
         %   * The field of view of the microscope
@@ -131,28 +131,32 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
         fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
+        if nargin<2
         % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
-        numY = obj.NumTiles.Y;
-        numX = obj.NumTiles.X;
+            ROIparams.numTiles.Y = obj.NumTiles.Y;
+            ROIparams.numTiles.X = obj.NumTiles.X;
+            ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
+            ROIparams.frontLeftMM.X = obj.FrontLeft.X;
+        end
 
         if obj.verbose
             fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
-                numX, numY, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
+                ROIparams.numTiles.X, ROIparams.numTiles.Y, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
         end
 
         % Pre-allocate the array of tile positions. Initially this will contain the index of each tile in the
         % grid. i.e. how many tile positions away from the origin in X and Y each tile should be. Later this 
         % will be converted to a location in mm. 
-        tilePosArray = zeros(numY*numX, 2);
+        tilePosArray = zeros(ROIparams.numTiles.Y*ROIparams.numTiles.X, 2);
 
         % Fill in column 2, which will be the locations for the Y stage
-        R=repmat(1:numY,numX,1);
+        R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);
         tilePosArray(:,2)=R(:);
 
-        theseCols=1:numX; % The tile index locations along the X axis
+        theseCols=1:ROIparams.numTiles.X; % The tile index locations along the X axis
 
-        for ii=1:numX:size(tilePosArray,1)
-            tilePosArray(ii:ii+numX-1,1)=theseCols; %Insert X stage positions into the array
+        for ii=1:ROIparams.numTiles.X:size(tilePosArray,1)
+            tilePosArray(ii:ii+ROIparams.numTiles.X-1,1)=theseCols; %Insert X stage positions into the array
             theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
         end
 
@@ -166,6 +170,6 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
         % Apply an offset to the pattern so that it's positioned correctly in X/Y
         tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
-        tilePosArray(:,1) = tilePosArray(:,1) + obj.FrontLeft.X;
-        tilePosArray(:,2) = tilePosArray(:,2) + obj.FrontLeft.Y;
+        tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
+        tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
 
