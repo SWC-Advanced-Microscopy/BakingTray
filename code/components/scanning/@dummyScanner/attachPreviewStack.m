@@ -5,7 +5,7 @@ function attachPreviewStack(obj,pStack)
     %  load some_pStack
     %  hBT.scanner.attachExistingData(pStack)
 
-
+    verbose=false;
 
     % Add data to object
     obj.imageStackData=pStack.imStack;
@@ -25,13 +25,19 @@ function attachPreviewStack(obj,pStack)
 
     % pad sample by about a tile preparation for autoROI. The pad value will be pi, 
     % so we can find it later and remove it from stats or whatever as needed. 
-    padBy = round(ceil(pStack.tileSizeInMicrons/pStack.voxelSizeInMicrons)*2);
+    padTiles=2;
+    padBy =round(ceil(pStack.tileSizeInMicrons/pStack.voxelSizeInMicrons)*padTiles);
+
     obj.imageStackData = padarray(obj.imageStackData,[padBy,padBy,0],pi);
 
-
-    % Move stages to the middle of the sample area so we are more likely to see something if we take an image
+    % Report the new image size
     im_mmY = size(obj.imageStackData,2) * obj.imageStackVoxelSizeXY * 1E-3;
     im_mmX = size(obj.imageStackData,1) * obj.imageStackVoxelSizeXY * 1E-3;
+
+    if verbose
+        fprintf('Padding preview stack image by %d pixels (%0.1f tiles) yielding a total area of x=%0.1f mm by y=%0.1f mm\n', ...
+            padBy, padTiles, im_mmX, im_mmY)
+    end
 
     % Set min/max limits of the stages so we can't scan outside of the available area
     obj.parent.xAxis.attachedStage.maxPos = 0;
@@ -39,9 +45,13 @@ function attachPreviewStack(obj,pStack)
 
     obj.parent.xAxis.attachedStage.minPos = -floor(im_mmX) + pStack.tileSizeInMicrons*1E-3;
     obj.parent.yAxis.attachedStage.minPos = -floor(im_mmY) + pStack.tileSizeInMicrons*1E-3;
+    if verbose
+        fprintf('Setting min allowed stage positions to: x=%0.2f y=%0.2f\n', ...
+            obj.parent.xAxis.attachedStage.minPos, ...
+            obj.parent.yAxis.attachedStage.minPos)
+    end
 
-
-    % Move to the middle of the FOV
+    % Move stages to the middle of the sample area so we are more likely to see something if we take an image
     midY = -im_mmY/2;
     midX = -im_mmX/2;
     obj.parent.moveXYto(midX,midY)
@@ -54,15 +64,20 @@ function attachPreviewStack(obj,pStack)
     obj.scannerSettings.pixelsPerLine=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
     obj.scannerSettings.linesPerFrame=round(obj.scannerSettings.FOV_alongColsinMicrons / obj.imageStackVoxelSizeXY);
 
-    % Calculate the number of tiles in X and Y using the un-padded (original data)
-    tilesY = floor(size(pStack.imStack,2) / obj.scannerSettings.pixelsPerLine);
-    tilesX = floor(size(pStack.imStack,1) / obj.scannerSettings.pixelsPerLine);
-    obj.parent.recipe.mosaic.sampleSize.Y=floor(tilesY);
-    obj.parent.recipe.mosaic.sampleSize.X=floor(tilesX);
+    % Calculate the extent of the originally imaged area
+    obj.parent.recipe.mosaic.sampleSize.Y = size(pStack.imStack,2) * obj.imageStackVoxelSizeXY*1E-3;
+    obj.parent.recipe.mosaic.sampleSize.X = size(pStack.imStack,1) * obj.imageStackVoxelSizeXY*1E-3 ;
+
 
     % Set the front/left so we start at the corner of the sample, not the padded area
     obj.parent.recipe.FrontLeft.X = -padBy * pStack.voxelSizeInMicrons * 1E-3;
     obj.parent.recipe.FrontLeft.Y = -padBy * pStack.voxelSizeInMicrons * 1E-3;
+
+    if verbose
+        fprintf('Front/Left is at %0.2f x %0.2f mm\n', ...
+            obj.parent.recipe.FrontLeft.X, ...
+            obj.parent.recipe.FrontLeft.Y)
+    end
 
     % Set scanner pixel size
     obj.scannerSettings.micronsPerPixel_cols = pStack.voxelSizeInMicrons;
