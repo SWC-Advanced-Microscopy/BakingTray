@@ -31,7 +31,7 @@ classdef BT < loghandler
         buildFailed=true  % True if BT failed to build all components at startup
         disabledAxisReadyCheckDuringAcq=false %If true, we don't check whether stages are ready to move before each motion when we are in an acquisition
         lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
-        %The X and Y positions in the grid at which the above tiles were obtained
+        autoROI = [] % All info related to the autoROI goes here 
     end %close properties
 
 
@@ -69,7 +69,7 @@ classdef BT < loghandler
         downSampledTileBuffer = []
         downsampleMicronsPerPixel = 20;
         %i.e. 1,2,3,... not a position in mm)
-        lastTilePos =  struct('X',0,'Y',0);
+        lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
         lastTileIndex = 0; %This tells us which row in the tile pattern the last tile came from
 
     end

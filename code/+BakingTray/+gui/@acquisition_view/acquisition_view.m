@@ -39,8 +39,9 @@ classdef acquisition_view < BakingTray.gui.child_view
     end
 
     properties (SetObservable,Transient)
-        previewImageData=[]  %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
-        previewTilePositions %This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
+        previewImageData=[]  % This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
+        plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
+        previewTilePositions % This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
     end %close hidden transient observable properties
 
     properties (Hidden,SetAccess=private)
