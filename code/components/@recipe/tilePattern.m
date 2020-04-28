@@ -118,12 +118,20 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
     function [tilePosArray,tileIndexArray] = generateTileGrid(obj)
         % Generate a grid of tiles in the correct order for sampling the specimen
-        % in an "S"
+        % in an "S". The tile grid is based on the following variables:
+        %   * The field of view of the microscope
+        %   * How much overlap we want between adjacent tiles
+        %   * The desired width and length of the bounding box in mm
+        %
+        % Much of the calculation is done by the NumTiles class, which is attached
+        % to the recipe object at obj.NumTiles
 
+
+        % Obtain the microscope FOV
         fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
         fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
-        % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
+        % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
         numY = obj.NumTiles.Y;
         numX = obj.NumTiles.X;
 
@@ -132,26 +140,32 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
                 numX, numY, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
         end
 
-
+        % Pre-allocate the array of tile positions. Initially this will contain the index of each tile in the
+        % grid. i.e. how many tile positions away from the origin in X and Y each tile should be. Later this 
+        % will be converted to a location in mm. 
         tilePosArray = zeros(numY*numX, 2);
+
+        % Fill in column 2, which will be the locations for the Y stage
         R=repmat(1:numY,numX,1);
         tilePosArray(:,2)=R(:);
-        theseCols=1:numX;
+
+        theseCols=1:numX; % The tile index locations along the X axis
 
         for ii=1:numX:size(tilePosArray,1)
-            tilePosArray(ii:ii+numX-1,1)=theseCols;
-            theseCols=fliplr(theseCols);
+            tilePosArray(ii:ii+numX-1,1)=theseCols; %Insert X stage positions into the array
+            theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
         end
 
         % Subtract 1 because we want offsets from zero (i.e. how much to move)
         tileIndexArray = tilePosArray; %Store the tile indexes in the grid
-
         tilePosArray = tilePosArray-1;
 
-        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM)*(1-obj.mosaic.overlapProportion);
-        tilePosArray(:,2) = (tilePosArray(:,2)*fov_y_MM)*(1-obj.mosaic.overlapProportion);
+        % Convert tile index values into positions in mm based on the FOV
+        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM) * (1-obj.mosaic.overlapProportion);
+        tilePosArray(:,2) = (tilePosArray(:,2)*fov_y_MM) * (1-obj.mosaic.overlapProportion);
 
-        tilePosArray = tilePosArray*-1; %because left and forward are negative and we define first position as front left
-        tilePosArray(:,1) = tilePosArray(:,1)+obj.FrontLeft.X;
-        tilePosArray(:,2) = tilePosArray(:,2)+obj.FrontLeft.Y;
+        % Apply an offset to the pattern so that it's positioned correctly in X/Y
+        tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
+        tilePosArray(:,1) = tilePosArray(:,1) + obj.FrontLeft.X;
+        tilePosArray(:,2) = tilePosArray(:,2) + obj.FrontLeft.Y;
 
