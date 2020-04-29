@@ -1,6 +1,8 @@
 function H=overlayPointsOnImage(obj,x,y)
     % Overlay points at defined x and y locations on preview image. This function used for testing right now. 
     % TESTING
+    % TODO -- tidy and doc if we are to keep this
+    
     if nargin<2 && ~iscell(x)
         x = rand(1,200) * 100;
         y = rand(1,200) * 100;

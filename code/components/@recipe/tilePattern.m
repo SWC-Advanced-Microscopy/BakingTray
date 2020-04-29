@@ -58,7 +58,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
     % recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
     % to build up the tile scan pattern.
-    success=obj.recordScannerSettings;
+    success = obj.recordScannerSettings;
 
     if ~success
         if ~quiet
@@ -75,19 +75,17 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     end
 
 
-    %Generate the tile array % TODO -- we likely don't need this switch statement. Loop instead. 
-    switch obj.mosaic.scanmode
-        case 'tiled: manual ROI'
-            [tilePosArray,tileIndexArray] = generateTileGrid(obj,ROIparams);
-        case 'tiled: auto-ROI'
-            % TODO -- PASS
-        otherwise
-            if ~quiet
-                fprintf('ERROR in recipe.tilePattern: unknown scan mode "%s"\n', obj.mosaic.scanmode)
-            end
-            return
+    %Generate the tile array
+    if isempty(ROIparams)
+        [tilePosArray,tileIndexArray] = generateTileGrid(obj);
+    else
+        % The loop allows for multiple bounding boxes
+        for ii = 1:length(ROIparams)
+            [t_tilePosArray,t_tileIndexArray] = generateTileGrid(obj,ROIparams(ii));
+            tilePosArray = [tilePosArray; t_tilePosArray];
+            tileIndexArray = [tileIndexArray; t_tileIndexArray];
+        end
     end
-
 
     %Check that none of these will produce out of bounds motions
     msg='';
@@ -122,12 +120,14 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
             fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
                  min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
         end
+        % Make certain the outputs are empty
         if ~returnEvenIfOutOfBounds
             tilePosArray=[];
             tileIndexArray=[];
         end
     end
 
+end % tilePattern
 
 
     %% LOCAL FUNCTIONS FOLLOW
@@ -193,4 +193,4 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
         tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
         tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
-
+    end

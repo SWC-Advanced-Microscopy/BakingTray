@@ -46,7 +46,8 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
 
     % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
-    % Get the X stage value for y=0 (right most position) and we'll reference off that
+    % The image axes origin is the front/right position of the stage. We therefore here get the X stage 
+    % value for y=0 (right most position) and we'll reference off that
     frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.lastPreviewImageStack,1)*mmPerPixelDownSampled;
 
     xPosInMM = frontRightX + yAxisCoord*mmPerPixelDownSampled;

@@ -8,7 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 29th April 2020
 - DEVELOPER: recipe.tilePattern can now create a tile grid for one one defined ROI using a new input argument
-- 
+- DEVELOPER: refactor of properties and methods in BT and acquisition_view to enable tile grids to be overlaid on top of the preview image
 
 27th April 2020
 - USER: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
