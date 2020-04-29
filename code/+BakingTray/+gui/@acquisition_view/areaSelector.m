@@ -3,7 +3,7 @@ function areaSelector(obj,~,~)
     h = imrect(obj.imageAxes);
     rect_pos = wait(h);
     delete(h)
-    [rectBottomLeft,MMpix] = obj.convertImageCoordsToStagePosition(rect_pos(1:2));
+    [rectBottomLeft,MMpix] = obj.model.convertImageCoordsToStagePosition(rect_pos(1:2));
 
     frontPos = rectBottomLeft(2);
     leftPos  = rectBottomLeft(1) + MMpix*rect_pos(4);

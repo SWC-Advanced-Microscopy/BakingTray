@@ -39,6 +39,14 @@ classdef BT < loghandler
         % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
         logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
+
+        % Cached/stored settings
+        % Log front/left position when the preview stack (BT.lastPreviewImageStack) is taken. 
+        % We need to do this because BT.convertImageCoordsToStagePosition calculates stage position 
+        % based on this value. We can't use the recipe front/left position because then the stage coords
+        % derived from the image would be wrong until the user re-acquires a preview stack.
+        frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
+
     end
 
     properties (SetAccess=immutable,Hidden)
@@ -446,14 +454,14 @@ classdef BT < loghandler
             X=obj.getXpos;
             Y=obj.getYpos;
             if nargout<1
-            	fprintf('X=%0.2f, Y=%0.2f\n',X,Y)
-            	return
+                fprintf('X=%0.2f, Y=%0.2f\n',X,Y)
+                return
             end
             if nargout>0
-            	varargout{1}=X;
+                varargout{1}=X;
             end
             if nargout>1
-            	varargout{2}=Y;
+                varargout{2}=Y;
             end
         end
 

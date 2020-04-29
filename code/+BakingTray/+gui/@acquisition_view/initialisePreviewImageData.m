@@ -39,8 +39,8 @@ function initialisePreviewImageData(obj,tp)
     end
 
     % Log the current front/left position from the recipe
-    obj.frontLeftWhenPreviewWasTaken.X = obj.model.recipe.FrontLeft.X;
-    obj.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
+    obj.model.frontLeftWhenPreviewWasTaken.X = obj.model.recipe.FrontLeft.X;
+    obj.model.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
 
     fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
 end %initialisePreviewImageData

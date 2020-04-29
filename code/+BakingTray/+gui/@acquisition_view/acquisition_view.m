@@ -49,11 +49,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         depthToShow=1
         cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
         rotateSectionImage90degrees=true; %Ensure the axis along which the blade cuts is is the image x axis. 
-
-        % Cached/stored settings
-        % Log front/left pos when preview is taken so we don't change coords if user updates front/left after imaging
-        frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
-
     end %close hidden private properties
 
 
@@ -105,7 +100,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         setupListeners(obj) % Called once by the constructor
 
         initialisePreviewImageData(obj, tp)
-        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
 
         % Callbacks
         placeNewTilesInPreviewData(obj,~,~)
@@ -381,7 +375,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord=pos(1,1);
             yAxisCoord=pos(1,2);
 
-            stagePos = obj.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
+            stagePos = obj.model.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
             obj.statusText.String = sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', stagePos);
 
         end % pointerReporter
