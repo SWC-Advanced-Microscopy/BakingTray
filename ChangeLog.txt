@@ -7,18 +7,21 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 29th April 2020
-- DEVELOPER: recipe.tilePattern can now create a tile grid for one one defined ROI using a new input argument
-- DEVELOPER: refactor of properties and methods in BT and acquisition_view to enable tile grids to be overlaid on top of the preview image
+- DEVELOPER [branch autoROI]: 
+   * Recipe.tilePattern can now create a tile grid for one one defined ROI using a new input argument
+   * Refactor of properties and methods in BT and acquisition_view to enable tile grids to be overlaid on top of the preview image
+- Note: as with changes from previous days there are numerous "TODOs"
 
 27th April 2020
-- USER: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
-- DEVELOPER: began work on auto-ROI feature in new branch: "autoROI"
-- DEVELOPER: removed ribbon-scanning code (autoROI)
-- DEVELOPER: renamed default property value recipe.mosaic.scanmode from 'tile' to 'tiled: manual ROI' (autoROI)
-- DEVELOPER: preview stack is returned rotated correctly so only axis xy is needed for it to look as it should
+- USER [branch autoROI]: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
+- DEVELOPER [branch autoROI]: 
+   * Began work on auto-ROI feature in new branch: "autoROI"
+   * Removed ribbon-scanning code (autoROI)
+   * Renamed default property value recipe.mosaic.scanmode from 'tile' to 'tiled: manual ROI' (autoROI)
+   * Preview stack is returned rotated correctly so only axis xy is needed for it to look as it should
 
 24th April 2020
-- DEVELOPER:
+- DEVELOPER [branch dev]:
    * dummyScanner correctly saves tiles for stitching via BT.bake
    * verbose in recipe now stops the messages relating to the scanner settings parameters not being available.
 

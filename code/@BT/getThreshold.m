@@ -1,6 +1,7 @@
 function getThreshold(obj)
     % Get threshold from current preveiw image
     % EARLY TEST
+    % TODO -- tidy and doc it
     %
     % Rob Campbell - SWC, April 2020
     %
