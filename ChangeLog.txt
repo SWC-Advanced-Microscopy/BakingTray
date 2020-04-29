@@ -6,8 +6,11 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+29th April 2020
+- DEVELOPER: recipe.tilePattern can now create a tile grid for one one defined ROI using a new input argument
+- 
 
-27th April 20202
+27th April 2020
 - USER: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
 - DEVELOPER: began work on auto-ROI feature in new branch: "autoROI"
 - DEVELOPER: removed ribbon-scanning code (autoROI)

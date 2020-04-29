@@ -1,13 +1,25 @@
-function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOfBounds)
+function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOfBounds,ROIparams)
     % Calculate a tile grid for imaging. The imaging will proceed in an "S" over the sample.
     %
-    % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet)
+    % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet,returnEvenIfOutOfBounds)
     %
     %
     % Purpose
     % Calculate the position grid needed to tile a sample of a given size, with a given
     % field of view, and a given overlap between adjacent tiles. TileStepSize and 
     % NumTiles are dependent properties of recipe and are based on external helper classes.
+    %
+    %
+    % Inputs
+    % quiet - false by default
+    % returnEvenIfOutOfBounds - false by default
+    % ROIparams - empty by default. If present, it should be a structure defining the 
+    %             ROI front/left position and size in tiles. The structure can have a 
+    %             length of more than 1. example:
+    % ROIparams.numTiles.X - an integer number of tiles
+    % ROIparams.numTiles.Y - an integer number of tiles
+    % ROIparams.frontLeftPixel.X - location of the front/left corner pixel along image rows
+    % ROIparams.frontLeftPixel.Y - location of the front/left corner pixel along image columns
     %
     %
     % Outputs
@@ -28,11 +40,20 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     if nargin<2
         quiet=false;
     end
+
     if nargin<3
         % This is set to true by recipe.setFrontLeftFromVentralMidLine
         % Nothing else should be setting this to true
         returnEvenIfOutOfBounds=false;
     end
+
+    if nargin<4
+        ROIparams=[];
+    end
+
+    % Declare empty output variables in case of error and to allow concatenation of multiple ROIs
+    tilePosArray=[];
+    tileIndexArray=[];
 
     % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
     % recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
@@ -40,17 +61,13 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     success=obj.recordScannerSettings;
 
     if ~success
-        tilePosArray=[];
-        tileIndexArray=[];
         if ~quiet
             fprintf('ERROR in recipe.tilePattern: no scanner connected. Please connect a scanner to BakingTray\n')
         end
         return
     end
 
-    if isempty(obj.FrontLeft.X) ||isempty(obj.FrontLeft.Y)
-        tilePosArray=[];
-        tileIndexArray=[];
+    if isempty(ROIparams) && isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y)
         if ~quiet
             fprintf('ERROR in recipe.tilePattern: no front-left position defined. Can not calculate tile pattern.\n')
         end
@@ -58,19 +75,17 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     end
 
 
-    %Generate the tile array
+    %Generate the tile array % TODO -- we likely don't need this switch statement. Loop instead. 
     switch obj.mosaic.scanmode
         case 'tiled: manual ROI'
-            [tilePosArray,tileIndexArray] = generateTileGrid(obj);
+            [tilePosArray,tileIndexArray] = generateTileGrid(obj,ROIparams);
         case 'tiled: auto-ROI'
             % TODO -- PASS
         otherwise
-        tilePosArray=[];
-        tileIndexArray=[];
-        if ~quiet
-            fprintf('ERROR in recipe.tilePattern: unknown scan mode "%s"\n', obj.mosaic.scanmode)
-        end
-        return
+            if ~quiet
+                fprintf('ERROR in recipe.tilePattern: unknown scan mode "%s"\n', obj.mosaic.scanmode)
+            end
+            return
     end
 
 
@@ -102,7 +117,6 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
 
     if ~isempty(msg)
-
         if ~quiet
             fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
             fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
@@ -115,6 +129,8 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     end
 
 
+
+    %% LOCAL FUNCTIONS FOLLOW
 
     function [tilePosArray,tileIndexArray] = generateTileGrid(obj,ROIparams)
         % Generate a grid of tiles in the correct order for sampling the specimen
@@ -131,13 +147,18 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
         fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
-        if nargin<2
+        if nargin<2 || isempty(ROIparams)
         % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
-            ROIparams.numTiles.Y = obj.NumTiles.Y;
             ROIparams.numTiles.X = obj.NumTiles.X;
-            ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
+            ROIparams.numTiles.Y = obj.NumTiles.Y;
             ROIparams.frontLeftMM.X = obj.FrontLeft.X;
+            ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
+        else
+            stageFrontLeft = obj.parent.convertImageCoordsToStagePosition([ROIparams.frontLeftPixel.X,ROIparams.frontLeftPixel.Y]);
+            ROIparams.frontLeftMM.X = stageFrontLeft(1);
+            ROIparams.frontLeftMM.Y = stageFrontLeft(2);
         end
+
 
         if obj.verbose
             fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
