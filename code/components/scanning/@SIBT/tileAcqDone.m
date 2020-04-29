@@ -1,10 +1,22 @@
 function tileAcqDone(obj,~,~)
+    % SIBI.tileAcqDone
+    %
+    % Callback that runs when hSI.acqDone fires.
+    %
+    % Purpose
     % This callback function is VERY IMPORTANT it constitutes part of the implicit loop
     % that performs the tile scanning. It is an "implicit" loop, since it is called 
-    % repeatedly until all tiles have been acquired.
+    % repeatedly until all tiles have been acquired. There is no for loop anywhere. 
+    % 
+    % This function records runs aftet each x/y tile position has finished acquiring and
+    % gets the stage positions, moves to the *next* stage position, and whilst that is happening
+    % extracts image data from the ScanImage API. Finally, it runs
+    % hSI.hScan2D.trigIssueSoftwareAcq to soft-trigger another tile position to be acquired.
+    % That causes us to re-enter this callback once the frames in that tile position have been 
+    % completed. 
 
-    %Log the X and Y positions in the grid associated with the tile data
-    %from the last acquired position
+
+    %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     if ~isempty(obj.parent.positionArray)
         obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
         obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
@@ -13,15 +25,15 @@ function tileAcqDone(obj,~,~)
         fprintf('BT.positionArray is empty. Not logging last tile positions. Likely hBT.runTileScan was not run.\n')
     end
 
-
     %Initiate move to the next X/Y position (blocking motion)
     obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
             obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
 
-
     % Import the last frames and downsample them
     debugMessages=false;
 
+
+    % Import image data from the ScanImage API
     if obj.parent.importLastFrames
         msg='';
         planeNum=1; %This counter indicates the current z-plane
@@ -69,6 +81,9 @@ function tileAcqDone(obj,~,~)
                         int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileAcq.tileRotate),...
                             [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
                 end
+                % Note that each time the stages move to the next position, a listener in BT places the 
+                % data in obj.parent.downSampledTileBuffer into a preview image of the whole section. 
+                % Once it is done this, it replaces obj.parent.downSampledTileBuffer with zeros. 
 
             end
 
@@ -102,7 +117,7 @@ function tileAcqDone(obj,~,~)
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
     % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
-    % You won't get the real stage positions
+    % you won't get the real stage positions
     obj.parent.logPositionToPositionArray(doFakeLog)
 
     if obj.hC.hChannels.loggingEnable==true
@@ -110,20 +125,26 @@ function tileAcqDone(obj,~,~)
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
 
-    % Initiate the next position so long as we aren't paused
+    % Initiate the next position (obj.initiateTileScan) so long as we aren't paused
     nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled
     while obj.acquisitionPaused
         nPauses = nPauses+1;
         if nPauses>100
             nPauses=0;
-            [isReady,msg]=obj.parent.laser.isReady;
+            [isReady,msg]=obj.parent.laser.isReady; % Ping laser so it doesn't power-off if we are paused a long time
             continue
         end
         pause(0.25)
     end
 
+    % Write message to the log file using the logger class
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-    obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
+
+    obj.initiateTileScan  % Start the next position (initiates a motion if ribbon scanning)
+                          % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
+                          % to soft-trigger another acquisition.
+                          % See also: BT.runTileScan
+
 
 
