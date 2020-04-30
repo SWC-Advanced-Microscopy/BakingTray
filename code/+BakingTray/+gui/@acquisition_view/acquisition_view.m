@@ -171,7 +171,9 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function indicateCutting(obj,~,~)
             % Changes GUI elements accordingly during cutting
-            if obj.verbose, fprintf('In acquisition_view.indicateCutting callback\n'), end
+            if obj.verbose
+                fprintf('In acquisition_view.indicateCutting callback\n')
+            end
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
 

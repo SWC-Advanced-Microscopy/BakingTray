@@ -101,4 +101,5 @@ function attachPreviewStack(obj,pStack)
     obj.parent.recipe.sample.ID = pStack.recipe.sample.ID;
     obj.parent.recipe.mosaic.overlapProportion = pStack.recipe.mosaic.overlapProportion;
 
+    obj.parent.currentSectionNumber=1;
 end
