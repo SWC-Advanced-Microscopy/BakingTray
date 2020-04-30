@@ -112,7 +112,6 @@ classdef dummy_linearcontroller < linearcontroller
 
         msg = sprintf('moving by %0.2f mm from %0.2f to %0.2f\n', ...
           distanceToMove, obj.attachedStage.currentPosition, willMoveTo);
-        obj.logMessage(inputname(1),dbstack,1,msg);
 
         if obj.verbose
           fprintf(msg)
@@ -144,7 +143,6 @@ classdef dummy_linearcontroller < linearcontroller
         end
 
         msg=sprintf('moving to %0.2f\n',targetPosition);
-        obj.logMessage(inputname(1),dbstack,1,msg);
 
         if obj.verbose
           fprintf(msg)
