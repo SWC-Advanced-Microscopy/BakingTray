@@ -23,5 +23,7 @@ function updateSectionImage(obj,~,~)
     else
         obj.sectionImage.CData = squeeze(obj.previewImageData(:,:,obj.depthToShow, obj.chanToShow));
     end
-    
+
+    drawnow
+
 end %updateSectionImage

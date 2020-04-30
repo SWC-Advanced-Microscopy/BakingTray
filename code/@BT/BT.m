@@ -552,8 +552,9 @@ classdef BT < loghandler
         function success = moveXto(obj,position,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.absoluteMove(position);
+
             if ~success, return, end
-           obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
+            obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
 
             if blocking
                 while obj.xAxis.isMoving
@@ -565,8 +566,10 @@ classdef BT < loghandler
         function success = moveYto(obj,position,blocking)
             if nargin<3, blocking=0; end
             success=obj.yAxis.absoluteMove(position);
+
             if ~success, return, end
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y to %0.3f',position))
+
 
             if blocking
                 while obj.yAxis.isMoving
@@ -579,7 +582,8 @@ classdef BT < loghandler
         function success = moveXby(obj,distanceToMove,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.relativeMove(distanceToMove);
-            if ~success, return, end
+ 
+           if ~success, return, end
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving X by %0.3f',distanceToMove))
 
             if blocking
@@ -592,6 +596,7 @@ classdef BT < loghandler
         function success = moveYby(obj,distanceToMove,blocking)
             if nargin<3, blocking=0; end
             success=obj.yAxis.relativeMove(distanceToMove);
+
             if ~success, return, end
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y by %0.3f',distanceToMove))
 

@@ -146,7 +146,7 @@ function bake(obj,varargin)
     % TODO -- there is a confsion, perhaps, between the currentTilePattern and the positionArray defined in .runTileScan
     % Are these things redundant? tileAcqDone uses the currentTilePatter
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-       obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
+       obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
     else
         obj.currentTilePattern=obj.recipe.tilePattern;
     end
@@ -320,7 +320,7 @@ function bake(obj,varargin)
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
             obj.getNextROIs
             %TODO following line seem really redundant. I think it should be in runTileScan
-           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
+           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
         end
 
 

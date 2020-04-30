@@ -7,10 +7,15 @@ function initialisePreviewImageData(obj,tp)
         tp=obj.model.recipe.tilePattern; %Stage positions in mm (x,y)
     end
 
+
+
     if isempty(tp)
         fprintf('ERROR: no tile position data. initialisePreviewImageData can not build empty image\n')
         return
     end
+
+    % Conver to pixels
+    % TODO - can BT.convertStagePositionToImageCoords do this?
     tp(:,1) = tp(:,1) - tp(1,1);
     tp(:,2) = tp(:,2) - tp(1,2);
 
@@ -42,5 +47,9 @@ function initialisePreviewImageData(obj,tp)
     obj.model.frontLeftWhenPreviewWasTaken.X = obj.model.recipe.FrontLeft.X;
     obj.model.frontLeftWhenPreviewWasTaken.Y = obj.model.recipe.FrontLeft.Y;
 
-    fprintf('Initialised a preview image of %d columns by %d rows\n', imCols, imRows)
+    if nargin<2
+        fprintf('Initialised a preview image of %d columns by %d rows using recipe.tilePattern.\n', imCols, imRows)
+    else
+        fprintf('Initialised a preview image of %d columns by %d rows using supplied tile positions.\n', imCols, imRows)
+    end
 end %initialisePreviewImageData

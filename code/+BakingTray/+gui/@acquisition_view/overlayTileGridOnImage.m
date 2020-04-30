@@ -22,7 +22,7 @@ function overlayTileGridOnImage(obj,tileGrid)
     pixPos=obj.model.convertStagePositionToImageCoords(tileGrid);
 
 
-    pause(0.2), drawnow % temporary for diagnostics
+    %pause(0.2), drawnow % temporary for diagnostics
 
     % TODO: this needs to be based on absolute units or scaled by the number
     % of boxes. Otherwise it doesn't look nice. Ends up overlapping with the 

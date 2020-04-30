@@ -30,9 +30,8 @@ function getNextROIs(obj)
 
     % Use a rolling threshold based on the last nImages to drive sample/background
     % segmentation in the next image. If set to zero it uses the preceeding section.
-    ii=obj.currentSectionNumber;
     nImages=5;
-    if ii<=nImages
+    if length(stats.roiStats) <= nImages
         % Attempt to take the median value from the last nImages: take as many as possible 
         % until we have nImages worth of sections 
         thresh = median( [stats.roiStats.medianBackground] + [stats.roiStats.stdBackground]*stats.roiStats(end).tThreshSD);
