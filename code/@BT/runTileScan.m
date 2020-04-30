@@ -1,4 +1,4 @@
-function runSuccess = runTileScan(obj)
+function runSuccess = runTileScan(obj,boundingBoxDetails)
     % This method inititiates the acquisition of a tile scan for one section
     %
     % function runSuccess = BT.runTileScan(obj)
@@ -9,9 +9,13 @@ function runSuccess = runTileScan(obj)
 
     runSuccess=false;
 
+    % TODO --- should the auto-ROI be passed in this way? Could all be local to here and not need .bake to say what to do
+    if nargin<2
+        boundingBoxDetails=[];
+    end
 
     % Create the position array
-    [pos,indexes]=obj.recipe.tilePattern;
+    [pos,indexes]=obj.recipe.tilePattern(false,false,boundingBoxDetails);
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
 
     % Move to the front left position
@@ -71,6 +75,7 @@ function runSuccess = runTileScan(obj)
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
     case 'tiled: auto-ROI'
         % TODO -- UNKNOWN?
+        nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
     end
 
     fprintf('\nFinished %d tile positions. Acquired %d images per channel (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...

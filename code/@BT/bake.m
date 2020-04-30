@@ -131,9 +131,25 @@ function bake(obj,varargin)
     obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
 
+
+    % auto-ROI stuff if the user has selected this
+    %  TODO -- needs re-factoring
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        fprintf('Getting first ROIs...')
+        obj.getNextROIs
+        fprintf('DONE\n')
+    end
+
+
     % Store the current tile pattern, as it's generated on the fly and 
     % and this is too time-consuming to put into the tile acq callback. 
-    obj.currentTilePattern=obj.recipe.tilePattern;
+    % TODO -- there is a confsion, perhaps, between the currentTilePattern and the positionArray defined in .runTileScan
+    % Are these things redundant? tileAcqDone uses the currentTilePatter
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+       obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
+    else
+        obj.currentTilePattern=obj.recipe.tilePattern;
+    end
 
 
     %loop and tile scan
@@ -197,12 +213,22 @@ function bake(obj,varargin)
         end
 
 
-        % ===> Now the scanning runs <===
-        if ~obj.runTileScan
-            fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-            return
-        end
+        %  ===> Now the scanning runs <===
+        % TODO -- is this the best way of adding the auto-ROI?
+        % It could all be local to runTileScan
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            if ~obj.runTileScan(obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+                return
+            end
+        else
+            % This is "normal"
+            if ~obj.runTileScan
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+                return
+            end
 
+        end
         %If requested, save the current preview stack to disk
         if exist(obj.logPreviewImageDataToDir,'dir')
             try
@@ -212,6 +238,9 @@ function bake(obj,varargin)
                                  datestr(now,'YYYY_MM_DD'));
                 fname = fullfile(obj.logPreviewImageDataToDir,fname);
                 fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
+                % NOTE (TODO) lastPreviewImageStack only appears because the indicateCutting callback
+                % of the acquire GUI places it there. I really think all of this should be part of the 
+                % core API .
                 imData=obj.lastPreviewImageStack;
                 save(fname,'imData')
             catch
@@ -285,6 +314,15 @@ function bake(obj,varargin)
             % A bit horrible, but it will work
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
+
+        % auto-ROI stuff if the user has selected this
+        %  TODO -- needs re-factoring
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            obj.getNextROIs
+            %TODO following line seem really redundant. I think it should be in runTileScan
+           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
+        end
+
 
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing

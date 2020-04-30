@@ -1,6 +1,8 @@
 function bake_callback(obj,~,~)
     % Run when the bake button is pressed
-    if obj.verbose, fprintf('In acquisition_view.bake callback\n'), end
+    if obj.verbose
+        fprintf('In acquisition_view.bake callback\n')
+    end
 
     obj.updateStatusText
     %Check whether it's safe to begin
@@ -24,7 +26,7 @@ function bake_callback(obj,~,~)
             return
         otherwise
             return
-    end 
+    end
 
 
     % Update the preview image in case the recipe has altered since the GUI was opened or

@@ -99,8 +99,6 @@ function takeRapidPreview(obj)
         end
     end
 
-
-
     tidyUpAfterPreview
 
 

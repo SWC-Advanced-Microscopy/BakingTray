@@ -49,4 +49,12 @@ function startPreviewScan(obj,~,~)
         obj.model.lastPreviewImageStack = obj.previewImageData;
     end
 
+
+    % TODO -- this will need re-factoring
+    if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        obj.model.getThreshold;
+        z=obj.model.recipe.tilePattern(false,false,obj.model.autoROI.stats.roiStats.BoundingBoxDetails);
+        obj.overlayTileGridOnImage(z)
+    end
+
 end %startPreviewScan
