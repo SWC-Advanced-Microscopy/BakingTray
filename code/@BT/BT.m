@@ -254,9 +254,6 @@ classdef BT < loghandler
             end
 
             success=obj.moveXto(xPos) & obj.moveYto(yPos);
-            if success
-                obj.logMessage(inputname(1),dbstack,3,sprintf('moving X to %0.3f and Y to %0.3f',xPos,yPos))
-            end
 
             if blocking && success
                 obj.waitXYsettle(extraSettlingTime,timeOut)
@@ -294,9 +291,6 @@ classdef BT < loghandler
 
             success = obj.moveXby(xPos) & obj.moveYby(yPos);
 
-            if success
-                obj.logMessage(inputname(1),dbstack,3,sprintf('moving X by %0.3f and Y by %0.3f',xPos,yPos))
-            end
             if blocking && success
                 obj.waitXYsettle(extraSettlingTime,timeOut)
             end
@@ -559,7 +553,7 @@ classdef BT < loghandler
             if nargin<3, blocking=0; end
             success=obj.xAxis.absoluteMove(position);
             if ~success, return, end
-            obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
+           obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
 
             if blocking
                 while obj.xAxis.isMoving
