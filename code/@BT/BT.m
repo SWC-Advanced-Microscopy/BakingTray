@@ -102,6 +102,53 @@ classdef BT < loghandler
     end
 
 
+    % Declare methods in separate files
+    methods
+        % startup-related
+        varargout=attachCutter(obj,settings)
+        success=attachLaser(obj,settings)
+        success=attachMotionAxes(obj,settings)
+        success=attachRecipe(obj,fname,resume)
+        varargout=attachScanner(obj,settings)
+        success=checkAttachedStages(obj,ControllerObject,axisName)
+
+        % Key methods that trigger acquisition events
+        bake(obj,varargin)
+        takeRapidPreview(obj)
+        runSuccess = runTileScan(obj,boundingBoxDetails) %is called by bake and takeRapidPreview
+
+        % Acquisition-related helper functions
+        success = defineSavePath(obj) 
+        [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
+        [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
+        success=resumeAcquisition(obj,recipeFname)
+        abortSlicing(obj)
+        finished = sliceSample(obj,sliceThickness,cuttingSpeed)
+        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
+        [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords)
+
+        % House-keeping
+        out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
+        success=renewLaserConnection(obj)
+        initialisePreviewImageData(obj,tp)
+        preAllocateTileBuffer(obj)
+        slack(obj,message)
+        n=tilesRemaining(obj)
+
+        % auto-ROI related
+        getNextROIs(obj)
+        getThreshold(obj)
+        pStack = returnPreviewStructure(obj,chanToKeep)
+
+
+    end % Declare methods in separate files
+
+    methods (Hidden)
+        logPositionToPositionArray(obj,fakeLog)
+
+        % Callbacks
+        placeNewTilesInPreviewData(obj,~,~)
+    end
 
     methods
         %Constructor
