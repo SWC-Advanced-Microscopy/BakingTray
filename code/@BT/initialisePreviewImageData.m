@@ -37,14 +37,21 @@ function initialisePreviewImageData(obj,tp)
 
     obj.lastPreviewImageStack = zeros([imRows,imCols, ...
         obj.recipe.mosaic.numOpticalPlanes, ...
-        obj.scanner.maxChannelsAvailable],'int16');% * -2E15; % TODO -- add this back in for SIBT?
+        obj.scanner.maxChannelsAvailable],'int16') + pi;% * -2E15; % TODO -- add this back in for SIBT?
                                                               % TODO -- add pi so we can remove later?
 
 
 
-    % Log the current front/left position from the recipe
-    obj.frontLeftWhenPreviewWasTaken.X = obj.recipe.FrontLeft.X;
-    obj.frontLeftWhenPreviewWasTaken.Y = obj.recipe.FrontLeft.Y;
+    % Log the current front/left position from the recipe. This must be done at this point
+    % because BT.convertStagePositionToImageCoords uses this value to calculate where the tiles 
+    % should be placed
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        obj.frontLeftWhenPreviewWasTaken.X = max(tp(:,1)); %This is the left-most part of all the ROIs
+        obj.frontLeftWhenPreviewWasTaken.Y = max(tp(:,2)); %This is the nearest part of all the ROIs
+    elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
+        obj.frontLeftWhenPreviewWasTaken.X = obj.recipe.FrontLeft.X;
+        obj.frontLeftWhenPreviewWasTaken.Y = obj.recipe.FrontLeft.Y;
+    end
 
 
     % Convert to pixels

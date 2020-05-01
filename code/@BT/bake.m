@@ -143,7 +143,7 @@ function bake(obj,varargin)
     % TODO -- This likely needs to here, as I suspect SIBT.armScanner line 59 will need to modified for this
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
        obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
-    else
+    elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         obj.currentTilePattern=obj.recipe.tilePattern;
     end
 
