@@ -66,7 +66,7 @@ function bake_callback(obj,~,~)
         % the acquisition GUI. This is because a lot of silly bugs
         % seem to crop up after an acquisition but they go away if
         % the user closes and re-opens the window.
-        obj.delete
+%        obj.delete %% TODO -- may be commented our during auto-ROI dev. Should not be on a live system
     end
 
 end %bake_callback

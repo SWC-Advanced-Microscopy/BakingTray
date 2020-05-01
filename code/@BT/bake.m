@@ -367,8 +367,7 @@ function bake(obj,varargin)
         end
 
 
-        disp(' *** PRESS RETURN FOR NEXT SECTION *** ')
-        pause
+        %disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
 
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
