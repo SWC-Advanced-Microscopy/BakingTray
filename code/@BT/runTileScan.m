@@ -1,4 +1,4 @@
-function runSuccess = runTileScan(obj,boundingBoxDetails)
+function runSuccess = runTileScan(obj)
     % This method inititiates the acquisition of a tile scan for one section
     %
     % function runSuccess = BT.runTileScan(obj)
@@ -9,17 +9,26 @@ function runSuccess = runTileScan(obj,boundingBoxDetails)
 
     runSuccess=false;
 
-    % TODO --- should the auto-ROI be passed in this way? Could all be local to here and not need .bake to say what to do
-    if nargin<2
-        boundingBoxDetails=[];
+
+    % Populate:
+    %  - currentTilePatern (where the stage will go)
+    %  - positionArray (where the tiles will go in the preview image matrix)
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && ...
+        ~isempty(obj.autoROI) && ...
+        isfield(obj.autoROI,'stats')
+       BB = obj.autoROI.stats.roiStats(end).BoundingBoxDetails;
+    else
+        % Manual ROI
+        BB = [];
     end
 
-    % Create the position array
-    [pos,indexes]=obj.recipe.tilePattern(false,false,boundingBoxDetails);
+    [pos,indexes]=obj.recipe.tilePattern(false,false,BB);
+
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
+    obj.currentTilePattern=pos;
 
     obj.initialisePreviewImageData(pos); % TODO -- this is newly added here and only here
-                                         % WHAT ABOUT THE CURRENT TILE PATTERN? DO THAT HERE TOO?
+
 
 
     % Move to the front left position

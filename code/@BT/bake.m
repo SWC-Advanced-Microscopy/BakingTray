@@ -135,7 +135,7 @@ function bake(obj,varargin)
     % auto-ROI stuff if the user has selected this
     %  TODO -- needs re-factoring
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-        obj.currentSectionNumber=1; % TODO --- this means that we can't carry on a previous acquisition right now with auto-ROI!
+        obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         disp('in auto-ROI setting currentSectionNumber to 1')
         fprintf('Getting first ROIs...')
         obj.getNextROIs
@@ -143,10 +143,7 @@ function bake(obj,varargin)
     end
 
 
-    % Store the current tile pattern, as it's generated on the fly and 
-    % and this is too time-consuming to put into the tile acq callback. 
-    % TODO -- there is a confsion, perhaps, between the currentTilePattern and the positionArray defined in .runTileScan
-    % Are these things redundant? tileAcqDone uses the currentTilePatter
+    % TODO -- This likely needs to here, as I suspect SIBT.armScanner line 59 will need to modified for this
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
        obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
     else
@@ -219,21 +216,15 @@ function bake(obj,varargin)
 
 
         %  ===> Now the scanning runs <===
-        % TODO -- is this the best way of adding the auto-ROI?
-        % It could all be local to runTileScan
-        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            if ~obj.runTileScan(obj.autoROI.stats.roiStats(end).BoundingBoxDetails)
-                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-                return
-            end
-        else
-            % This is "normal"
-            if ~obj.runTileScan
-                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-                return
-            end
-
+        fprintf('ABOUT TO IMAGE %d tile positions. CHECK THIS IS RIGHT. TODO. Then we can remove this line in BT.bake.\n',...
+            obj.recipe.numTilesInOpticalSection)
+        if ~obj.runTileScan
+            fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+            return
         end
+        % ===> Tile scan finished <===
+
+
         %If requested, save the current preview stack to disk
         if exist(obj.logPreviewImageDataToDir,'dir')
             try
