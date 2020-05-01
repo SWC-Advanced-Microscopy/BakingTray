@@ -28,7 +28,6 @@ classdef SIBT < scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
-        currentTilePattern
         allowNonSquarePixels=false
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
