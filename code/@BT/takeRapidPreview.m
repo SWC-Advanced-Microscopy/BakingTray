@@ -35,6 +35,12 @@ function takeRapidPreview(obj)
     obj.recipe.sample.ID='FASTPREVIEW';
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
+    % SCRUB THE autoROIs! Danger but do for now
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
+        fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
+        obj.autoROI=[];
+    end
+
     if ~acqPossible
         warndlg(msg,''); %TODO: this somewhat goes against the standard procedure of having no GUI elements arise from 
                          %from the API, but it's easier in the case because of the nasty hack above with setting the sample ID name. 
@@ -80,8 +86,6 @@ function takeRapidPreview(obj)
     obj.currentTileSavePath=[];
     obj.currentTilePattern=obj.recipe.tilePattern; %Log the current tile pattern before starting
 
-
-    obj.preAllocateTileBuffer
 
     if ~obj.scanner.armScanner
         fprintf('\n\n ** FAILED TO START RAPID PREVIEW -- COULD NOT ARM SCANNER.\n\n')
