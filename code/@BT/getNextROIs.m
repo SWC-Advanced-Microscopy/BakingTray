@@ -1,12 +1,13 @@
 function getNextROIs(obj)
     % Get the ROIs in the currently imaged section in order to apply to the next
     % EARLY TEST
+    %
+    % This function does some of what happens in autoROI.test.runOnStackStruct 
+    %
     % TODO -- tidy and doc it
     %
     % Rob Campbell - SWC, April 2020
     %
-
-    verbose = true;
 
     if isempty(obj.lastPreviewImageStack)
         return
@@ -28,11 +29,6 @@ function getNextROIs(obj)
     end
 
     stats = obj.autoROI.stats;
-
-    if verbose
-        stats
-        stats.roiStats
-    end
 
 
     % Use a rolling threshold based on the last nImages to drive sample/background
