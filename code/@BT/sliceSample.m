@@ -24,6 +24,8 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % finished : true/false depending on whether or not it ran to the end
 
     % Don't waste time slicing if we have a dummy slicer
+    obj.isSlicing=true; % Gets set to false in cleanup function
+
     if isa(obj.cutter,'dummyCutter')
         fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
         finished=true;
@@ -31,7 +33,6 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     end
 
     finished=false;
-    obj.isSlicing=true;
     if isempty(obj.cutter)
         fprintf('Can not cut. No cutter connected\n')
         return
@@ -82,7 +83,6 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     cuttingStartPoint = obj.recipe.CuttingStartPoint;
     if isempty(cuttingStartPoint.X) || isempty(cuttingStartPoint.Y)
         obj.logMessage(inputname(1),dbstack,6,'obj.recipe.cuttingStartPoint is empty. NOT CUTTING')
-        obj.isSlicing=false;
         return 
     end
 
