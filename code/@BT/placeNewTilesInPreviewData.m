@@ -23,8 +23,19 @@ function placeNewTilesInPreviewData(obj,~,~)
         x = (1:size(obj.downSampledTileBuffer,1)) + obj.previewTilePositions(obj.lastTileIndex,2);
         y = (1:size(obj.downSampledTileBuffer,2)) + obj.previewTilePositions(obj.lastTileIndex,1);
 
-        %Place the tiles into the full image grid so it can be plotted (there is a listener on this property to update the plot)
-        obj.lastPreviewImageStack(y,x,:,:) = obj.downSampledTileBuffer;
+        allOK=true;
+        if any(x<1)
+            fprintf('placeNewTilesInPreviewData has x positions less than 1: not placing tile\n');
+            allOK=false;
+        end
+        if any(y<1)
+            fprintf('placeNewTilesInPreviewData has y positions less than 1: not placing tile\n');
+            allOK=false;
+        end
+        if allOK
+            %Place the tiles into the full image grid so it can be plotted (there is a listener on this property to update the plot)
+            obj.lastPreviewImageStack(y,x,:,:) = obj.downSampledTileBuffer;
+        end
 
 
         obj.downSampledTileBuffer(:) = 0; %wipe the buffer 
