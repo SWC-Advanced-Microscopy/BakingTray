@@ -1,14 +1,18 @@
 function initialisePreviewImageData(obj,tp)
+    % Generate empty preview stack and tile position coordinates.
+    %
+    % Purpose
     % Calculate where the tiles will go in the preview image the create the image
     % if the tile pattern (output of the recipe tilePattern method) is not supplied
     % then it is obtained here. 
     % The preview image is stored in obj.lastPreviewImageStack. Anything in there
     % before running this method is wiped out.
+    %
+    % 
 
     if nargin<2
         tp=obj.recipe.tilePattern; %Stage positions in mm (x,y)
     end
-
 
 
     if isempty(tp)
@@ -16,34 +20,42 @@ function initialisePreviewImageData(obj,tp)
         return
     end
 
-    % Conver to pixels
-    % TODO - can BT.convertStagePositionToImageCoords do this?
-    tp(:,1) = tp(:,1) - tp(1,1);
-    tp(:,2) = tp(:,2) - tp(1,2);
-
-
-    tp=abs(tp);
-    tp=ceil(tp/ (obj.downsampleMicronsPerPixel*1E-3) );
-    obj.previewTilePositions=tp;
-
-    ovLap = obj.recipe.mosaic.overlapProportion+1;
+    % First we initialise the image
 
     % The size of the preview image
-    stepSizes = max(abs(diff(tp)));
+    % Potential Bug:  The following is correct with square tiles. It may be wrong with rectangular tiles.
+    %                 Not tested with rectangular tiles.
+    stepSizes(1) = getTileSizeFromPositionList(tp(:,1));
+    stepSizes(2) = getTileSizeFromPositionList(tp(:,2));
+
+    ovLap = 1-obj.recipe.mosaic.overlapProportion;
     %              imsize + tile size including overlap
-    imCols = range(tp(:,2)) + round(stepSizes(1) * ovLap); % CHANGE -- TODO CONFIRM AUTOROI
-    imRows = range(tp(:,1)) + round(stepSizes(2) * ovLap); % CHANGE -- TODO CONFIRM AUTOROI
+    rangeAlongColsInMM = range(tp(:,2)) + (stepSizes(1) * ovLap);
+    imCols = round(rangeAlongColsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
+    rangeAlongRowsInMM = range(tp(:,1)) + (stepSizes(2) * ovLap);
+    imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
-
-    obj.lastPreviewImageStack = ones([imRows,imCols, ...
+    obj.lastPreviewImageStack = zeros([imRows,imCols, ...
         obj.recipe.mosaic.numOpticalPlanes, ...
-        obj.scanner.maxChannelsAvailable],'int16') * -2E15;
+        obj.scanner.maxChannelsAvailable],'int16');% * -2E15; % TODO -- add this back in for SIBT?
+                                                              % TODO -- add pi so we can remove later?
 
-    obj.downSampledTileBuffer(:)=0;
+
 
     % Log the current front/left position from the recipe
     obj.frontLeftWhenPreviewWasTaken.X = obj.recipe.FrontLeft.X;
     obj.frontLeftWhenPreviewWasTaken.Y = obj.recipe.FrontLeft.Y;
+
+
+    % Convert to pixels
+    pos = round(obj.convertStagePositionToImageCoords(tp));
+    pos(pos==0)=1;
+    obj.previewTilePositions = fliplr(pos);
+
+
+    % Wipe any data in the down-sampled tile buffer
+    obj.downSampledTileBuffer(:)=0;
+
 
     if nargin<2
         fprintf('Initialised a preview image of %d columns by %d rows using BT.recipe.tilePattern.\n', imCols, imRows)
@@ -51,3 +63,14 @@ function initialisePreviewImageData(obj,tp)
         fprintf('Initialised a preview image of %d columns by %d rows using supplied tile positions.\n', imCols, imRows)
     end
 end %initialisePreviewImageData
+
+
+
+    function tSize = getTileSizeFromPositionList(pList)
+        % pList is a list of X or Y stage or pixel positions
+        % from this we obtain the tile size as the largest 
+        % most common interval between tiles
+        d = diff(pList);
+        d(d==0) = [];
+        tSize = mode(abs(d));
+    end

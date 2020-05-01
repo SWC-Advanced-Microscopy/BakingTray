@@ -88,7 +88,7 @@ classdef dummyScanner < scanner
             obj.listeners{1}=addlistener(obj, 'stack_clim', 'PostSet', @obj.flipClimFlag);
 
             % Hard-code settings for acquisition behavior
-            obj.settings.tileAcq.tileFlipUD=false; % see initiateTileScan
+            obj.settings.tileAcq.tileFlipUD=true; % see initiateTileScan
             obj.settings.tileAcq.tileFlipLR=false; % see initiateTileScan
             obj.settings.tileAcq.tileRotate=0;     % see initiateTileScan
 
