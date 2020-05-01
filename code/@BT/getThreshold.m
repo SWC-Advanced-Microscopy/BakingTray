@@ -1,6 +1,11 @@
 function getThreshold(obj)
     % Get threshold from current preveiw image
-    % EARLY TEST
+    % 
+    % Purpose
+    % Runs autoROI.autothresh.run to get a threshold based on obj.autoROI.previewImages
+    % Once done, populates  BT.autoROI.stats with the output of autoROI. This wipes
+    % whatever was there before. 
+    %
     % TODO -- tidy and doc it
     %
     % Rob Campbell - SWC, April 2020
@@ -18,8 +23,11 @@ function getThreshold(obj)
             mfilename)
         return
     end
+
+    % Obtain the threshold
     threshSD = autoROI.autothresh.run(obj.autoROI.previewImages);
 
+    % Get stats
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);
 
 end % getThreshold
