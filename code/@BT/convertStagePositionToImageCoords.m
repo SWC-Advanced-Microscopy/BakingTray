@@ -21,15 +21,11 @@ function [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords
     % Note that the Y axis of the plot is motion of the X stage. This will always be the case.
     % i.e. There is no build scenario where this would be different. 
 
-    verbose=false;
-
     % Get the pixel size in mm of the downsampled image stack
     mmPerPixelDownSampled = obj.downsampleMicronsPerPixel * 1E-3;
 
     if isempty(obj.lastPreviewImageStack)
-        if verbose
-            fprintf('BT.convertStagePositionToImageCoords can not run: lastPreviewImageStack is empty\n')
-        end
+        fprintf('BT.convertStagePositionToImageCoords can not run: lastPreviewImageStack is empty. Returning [0,0]\n')
         imageCoords = [0,0]; %This is the middle of the stage motion
         return
     end
