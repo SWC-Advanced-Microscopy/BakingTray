@@ -133,7 +133,7 @@ function buildFigure(obj)
     % We'll repeat this before acquisition too, so recipe can be altered at any time
     obj.statusText.String = ' ** PLEASE WAIT ** ';
     obj.statusText.Color = 'r';
-    obj.initialisePreviewImageData(tp);
+    obj.model.initialisePreviewImageData(tp);
     obj.setUpImageAxes;
     drawnow
 

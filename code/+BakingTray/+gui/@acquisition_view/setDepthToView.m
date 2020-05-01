@@ -16,7 +16,7 @@ function setDepthToView(obj,~,~)
     thisSelection = obj.depthSelectPopup.String{obj.depthSelectPopup.Value};
     thisDepthIndex = str2double(regexprep(thisSelection,'\w+ ',''));
 
-    if thisDepthIndex>size(obj.previewImageData,3)
+    if thisDepthIndex>size(obj.model.lastPreviewImageStack,3)
         %If the selected value is out of bounds default to the first depth
         thisDepthIndex=1;
         obj.depthSelectPopup.Value=1;

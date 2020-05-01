@@ -29,9 +29,11 @@ classdef BT < loghandler
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
-        disabledAxisReadyCheckDuringAcq=false %If true, we don't check whether stages are ready to move before each motion when we are in an acquisition
-        lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
-        autoROI = [] % All info related to the autoROI goes here 
+        disabledAxisReadyCheckDuringAcq=false % If true, we don't check whether stages are ready to 
+                                              % move before each motion when we are in an acquisition
+        previewTilePositions % Pixel locations defining where tiles will be placed in the lastPreviewImageStack.
+                             % We take into account the overlap between tiles: BT.initialisemodel)
+        autoROI = [] % All info related to the autoROI goes here.
     end %close properties
 
 
@@ -47,6 +49,10 @@ classdef BT < loghandler
         % derived from the image would be wrong until the user re-acquires a preview stack.
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
 
+    end
+
+    properties (SetObservable)
+        lastPreviewImageStack = [] % The last preview image stack. It is a 4D matrix: [pixel rows, pixel columns, z depth, channel]
     end
 
     properties (SetAccess=immutable,Hidden)
@@ -80,6 +86,10 @@ classdef BT < loghandler
         lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
         lastTileIndex = 0; %This tells us which row in the tile pattern the last tile came from
 
+    end
+
+    properties (Hidden)
+        listeners = {};
     end
 
     properties (Hidden,SetObservable,AbortSet,Transient,Dependent)
@@ -236,6 +246,10 @@ classdef BT < loghandler
             % Ensure that x/y stage speeds are what they should be
             obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
 
+
+            % Add a listener on currentTilePosition, which updates the section preview
+            obj.listeners{1}=addlistener(obj, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
+
             obj.buildFailed=false;
 
         end %Constructor
@@ -263,9 +277,6 @@ classdef BT < loghandler
             end
 
         end  %Destructor
-
-
-        %TODO: declare external methods
 
 
         % ----------------------------------------------------------------------

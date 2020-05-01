@@ -21,12 +21,11 @@ function startPreviewScan(obj,~,~)
 
     % Update the preview image in case the recipe has altered since the GUI was opened or
     % since the preview was last taken.
-    obj.initialisePreviewImageData;
     obj.setUpImageAxes;
 
-    if size(obj.previewImageData,3)>1
+    if size(obj.model.lastPreviewImageStack,3)>1
         %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)
-        obj.previewImageData(:,:,2:end,:)=[];
+        obj.model.lastPreviewImageStack(:,:,2:end,:)=[];
     end
 
     obj.updateImageLUT;
@@ -41,13 +40,6 @@ function startPreviewScan(obj,~,~)
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
     obj.button_BakeStop.Enable='on'; 
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
-
-    % Copy data to the model (TODO: should we only keep it there?)
-    if obj.rotateSectionImage90degrees
-        obj.model.lastPreviewImageStack = rot90(obj.previewImageData);
-    else
-        obj.model.lastPreviewImageStack = obj.previewImageData;
-    end
 
 
     % TODO -- this will need re-factoring

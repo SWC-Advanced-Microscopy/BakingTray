@@ -135,6 +135,8 @@ function bake(obj,varargin)
     % auto-ROI stuff if the user has selected this
     %  TODO -- needs re-factoring
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        obj.currentSectionNumber=1; % TODO --- this means that we can't carry on a previous acquisition right now with auto-ROI!
+        disp('in auto-ROI setting currentSectionNumber to 1')
         fprintf('Getting first ROIs...')
         obj.getNextROIs
         fprintf('DONE\n')
@@ -150,6 +152,7 @@ function bake(obj,varargin)
     else
         obj.currentTilePattern=obj.recipe.tilePattern;
     end
+
 
 
     %loop and tile scan
@@ -375,6 +378,10 @@ function bake(obj,varargin)
             break
         end
 
+
+        disp(' *** PRESS RETURN FOR NEXT SECTION *** ')
+        pause
+
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
 
@@ -464,5 +471,11 @@ function bakeCleanupFun(obj)
 
     % Move the X/Y stage to a nice finish postion, ready for next sample
     obj.moveXYto(obj.recipe.FrontLeft.X,0)
+
+    % In a crash we can sometimes still be indicating that the system is cutting. So stop this
+    if obj.isSlicing
+        fprintf('BT.bake notices that BakingTray thinks it is slicing. Likely it is not and this is a bug. Resetting this flag.\n')
+        obj.isSlicing=false;
+    end
 
 end %bakeCleanupFun

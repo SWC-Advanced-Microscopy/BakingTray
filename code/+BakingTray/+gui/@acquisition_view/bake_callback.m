@@ -31,7 +31,6 @@ function bake_callback(obj,~,~)
 
     % Update the preview image in case the recipe has altered since the GUI was opened or
     % since the preview was last taken.
-    obj.initialisePreviewImageData;
     obj.setUpImageAxes;
 
 

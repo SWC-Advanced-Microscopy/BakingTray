@@ -39,16 +39,13 @@ classdef acquisition_view < BakingTray.gui.child_view
     end
 
     properties (SetObservable,Transient)
-        previewImageData=[]  % This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
         plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
-        previewTilePositions % This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
     end %close hidden transient observable properties
 
     properties (Hidden,SetAccess=private)
         chanToShow=1
         depthToShow=1
         cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
-        rotateSectionImage90degrees=true; %Ensure the axis along which the blade cuts is is the image x axis. 
     end %close hidden private properties
 
 
@@ -94,15 +91,12 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
 
-    % Declare hiden methods in separate files
+    % Declare hidden methods in separate files
     methods (Hidden)
         buildFigure(obj)    % Called once by the constructor
         setupListeners(obj) % Called once by the constructor
 
-        initialisePreviewImageData(obj, tp)
-
         % Callbacks
-        placeNewTilesInPreviewData(obj,~,~)
         updateSectionImage(obj,~,~)
 
         % Callbacks in direct response to user actions
@@ -126,10 +120,9 @@ classdef acquisition_view < BakingTray.gui.child_view
     methods (Hidden)
         function setUpImageAxes(obj)
             % Add a blank images to the image axes
-            blankImage = squeeze(obj.previewImageData(:,:,obj.depthToShow,obj.chanToShow));
-            if obj.rotateSectionImage90degrees
-                blankImage = rot90(blankImage);
-            end
+            blankImage = squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow,obj.chanToShow));
+
+            blankImage(:) = 0;
 
             obj.sectionImage=imagesc(blankImage,'parent',obj.imageAxes);
 
@@ -176,14 +169,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
-
-                % Dump the current preview image to the model
-                % TODO- should we simply store these data only in the model?
-                if obj.rotateSectionImage90degrees
-                    obj.model.lastPreviewImageStack = rot90(obj.previewImageData);
-                else
-                    obj.model.lastPreviewImageStack = obj.previewImageData;
-                end
 
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';

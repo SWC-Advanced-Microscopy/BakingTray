@@ -18,6 +18,10 @@ function runSuccess = runTileScan(obj,boundingBoxDetails)
     [pos,indexes]=obj.recipe.tilePattern(false,false,boundingBoxDetails);
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
 
+    obj.initialisePreviewImageData(pos); % TODO -- this is newly added here and only here
+                                         % WHAT ABOUT THE CURRENT TILE PATTERN? DO THAT HERE TOO?
+
+
     % Move to the front left position
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
     obj.toFrontLeft;

@@ -6,6 +6,8 @@ function getNextROIs(obj)
     % Rob Campbell - SWC, April 2020
     %
 
+    verbose = true;
+
     if isempty(obj.lastPreviewImageStack)
         return
     end
@@ -14,7 +16,6 @@ function getNextROIs(obj)
     pStack = obj.autoROI.previewImages;
     pStack.sectionNumber=obj.currentSectionNumber;
     pStack.fullFOV=false;
-
 
 
     settings = autoROI.readSettings;
@@ -28,6 +29,10 @@ function getNextROIs(obj)
 
     stats = obj.autoROI.stats;
 
+    if verbose
+        stats
+        stats.roiStats
+    end
 
 
     % Use a rolling threshold based on the last nImages to drive sample/background
