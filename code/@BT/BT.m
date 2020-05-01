@@ -19,12 +19,12 @@ classdef BT < loghandler
     properties (Transient)
         scanner % The object that handles the scanning (e.g. SIBT, our scanImage wrapper)
         cutter  % The vibrotome motor 
-        laser   % An object providing control of the laser goes here. If present, BakingTray can 
-                % can turn off the laser at the end of the experiment and stop acquisition if the 
+        laser   % An object providing control of the laser goes here. If present, BakingTray can
+                % can turn off the laser at the end of the experiment and stop acquisition if the
                 % laser fails. If it's missing, these features just aren't available.
         recipe  % The details for the experiment go here
 
-        % These properties control the three axis sample stage. 
+        % These properties control the three axis sample stage.
         xAxis
         yAxis
         zAxis
@@ -89,11 +89,13 @@ classdef BT < loghandler
     end
 
     % These properties are used by GUIs and general broadcasting
-    properties (Hidden, SetObservable, AbortSet)
-        isSlicing=false
+    properties (SetObservable, AbortSet)
         acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
+    end
+    properties (Hidden, SetObservable, AbortSet)
+        isSlicing=false
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
         abortAcqNow=false  %Used when aborting an acquisition
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
