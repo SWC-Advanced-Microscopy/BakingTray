@@ -24,6 +24,11 @@ function updateSectionImage(obj,~,~)
         obj.sectionImage.CData = squeeze(obj.previewImageData(:,:,obj.depthToShow, obj.chanToShow));
     end
 
+    %TODO: temporarily allow re-sizing of the image. Once autoROI bugs are ironed out we will either remove this or 
+    % come up with a different solution
+    fprintf('updateSectionImage doing horrible axis limit hack\n')
+    obj.imageAxes.YLim=[0,size(obj.sectionImage.CData,1)];
+    obj.imageAxes.XLim=[0,size(obj.sectionImage.CData,1)];
     drawnow
 
 end %updateSectionImage

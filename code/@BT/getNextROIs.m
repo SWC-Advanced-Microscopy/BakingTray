@@ -10,9 +10,11 @@ function getNextROIs(obj)
         return
     end
 
-    pStack = obj.autoROI.previewImages;
-    pStack.fullFOV=false;
     obj.autoROI.previewImages=obj.returnPreviewStructure;
+    pStack = obj.autoROI.previewImages;
+    pStack.sectionNumber=obj.currentSectionNumber;
+    pStack.fullFOV=false;
+
 
 
     settings = autoROI.readSettings;

@@ -73,13 +73,16 @@ function runSuccess = runTileScan(obj,boundingBoxDetails)
     switch obj.recipe.mosaic.scanmode
     case 'tiled: manual ROI'
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
-    case 'tiled: auto-ROI'
-        % TODO -- UNKNOWN?
-        nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
-    end
-
     fprintf('\nFinished %d tile positions. Acquired %d images per channel (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
         floor(obj.currentTilePosition), nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
         obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/(obj.currentTilePosition))
+
+    case 'tiled: auto-ROI'
+        % TODO -- is this the neatest way of going?
+        nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
+        fprintf('\nFinished %d tile positions in in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
+            floor(obj.currentTilePosition), totalTime, totalTime/(obj.currentTilePosition))
+    end
+
 
     runSuccess=true;

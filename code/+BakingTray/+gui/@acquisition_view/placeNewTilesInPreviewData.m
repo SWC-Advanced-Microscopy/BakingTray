@@ -32,7 +32,7 @@ function placeNewTilesInPreviewData(obj,~,~)
     % In future this switch can go away and all tiles will be laid down using the positions
 
     if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
-
+        fprintf('Placing tiles from grid of %d tiles: auto-ROI\n', size(obj.previewTilePositions,1))
 
         if obj.model.lastTilePos.X>0 && obj.model.lastTilePos.Y>0
             % Caution changing these lines: tiles may be rectangular
@@ -55,7 +55,7 @@ function placeNewTilesInPreviewData(obj,~,~)
 
     else
         % This is a "normal" recording (not auto-ROI)
-
+        fprintf('Placing tiles from grid of %d tiles: vanilla\n', size(obj.previewTilePositions,1))
         % The first tile position in the grid is [0,0]. We enter the following if statment so long as the stages are not 
         % at this inital position.
         if obj.model.lastTilePos.X>0 && obj.model.lastTilePos.Y>0

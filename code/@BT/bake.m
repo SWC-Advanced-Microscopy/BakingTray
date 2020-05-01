@@ -155,6 +155,8 @@ function bake(obj,varargin)
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
 
+        fprintf('\n\n%s\n',repmat('-',1,70)) % Print a line across the CLI
+
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
 
@@ -315,15 +317,6 @@ function bake(obj,varargin)
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
 
-        % auto-ROI stuff if the user has selected this
-        %  TODO -- needs re-factoring
-        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.getNextROIs
-            %TODO following line seem really redundant. I think it should be in runTileScan
-           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
-        end
-
-
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
             %Mark the section as complete
@@ -348,6 +341,18 @@ function bake(obj,varargin)
             obj.scanner.abortScanning;
             return
         end
+
+
+
+
+        % auto-ROI stuff if the user has selected this
+        %  TODO -- needs re-factoring
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            obj.getNextROIs
+            %TODO following line seem really redundant. I think it should be in runTileScan
+           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
+        end
+
 
         obj.detachLogObject %Close the log file that writes to the section directory
 
