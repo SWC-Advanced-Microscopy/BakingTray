@@ -9,7 +9,6 @@ function runSuccess = runTileScan(obj)
 
     runSuccess=false;
 
-
     % Populate:
     %  - currentTilePatern (where the stage will go)
     %  - positionArray (where the tiles will go in the preview image matrix)
@@ -29,6 +28,9 @@ function runSuccess = runTileScan(obj)
 
     obj.initialisePreviewImageData(pos); % TODO -- this is newly added here and only here
 
+
+    %pre-allocate the tile buffer where the last section's tiles are inserted
+    obj.preAllocateTileBuffer
 
 
     % Move to the front left position

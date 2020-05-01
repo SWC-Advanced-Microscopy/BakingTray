@@ -120,9 +120,6 @@ function bake(obj,varargin)
     end
 
 
-    %pre-allocate the tile buffer
-    obj.preAllocateTileBuffer
-    
     obj.sectionCompletionTimes=[]; %Clear the array of completion times
 
     %Log the current time to the recipe
