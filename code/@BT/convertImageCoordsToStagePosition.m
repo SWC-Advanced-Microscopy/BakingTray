@@ -15,6 +15,7 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
     % xMMPix - number of mm per pixel in X
     % yMMPix - number of mm per pixel in Y
     %
+    %
     % Note that the Y axis of the plot is motion of the X stage. This will always be the case.
     % i.e. There is no build scenario where this would be different. 
 

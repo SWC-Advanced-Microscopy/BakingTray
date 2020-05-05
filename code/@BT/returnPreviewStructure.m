@@ -8,8 +8,11 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
         chanToKeep=[];
     end
 
+    verbose = true;
+
     % TODO -- this is ro90 for some reason
     im = squeeze(mean(obj.lastPreviewImageStack,3)); % Average depths
+
 
     % Get the channel with the highest median if no channel was requestes
     if isempty(chanToKeep)
@@ -24,6 +27,20 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     pStack.recipe = obj.recipe;
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
+
+    % Log the front/left stage position when this preview image was obtained. This information is 
+    % recorded by the method BT.initialisePreviewImageData, which stores it in BT.frontLeftWhenPreviewWasTaken
+    % For stacks where we are not using autoROI, this front/left position will be the same for all sections. 
+    % For autoROI stacks it will vary by section. 
+    pStack.frontLeftStageMM = obj.frontLeftWhenPreviewWasTaken;
+
     pStack.nSamples = []; % TODO-- fill this in?
+
     pStack.fullFOV = true; % TODO - we need a smarter way of setting this. It should be false if the section was acquired with auto-ROI
+
+
+    if verbose
+        fprintf('BT.%s makes pStack with image of size %d by %d and frontLeftStageMM x=%0.2f y=%0.2f\n', ...
+            mfilename, size(im), pStack.frontLeftStageMM.X, pStack.frontLeftStageMM.Y)
+    end
 end

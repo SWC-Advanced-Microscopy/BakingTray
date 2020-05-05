@@ -104,6 +104,8 @@ classdef BT < loghandler
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
     end
+
+
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
@@ -131,7 +133,7 @@ classdef BT < loghandler
         success = defineSavePath(obj) 
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
-        success=resumeAcquisition(obj,recipeFname)
+        success = resumeAcquisition(obj,recipeFname)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
@@ -149,9 +151,8 @@ classdef BT < loghandler
         getNextROIs(obj)
         getThreshold(obj)
         pStack = returnPreviewStructure(obj,chanToKeep)
-
-
     end % Declare methods in separate files
+
 
     methods (Hidden)
         logPositionToPositionArray(obj,fakeLog)
@@ -159,6 +160,7 @@ classdef BT < loghandler
         % Callbacks
         placeNewTilesInPreviewData(obj,~,~)
     end
+
 
     methods
         %Constructor

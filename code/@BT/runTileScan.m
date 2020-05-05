@@ -95,7 +95,7 @@ function runSuccess = runTileScan(obj)
     case 'tiled: auto-ROI'
         % TODO -- is this the neatest way of going?
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
-        fprintf('\nFinished %d tile positions in in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
+        fprintf('\nFinished %d tile positions in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
             floor(obj.currentTilePosition), totalTime, totalTime/(obj.currentTilePosition))
     end
 

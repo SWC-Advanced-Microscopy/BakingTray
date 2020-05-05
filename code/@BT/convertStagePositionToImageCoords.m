@@ -45,5 +45,4 @@ function [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords
     % Flip because stage and image X/Y are different
     imageCoords = fliplr(coords);
 
-
 end % convertImageCoordsToStagePosition

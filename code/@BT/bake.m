@@ -79,7 +79,7 @@ function bake(obj,varargin)
 
     %----------------------------------------------------------------------------------------
 
-    fprintf('Starting data acquisition\n')
+    fprintf('\n\n\n ------>>  Starting To Bake  <<------ \n\n\n')
     obj.currentTileSavePath=[];
     tidy = onCleanup(@() bakeCleanupFun(obj));
 
@@ -152,7 +152,7 @@ function bake(obj,varargin)
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
 
-        fprintf('\n\n%s\n',repmat('-',1,70)) % Print a line across the CLI
+        fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),sectionInd) % Print a line across the CLI
 
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
