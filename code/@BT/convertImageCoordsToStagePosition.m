@@ -1,4 +1,4 @@
-function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
+function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, frontLeftStageCoord)
     % Convert a position in the preview image to a stage position in mm
     %
     % function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
@@ -9,6 +9,8 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
     %
     % Inputs
     % coords is [x coord, y coord] This is of the image. So x means columns and y means rows.
+    %
+    %     % TODO -- doc fully as frontLeftStageCoord is new argument
     % 
     % Outputs
     % stagePos is [x stage pos, y stage pos]
@@ -20,6 +22,13 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
     % i.e. There is no build scenario where this would be different. 
 
     verbose=false;
+
+    if nargin<3
+        frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X;
+        frontLeftStageCoord.Y = obj.frontLeftWhenPreviewWasTaken.Y;
+    else
+        frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X-0.05;
+    end
 
     % Get the pixel size in mm of the downsampled image stack
     mmPerPixelDownSampled = obj.downsampleMicronsPerPixel * 1E-3;
@@ -49,10 +58,10 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
 
     % The image axes origin is the front/right position of the stage. We therefore here get the X stage 
     % value for y=0 (right most position) and we'll reference off that
-    frontRightX = obj.frontLeftWhenPreviewWasTaken.X - size(obj.lastPreviewImageStack,1)*mmPerPixelDownSampled;
+    frontRightX = frontLeftStageCoord.X - size(obj.lastPreviewImageStack,1)*mmPerPixelDownSampled;
 
     xPosInMM = frontRightX + yAxisCoord*mmPerPixelDownSampled;
-    yPosInMM = obj.frontLeftWhenPreviewWasTaken.Y- xAxisCoord*mmPerPixelDownSampled;
+    yPosInMM = frontLeftStageCoord.Y- xAxisCoord*mmPerPixelDownSampled;
 
     stagePos = [xPosInMM,yPosInMM];
 

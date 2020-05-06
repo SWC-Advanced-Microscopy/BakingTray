@@ -14,7 +14,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     im = squeeze(mean(obj.lastPreviewImageStack,3)); % Average depths
 
 
-    % Get the channel with the highest median if no channel was requestes
+    % Get the channel with the highest median if no channel was requested
     if isempty(chanToKeep)
         medc = squeeze([median(im,[1,2])]);
         [~,chanToKeep] = max(medc);
@@ -27,6 +27,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     pStack.recipe = obj.recipe;
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
+
 
     % Log the front/left stage position when this preview image was obtained. This information is 
     % recorded by the method BT.initialisePreviewImageData, which stores it in BT.frontLeftWhenPreviewWasTaken

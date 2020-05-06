@@ -9,6 +9,8 @@ function runSuccess = runTileScan(obj)
 
     runSuccess=false;
 
+    fprintf('Entering %s\n', mfilename) % TODO -- can remove this line when auto-ROI is done
+
     % Populate:
     %  - currentTilePatern (where the stage will go)
     %  - positionArray (where the tiles will go in the preview image matrix)
@@ -26,7 +28,7 @@ function runSuccess = runTileScan(obj)
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go
     obj.currentTilePattern=pos;
 
-    obj.initialisePreviewImageData(pos); % TODO -- this is newly added here and only here
+    obj.initialisePreviewImageData(pos); % TODO -- this is newly added here and only here. Check that makes sense.
 
 
     %pre-allocate the tile buffer where the last section's tiles are inserted

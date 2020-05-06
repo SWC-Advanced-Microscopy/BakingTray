@@ -18,8 +18,10 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     %             length of more than 1. example:
     % ROIparams.numTiles.X - an integer number of tiles
     % ROIparams.numTiles.Y - an integer number of tiles
-    % ROIparams.frontLeftPixel.X - location of the front/left corner pixel along image rows
-    % ROIparams.frontLeftPixel.Y - location of the front/left corner pixel along image columns
+    % ROIparams.frontLeftPixel.X - location of the front/left corner pixel of this ROI along image rows
+    % ROIparams.frontLeftPixel.Y - location of the front/left corner pixel of this ROI along image columns
+    % ROIparams.frontLeftStageMM.X - location of the front/left-most corner stage position of all ROIs -- x stage position in mm
+    % ROIparams.frontLeftStageMM.Y - location of the front/left-most corner stage position of all ROIs -- y stage position in mm
     %
     %
     % Outputs
@@ -142,6 +144,7 @@ end % tilePattern
         % Much of the calculation is done by the NumTiles class, which is attached
         % to the recipe object at obj.NumTiles
 
+        verbose=true;
 
         % Obtain the microscope FOV
         fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
@@ -154,9 +157,16 @@ end % tilePattern
             ROIparams.frontLeftMM.X = obj.FrontLeft.X;
             ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
         else
-            stageFrontLeft = obj.parent.convertImageCoordsToStagePosition([ROIparams.frontLeftPixel.X,ROIparams.frontLeftPixel.Y]);
-            ROIparams.frontLeftMM.X = stageFrontLeft(1);
-            ROIparams.frontLeftMM.Y = stageFrontLeft(2);
+            ROI_FL = [ROIparams.frontLeftPixel.X,ROIparams.frontLeftPixel.Y];
+
+            ROI_frontLeft_in_MM = obj.parent.convertImageCoordsToStagePosition(ROI_FL,ROIparams.frontLeftStageMM);
+            ROIparams.frontLeftMM.X = ROI_frontLeft_in_MM(1);
+            ROIparams.frontLeftMM.Y = ROI_frontLeft_in_MM(2);
+
+            if verbose
+                fprintf('recipe.tilePattern > generateTileGrid produces a ROI with a front/left stage coord: x=%0.2f, y=%0.2f\n', ...
+                    ROIparams.frontLeftMM.X, ROIparams.frontLeftMM.Y)
+            end
         end
 
 

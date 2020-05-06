@@ -7,12 +7,29 @@ classdef acquisition_view < BakingTray.gui.child_view
         imageAxes %The preview image sits here
         compassAxes %This houses the compass-like indicator 
 
-        statusPanel %The buttons and panals at the top of the window are kept here
-        statusText  %The progress text
         sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
         updatePreviewEveryNTiles=10 % Update the preview image each time a multiple of updatePreviewEveryNTiles has been acquired
+
+        %% TODO -- may not implement this
+        %%overlayTileGridsAfterSection=true % If true overlay diagnostic tile grids on section preview after each section
+
+        verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
+    end
+
+
+    properties (SetObservable,Transient)
+        plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
+    end %close hidden transient observable properties
+
+    properties (Hidden,SetAccess=private)
+        statusPanel %The buttons and panals at the top of the window are kept here
+        statusText  %The progress text
+
+        chanToShow=1
+        depthToShow=1
+        cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
 
         %This button initiate bake and then switches to being a stop button
         button_BakeStop
@@ -35,17 +52,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         checkBoxLaserOff
         checkBoxCutLast
 
-        verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
-    end
-
-    properties (SetObservable,Transient)
-        plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
-    end %close hidden transient observable properties
-
-    properties (Hidden,SetAccess=private)
-        chanToShow=1
-        depthToShow=1
-        cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
     end %close hidden private properties
 
 

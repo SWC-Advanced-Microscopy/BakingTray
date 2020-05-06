@@ -133,10 +133,9 @@ function bake(obj,varargin)
     %  TODO -- needs re-factoring
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
-        disp('in auto-ROI setting currentSectionNumber to 1')
-        fprintf('Getting first ROIs...')
+        fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
         obj.getNextROIs
-        fprintf('DONE\n')
+        fprintf('\nDONE\n')
     end
 
 
@@ -148,6 +147,13 @@ function bake(obj,varargin)
     end
 
 
+        % TODO -- debugging horrible thing for auto-ROI dev
+        if 1
+            % Overlay tile grid for next section
+            hBTview=evalin('base','hBTview');
+            XL_orig = hBTview.view_acquire.imageAxes.XLim;
+            YL_orig = hBTview.view_acquire.imageAxes.YLim;
+        end
 
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
@@ -333,17 +339,61 @@ function bake(obj,varargin)
             return
         end
 
+        % TODO -- debugging horrible thing for auto-ROI dev
+        if 0
+            fprintf('Adding grid overlays\n')
+            % Overlay tile grid for next section
+            hBTview=evalin('base','hBTview');
+            hBTview.view_acquire.removeOverlays
+            z=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
+            hBTview.view_acquire.overlayTileGridOnImage(z)
+            %hBTview.view_acquire.imageAxes.XLim=XL_orig;
+            %hBTview.view_acquire.imageAxes.YLim=YL_orig;
+            
+
+            % plot in a separate window what autoROI should have asked for
+            a=obj.autoROI;
+            a.stats.roiStats = a.stats.roiStats(end);
+            figure(1988)
+            autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
+            axis xy
+
+            disp(' *** PRESS RETURN FOR NEXT ROIS *** '); pause % TODO - for debugging during auto-ROI dev
+        end
 
 
 
         % auto-ROI stuff if the user has selected this
         %  TODO -- needs re-factoring
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.getNextROIs
+            obj.getNextROIs % Determine where to place the ROIs in the next physical section
             %TODO following line seem really redundant. I think it should be in runTileScan
            obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
         end
 
+        % TODO -- debugging horrible thing for auto-ROI dev
+        if 1
+            fprintf('\n Adding grid overlays after next ROI\n')
+            % Overlay tile grid for next section
+            hBTview=evalin('base','hBTview');
+            hBTview.view_acquire.removeOverlays
+
+            hBTview.view_acquire.overlayTileGridOnImage(obj.currentTilePattern)
+            %hBTview.view_acquire.imageAxes.XLim=XL_orig;
+            %hBTview.view_acquire.imageAxes.YLim=YL_orig;
+            
+
+            % plot in a separate window what autoROI should have asked for
+            a=obj.autoROI;
+            a.stats.roiStats = a.stats.roiStats(end);
+            figure(1988)
+            autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
+            axis xy
+
+           % disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
+            hBTview.view_acquire.removeOverlays
+
+        end
 
         obj.detachLogObject %Close the log file that writes to the section directory
 

@@ -136,13 +136,13 @@ classdef BT < loghandler
         success = resumeAcquisition(obj,recipeFname)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
-        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
-        [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords)
+        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
+        [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords, imageFrontLeft)
 
         % House-keeping
         out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
         success=renewLaserConnection(obj)
-        initialisePreviewImageData(obj,tp)
+        initialisePreviewImageData(obj,tp, frontLeft)
         preAllocateTileBuffer(obj)
         slack(obj,message)
         n=tilesRemaining(obj)
