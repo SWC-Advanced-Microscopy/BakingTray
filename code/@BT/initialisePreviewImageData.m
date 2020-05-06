@@ -85,9 +85,11 @@ function initialisePreviewImageData(obj,tp,frontLeft)
         fprintf('%s is getting tile positions using front-left value: x=%0.2f y=%0.2f\n', ...
             mfilename, frontLeft.X, frontLeft.Y)
     end
+
     pos = obj.convertStagePositionToImageCoords(tp,frontLeft);
     pos = round(pos);
     pos(pos==0)=1;
+    %pos(:,2) = abs(pos(:,2)-imRows); % SEEMS WE DO NOT NEED
     obj.previewTilePositions = fliplr(pos);
 
 

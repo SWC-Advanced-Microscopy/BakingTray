@@ -28,9 +28,13 @@ function buildFigure(obj)
                                 'FontSize',textFSize);
 
     %Make the image axes (also see obj.setUpImageAxes)
-    obj.imageAxes = axes('parent', obj.hFig, 'Units','pixels', 'Color', 'k',...
+    obj.imageAxes = axes('parent', obj.hFig, ...
+        'Units','pixels', ...
+        'Color', 'k',...
         'Position',[3,2,minFigSize(1)-4,minFigSize(2)-panelHeight-4]);
 
+    % This makes the image origin and the front/left position coincide. 
+    set(obj.imageAxes.YAxis,'Direction','reverse')
 
     %Set up the "compass plot" in the bottom left of the preview axis
     pos=plotboxpos(obj.imageAxes);

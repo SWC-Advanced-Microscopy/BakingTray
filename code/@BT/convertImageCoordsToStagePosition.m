@@ -27,6 +27,8 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
         frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X;
         frontLeftStageCoord.Y = obj.frontLeftWhenPreviewWasTaken.Y;
     else
+         %% NOTE, TODO -- WHY?? THIS WAS NOT IN THE ORIGINAL
+         disp('subtracting weird offset in convertImageCoordsToStagePosition')
         frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X-0.05;
     end
 
@@ -47,21 +49,17 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
 
     % How the figure is set up:
     % * The Y axis of the image (rows) corresponds to motion of the X stage. 
-    %   X stage values go negative as we move up the axis (where axis values become more postive)
+    %   X stage values go more negative as we move up the rows (x origin of image at the top)
     % 
     % * The X axis of the image (columns) corresponds to motion of the Y stage
-    %   Both Y stage values and X axis values become more positive as we move to the right.
     %
     % * The front/left position is at the top left of the figure
 
     % Note that the figure x axis is the y stage axis, hence the confusing mixing of x and y below
 
-    % The image axes origin is the front/right position of the stage. We therefore here get the X stage 
-    % value for y=0 (right most position) and we'll reference off that
-    frontRightX = frontLeftStageCoord.X - size(obj.lastPreviewImageStack,1)*mmPerPixelDownSampled;
-
-    xPosInMM = frontRightX + yAxisCoord*mmPerPixelDownSampled;
-    yPosInMM = frontLeftStageCoord.Y- xAxisCoord*mmPerPixelDownSampled;
+    % Since the image axes origin corresponds to the front/left position of the stage we simply:
+    xPosInMM = frontLeftStageCoord.X - yAxisCoord*mmPerPixelDownSampled;
+    yPosInMM = frontLeftStageCoord.Y - xAxisCoord*mmPerPixelDownSampled;
 
     stagePos = [xPosInMM,yPosInMM];
 

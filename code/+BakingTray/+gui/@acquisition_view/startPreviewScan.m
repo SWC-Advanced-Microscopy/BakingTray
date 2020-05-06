@@ -42,7 +42,7 @@ function startPreviewScan(obj,~,~)
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
 
 
-    % TODO -- this will need re-factoring
+    % TODO -- this will need re-factoring -- CAN NOT BE HERE LIKELY
     if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.model.getThreshold;
         z=obj.model.recipe.tilePattern(false,false,obj.model.autoROI.stats.roiStats.BoundingBoxDetails);

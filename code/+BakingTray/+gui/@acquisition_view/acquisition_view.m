@@ -142,6 +142,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'LineWidth',1,...
                 'XColor','w',...
                 'YColor','w')
+            set(obj.imageAxes.YAxis,'Direction','Reverse'); % TODO-- buildFigure also does this. But has to be here or work of buildfigure gets undone. Buildfigure should call this!
             set(obj.hFig,'Colormap', gray(256))
         end %setUpImageAxes
     end %close hidden methods

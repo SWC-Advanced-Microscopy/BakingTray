@@ -35,13 +35,10 @@ function [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords
         return
     end
 
-    % The image axes origin is the front/right position of the stage.
-    frontRight_stage_X = imageFrontLeft.X - size(obj.lastPreviewImageStack,1) * mmPerPixelDownSampled;
-    frontLeft_stage_Y  = imageFrontLeft.Y;
 
     % First we subtract the offset (front/left position) of the image
-    coords(:,1) = coords(:,1) - frontRight_stage_X;
-    coords(:,2) = frontLeft_stage_Y -  coords(:,2);
+    coords(:,1) = imageFrontLeft.X - coords(:,1);
+    coords(:,2) = imageFrontLeft.Y -  coords(:,2);
 
 
     % Second we convert from mm to pixels

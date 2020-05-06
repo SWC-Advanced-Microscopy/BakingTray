@@ -158,7 +158,6 @@ end % tilePattern
             ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
         else
             ROI_FL = [ROIparams.frontLeftPixel.X,ROIparams.frontLeftPixel.Y];
-
             ROI_frontLeft_in_MM = obj.parent.convertImageCoordsToStagePosition(ROI_FL,ROIparams.frontLeftStageMM);
             ROIparams.frontLeftMM.X = ROI_frontLeft_in_MM(1);
             ROIparams.frontLeftMM.Y = ROI_frontLeft_in_MM(2);
