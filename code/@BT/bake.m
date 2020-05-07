@@ -341,7 +341,7 @@ function bake(obj,varargin)
 
         % TODO -- debugging horrible thing for auto-ROI dev
         if 0
-            fprintf('Adding grid overlays\n')
+            fprintf('Adding grid overlays for these ROIs\n')
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');
             hBTview.view_acquire.removeOverlays
@@ -349,7 +349,6 @@ function bake(obj,varargin)
             hBTview.view_acquire.overlayTileGridOnImage(z)
             %hBTview.view_acquire.imageAxes.XLim=XL_orig;
             %hBTview.view_acquire.imageAxes.YLim=YL_orig;
-            
 
             % plot in a separate window what autoROI should have asked for
             a=obj.autoROI;
@@ -381,16 +380,14 @@ function bake(obj,varargin)
             hBTview.view_acquire.overlayTileGridOnImage(obj.currentTilePattern)
             %hBTview.view_acquire.imageAxes.XLim=XL_orig;
             %hBTview.view_acquire.imageAxes.YLim=YL_orig;
-            
 
             % plot in a separate window what autoROI should have asked for
             a=obj.autoROI;
             a.stats.roiStats = a.stats.roiStats(end);
             figure(1988)
             autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
-            axis xy
 
-           % disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
+            disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
             hBTview.view_acquire.removeOverlays
 
         end

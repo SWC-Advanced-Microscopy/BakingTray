@@ -36,7 +36,7 @@ function updateSectionImage(obj,~,~)
         obj.imageAxes.YLim=[0,size(obj.sectionImage.CData,1)];
         obj.imageAxes.XLim=[0,size(obj.sectionImage.CData,2)];
 
-        %
+        % TODO -- correct crap above and get rid of the following to lines:
 %%        fprintf('--> updateSectionImage doing horrible axis limit hack: XLim=[%d,%d] , YLim=[%d,%d]\n', ...
  %%           round(obj.imageAxes.XLim), round(obj.imageAxes.YLim))
 

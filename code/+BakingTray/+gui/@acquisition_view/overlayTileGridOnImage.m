@@ -91,7 +91,7 @@ function overlayTileGridOnImage(obj,tileGrid)
         % cPix - corner pixel location
         %H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
         xT = [cPix(1), cPix(1)+tileSizeX, cPix(1)+tileSizeX, cPix(1), cPix(1)];
-        yT = [cPix(2), cPix(2), cPix(2)-tileSizeY, cPix(2)-tileSizeX, cPix(2)];
+        yT = [cPix(2), cPix(2), cPix(2)+tileSizeY, cPix(2)+tileSizeX, cPix(2)];
         H=plot(xT,yT,'-b','Parent',obj.imageAxes,'LineWidth',1.5);
         if doTileNumber
             H(2)=text(mean(xT(1:4)), mean(yT(1:4)), num2str(tileIndex),'Parent',obj.imageAxes, ...
