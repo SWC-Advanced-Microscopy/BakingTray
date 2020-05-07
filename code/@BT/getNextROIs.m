@@ -105,13 +105,13 @@ function getNextROIs(obj)
 
     dX_pix = (FL_thisSection.X - FL_prevSection.X) / 20E-3;
     dY_pix = (FL_thisSection.Y - FL_prevSection.Y) / 20E-3;
-    dY_pix = dY_pix - 40;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
+    n  =  obj.recipe.Tile.nRows;
+    dY_pix = dY_pix - n;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
 
     fprintf('%s is shifting ROIs of this section.\n', mfilename)
     fprintf('Previous FL: x=%0.2f y=%0.2f\nCurrent FL: x=%0.2f y=%0.2f\n', ...
         FL_prevSection.X, FL_prevSection.Y, FL_thisSection.X, FL_thisSection.Y)
     fprintf('Shift new ROIs by x=%0.1f and y=%0.1f pixels\n', dX_pix, dY_pix)
-
 
     for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
         stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
@@ -127,7 +127,7 @@ function getNextROIs(obj)
         stats.roiStats(end).BoundingBoxes{ii}(2) + dY_pix;
 
         stats.roiStats(end).BoundingBoxes{ii}(4) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(4) + 40; % TODO HACK --  add a row of tiles
+        stats.roiStats(end).BoundingBoxes{ii}(4) + n; % TODO HACK --  add a row of tiles
 
     end
 
