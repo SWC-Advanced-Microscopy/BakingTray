@@ -105,11 +105,15 @@ function getNextROIs(obj)
 
     dX_pix = (FL_thisSection.X - FL_prevSection.X) / 20E-3;
     dY_pix = (FL_thisSection.Y - FL_prevSection.Y) / 20E-3;
-    fprintf('%s is shifting ROIs by x=%0.1f and y=%0.1f pixels\n', mfilename, dX_pix, dY_pix)
+    fprintf('%s is shifting ROIs of this section.\n', mfilename)
+    fprintf('Previous FL: x=%0.2f y=%0.2f\nCurrent FL: x=%0.2f y=%0.2f\n', ...
+        FL_prevSection.X, FL_prevSection.Y, FL_thisSection.X, FL_thisSection.Y)
+    fprintf('Shift new ROIs by x=%0.1f and y=%0.1f pixels\n', dX_pix, dY_pix)
+
 
     for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-    %    stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
-    %        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X - dY_pix;
+        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
+            stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X + dY_pix;
 
         stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
         stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y + dX_pix;
@@ -117,6 +121,9 @@ function getNextROIs(obj)
         stats.roiStats(end).BoundingBoxes{ii}(1) = ...
         stats.roiStats(end).BoundingBoxes{ii}(1) + dX_pix;
 
+        stats.roiStats(end).BoundingBoxes{ii}(2) = ...
+        stats.roiStats(end).BoundingBoxes{ii}(2) + dY_pix - 40; % TODO -- HACK. BAD. WE SHIFT UP BY A TILE. 
+                                                                % DO NOT KNOW WHY --- TODO
 
     end
 
@@ -124,7 +131,7 @@ function getNextROIs(obj)
         % TODO: the boundingbox details contain the front/left position with which the ROIs were imaged. Once we have run the 
         %       update, we will likely need to update this front/left position too. 
         for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-        %   stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
+            stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
             stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.Y = FL_thisSection.Y;
         end
     
