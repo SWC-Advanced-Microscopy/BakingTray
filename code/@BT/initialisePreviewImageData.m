@@ -37,6 +37,7 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     %              imsize + tile size including overlap
     rangeAlongColsInMM = range(tp(:,2)) + (stepSizes(1) * ovLap);
     imCols = round(rangeAlongColsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
+
     rangeAlongRowsInMM = range(tp(:,1)) + (stepSizes(2) * ovLap);
     imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
@@ -86,10 +87,12 @@ function initialisePreviewImageData(obj,tp,frontLeft)
             mfilename, frontLeft.X, frontLeft.Y)
     end
 
+    % Should this be a separate method call?
     pos = obj.convertStagePositionToImageCoords(tp,frontLeft);
     pos = round(pos);
+
+    tile_pix_size_Y=getTileSizeFromPositionList(pos(:,2));
     pos(pos==0)=1;
-    %pos(:,2) = abs(pos(:,2)-imRows); % SEEMS WE DO NOT NEED
     obj.previewTilePositions = fliplr(pos);
 
 
