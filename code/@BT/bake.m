@@ -129,7 +129,6 @@ function bake(obj,varargin)
     % auto-ROI stuff if the user has selected this. Note that after the following if statement
     % we have populated obj.currentTilePattern. This myuste be done before arming the scanner, as scanner arming 
     % requires us to know how many tiles will be imaged. 
-    %  TODO -- needs re-factoring
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
@@ -353,10 +352,10 @@ function bake(obj,varargin)
 
 
 
-        % auto-ROI stuff if the user has selected this
-        %  TODO -- needs re-factoring
+        % If the user is running auto-ROI, we now re-calculated the bounding boxes. The method call
+        % to getNextROIs does this and also updates currentTilePattern.
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.getNextROIs % Determine where to place the ROIs in the next physical section and update obj.currentTilePattern
+            obj.getNextROIs
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev

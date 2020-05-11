@@ -155,6 +155,10 @@ function getNextROIs(obj)
         'tThresh',thresh,...
         'lastSectionStats',stats);
 
+
     % Update the current tile pattern so that we will image these ROIs
-    obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
+    %  - currentTilePatern (where the stage will go)
+    %  - positionArray (where the tiles will go in the preview image matrix)
+    obj.populateCurrentTilePattern
+
 end % getThreshold
