@@ -315,14 +315,20 @@ classdef BT < loghandler
 
             success=obj.moveXto(xPos) & obj.moveYto(yPos);
 
+            if nargout>0
+                varargout{1}=success;
+            end
+
+            % This ensures dummy acquisitions run as fast as possible
+            if isa(obj.yAxis,'dummy_linearcontroller')
+                return
+            end
+
             if blocking && success
                 obj.waitXYsettle(extraSettlingTime,timeOut)
             end
 
-            if nargout>0
-                varargout{1}=success;
-            end
-        end
+        end %moveXYto
 
         function varargout=moveXYby(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Relative move defined by xPos and yPos
@@ -358,7 +364,7 @@ classdef BT < loghandler
             if nargout>0
                 varargout{1}=success;
             end
-        end
+        end %moveXYby
 
         function waitXYsettle(obj,extraSettlingTime,timeOut)
             % Purpose
@@ -613,7 +619,10 @@ classdef BT < loghandler
             if nargin<3, blocking=0; end
             success=obj.xAxis.absoluteMove(position);
 
-            if ~success, return, end
+            if ~success || isa(obj.xAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
 
             if blocking
@@ -627,7 +636,10 @@ classdef BT < loghandler
             if nargin<3, blocking=0; end
             success=obj.yAxis.absoluteMove(position);
 
-            if ~success, return, end
+            if ~success || isa(obj.yAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y to %0.3f',position))
 
 
@@ -643,7 +655,10 @@ classdef BT < loghandler
             if nargin<3, blocking=0; end
             success=obj.xAxis.relativeMove(distanceToMove);
  
-           if ~success, return, end
+            if ~success || isa(obj.xAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving X by %0.3f',distanceToMove))
 
             if blocking
@@ -657,7 +672,10 @@ classdef BT < loghandler
             if nargin<3, blocking=0; end
             success=obj.yAxis.relativeMove(distanceToMove);
 
-            if ~success, return, end
+            if ~success || isa(obj.yAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y by %0.3f',distanceToMove))
 
             if blocking

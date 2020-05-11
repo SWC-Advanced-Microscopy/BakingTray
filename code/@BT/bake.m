@@ -141,7 +141,7 @@ function bake(obj,varargin)
 
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if 1
+        if obj.importLastFrames
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');
             XL_orig = hBTview.view_acquire.imageAxes.XLim;
@@ -228,9 +228,6 @@ function bake(obj,varargin)
                                  datestr(now,'YYYY_MM_DD'));
                 fname = fullfile(obj.logPreviewImageDataToDir,fname);
                 fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
-                % NOTE (TODO) lastPreviewImageStack only appears because the indicateCutting callback
-                % of the acquire GUI places it there. I really think all of this should be part of the 
-                % core API .
                 imData=obj.lastPreviewImageStack;
                 save(fname,'imData')
             catch
@@ -330,7 +327,7 @@ function bake(obj,varargin)
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if 0
+        if obj.importLastFrames && false
             fprintf('Adding grid overlays for these ROIs\n')
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');
@@ -359,7 +356,7 @@ function bake(obj,varargin)
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if 1
+        if obj.importLastFrames && true
             fprintf('\n Adding grid overlays after next ROI\n')
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');

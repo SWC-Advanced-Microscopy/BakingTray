@@ -28,8 +28,6 @@ classdef dummyScanner < scanner
         maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
 
         currentOpticalPlane=1
-
-
     end
 
     properties (SetObservable)
@@ -68,6 +66,12 @@ classdef dummyScanner < scanner
 
         scannerSettings % This structure will hold settings that other classes need to acccess
         listeners = {}
+
+        % The following are obtained once each time the scanner is armed at the start of a section
+        xStepInMicrons
+        yStepInMicrons
+        xStepInPixels
+        yStepInPixels
     end
 
     methods
@@ -127,9 +131,18 @@ classdef dummyScanner < scanner
             if isa(obj.parent.xAxis,'dummy_linearcontroller')
                 obj.parent.xAxis.instantMotions=true;
             end
+
             if isa(obj.parent.yAxis,'dummy_linearcontroller')
                 obj.parent.yAxis.instantMotions=true;
             end
+
+            %tile step size
+            obj.xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
+            obj.yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
+
+            obj.xStepInPixels = round(obj.xStepInMicrons / obj.imageStackVoxelSizeXY);
+            obj.yStepInPixels = round(obj.yStepInMicrons / obj.imageStackVoxelSizeXY);
+
             success=true;
         end %armScanner
 

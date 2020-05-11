@@ -74,8 +74,6 @@ function initiateTileScan(obj)
         pause(0.25)
     end
 
-    obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
-
     if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
         obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time

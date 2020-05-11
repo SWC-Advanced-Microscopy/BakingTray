@@ -27,17 +27,10 @@ function varargout = acquireTile(obj,~,~)
     xPosInPixels = round(xPosInMicrons / obj.imageStackVoxelSizeXY);
     yPosInPixels = round(yPosInMicrons / obj.imageStackVoxelSizeXY);
 
-    %tile step size
-    xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
-    yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
-
-    xStepInPixels = round(xStepInMicrons / obj.imageStackVoxelSizeXY);
-    yStepInPixels = round(yStepInMicrons / obj.imageStackVoxelSizeXY);
-
 
     % Position of the tile in the slice:
-    xRange = [xPosInPixels,xPosInPixels+xStepInPixels];
-    yRange = [yPosInPixels,yPosInPixels+yStepInPixels];
+    xRange = [xPosInPixels,xPosInPixels+obj.xStepInPixels];
+    yRange = [yPosInPixels,yPosInPixels+obj.yStepInPixels];
 
 
     tile = thisSection(xRange(1):xRange(2),yRange(1):yRange(2));
