@@ -114,12 +114,18 @@ function getNextROIs(obj)
     fprintf('Shift new ROIs by x=%0.1f and y=%0.1f pixels\n', dX_pix, dY_pix)
 
     for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
-            stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X + dY_pix;
 
-        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
-        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y + dX_pix;
+        % Altering the BoundingBoxDetails.frontLeftPixel is not necessary
+        % as autoROI does not use this. It will use only the ROIs
 
+        % TODO -- in future remove the following two assignments
+        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
+        %    stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X + dY_pix*2;
+
+        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
+        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y + dX_pix;
+
+        % Shifting the following *is* needed
         stats.roiStats(end).BoundingBoxes{ii}(1) = ...
         stats.roiStats(end).BoundingBoxes{ii}(1) + dX_pix;
 
@@ -132,13 +138,13 @@ function getNextROIs(obj)
     end
 
 
-        % TODO: the boundingbox details contain the front/left position with which the ROIs were imaged. Once we have run the 
+        % TODO: the BoundingBoxDetails contain the front/left position with which the ROIs were imaged. Once we have run the 
         %       update, we will likely need to update this front/left position too. 
         for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
             stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
             stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.Y = FL_thisSection.Y;
         end
-    
+
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
@@ -149,4 +155,6 @@ function getNextROIs(obj)
         'tThresh',thresh,...
         'lastSectionStats',stats);
 
+    % Update the current tile pattern so that we will image these ROIs
+    obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
 end % getThreshold

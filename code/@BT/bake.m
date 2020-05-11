@@ -110,9 +110,6 @@ function bake(obj,varargin)
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake. 
     % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later. 
-    %
-    % TODO: for this to work, we must ensure that the return info method is doing something.
-    %       users need to be careful here if writing code for different lasers.
     if ~isempty(obj.laser)
         wDogSeconds = 40*60;
         obj.laser.setWatchDogTimer(wDogSeconds);
@@ -129,22 +126,19 @@ function bake(obj,varargin)
 
 
 
-    % auto-ROI stuff if the user has selected this
+    % auto-ROI stuff if the user has selected this. Note that after the following if statement
+    % we have populated obj.currentTilePattern. This myuste be done before arming the scanner, as scanner arming 
+    % requires us to know how many tiles will be imaged. 
     %  TODO -- needs re-factoring
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
         obj.getNextROIs
         fprintf('\nDONE\n')
-    end
-
-
-    % TODO -- This likely needs to here, as I suspect SIBT.armScanner line 59 will need to modified for this
-    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-       obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         obj.currentTilePattern=obj.recipe.tilePattern;
     end
+
 
 
         % TODO -- debugging horrible thing for auto-ROI dev
@@ -219,8 +213,6 @@ function bake(obj,varargin)
 
 
         %  ===> Now the scanning runs <===
-        fprintf('ABOUT TO IMAGE %d tile positions. CHECK THIS IS RIGHT. TODO. Then we can remove this line in BT.bake.\n',...
-            obj.recipe.numTilesInOpticalSection)
         if ~obj.runTileScan
             fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
             return
@@ -247,8 +239,7 @@ function bake(obj,varargin)
             end
         end
 
-        % Now we save to full scan settings by stripping data from a
-        % tiff file.
+        % Now we save to full scan settings by stripping data from a tiff file.
         % If this is the first pass through the loop and we're using ScanImage, dump
         % the settings to a file. TODO: eventually we need to decide what to do with other
         % scan systems and abstract this code. 
@@ -365,9 +356,7 @@ function bake(obj,varargin)
         % auto-ROI stuff if the user has selected this
         %  TODO -- needs re-factoring
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.getNextROIs % Determine where to place the ROIs in the next physical section
-            %TODO following line seem really redundant. I think it should be in runTileScan
-           obj.currentTilePattern=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
+            obj.getNextROIs % Determine where to place the ROIs in the next physical section and update obj.currentTilePattern
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
@@ -414,7 +403,7 @@ function bake(obj,varargin)
         end
 
 
-        %disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
+        %%disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause
 
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
@@ -438,7 +427,7 @@ end
 
 
 function bakeCleanupFun(obj)
-    %Perform clean up functions
+    %Perform clean-up operations once bake completes. 
 
     %So we don't turn off laser if acqusition failed right away
     if obj.currentTilePosition==1
