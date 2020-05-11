@@ -5,6 +5,7 @@ classdef JaneliaLeicaController < cutter & loghandler
     %
     % Rob Campbell - Basel, 2017
 
+    % NOTE -- this class is not tested!
 
     properties 
 
@@ -30,7 +31,6 @@ classdef JaneliaLeicaController < cutter & loghandler
             
             if ~success
                 fprintf('Component JaneliaLeicaController failed to connect to vibrotome controller.\n')
-                %TODO: is it possible to delete it here?
             end
         end % Constructor
 

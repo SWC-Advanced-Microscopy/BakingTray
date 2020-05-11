@@ -1,4 +1,4 @@
-function preAllocateTileBuffer(obj) %TODO: non-square images
+function preAllocateTileBuffer(obj)
     % pre-allocate the tile buffer array based upon the current scan settings
     %
     % BT.preAllocateTileBuffer(obj)

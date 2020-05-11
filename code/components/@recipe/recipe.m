@@ -299,7 +299,6 @@ classdef recipe < handle
             %
             % Store the current position as the front/left of the tile grid
 
-            % TODO: add error checks
             if isempty(obj.parent)
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
                 return
@@ -315,7 +314,6 @@ classdef recipe < handle
             %
             % Store the current stage position as the position at which we will start cutting
 
-            % TODO: add error checks
             if isempty(obj.parent)
                 fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
                 return
@@ -541,11 +539,12 @@ classdef recipe < handle
                         case 'overlapProportion'
                             fieldValue = obj.checkFloat(fieldValue,0,0.5); %Overlap allowed up to 50%
                         case 'sampleSize'
-                            % TODO: in fact, this should be larger than the tile size but we carry on like this for now
+                            % The minimum sample size in one tile step size
                             if ~isstruct(fieldValue)
                                 fieldValue=[];
                             else 
-                                % Do not allow the sample size to be smaller than the tile size
+                                % Do not allow the sample size to be smaller than the tile size.
+                                % This is a little weirdly written here, but it works. 
                                 tileX = obj.TileStepSize.X;
                                 if tileX==0
                                     minSampleSizeX=0.05;
@@ -560,6 +559,7 @@ classdef recipe < handle
                                     minSampleSizeY=tileY;
                                 end
 
+                                % The maximum size of the sample is hard-coded here
                                 fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 35);
                                 fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 25);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)

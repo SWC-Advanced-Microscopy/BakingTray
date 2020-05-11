@@ -38,7 +38,6 @@ classdef BT < loghandler
 
 
     properties (Hidden)
-        % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
         logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
 
@@ -48,7 +47,6 @@ classdef BT < loghandler
         % based on this value. We can't use the recipe front/left position because then the stage coords
         % derived from the image would be wrong until the user re-acquires a preview stack.
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
-
     end
 
     properties (SetObservable)
@@ -79,7 +77,6 @@ classdef BT < loghandler
 
         % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
         % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
-        % TODO: should channels contain empty slots for non-acquired channels? 
         downSampledTileBuffer = []
         downsampleMicronsPerPixel = 20;
         %i.e. 1,2,3,... not a position in mm)
