@@ -1,19 +1,25 @@
 function overlayTileGridOnImage(obj,tileGrid)
-    % Overlay a series of squares corresponding to the tiles over the 
-    % preview image. 
+    % Overlay a series of squares corresponding to the tiles over the preview image. 
+    %
+    %
+    % Purpose
+    % Overay the a tile pattern on the preview image. Removes any previous plotted pattern
+    % before plotting the new one.
+    %
     %
     % Inputs
     % tileGrid - The output of recipe.tilePattern. First column is x-stage pos in mm
     %            and second column is y-stage pos in mm.
     %
+    % Example
+    % >> zT=hBT.recipe.tilePattern;
+    % 
     %
-    % TESTING
-    % TODO -- tidy and doc if we are to keep this
+    % See also:
+    % obj.overlayBoundingBoxesOnImage
+    % obj.overlayPointsOnImage
+    % obj.removeOverlays
 
-
-    if isempty(obj.model.autoROI)
-        return
-    end
 
     hold(obj.imageAxes,'on')
 
@@ -21,8 +27,6 @@ function overlayTileGridOnImage(obj,tileGrid)
 
     pixPos=obj.model.convertStagePositionToImageCoords(tileGrid);
 
-
-    %pause(0.2), drawnow % temporary for diagnostics
 
     % TODO: this needs to be based on absolute units or scaled by the number
     % of boxes. Otherwise it doesn't look nice. Ends up overlapping with the 
@@ -43,6 +47,7 @@ function overlayTileGridOnImage(obj,tileGrid)
     pixPos(:,2) = pixPos(:,2)-tileSizeY*(pShrinkBy/2);
 
     overlayTileNumbers=true;
+
     obj.plotOverlayHandles.tilegrid = [];
     for ii=1:size(pixPos,1)
         H=plotTile(pixPos(ii,:),ii,overlayTileNumbers);
@@ -68,7 +73,8 @@ function overlayTileGridOnImage(obj,tileGrid)
         pB(1) = mean(obj.plotOverlayHandles.tilegrid(2).XData(1:4));
         pB(2) = mean(obj.plotOverlayHandles.tilegrid(2).YData(1:4));
         d = pB-pA;
-        obj.plotOverlayHandles.tilegrid(end+1)=quiver(pA(1),pA(2), d(1),d(2),0,...
+
+        obj.plotOverlayHandles.tilegrid(end+1)=quiver(pA(1),pA(2), d(1),d(2),0, ...
             'MaxHeadSize', 1.5, 'Color', 'c', ...
             'LineWidth',4,'Parent',obj.imageAxes);
 
@@ -89,7 +95,7 @@ function overlayTileGridOnImage(obj,tileGrid)
     % Nested functions follow
     function H=plotTile(cPix,tileIndex,doTileNumber)
         % cPix - corner pixel location
-        %H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
+        % H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
         xT = [cPix(1), cPix(1)+tileSizeX, cPix(1)+tileSizeX, cPix(1), cPix(1)];
         yT = [cPix(2), cPix(2), cPix(2)+tileSizeY, cPix(2)+tileSizeX, cPix(2)];
         H=plot(xT,yT,'-b','Parent',obj.imageAxes,'LineWidth',1.5);
@@ -108,6 +114,4 @@ function overlayTileGridOnImage(obj,tileGrid)
         tSize = mode(abs(d));
     end
 
-end %overlayPointsOnImage
-
-
+end %overlayTileGridOnImage
