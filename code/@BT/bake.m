@@ -141,11 +141,15 @@ function bake(obj,varargin)
 
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if obj.importLastFrames
+        doViewDebug=false;
+        if obj.importLastFrames && true
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');
-            XL_orig = hBTview.view_acquire.imageAxes.XLim;
-            YL_orig = hBTview.view_acquire.imageAxes.YLim;
+            if isvalid(hBTview.view_acquire)
+                XL_orig = hBTview.view_acquire.imageAxes.XLim;
+                YL_orig = hBTview.view_acquire.imageAxes.YLim;
+                doViewDebug=true;
+            end
         end
 
     %loop and tile scan
@@ -327,11 +331,9 @@ function bake(obj,varargin)
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if obj.importLastFrames && false
+        if doViewDebug && false
             fprintf('Adding grid overlays for these ROIs\n')
             % Overlay tile grid for next section
-            hBTview=evalin('base','hBTview');
-            hBTview.view_acquire.removeOverlays
             z=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
             hBTview.view_acquire.overlayTileGridOnImage(z)
             %hBTview.view_acquire.imageAxes.XLim=XL_orig;
@@ -356,11 +358,9 @@ function bake(obj,varargin)
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
-        if obj.importLastFrames && true
+        if doViewDebug
             fprintf('\n Adding grid overlays after next ROI\n')
             % Overlay tile grid for next section
-            hBTview=evalin('base','hBTview');
-            hBTview.view_acquire.removeOverlays
 
             hBTview.view_acquire.overlayTileGridOnImage(obj.currentTilePattern)
             %hBTview.view_acquire.imageAxes.XLim=XL_orig;

@@ -8,6 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 11th May 2020
 - DEVELOPER [branch autoROI]: Delete EPS300.m as likely it will never be completed. 
+- DEVELOPER [branch autoROI]: Speed ups for dummy acquisition mode. 
 
 29th April 2020
 - DEVELOPER [branch autoROI]: 
