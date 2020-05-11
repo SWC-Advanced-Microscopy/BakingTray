@@ -1,5 +1,6 @@
 function buildFigure(obj)
     % Build the acquisition_view GUI window
+    %
     % Called by the constructor
 
     fprintf('Opening acquisition view\n')

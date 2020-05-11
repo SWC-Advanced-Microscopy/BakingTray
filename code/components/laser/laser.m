@@ -279,9 +279,11 @@ classdef (Abstract) laser < handle
         % information, you just return an empty string. If you wish to log laser 
         % information then it makes sense to return it in a consistent and machine 
         % readble way. e.g. your string could be:
-        % 'outputPower=1700mw,pumpPower=12000mw,wavelength=900nm,humidity=2\n'\
+        % 'outputPower=1700mw,pumpPower=12000mw,wavelength=900nm,humidity=2\n'
         %
-        % Avoid "%" signs in your string. They screw up subsequent sprintf lines
+        % Avoid "%" signs in your string. They screw up subsequent sprintf lines.
+        % You should ensure this method does something. It could be important for the
+        % bake cycle.
 
 
         laserID = readLaserID(obj)

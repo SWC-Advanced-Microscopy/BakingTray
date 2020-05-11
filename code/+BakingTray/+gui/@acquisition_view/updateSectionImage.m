@@ -1,6 +1,7 @@
 function updateSectionImage(obj,~,~)
-    % This callback function updates when the listener on obj.model.lastPreviewImageStack fires or if the user 
-    % updates the popup boxes for depth or channel
+    % This callback function updates when the listener on obj.model.lastPreviewImageStack 
+    % (which is in BT) fires or if the user updates the popup boxes for depth or channel.
+
 
     if obj.verbose
         fprintf('In acquisition_view.updateSectionImage callback\n')
@@ -16,7 +17,6 @@ function updateSectionImage(obj,~,~)
     n=obj.model.currentTilePosition;
     if n==1 || mod(n,obj.updatePreviewEveryNTiles)==0 || n>=length(obj.model.positionArray)
         %Raise a console warning if it looks like the image has grown in size
-        %TODO: this check can be removed eventually, once we're sure this does not happen ever.
         if numel(obj.sectionImage.CData) < numel(squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow, obj.chanToShow)))
             fprintf('The preview image data in the acquisition GUI grew in size from %d x %d to %d x %d\n', ...
                 size(obj.sectionImage.CData,1), size(obj.sectionImage.CData,2), ...
@@ -25,25 +25,19 @@ function updateSectionImage(obj,~,~)
 
         obj.sectionImage.CData = squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow, obj.chanToShow));
 
-        %TODO: temporarily allow re-sizing of the image. Once autoROI bugs are ironed out we will either remove this or 
-        % come up with a different solution
         if obj.verbose
             fprintf('Updating section image...\n')
         end
 
 
-        % TODO -- check if the following is really needed or the correct way to go about things
+        % TODO -- Check if the following is really needed or the correct way to go about things.
+        %         The difficulty is that as it stands it does not allow us the freedom to have larger
+        %         axes during an autoROI in order to keep the image size the same thoughout. 
         obj.imageAxes.YLim=[0,size(obj.sectionImage.CData,1)];
         obj.imageAxes.XLim=[0,size(obj.sectionImage.CData,2)];
 
-        % TODO -- correct crap above and get rid of the following to lines:
-%%        fprintf('--> updateSectionImage doing horrible axis limit hack: XLim=[%d,%d] , YLim=[%d,%d]\n', ...
- %%           round(obj.imageAxes.XLim), round(obj.imageAxes.YLim))
-
         drawnow
     end
-
-
 
 
 end %updateSectionImage

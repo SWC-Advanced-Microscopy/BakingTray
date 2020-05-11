@@ -16,7 +16,7 @@ function H=overlayBoundingBoxesOnImage(obj,boundingBoxes,removePrevious)
     %
     %
     % Example:
-    % Plot a 100 x 200 bounding box in the top left corner (the front/left position)
+    % Plot a 100 x 200 bounding box at the front/left position
     % >> hBTview.view_acquire.overlayBoundingBoxesOnImage([1,1,100,200])
     %
     % Now add a second box
