@@ -28,6 +28,8 @@ classdef dummyScanner < scanner
         maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
 
         currentOpticalPlane=1
+
+        skipSaving=false %If true we do not write image data but do everything else
     end
 
     properties (SetObservable)

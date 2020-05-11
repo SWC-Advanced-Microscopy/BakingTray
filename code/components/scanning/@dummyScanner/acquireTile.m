@@ -71,11 +71,13 @@ function varargout = acquireTile(obj,~,~)
         fname = sprintf('%s_%05d.tif',fullfile(obj.logFilePath,obj.logFileStem),obj.logFileCounter);
         obj.logFileCounter = obj.logFileCounter + 1;
 
-        % Build a meta-data structure containing the fields StitchIt needs to assemble the stacks
-        metaData = sprintf(['SI.hChannels.channelOffset = 0\n', ...
-                            'SI.hFastZ.numFramesPerVolume = []\n', ...
-                            'SI.hChannels.channelSave = 1\n', ...
-                            'SI.hChannels.channelsActive = 1\n']);
-        writeSignedTiff(tile,fname,metaData)
+        if obj.skipSaving == false
+            % Build a meta-data structure containing the fields StitchIt needs to assemble the stacks
+            metaData = sprintf(['SI.hChannels.channelOffset = 0\n', ...
+                                'SI.hFastZ.numFramesPerVolume = []\n', ...
+                                'SI.hChannels.channelSave = 1\n', ...
+                                'SI.hChannels.channelsActive = 1\n']);
+            writeSignedTiff(tile,fname,metaData)
+        end
     end
 end % acquireTile
