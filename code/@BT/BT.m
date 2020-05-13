@@ -416,7 +416,7 @@ classdef BT < loghandler
         % ----------------------------------------------------------------------
         % Public methods for moving the X/Y stage with respect to the sample
         function success = toFrontLeft(obj)
-            %Move stage to the front left position (the starting position for a grid tile scan)
+            %Move stage to the front left position (the starting position for a manual-ROI grid tile scan)
             success=false;
             if isempty(obj.recipe)
                 return
@@ -428,6 +428,16 @@ classdef BT < loghandler
                 return
             end
             success=obj.moveXYto(FL.X,FL.Y,true); %blocking motion
+        end
+
+        function success = toFirstTilePosition(obj)
+            %Move stage to the first position in the tile grid. This may differ from the 
+            %Front/Left position if we are doing an auto-ROI acquisition
+            success=false;
+            if isempty(obj.recipe) || isempty(obj.positionArray)
+                return
+            end
+            success=obj.moveXYto(obj.positionArray(1,3),obj.positionArray(1,4),true); %blocking motion
         end
 
 

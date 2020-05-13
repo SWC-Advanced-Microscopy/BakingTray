@@ -46,5 +46,5 @@ function placeNewTilesInPreviewData(obj,~,~)
 
      end % obj.lastTilePos.X>0 && obj.lastTilePos.Y>0
 
-   
+
 end %placeNewTilesInPreviewData

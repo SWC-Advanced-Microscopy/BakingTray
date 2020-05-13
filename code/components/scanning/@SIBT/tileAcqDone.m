@@ -118,6 +118,7 @@ function tileAcqDone(obj,~,~)
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
     % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
     % you won't get the real stage positions
+    % The first tile was logged in BT.runTileScan.
     obj.parent.logPositionToPositionArray(doFakeLog)
 
     if obj.hC.hChannels.loggingEnable==true
