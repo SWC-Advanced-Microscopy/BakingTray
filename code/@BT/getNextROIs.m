@@ -155,6 +155,10 @@ function getNextROIs(obj)
         'tThresh',thresh,...
         'lastSectionStats',stats);
 
+    % Add the section number to the  ROI stats
+    obj.autoROI.stats.roiStats(end).sectionNumber=obj.currentSectionNumber;
+
+
 
     % Update the current tile pattern so that we will image these ROIs
     %  - currentTilePatern (where the stage will go)

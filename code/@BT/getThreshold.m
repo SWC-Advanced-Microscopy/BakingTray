@@ -29,5 +29,6 @@ function getThreshold(obj)
 
     % Get stats
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);
+    obj.autoROI.stats.roiStats.sectionNumber=0; %Indicates that this is the initial preview
 
 end % getThreshold

@@ -142,7 +142,7 @@ function bake(obj,varargin)
 
         % TODO -- debugging horrible thing for auto-ROI dev
         doViewDebug=false;
-        if obj.importLastFrames && true
+        if obj.importLastFrames && false
             % Overlay tile grid for next section
             hBTview=evalin('base','hBTview');
             if isvalid(hBTview.view_acquire)
@@ -355,6 +355,10 @@ function bake(obj,varargin)
         % to getNextROIs does this and also updates currentTilePattern.
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
             obj.getNextROIs
+            % Save to disk the stats for the auto-ROI
+            autoROI_fname = fullfile(obj.pathToSectionDirs,'auto_ROI_stats.mat');
+            autoROI_stats = obj.autoROI.stats;
+            save(autoROI_fname,'autoROI_stats')
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
