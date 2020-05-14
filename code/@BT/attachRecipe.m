@@ -1,5 +1,5 @@
 function success=attachRecipe(obj,fname,resume)
-    % Attach recipe  BT
+    % Attach recipe a receipe to the BT class
     %
     % function success=attachRecipe(obj,fname,resume)
     %

@@ -1,5 +1,5 @@
 function success=resumeAcquisition(obj,recipeFname)
-    % Attach recipe  BT
+    % Resume a previously terminated acquisition by loading its recipe
     %
     % function success=resumeAcquisition(obj,recipeFname)
     %
@@ -31,6 +31,11 @@ function success=resumeAcquisition(obj,recipeFname)
     end
 
     pathToRecipe = fileparts(recipeFname);
+
+    % If pathToRecipe is empty then that must mean the user supplied only the file name with no path. 
+    % Since recipeFname was found, that must mean it's in the current directory. Therefore:
+    pathToRecipe=pwd;
+
     [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
     if ~containsAcquisition
