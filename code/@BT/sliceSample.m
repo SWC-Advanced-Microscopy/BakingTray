@@ -23,15 +23,9 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Outputs
     % finished : true/false depending on whether or not it ran to the end
 
-    % Don't waste time slicing if we have a dummy slicer
 
 
-    if isa(obj.cutter,'dummyCutter')
-        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
-        finished=true;
-        obj.isSlicing=false;
-        return
-    end
+
 
     obj.isSlicing=true;
     finished=false;
@@ -54,6 +48,17 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     %Record in the recipe what are the values we are going to cut at. See the main recipe class help text. 
     obj.recipe.lastSliceThickness=sliceThickness;
     obj.recipe.lastCuttingSpeed=cuttingSpeed;
+
+
+
+    % Don't waste time slicing if we have a dummy slicer
+    if isa(obj.cutter,'dummyCutter')
+        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
+        obj.moveZby(sliceThickness) % Move z up by one section thickness
+        finished=true;
+        obj.isSlicing=false;
+        return
+    end
 
 
     % Ensure that the abort flag is false. If this is is ever true, 
