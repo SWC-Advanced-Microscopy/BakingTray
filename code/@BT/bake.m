@@ -53,22 +53,8 @@ function bake(obj,varargin)
         return
     end
 
-
-    % Report to screen and the log file how much disk space is currently available
-    acqInGB = obj.recipe.estimatedSizeOnDisk;
-    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
-    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
-    volumeToWrite = volumeToWrite{1};
-    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
-    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
-        volumeToWrite, round(out.freeGB), round(out.totalGB));
-    fprintf(msg)
-    obj.acqLogWriteLine(msg)
-
-
     %Define an anonymous function to nicely print the current time
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
-
 
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
 
@@ -84,6 +70,18 @@ function bake(obj,varargin)
     tidy = onCleanup(@() bakeCleanupFun(obj));
 
     obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) )
+
+    % Report to screen and the log file how much disk space is currently available
+    acqInGB = obj.recipe.estimatedSizeOnDisk;
+    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
+    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
+    volumeToWrite = volumeToWrite{1};
+    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
+    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
+        volumeToWrite, round(out.freeGB), round(out.totalGB));
+    fprintf(msg)
+    obj.acqLogWriteLine(msg)
+
     if ~isempty(obj.laser)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
@@ -91,6 +89,11 @@ function bake(obj,varargin)
     % Print the version number and name of the scanning software 
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
 
+    try
+        G=BakingTray.utils.getGitInfo;
+        obj.acqLogWriteLine(sprintf('Using BakingTray version %s from branch %s\n', G.hash, G.branch))
+    catch ME
+    end
 
     % Report to the acquisition log whether we will attempt to turn off the laser at the end
     if obj.leaveLaserOn
