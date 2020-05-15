@@ -357,6 +357,11 @@ function bake(obj,varargin)
         % If the user is running auto-ROI, we now re-calculated the bounding boxes. The method call
         % to getNextROIs does this and also updates currentTilePattern.
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            % Save the pStack file (TODO -- should we leave this here?)
+            pStack_fname = fullfile(obj.currentTileSavePath, 'sectionPreview.mat');
+            sectionPreview = obj.autoROI.previewImages;
+            sectionPreview = rmfield(sectionPreview,'recipe');
+            save(pStack_fname,'sectionPreview')
             obj.getNextROIs
             % Save to disk the stats for the auto-ROI
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);

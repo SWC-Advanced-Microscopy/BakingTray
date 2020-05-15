@@ -93,9 +93,8 @@ function getNextROIs(obj)
         fprintf('%s is running autoROI\n',mfilename)
     end
 
-    % TODO-- Maybe we are doing this all wrong. When I look at the outputs, the 
-    %        BoundingBoxes field looks somewhat reasonable but the BoundingBoxDetails.Y is what's really wrong. 
-    %        in addition.
+    % TODO-- Maybe we are doing this all wrong. When I look at the outputs, the BoundingBoxes field looks somewhat 
+    %        reasonable but the BoundingBoxDetails.Y is what's really wrong.
 
     % TODO: Shift ROIs in BT.autoROI.stats.roiStats(end) using the stage front/left we obtain from the preview stack, above. 
     %       Once this is done. The ROIs in BT.autoROI.stats.roiStats(end) will match the imaged areas in pStack.imStack.
