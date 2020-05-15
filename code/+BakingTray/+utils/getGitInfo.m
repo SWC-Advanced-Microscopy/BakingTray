@@ -57,8 +57,19 @@ function gitInfo=getGitInfo()
 % or implied, of the copyright holder.
 
 
+% Modifed 2020 by Rob Campbell, UCL, to make it more robust and allow it to be inserted into any project
+%
+% Instructions: place into your project path e.g. put into `myProj/code/+utils/getGitInfo.m`
+% then just call it at the command line: >> myProj/code/+utils/getGitInfo
 
-gitInfo=[];
+
+
+% Make an empty structure so we return something
+gitInfo.branch='UNKNOWN';
+gitInfo.hash='UNKNOWN';
+gitInfo.remote='UNKNOWN';
+gitInfo.url='UNKNOWN';
+
 
 % Descend dir path until we find the the .git directory
 pathToFile=mfilename('fullpath');
@@ -72,18 +83,25 @@ end
 
 % In case nothing was found
 if length(pathToFile)==1
+    fprintf('%s failed to find a .git directory in project.\n', mfilename);
     return
 end
 
 %Read in the HEAD information, this will tell us the location of the file
 %containing the SHA1
-text=fileread(fullfile(pathToDotGit,'HEAD'));
+headFile = fullfile(pathToDotGit,'HEAD');
+if ~exist(headFile,'file')
+    fprintf('%s failed to find file %s.\n', mfilename,headFile);
+    return
+end
+text=fileread(headFile);
 parsed=textscan(text,'%s');
 
+
 if ~strcmp(parsed{1}{1},'ref:') || ~length(parsed{1})>1
-        %the HEAD is not in the expected format.
-        %give up
-        return
+    %If the HEAD is not in the expected format we give up
+    fprintf('%s failed to parse HEAD.\n', mfilename);
+    return
 end
 
 path=parsed{1}{2};
@@ -92,11 +110,12 @@ branchName=name;
 
 %save branch name
 gitInfo.branch=branchName;
-gitInfo.hash=''; % Empty hash
+
 
 %Read in SHA1 if the file is present (sometimes it's missing because Git has removed it)
 SHA1_text_file=fullfile(pathToDotGit, pathstr,[name ext]);
 if ~exist(SHA1_text_file)
+    fprintf('%s failed to find file %s.\n', mfilename,SHA1_text_file);
     return
 end
 
@@ -106,7 +125,13 @@ gitInfo.hash=SHA1{1}{1};
 
 
 %Read in config file
-config=fileread(fullfile(pathToDotGit,'config'));
+configFile = fullfile(pathToDotGit,'config');
+if ~exist(configFile,'file')
+    fprintf('%s failed to find file %s.\n', mfilename,configFile);
+    return
+end
+
+config=fileread(configFile);
 %Find everything space delimited
 temp=textscan(config,'%s','delimiter','\n');
 lines=temp{1};
