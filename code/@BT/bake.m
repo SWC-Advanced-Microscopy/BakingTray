@@ -356,7 +356,7 @@ function bake(obj,varargin)
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
             obj.getNextROIs
             % Save to disk the stats for the auto-ROI
-            autoROI_fname = fullfile(obj.pathToSectionDirs,'auto_ROI_stats.mat');
+            autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
             autoROI_stats = obj.autoROI.stats;
             save(autoROI_fname,'autoROI_stats')
         end
