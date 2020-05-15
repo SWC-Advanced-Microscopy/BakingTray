@@ -91,9 +91,8 @@ function success=resumeAcquisition(obj,recipeFname)
 
         % TODO: The slicing isn't being logged for some reason. Bug in the logger? Until then: 
         extraZMove = obj.recipe.mosaic.sliceThickness;
-        % TODO: It it was not we need to check if the tile scan needs finishing then cut. 
+        % TODO: If it was not we need to check if the tile scan needs finishing then cut. 
     end
-
 
 
     % Set the section start number and num sections
@@ -106,6 +105,19 @@ function success=resumeAcquisition(obj,recipeFname)
     obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
 
+
+    % Check if this is an autoROI acquisition. If so, we need to populate the autoROI variables.
+    if strcmp(obj.recipe.mosaic.scanmode, 'tiled: auto-ROI')
+        autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
+        if ~exist(autoROI_fname,'file')
+            fprintf('BT.%s can not find file %s. Failing to resume auto-ROI\n', mfilename, autoROI_fname)
+            return
+        end
+        % Load the variable and place into the autoROI property
+        varsInFile = whos('-file',autoROI_fname);
+        tmp=load(autoROI_fname,varsInFile(1).name);
+        obj.autoROI.stats = tmp.(varsInFile(1).name);
+    end
 
 
 
