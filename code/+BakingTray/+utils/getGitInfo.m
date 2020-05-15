@@ -90,12 +90,17 @@ path=parsed{1}{2};
 [pathstr, name, ext]=fileparts(path);
 branchName=name;
 
-%save branchname
+%save branch name
 gitInfo.branch=branchName;
+gitInfo.hash=''; % Empty hash
 
+%Read in SHA1 if the file is present (sometimes it's missing because Git has removed it)
+SHA1_text_file=fullfile(pathToDotGit, pathstr,[name ext]);
+if ~exist(SHA1_text_file)
+    return
+end
 
-%Read in SHA1
-SHA1text=fileread(fullfile(pathToDotGit, pathstr,[name ext]));
+SHA1text=fileread(SHA1_text_file);
 SHA1=textscan(SHA1text,'%s');
 gitInfo.hash=SHA1{1}{1};
 
