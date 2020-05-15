@@ -55,6 +55,8 @@ classdef BT < loghandler
 
     properties (SetAccess=immutable,Hidden)
         componentSettings
+        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
+        autoROIstats_fname='auto_ROI_stats.mat' % The statistics associated with auto-ROI acquisitions will be saved to this file name in rawDataSubDirName
     end
 
     properties (SetObservable,AbortSet,Transient)
@@ -67,7 +69,6 @@ classdef BT < loghandler
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
         currentTileSavePath=''  % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
@@ -101,7 +102,6 @@ classdef BT < loghandler
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
     end
-
 
     properties (Hidden, SetObservable, AbortSet)
         isSlicing=false
