@@ -27,14 +27,14 @@ function gitInfo=getGitInfo()
 % http://www.andrewleifer.com
 % 12 September 2011
 %
-% 
+%
 %
 
 % Copyright 2011 Andrew Leifer. All rights reserved.
-% 
+%
 % Redistribution and use in source and binary forms, with or without modification, are
 % permitted provided that the following conditions are met:
-% 
+%
 %    1. Redistributions of source code must retain the above copyright notice, this list of
 %       conditions and the following disclaimer.
 % 
@@ -114,14 +114,27 @@ gitInfo.branch=branchName;
 
 %Read in SHA1 if the file is present (sometimes it's missing because Git has removed it)
 SHA1_text_file=fullfile(pathToDotGit, pathstr,[name ext]);
-if ~exist(SHA1_text_file)
-    fprintf('%s failed to find file %s.\n', mfilename,SHA1_text_file);
-    return
+SHA1=[];
+if exist(SHA1_text_file)
+    SHA1text=fileread(SHA1_text_file);
+    SHA1=textscan(SHA1text,'%s');
+else
+    % Otherwise let's see if packed refs exist
+    packedRefs = fullfile(pathToDotGit,'packed-refs');
+
+    if exist(packedRefs,'file')
+        SHA1text=fileread(packedRefs);
+        SHA1=regexp(SHA1text,['([A-z0-9]*) refs/heads/' branchName],'tokens');
+    else
+        fprintf('%s failed to find packed refs\n',mfilename)
+    end
 end
 
-SHA1text=fileread(SHA1_text_file);
-SHA1=textscan(SHA1text,'%s');
-gitInfo.hash=SHA1{1}{1};
+if ~isempty(SHA1)
+    gitInfo.hash=SHA1{1}{1};
+else
+   fprintf('%s failed to get SHA1 hash\n',mfilename)
+end
 
 
 %Read in config file
@@ -139,7 +152,7 @@ lines=temp{1};
 remote='';
 %Lets find the name of the remote corresponding to our branchName
 for k=1:length(lines)
-    
+
     %Are we at the section describing our branch?
     if strcmp(lines{k},['[branch "' branchName '"]'])
         m=k+1;
@@ -157,10 +170,8 @@ for k=1:length(lines)
             
             m=m+1;
         end
-        
-        
-    
     end
+
 end
 gitInfo.remote=remote;
 
@@ -168,7 +179,7 @@ gitInfo.remote=remote;
 url='';
 %Find the remote's url
 for k=1:length(lines)
-    
+
     %Are we at the section describing our branch?
     if strcmp(lines{k},['[remote "' remote '"]'])
         m=k+1;
@@ -186,10 +197,8 @@ for k=1:length(lines)
             
             m=m+1;
         end
-        
-        
-    
     end
+
 end
 
 gitInfo.url=url;
