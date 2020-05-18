@@ -22,6 +22,8 @@ function minimalBake(nSections)
         nSections=2;
     end
 
+    doPlots = true;
+
     % Get hBT
     scanimageObjectName='hSI';
     W = evalin('base','whos');
@@ -42,11 +44,22 @@ function minimalBake(nSections)
 
     if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
         hBT.getThreshold;
+        hBT.getNextROIs
     end
 
+    if doPlots
+        figure(3492)
+        clf
+        colormap gray
+    end
 
     for ii=1:nSections
+        hBT.currentSectionNumber=ii;
         imageSection
+        if doPlots
+            plotLast
+        end
+
     end
 
 
@@ -54,11 +67,32 @@ function minimalBake(nSections)
 
     % Internal functions
     function imageSection
+
+        if isa(hBT.scanner,'dummyScanner')
+            % Just in case
+            hBT.scanner.skipSaving=true;
+        end
+
         hBT.acquisitionInProgress=true; % This is needed to populate the last section preview image
         hBT.scanner.armScanner;
         hBT.runTileScan;
         hBT.scanner.disarmScanner;
         hBT.acquisitionInProgress=false;
+
+        if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
+            hBT.getNextROIs
+        end
+        if isa(hBT.scanner,'dummyScanner')
+            hBT.scanner.skipSaving=false;
+        end
+
+    end % % imageSection
+
+    function plotLast
+        imagesc(hBT.lastPreviewImageStack(:,:,1,1)); % Plots first channel and first depth
+        title(sprintf('Section %d',hBT.currentSectionNumber))
+        axis equal tight
+        drawnow
     end
 
 end
