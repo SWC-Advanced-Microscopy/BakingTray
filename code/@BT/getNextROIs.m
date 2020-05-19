@@ -58,9 +58,9 @@ function getNextROIs(obj)
     if verbose
         fprintf('%s is getting previewImages\n',mfilename)
     end
-    obj.autoROI.previewImages=obj.returnPreviewStructure;
+    obj.autoROI.previewImages = obj.returnPreviewStructure;
     pStack = obj.autoROI.previewImages;
-    pStack.sectionNumber=obj.currentSectionNumber+1;
+    pStack.sectionNumber = obj.currentSectionNumber+1;
     pStack.fullFOV=false;
 
 
@@ -96,11 +96,9 @@ function getNextROIs(obj)
 
     % We need to ensure that autoROI uses as ROIs the areas we last imaged.
     % The "correct" way to this is to use the ROIs with which the section was imaged
-    % and shift them. The function shiftLastROIs does this. However, I've had problems with this,
-    % so there are other other options until this works as expected.
-    stats = shiftLastROIs(obj);
-
-
+    % and shift them.
+    obj.autoROI.stats.roiStats(end) = autoROI.shiftROIsBasedOnStageFrontLeft(pStack.frontLeftStageMM,stats.roiStats(end));
+    obj.autoROI.stats.roiStats(end).BoundingBoxes{:}
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
