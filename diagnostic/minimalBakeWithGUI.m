@@ -1,7 +1,7 @@
-function minimalBake(nSections)
-    % Run a minimal bake. No saving. No GUI. 
+function minimalBakeWithGUI(nSections)
+    % Run a minimal bake. No saving but with the GUI. 
     %
-    % function minimalBake(nSections)
+    % function minimalBakeWithGUI(nSections)
     %
     % Purpose
     % This function can be used as a demo of how to run a minimal 
@@ -22,50 +22,40 @@ function minimalBake(nSections)
         nSections=2;
     end
 
-    doPlots = false;
+    doPlots = true;
 
-    % Get hBT
-    W = evalin('base','whos');
-    BTexists = ismember('hBT',{W.name});
-
-    if ~BTexists
-        fprintf('No hBT found in base workspace\n')
-        return
-    end
-
-    hBT = evalin('base','hBT');
+    % Get hBT and hBTview
+    hBT = getObject('hBT');
+    hBTview = getObject('hBTview');
 
 
+    % Opens the acqisition view
+    hBTview.startPreviewSampleGUI
 
     % Run setUpBT then this script
     hBT.currentSectionNumber=1;
     hBT.takeRapidPreview;
 
-    if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
+    if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)  
+        hBTview.view_acquire.removeOverlays % To make clear ot the user that the overlays were removed
         hBT.getThreshold;
+        z=hBT.recipe.tilePattern(false,false,hBT.autoROI.stats.roiStats.BoundingBoxDetails);
+        hBTview.view_acquire.overlayTileGridOnImage(z)
         hBT.getNextROIs
     end
 
     if doPlots
-        fprintf('Opening new figure window\n')
-        fig=figure;
-        ax=cla;
+        fig=figure(3492);
         clf
         colormap gray
     end
 
-
-    fprintf('Doing %d section mini-bake\n', nSections)
     for ii=1:nSections
         hBT.currentSectionNumber=ii;
         imageSection
-
         if doPlots
-            imagesc(hBT.lastPreviewImageStack(:,:,1,1)); % Plots first channel and first depth
-            title(sprintf('Section %d',hBT.currentSectionNumber))
-            axis equal tight
-            drawnow
-         end
+            plotLast
+        end
 
     end
 
@@ -95,6 +85,24 @@ function minimalBake(nSections)
 
     end % % imageSection
 
+    function plotLast
+        imagesc(hBT.lastPreviewImageStack(:,:,1,1),'parent',fig); % Plots first channel and first depth
+        title(sprintf('Section %d',hBT.currentSectionNumber))
+        axis equal tight
+        drawnow
+    end
 
 end
 
+
+function obj = getObject(objName)
+    W = evalin('base','whos');
+
+    if ~ismember(objName,{W.name});
+        fprintf('No %s found in base workspace\n',objName)
+        obj=[];
+        return
+    end
+
+    obj = evalin('base',objName);
+end
