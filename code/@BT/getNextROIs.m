@@ -93,19 +93,67 @@ function getNextROIs(obj)
         fprintf('%s is running autoROI\n',mfilename)
     end
 
-    % TODO-- Maybe we are doing this all wrong. When I look at the outputs, the BoundingBoxes field looks somewhat 
+
+    % We need to ensure that autoROI uses as ROIs the areas we last imaged.
+    % The "correct" way to this is to use the ROIs with which the section was imaged
+    % and shift them. The function shiftLastROIs does this. However, I've had problems with this,
+    % so there are other other options until this works as expected.
+    stats = shiftLastROIs(obj);
+
+
+
+    % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
+    %         We need to handle cases where the threshold is re-run as well. 
+    doPlot=false; % If true we plot the output of autoROI and pause after the plot. This is for
+                  % debugging purposes only. 
+    if doPlot
+        figure(999)
+    end
+    obj.autoROI.stats = autoROI(pStack, ...
+        'doPlot', doPlot, ...
+        'settings', settings, ...
+        'tThreshSD',stats.roiStats(end).tThreshSD, ...
+        'tThresh',thresh,...
+        'lastSectionStats',stats);
+    
+    if doPlot
+        drawnow
+        disp(' ** PRESS RETURN **')
+        pause
+    end
+
+    % Add the section number to the  ROI stats
+    obj.autoROI.stats.roiStats(end).sectionNumber=obj.currentSectionNumber;
+
+
+
+    % Update the current tile pattern so that we will image these ROIs
+    %  - currentTilePatern (where the stage will go)
+    %  - positionArray (where the tiles will go in the preview image matrix)
+    obj.populateCurrentTilePattern
+
+end % getThreshold
+
+
+
+function stats = shiftLastROIs(obj)
+        % TODO-- Maybe we are doing this all wrong. When I look at the outputs, the BoundingBoxes field looks somewhat 
     %        reasonable but the BoundingBoxDetails.Y is what's really wrong.
 
     % TODO: Shift ROIs in BT.autoROI.stats.roiStats(end) using the stage front/left we obtain from the preview stack, above. 
     %       Once this is done. The ROIs in BT.autoROI.stats.roiStats(end) will match the imaged areas in pStack.imStack.
+    verbose=true;
 
+    stats = obj.autoROI.stats;
     FL_thisSection = obj.autoROI.previewImages.frontLeftStageMM;
     FL_prevSection = stats.roiStats(end).BoundingBoxDetails(1).frontLeftStageMM;
 
+    % TODO - we hard-code here the number of microns per mm of the preview image stack
     dX_pix = (FL_thisSection.X - FL_prevSection.X) / 20E-3;
     dY_pix = (FL_thisSection.Y - FL_prevSection.Y) / 20E-3;
     n  =  obj.recipe.Tile.nRows;
     dY_pix = dY_pix - n;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
+    dX_pix = dX_pix - n;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
 
     fprintf('%s is shifting ROIs of this section.\n', mfilename)
     fprintf('Previous FL: x=%0.2f y=%0.2f\nCurrent FL: x=%0.2f y=%0.2f\n', ...
@@ -124,6 +172,11 @@ function getNextROIs(obj)
         %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
         %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y + dX_pix;
 
+        if verbose
+            fprintf('\nBOX HACK:\nBounding box at index %d originally at %d/%d and size %d x %d\n', ...
+                length(stats.roiStats), stats.roiStats(end).BoundingBoxes{ii})
+        end
+        
         % Shifting the following *is* needed
         stats.roiStats(end).BoundingBoxes{ii}(1) = ...
         stats.roiStats(end).BoundingBoxes{ii}(1) + dX_pix;
@@ -131,37 +184,28 @@ function getNextROIs(obj)
         stats.roiStats(end).BoundingBoxes{ii}(2) = ...
         stats.roiStats(end).BoundingBoxes{ii}(2) + dY_pix;
 
+        stats.roiStats(end).BoundingBoxes{ii}(3) = ...
+        stats.roiStats(end).BoundingBoxes{ii}(3) + n; % TODO HACK --  add a row of tiles (also see above, before for loop)
+
         stats.roiStats(end).BoundingBoxes{ii}(4) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(4) + n; % TODO HACK --  add a row of tiles
+        stats.roiStats(end).BoundingBoxes{ii}(4) + n; % TODO HACK --  add a row of tiles (also see above, before for loop)
+
+        if verbose
+            fprintf('Bounding box now at %d/%d and size %d x %d\n', round(stats.roiStats(end).BoundingBoxes{ii}))
+        end
+
+        if any( stats.roiStats(end).BoundingBoxes{ii}(1:2) < 0 )
+            fprintf('Bounding boxes contain negative corner pixel locations\n')
+        end
 
     end
 
 
-        % TODO: the BoundingBoxDetails contain the front/left position with which the ROIs were imaged. Once we have run the 
-        %       update, we will likely need to update this front/left position too. 
-        for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-            stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
-            stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.Y = FL_thisSection.Y;
-        end
+    % TODO: the BoundingBoxDetails contain the front/left position with which the ROIs were imaged. Once we have run the 
+    %       update, we will likely need to update this front/left position too. 
+    for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
+        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
+        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.Y = FL_thisSection.Y;
+    end
 
-
-    % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
-    %         We need to handle cases where the threshold is re-run as well. 
-    obj.autoROI.stats = autoROI(pStack, ...
-        'doPlot', false, ...
-        'settings', settings, ...
-        'tThreshSD',stats.roiStats(end).tThreshSD, ...
-        'tThresh',thresh,...
-        'lastSectionStats',stats);
-
-    % Add the section number to the  ROI stats
-    obj.autoROI.stats.roiStats(end).sectionNumber=obj.currentSectionNumber;
-
-
-
-    % Update the current tile pattern so that we will image these ROIs
-    %  - currentTilePatern (where the stage will go)
-    %  - positionArray (where the tiles will go in the preview image matrix)
-    obj.populateCurrentTilePattern
-
-end % getThreshold
+end
