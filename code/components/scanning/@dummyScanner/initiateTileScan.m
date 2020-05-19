@@ -81,7 +81,6 @@ function initiateTileScan(obj)
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
-
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
     % The first tile was logged in BT.runTileScan.
     obj.parent.logPositionToPositionArray;

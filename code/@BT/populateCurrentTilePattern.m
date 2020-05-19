@@ -30,18 +30,23 @@ function populateCurrentTilePattern(obj,isFullPreview)
 
     if isFullPreview
         [pos,indexes]=obj.recipe.tilePattern;
+
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && ...
             ~isempty(obj.autoROI) && ...
             isfield(obj.autoROI,'stats')
+
         BB = obj.autoROI.stats.roiStats(end).BoundingBoxDetails;
         [pos,indexes]=obj.recipe.tilePattern(false,false,BB);
+
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         % Manual ROI
         [pos,indexes]=obj.recipe.tilePattern;
     end
 
+
     % This is where the stage will go. Positions in mm.
     obj.currentTilePattern=pos;
+
 
     % Here we store where the stage went. This is just a pre-allocation. 
     obj.positionArray = [indexes,pos,nan(size(pos))];

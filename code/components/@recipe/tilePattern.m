@@ -141,8 +141,6 @@ end % tilePattern
         %   * How much overlap we want between adjacent tiles
         %   * The desired width and length of the bounding box in mm
         %
-        % Much of the calculation is done by the NumTiles class, which is attached
-        % to the recipe object at obj.NumTiles
 
         verbose=true;
 
@@ -151,7 +149,7 @@ end % tilePattern
         fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
         if nargin<2 || isempty(ROIparams)
-        % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
+            % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
             ROIparams.numTiles.X = obj.NumTiles.X;
             ROIparams.numTiles.Y = obj.NumTiles.Y;
             ROIparams.frontLeftMM.X = obj.FrontLeft.X;

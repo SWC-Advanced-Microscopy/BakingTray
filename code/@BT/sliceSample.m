@@ -24,9 +24,6 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % finished : true/false depending on whether or not it ran to the end
 
 
-
-
-
     obj.isSlicing=true;
     finished=false;
     if isempty(obj.cutter)
