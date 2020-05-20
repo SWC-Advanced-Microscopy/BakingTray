@@ -26,10 +26,6 @@ function [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(ob
     if nargin<3
         frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X;
         frontLeftStageCoord.Y = obj.frontLeftWhenPreviewWasTaken.Y;
-    else
-         %% NOTE, TODO -- WHY?? THIS WAS NOT IN THE ORIGINAL
-         disp('subtracting weird offset in convertImageCoordsToStagePosition')
-        frontLeftStageCoord.X = obj.frontLeftWhenPreviewWasTaken.X-0.05;
     end
 
     % Get the pixel size in mm of the downsampled image stack
