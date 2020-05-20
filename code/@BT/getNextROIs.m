@@ -49,6 +49,7 @@ function getNextROIs(obj)
     % This function does some of what happens in autoROI.test.runOnStackStruct 
 
     verbose=true;
+    debugMessages=true; % for when things are really screwed up
 
 
     if isempty(obj.lastPreviewImageStack)
@@ -73,12 +74,11 @@ function getNextROIs(obj)
         fprintf('\nBT.autoROI.stats is empty! Can not find next ROIs\n')
     end
 
-    stats = obj.autoROI.stats;
-
 
     % Use a rolling threshold based on the last nImages to drive sample/background
     % segmentation in the next image. If set to zero it uses the preceding section.
     nImages=5;
+    stats = obj.autoROI.stats;
     if length(stats.roiStats) <= nImages
         % Attempt to take the median value from the last nImages: take as many as possible 
         % until we have nImages worth of sections 
@@ -97,7 +97,19 @@ function getNextROIs(obj)
     % We need to ensure that autoROI uses as ROIs the areas we last imaged.
     % The "correct" way to this is to use the ROIs with which the section was imaged
     % and shift them.
-    obj.autoROI.stats.roiStats(end) = autoROI.shiftROIsBasedOnStageFrontLeft(pStack.frontLeftStageMM,stats.roiStats(end));
+    if debugMessages
+        fprintf('\nCurrent section number: %d\nLength roiStats: %d\nBefore ROI shift we have:\n', ...
+            pStack.sectionNumber, length(obj.autoROI.stats.roiStats))
+        reportROIs(obj.autoROI.stats.roiStats(end).BoundingBoxes)
+    end
+
+    obj.autoROI.stats.roiStats(end) = autoROI.shiftROIsBasedOnStageFrontLeft(pStack.frontLeftStageMM,obj.autoROI.stats.roiStats(end));
+
+    if debugMessages
+        fprintf('\nAfter ROI shift we have:\n')
+        reportROIs(obj.autoROI.stats.roiStats(end).BoundingBoxes)
+    end
+
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
@@ -109,7 +121,7 @@ function getNextROIs(obj)
     obj.autoROI.stats = autoROI(pStack, ...
         'doPlot', doPlot, ...
         'settings', settings, ...
-        'tThreshSD',stats.roiStats(end).tThreshSD, ...
+        'tThreshSD',obj.autoROI.stats.roiStats(end).tThreshSD, ...
         'tThresh',thresh,...
         'lastSectionStats',obj.autoROI.stats);
     
@@ -131,3 +143,10 @@ function getNextROIs(obj)
 
 end % getThreshold
 
+
+function reportROIs(BoundingBoxes)
+    for ii=1:length(BoundingBoxes)
+        fprintf( '#%d Corner position: %d/%d  Box Size: %d/%d\n', ii, round(BoundingBoxes{ii}) )
+    end
+    fprintf('\n')
+end

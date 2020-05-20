@@ -22,7 +22,7 @@ function minimalBake(nSections)
         nSections=2;
     end
 
-    doPlots = false;
+    doPlots = true;
 
     % Get hBT
     W = evalin('base','whos');
@@ -69,7 +69,7 @@ function minimalBake(nSections)
          end
 
         fprintf('****** FINISHED SECTION %d  *****\n', ii)
-        disp('PRESS RETURN'), pause
+        %disp('PRESS RETURN'), pause
     end
 
 
