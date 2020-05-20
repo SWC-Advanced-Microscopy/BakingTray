@@ -25,5 +25,7 @@ function overlayLastBoundingBoxes(obj)
     L = autoROI.shiftROIsBasedOnStageFrontLeft(pp.frontLeftStageMM,obj.model.autoROI.stats.roiStats(end));
 
     obj.overlayBoundingBoxesOnImage(L.BoundingBoxes,false);
+
+    drawnow
 end %overlayLastBoundingBoxes
 

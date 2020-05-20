@@ -92,6 +92,8 @@ function overlayTileGridOnImage(obj,tileGrid)
 
     hold(obj.imageAxes,'off')
 
+    drawnow
+
     % Nested functions follow
     function H=plotTile(cPix,tileIndex,doTileNumber)
         % cPix - corner pixel location
