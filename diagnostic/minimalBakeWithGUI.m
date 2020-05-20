@@ -22,7 +22,7 @@ function minimalBakeWithGUI(nSections)
         nSections=2;
     end
 
-    doPlots = true;
+    doPlots = false;
 
     % Get hBT and hBTview
     hBT = getObject('hBT');
@@ -33,11 +33,11 @@ function minimalBakeWithGUI(nSections)
     hBTview.startPreviewSampleGUI
 
     % Run setUpBT then this script
+    hBTview.view_acquire.removeOverlays
     hBT.currentSectionNumber=1;
     hBT.takeRapidPreview;
 
-    if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)  
-        hBTview.view_acquire.removeOverlays % To make clear ot the user that the overlays were removed
+    if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
         hBT.getThreshold;
         z=hBT.recipe.tilePattern(false,false,hBT.autoROI.stats.roiStats.BoundingBoxDetails);
         hBTview.view_acquire.overlayTileGridOnImage(z)
@@ -50,13 +50,15 @@ function minimalBakeWithGUI(nSections)
         colormap gray
     end
 
+    hBTview.view_acquire.removeOverlays
+
     for ii=1:nSections
+        fprintf('****** DOING SECTION %d  *****\n')
         hBT.currentSectionNumber=ii;
         imageSection
         if doPlots
             plotLast
         end
-
     end
 
 
@@ -69,7 +71,7 @@ function minimalBakeWithGUI(nSections)
             % Just in case
             hBT.scanner.skipSaving=true;
         end
-
+        hBTview.view_acquire.removeOverlays
         hBT.acquisitionInProgress=true; % This is needed to populate the last section preview image
         hBT.scanner.armScanner;
         hBT.runTileScan;
@@ -82,7 +84,9 @@ function minimalBakeWithGUI(nSections)
         if isa(hBT.scanner,'dummyScanner')
             hBT.scanner.skipSaving=false;
         end
-
+        if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
+            hBTview.view_acquire.overlayLastBoundingBoxes
+        end
     end % % imageSection
 
     function plotLast
