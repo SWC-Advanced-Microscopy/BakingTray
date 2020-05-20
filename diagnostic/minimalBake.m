@@ -57,6 +57,7 @@ function minimalBake(nSections)
 
     fprintf('Doing %d section mini-bake\n', nSections)
     for ii=1:nSections
+        fprintf('****** STARTING SECTION %d  *****\n', ii)
         hBT.currentSectionNumber=ii;
         imageSection
 
@@ -67,6 +68,8 @@ function minimalBake(nSections)
             drawnow
          end
 
+        fprintf('****** FINISHED SECTION %d  *****\n', ii)
+        disp('PRESS RETURN'), pause
     end
 
 
@@ -93,7 +96,7 @@ function minimalBake(nSections)
             hBT.scanner.skipSaving=false;
         end
 
-    end % % imageSection
+    end % imageSection
 
 
 end

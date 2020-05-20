@@ -52,13 +52,17 @@ function minimalBakeWithGUI(nSections)
 
     hBTview.view_acquire.removeOverlays
 
+
+    fprintf('Doing %d section mini-bake\n', nSections)
     for ii=1:nSections
-        fprintf('****** DOING SECTION %d  *****\n')
+        fprintf('\n\n****** STARTING SECTION %d  *****\n', ii)
         hBT.currentSectionNumber=ii;
         imageSection
         if doPlots
             plotLast
         end
+        fprintf('\n****** FINISHED SECTION %d  *****\n', ii)
+        disp('PRESS RETURN'), pause
     end
 
 
@@ -79,15 +83,17 @@ function minimalBakeWithGUI(nSections)
         hBT.acquisitionInProgress=false;
 
         if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
+            hBTview.view_acquire.overlayLastBoundingBoxes
+        end
+
+        if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
             hBT.getNextROIs
         end
         if isa(hBT.scanner,'dummyScanner')
             hBT.scanner.skipSaving=false;
         end
-        if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
-            hBTview.view_acquire.overlayLastBoundingBoxes
-        end
-    end % % imageSection
+
+    end % imageSection
 
     function plotLast
         imagesc(hBT.lastPreviewImageStack(:,:,1,1),'parent',fig); % Plots first channel and first depth

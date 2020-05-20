@@ -98,7 +98,6 @@ function getNextROIs(obj)
     % The "correct" way to this is to use the ROIs with which the section was imaged
     % and shift them.
     obj.autoROI.stats.roiStats(end) = autoROI.shiftROIsBasedOnStageFrontLeft(pStack.frontLeftStageMM,stats.roiStats(end));
-    obj.autoROI.stats.roiStats(end).BoundingBoxes{:}
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
@@ -132,78 +131,3 @@ function getNextROIs(obj)
 
 end % getThreshold
 
-
-
-function stats = shiftLastROIs(obj)
-        % TODO-- Maybe we are doing this all wrong. When I look at the outputs, the BoundingBoxes field looks somewhat 
-    %        reasonable but the BoundingBoxDetails.Y is what's really wrong.
-
-    % TODO: Shift ROIs in BT.autoROI.stats.roiStats(end) using the stage front/left we obtain from the preview stack, above. 
-    %       Once this is done. The ROIs in BT.autoROI.stats.roiStats(end) will match the imaged areas in pStack.imStack.
-    verbose=true;
-
-    stats = obj.autoROI.stats;
-    FL_thisSection = obj.autoROI.previewImages.frontLeftStageMM;
-    FL_prevSection = stats.roiStats(end).BoundingBoxDetails(1).frontLeftStageMM;
-
-    % TODO - we hard-code here the number of microns per mm of the preview image stack
-    dX_pix = (FL_thisSection.X - FL_prevSection.X) / 20E-3;
-    dY_pix = (FL_thisSection.Y - FL_prevSection.Y) / 20E-3;
-    n  =  obj.recipe.Tile.nRows;
-    dY_pix = dY_pix - n;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
-    dX_pix = dX_pix - n;      % TODO HACK -- shift up by a tile and (below) add a row of tiles
-
-    fprintf('%s is shifting ROIs of this section.\n', mfilename)
-    fprintf('Previous FL: x=%0.2f y=%0.2f\nCurrent FL: x=%0.2f y=%0.2f\n', ...
-        FL_prevSection.X, FL_prevSection.Y, FL_thisSection.X, FL_thisSection.Y)
-    fprintf('Shift new ROIs by x=%0.1f and y=%0.1f pixels\n', dX_pix, dY_pix)
-
-    for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-
-        % Altering the BoundingBoxDetails.frontLeftPixel is not necessary
-        % as autoROI does not use this. It will use only the ROIs
-
-        % TODO -- in future remove the following two assignments
-        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X = ...
-        %    stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.X + dY_pix*2;
-
-        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
-        %stats.roiStats(end).BoundingBoxDetails(ii).frontLeftPixel.Y + dX_pix;
-
-        if verbose
-            fprintf('\nBOX HACK:\nBounding box at index %d originally at %d/%d and size %d x %d\n', ...
-                length(stats.roiStats), stats.roiStats(end).BoundingBoxes{ii})
-        end
-        
-        % Shifting the following *is* needed
-        stats.roiStats(end).BoundingBoxes{ii}(1) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(1) + dX_pix;
-
-        stats.roiStats(end).BoundingBoxes{ii}(2) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(2) + dY_pix;
-
-        stats.roiStats(end).BoundingBoxes{ii}(3) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(3) + n; % TODO HACK --  add a row of tiles (also see above, before for loop)
-
-        stats.roiStats(end).BoundingBoxes{ii}(4) = ...
-        stats.roiStats(end).BoundingBoxes{ii}(4) + n; % TODO HACK --  add a row of tiles (also see above, before for loop)
-
-        if verbose
-            fprintf('Bounding box now at %d/%d and size %d x %d\n', round(stats.roiStats(end).BoundingBoxes{ii}))
-        end
-
-        if any( stats.roiStats(end).BoundingBoxes{ii}(1:2) < 0 )
-            fprintf('Bounding boxes contain negative corner pixel locations\n')
-        end
-
-    end
-
-
-    % TODO: the BoundingBoxDetails contain the front/left position with which the ROIs were imaged. Once we have run the 
-    %       update, we will likely need to update this front/left position too. 
-    for ii=1:length(stats.roiStats(end).BoundingBoxDetails)
-        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.X = FL_thisSection.X;
-        stats.roiStats(end).BoundingBoxDetails(ii).frontLeftStageMM.Y = FL_thisSection.Y;
-    end
-
-end
