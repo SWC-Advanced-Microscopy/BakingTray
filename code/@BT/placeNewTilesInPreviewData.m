@@ -36,7 +36,7 @@ function placeNewTilesInPreviewData(obj,~,~)
             fprintf('placeNewTilesInPreviewData has y positions less than 1: not placing tile\n');
             allOK=false;
         end
-        if 1
+        if allOK
             %Place the tiles into the full image grid so it can be plotted (there is a listener on this property to update the plot)
             obj.lastPreviewImageStack(y,x,:,:) = obj.downSampledTileBuffer;
         end
