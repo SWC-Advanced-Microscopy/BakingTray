@@ -110,9 +110,9 @@ function attachPreviewStack(obj,pStack)
     obj.parent.recipe.mosaic.sampleSize.X = size(pStack.imStack,1) * obj.imageStackVoxelSizeXY*1E-3 ;
 
 
-    % Set the front/left so we start at the corner of the sample, not the padded area
-    obj.parent.recipe.FrontLeft.X = -padBy * pStack.voxelSizeInMicrons * 1E-3;
-    obj.parent.recipe.FrontLeft.Y = -padBy * pStack.voxelSizeInMicrons * 1E-3;
+    % Set the front/left (plus a pixel) so we start at the corner of the sample, not the padded area
+    obj.parent.recipe.FrontLeft.X = -(padBy+1) * pStack.voxelSizeInMicrons * 1E-3;
+    obj.parent.recipe.FrontLeft.Y = -(padBy+1) * pStack.voxelSizeInMicrons * 1E-3;
 
     if verbose
         fprintf('Front/Left is at %0.2f x %0.2f mm\n', ...
