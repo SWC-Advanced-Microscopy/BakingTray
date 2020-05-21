@@ -50,14 +50,13 @@ function attachPreviewStack(obj,pStack)
     obj.parent.moveXYto(0,0)
 
 
-    % Pad sample by a couple of tiles preparation for autoROI. The pad value will be pi, 
-    % so we can find it later and remove it from stats or whatever as needed. 
-    % TODO -- maybe pi needs to be changed to something friendly to int16? See:
-    %         https://github.com/SainsburyWellcomeCentre/BakingTray/issues/249
+    % Pad sample by a couple of tiles preparation for autoROI. The pad value will be -42. 
+    % This is just something distinctive that we can later remove if we find it before
+    % stats are calculated.
     padTiles=2;
     padBy =round(ceil(pStack.tileSizeInMicrons/pStack.voxelSizeInMicrons)*padTiles);
 
-    obj.imageStackData = padarray(obj.imageStackData,[padBy,padBy,0],pi);
+    obj.imageStackData = padarray(obj.imageStackData,[padBy,padBy,0],-42);
 
     % Report the new image size
     im_mmY = size(obj.imageStackData,2) * obj.imageStackVoxelSizeXY * 1E-3;
