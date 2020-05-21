@@ -28,4 +28,3 @@ function overlayLastBoundingBoxes(obj)
 
     drawnow
 end %overlayLastBoundingBoxes
-

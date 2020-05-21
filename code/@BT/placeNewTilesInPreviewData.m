@@ -41,7 +41,6 @@ function placeNewTilesInPreviewData(obj,~,~)
             obj.lastPreviewImageStack(y,x,:,:) = obj.downSampledTileBuffer;
         end
 
-
         obj.downSampledTileBuffer(:) = 0; %wipe the buffer 
 
      end % obj.lastTilePos.X>0 && obj.lastTilePos.Y>0
