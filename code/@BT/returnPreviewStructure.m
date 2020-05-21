@@ -1,5 +1,5 @@
 function pStack = returnPreviewStructure(obj,chanToKeep)
-    % return a "preview stack" that we can feed into the autoROI. 
+    % return a "preview stack" that we can feed into the autoROI.
     % Details on what the preview stack is are here:
     %  https://github.com/raacampbell/autofinder/issues/61
     % Not settled on a final spec yet. TODO!

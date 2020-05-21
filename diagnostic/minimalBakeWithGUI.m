@@ -62,7 +62,7 @@ function minimalBakeWithGUI(nSections)
             plotLast
         end
         fprintf('\n****** FINISHED SECTION %d  *****\n', ii)
-        %disp('PRESS RETURN'), pause
+        disp('PRESS RETURN'), pause
     end
 
 
