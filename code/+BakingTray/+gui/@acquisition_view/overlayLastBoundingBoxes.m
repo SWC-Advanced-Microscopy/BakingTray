@@ -10,7 +10,7 @@ function overlayLastBoundingBoxes(obj)
     % section based on this, the F/L would have moved inwards almost cetrainly. 
     % So we need to shift ROIs accordingly. 
 
-    overlayNonShifted=false;
+    overlayNonShifted=true;
 
     if overlayNonShifted
         % First we optionally overlay the vanilla borders before attempting to correct them
