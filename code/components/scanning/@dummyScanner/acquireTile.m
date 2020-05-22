@@ -54,8 +54,8 @@ function varargout = acquireTile(obj,~,~)
 
 
     % Position of the tile in the slice:
-    xRange = [xPosInPixels,xPosInPixels+obj.xStepInPixels];
-    yRange = [yPosInPixels,yPosInPixels+obj.yStepInPixels];
+    xRange = [xPosInPixels,xPosInPixels+obj.scannerSettings.linesPerFrame-1];
+    yRange = [yPosInPixels,yPosInPixels+obj.scannerSettings.pixelsPerLine-1];
 
 
     % Check that the coordinates are within range of the image

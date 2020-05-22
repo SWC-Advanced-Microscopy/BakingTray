@@ -27,6 +27,8 @@ function populateCurrentTilePattern(obj,isFullPreview)
         isFullPreview=false;
     end
 
+    pos=[]; % In case for whatever reason no tile pattern is generated. During an acquisition
+            % this won't be a problem.
 
     if isFullPreview
         [pos,indexes]=obj.recipe.tilePattern;
@@ -43,12 +45,17 @@ function populateCurrentTilePattern(obj,isFullPreview)
         [pos,indexes]=obj.recipe.tilePattern;
     end
 
+    if isempty(pos)
+        fprintf('No tile pattern was generated in BT.populateCurrentTilePattern\n');
+        return
+    end
+
 
     % This is where the stage will go. Positions in mm.
     obj.currentTilePattern=pos;
 
 
-    % Here we store where the stage went. This is just a pre-allocation. 
+    % Here we store where the stage went. This is just a pre-allocation.
     obj.positionArray = [indexes,pos,nan(size(pos))];
 
 end %populateCurrentTilePattern
