@@ -30,15 +30,15 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % The size of the preview image
     % Potential Bug:  The following is correct with square tiles. It may be wrong with rectangular tiles.
     %                 Not tested with rectangular tiles.
-    stepSizes(1) = getTileSizeFromPositionList(tp(:,1));
-    stepSizes(2) = getTileSizeFromPositionList(tp(:,2));
+    stepSizesMM(1) = getTileSizeFromPositionList(tp(:,1));
+    stepSizesMM(2) = getTileSizeFromPositionList(tp(:,2));
 
     ovLap = 1-obj.recipe.mosaic.overlapProportion;
     %              imsize + tile size including overlap
-    rangeAlongColsInMM = range(tp(:,2)) + (stepSizes(1) * ovLap);
+    rangeAlongColsInMM = range(tp(:,2)) + (stepSizesMM(1) * ovLap); %Note that range(tp(:,2)) includes the overlap
     imCols = round(rangeAlongColsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
-    rangeAlongRowsInMM = range(tp(:,1)) + (stepSizes(2) * ovLap);
+    rangeAlongRowsInMM = range(tp(:,1)) + (stepSizesMM(2) * ovLap);
     imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
 
@@ -88,8 +88,6 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % Should this be a separate method call?
     pos = obj.convertStagePositionToImageCoords(tp,frontLeft);
     pos = round(pos);
-
-    tile_pix_size_Y=getTileSizeFromPositionList(pos(:,2));
     pos(pos==0)=1;
     obj.previewTilePositions = fliplr(pos);
 
