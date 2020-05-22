@@ -37,6 +37,7 @@ function minimalBakeWithGUI(nSections)
     hBT.currentSectionNumber=1;
     hBT.takeRapidPreview;
 
+    hBTview.view_acquire.updatePreviewEveryNTiles=25;
     if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
         hBT.getThreshold;
         z=hBT.recipe.tilePattern(false,false,hBT.autoROI.stats.roiStats.BoundingBoxDetails);
@@ -82,6 +83,7 @@ function minimalBakeWithGUI(nSections)
         hBT.scanner.disarmScanner;
         hBT.acquisitionInProgress=false;
 
+
         if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
             hBTview.view_acquire.overlayLastBoundingBoxes
         end
@@ -89,6 +91,7 @@ function minimalBakeWithGUI(nSections)
         if strcmp('tiled: auto-ROI',hBT.recipe.mosaic.scanmode)
             hBT.getNextROIs
         end
+
         if isa(hBT.scanner,'dummyScanner')
             hBT.scanner.skipSaving=false;
         end
@@ -108,7 +111,7 @@ end
 function obj = getObject(objName)
     W = evalin('base','whos');
 
-    if ~ismember(objName,{W.name});
+    if ~ismember(objName,{W.name})
         fprintf('No %s found in base workspace\n',objName)
         obj=[];
         return
