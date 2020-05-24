@@ -30,11 +30,14 @@ function success=resumeAcquisition(obj,recipeFname)
         return
     end
 
+    fprintf('Attempting to resume acquisition using recipe: %s\n', recipeFname)
     pathToRecipe = fileparts(recipeFname);
 
     % If pathToRecipe is empty then that must mean the user supplied only the file name with no path. 
     % Since recipeFname was found, that must mean it's in the current directory. Therefore:
-    pathToRecipe=pwd;
+    if isempty(recipeFname)
+        pathToRecipe=pwd;
+    end
 
     [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
