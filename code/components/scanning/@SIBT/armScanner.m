@@ -38,7 +38,6 @@ function [success,msg] = armScanner(obj)
 
 
     % Set up ScanImage z-stacks
-    switch obj.parent.recipe.mosaic.scanmode
     obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
     % Set the system to display just the first depth in ScanImage. 
