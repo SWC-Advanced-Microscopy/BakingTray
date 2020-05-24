@@ -35,7 +35,6 @@ function success=recordScannerSettings(obj)
         tileOptions = obj.parent.scanner.frameSizeSettings;
 
         if isempty(tileOptions) || length(fields(tileOptions))==0
-            disp('LEAVING')
             success=false;
             return
         end
