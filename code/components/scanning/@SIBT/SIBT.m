@@ -313,8 +313,6 @@ classdef SIBT < scanner
             % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
             obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1. 
 
-
-            switch obj.parent.recipe.mosaic.scanmode
             obj.hC.hScan2D.logFileStem = obj.returnTileFname;
 
             obj.hC.hChannels.loggingEnable = true;
