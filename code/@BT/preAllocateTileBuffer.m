@@ -18,7 +18,7 @@ function preAllocateTileBuffer(obj)
     numPlanes = obj.recipe.mosaic.numOpticalPlanes;
 
     %calculate the number of lines per frame (in case of rectangular frames)
-    downsampleRatio = obj.downsampleMicronsPerPixel / scnSet.micronsPerPixel_rows;
+    downsampleRatio =  scnSet.micronsPerPixel_rows / obj.downsampleMicronsPerPixel;
 
     obj.downSampledTileBuffer = zeros(...
         round(scnSet.linesPerFrame * downsampleRatio), ...
