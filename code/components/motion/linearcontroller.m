@@ -362,13 +362,13 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % ready - true/false
             %   ready is true if the object is set up and ready to perform axis motions or 
             %   query the axis, etc. false otherwise.
+            ready=false;
 
-            if obj.parent.disabledAxisReadyCheckDuringAcq && obj.parent.acquisitionInProgress 
+            if ~isempty(obj.parent) && obj.parent.disabledAxisReadyCheckDuringAcq && obj.parent.acquisitionInProgress 
                 ready=true;
                 return
             end
 
-            ready=false;
 
             % Is a connection established to the hardare and is at least one linearstage connected?
             if ~obj.isControllerConnected || ~obj.isStageConnected 

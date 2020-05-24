@@ -74,8 +74,7 @@ function success=attachMotionAxes(obj,settings)
                                              thisStage.type, thisStage.settings);
 
             catch ME1
-                disp(ME1.message)
-                fprintf('FAILED TO BUILD AXIS: %s\n',thisAxisName)
+                fprintf('\nFAILED TO BUILD AXIS: %s\n',thisAxisName)
                 disp(ME1.message)
                 for ii=1:length(ME1.stack)
                     st=ME1.stack(ii);
@@ -83,6 +82,7 @@ function success=attachMotionAxes(obj,settings)
                 end
                 fprintf('\n')
                 obj.(thisAxisName)=[];
+                rethrow(ME1)
             end
 
 
