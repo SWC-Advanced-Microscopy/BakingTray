@@ -26,8 +26,12 @@ function tileAcqDone(obj,~,~)
     end
 
     %Initiate move to the next X/Y position (blocking motion)
-    obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
-            obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
+    %the if statment stops us from attempting a move once this callback is
+    %called for the final time (a self-call, see below)
+    if obj.parent.currentTilePosition < size(obj.parent.currentTilePattern,1)
+        obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+                obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
+    end
 
     % Import the last frames and downsample them
     debugMessages=false;
@@ -122,14 +126,15 @@ function tileAcqDone(obj,~,~)
     if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
         obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time
-        %obj.disarmScanner;
         return
     end
 
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-
-
+    if obj.parent.currentTilePosition == size(obj.parent.currentTilePattern,1)
+        % Call for the final time in order to place the last tile
+        obj.tileAcqDone
+    end
     % Initiate the next position (obj.initiateTileScan) so long as we aren't paused
     nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled
     while obj.acquisitionPaused
@@ -146,8 +151,7 @@ function tileAcqDone(obj,~,~)
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
 
-    obj.initiateTileScan  % Start the next position (initiates a motion if ribbon scanning)
-                          % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
+    obj.initiateTileScan  % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
                           % to soft-trigger another acquisition.
                           % See also: BT.runTileScan
 
