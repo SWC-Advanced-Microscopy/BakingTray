@@ -1,16 +1,20 @@
 function areaSelector(obj,~,~)
+    % Draw a box on the preview image and use this as a basis for a ROI
 
+    % Draw box and get coords
     h = imrect(obj.imageAxes);
     rect_pos = wait(h);
     delete(h)
     [rectBottomLeft,MMpix] = obj.model.convertImageCoordsToStagePosition(rect_pos(1:2));
 
     frontPos = rectBottomLeft(2);
-    leftPos  = rectBottomLeft(1) + MMpix*rect_pos(4);
+    leftPos  = rectBottomLeft(1);
 
     extentAlongX = round(rect_pos(4)*MMpix,2);
     extentAlongY = round(rect_pos(3)*MMpix,2);
+
     detailedMessage=false;
+
     if detailedMessage
         msg = sprintf(['Proceed with the following changes?\n', ...
             'Set the front/left position changes:\n', ...
