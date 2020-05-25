@@ -16,8 +16,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
 
     % Get the channel with the highest median if no channel was requested
     if isempty(chanToKeep)
-        medc = squeeze([median(im,[1,2])]);
-        [~,chanToKeep] = max(medc);
+        chanToKeep = determineChannelWithHighestSNR(im);
     end
 
     im = im(:,:,chanToKeep);
@@ -44,4 +43,26 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
         fprintf('BT.%s makes pStack with image of size %d by %d and frontLeftStageMM x=%0.2f y=%0.2f\n', ...
             mfilename, size(im), pStack.frontLeftStageMM.X, pStack.frontLeftStageMM.Y)
     end
+end
+
+
+function chan = determineChannelWithHighestSNR(im)
+    % Determine the plane with the largest range, which we treat as being that with the highest SNR. 
+    chanRange = zeros(1,size(im,3));
+    for ii = 1:size(im,3)
+        tChan = im(:,:,ii);
+        tChan(tChan == -42) = nan;
+        tChan(tChan == -123) = nan;
+
+        tChan = medfilt2(tChan,[3,3]);
+        tChan = tChan(:);
+
+        % remove pixels that did not have data laid down
+
+        chanRange(ii) = range(tChan);
+        %fprintf('Channel %d: range %d\n', ii, chanRange(ii))
+    end
+
+    [~,chan] = max(chanRange);
+
 end
