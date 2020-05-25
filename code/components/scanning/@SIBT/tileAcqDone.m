@@ -104,14 +104,6 @@ function tileAcqDone(obj,~,~)
         obj.resetTrippedPMTs
     end
 
-    % Increment the counter and make the new position the current one
-    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-
-    if obj.parent.currentTilePosition>size(obj.parent.currentTilePattern,1)
-        fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
-        return
-    end
-
 
 
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
@@ -125,6 +117,18 @@ function tileAcqDone(obj,~,~)
         positionArray = obj.parent.positionArray;
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
+
+
+    if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
+        fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
+        obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time
+        %obj.disarmScanner;
+        return
+    end
+
+    % Increment the counter and make the new position the current one
+    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+
 
     % Initiate the next position (obj.initiateTileScan) so long as we aren't paused
     nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled

@@ -1,6 +1,8 @@
 function initiateTileScan(obj)
     % This method rolls together what takes place in SIBT.initiateTileScan and SIBT.tileAcqDone
     %
+    % function dummyScanner.initiateTileScan(obj)
+    % 
     % Purpose
     % Moves the virtual stages. Acquires a tile. Moves the stages. Calls itself
     % recursively until all done. 
@@ -9,7 +11,9 @@ function initiateTileScan(obj)
 
     % Performs a tile scan. This method rolls together what is done in SIBT.initiateTileScan
     % and the ScanImage callback SIBT.tileAcqDone.
-    obj.acquireTile % Acquire a tile right away because we are already at the front/left position
+    obj.acquireTile % Acquire a tile right away because we are already at the front/left position and
+                    % because SIBT.tileAcqDone, which we are replicating, is a callback that runs
+                    % after a tile is a acquired.
 
 
     % Now log this tile position so we later can save it to disk
