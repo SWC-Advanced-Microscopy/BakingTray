@@ -35,10 +35,10 @@ function initialisePreviewImageData(obj,tp,frontLeft)
 
     ovLap = 1-obj.recipe.mosaic.overlapProportion;
     %              imsize + tile size including overlap
-    rangeAlongColsInMM = range(tp(:,2)) + (stepSizesMM(1) * ovLap); %Note that range(tp(:,2)) includes the overlap
+    rangeAlongColsInMM = range(tp(:,2)) + (stepSizesMM(1)/ovLap);
     imCols = round(rangeAlongColsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
-    rangeAlongRowsInMM = range(tp(:,1)) + (stepSizesMM(2) * ovLap);
+    rangeAlongRowsInMM = range(tp(:,1)) + (stepSizesMM(2)/ovLap);
     imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
 
