@@ -44,7 +44,7 @@ function initialisePreviewImageData(obj,tp,frontLeft)
 
     obj.lastPreviewImageStack = zeros([imRows,imCols, ...
         obj.recipe.mosaic.numOpticalPlanes, ...
-        obj.scanner.maxChannelsAvailable],'int16') - 123; % We tag the background pixel values with a specific number.
+        obj.scanner.maxChannelsAvailable],'int16');
 
 
     % Log the current front/left position from the recipe. This must be done at this point

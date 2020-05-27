@@ -113,6 +113,9 @@ function attachPreviewStack(obj,pStack)
     obj.parent.recipe.FrontLeft.X = -(padBy+1) * pStack.voxelSizeInMicrons * 1E-3;
     obj.parent.recipe.FrontLeft.Y = -(padBy+1) * pStack.voxelSizeInMicrons * 1E-3;
 
+    % Move virtual sample stage down to zero
+    obj.parent.moveZto(0);
+
     if verbose
         fprintf('Front/Left is at %0.2f x %0.2f mm\n', ...
             obj.parent.recipe.FrontLeft.X, ...
