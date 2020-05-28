@@ -58,6 +58,7 @@ function runSuccess = runTileScan(obj)
     % Instruct the scanner to initiate the tile scan. This may simply involving issuing a trigger if tile scanning
     obj.scanner.initiateTileScan; %acquires a stack and triggers the scanner (e.g. ScanImage) to acquire the rest of the stacks
 
+    obj.currentTilePosition = round(obj.currentTilePosition);
     %block until done
     while 1
         if ~obj.scanner.isAcquiring
