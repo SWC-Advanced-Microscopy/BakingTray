@@ -75,10 +75,12 @@ classdef BT < loghandler
         positionArray           % Array of stage positions that we save to disk
         sectionCompletionTimes  % A vector containing the number of seconds it took to acquire the data for each section (including cutting)
         currentTilePattern      % The cached currently used tilePattern. Saves having to regenerate each time from the recipe
+        keepAllDownSampledTiles = false; % If true, all downsampled tiles for one section are stored in the property allDownsampledTilesOneSection
+                                         % This is used only for debugging so keepAllDownSampledTiles should generally be false.
 
-        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
-        % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
-        downSampledTileBuffer = []
+        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored in
+        % scanner.tileBuffer should be 
+        downSampledTileBuffer = [] % A 4D array: [imageRows,imageCols,zDepths,channels]; 
         downsampleMicronsPerPixel = 20;
         %i.e. 1,2,3,... not a position in mm)
         lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
@@ -88,6 +90,7 @@ classdef BT < loghandler
 
     properties (Hidden)
         listeners = {};
+        allDownsampledTilesOneSection = {}
     end
 
     properties (Hidden,SetObservable,AbortSet,Transient,Dependent)

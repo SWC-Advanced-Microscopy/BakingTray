@@ -41,6 +41,12 @@ function placeNewTilesInPreviewData(obj,~,~)
             obj.lastPreviewImageStack(y,x,:,:) = obj.downSampledTileBuffer;
         end
 
+        % Optionally (debugging) log the last acquired tiles to a cache in BT.allDownsampledTilesOneSection
+        % This is wiped automatically when BT.runTileScan executes, so we can simply append to it here
+        if obj.keepAllDownSampledTiles
+            obj.allDownsampledTilesOneSection{end+1} = obj.downSampledTileBuffer;
+        end
+
         obj.downSampledTileBuffer(:) = 0; %wipe the buffer 
 
      end % obj.lastTilePos.X>0 && obj.lastTilePos.Y>0

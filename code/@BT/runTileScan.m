@@ -17,6 +17,8 @@ function runSuccess = runTileScan(obj)
 
     obj.initialisePreviewImageData(obj.currentTilePattern);
 
+    % Wipe the property which optionaly stores all downsample tiles for debugging
+    obj.allDownsampledTilesOneSection = {};
 
     %pre-allocate the tile buffer where the last section's tiles are inserted
     obj.preAllocateTileBuffer
