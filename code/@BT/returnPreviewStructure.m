@@ -27,6 +27,13 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
 
+    % Now only acquire this channel for the preview
+    if isa(obj.scanner,'SIBT')
+        % A bit horrible, but it will work
+        fprintf('Preview image will display only channel %d from now on\n', chanToKeep);
+        obj.scanner.hC.hChannels.channelDisplay=chanToKeep;
+    end
+      
 
     % Log the front/left stage position when this preview image was obtained. This information is 
     % recorded by the method BT.initialisePreviewImageData, which stores it in BT.frontLeftWhenPreviewWasTaken
