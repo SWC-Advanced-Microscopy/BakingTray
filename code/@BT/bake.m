@@ -509,4 +509,7 @@ function bakeCleanupFun(obj)
         obj.isSlicing=false;
     end
 
+    % Return to manual ROI mode
+    obj.recipe.mosaic.scanmode = 'tiled: manual ROI';
+
 end %bakeCleanupFun
