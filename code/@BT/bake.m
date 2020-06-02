@@ -242,6 +242,13 @@ function bake(obj,varargin)
             end
         end
 
+        % Save the downsampled tile cache to the rawData directory if this is appropriate
+        if obj.keepAllDownSampledTiles
+            tileCache = obj.allDownsampledTilesOneSection;
+            cacheFname = fullfile(obj.currentTileSavePath,'tileCache.mat');
+            save(cacheFname,'tileCache')
+        end        
+    
         % Now we save to full scan settings by stripping data from a tiff file.
         % If this is the first pass through the loop and we're using ScanImage, dump
         % the settings to a file. TODO: eventually we need to decide what to do with other
