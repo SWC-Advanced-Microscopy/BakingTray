@@ -1,5 +1,5 @@
 function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
-    % Returns whether a path contains an existing acquisition
+    % Returns whether a path contains an existing acquisition. Optionally provides further details
     %
     % function [acqPresent,details] = BakingTray.utils.doesPathContainAnAcquisition(thisPath)
     %
@@ -51,3 +51,60 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
 
     thisAcqLogFile = fullfile(thisPath,acqLogFile(1).name);
     details = BakingTray.utils.readAcqLogFile(thisAcqLogFile);
+
+
+    % Loop through all raw data directories and determine the state of each
+    rDataDirs = dir(fullfile(thisPath,'rawData','*-*')); % all will have one hyphen
+
+    for ii = 1:length(rDataDirs)
+        tmp=scrapeRawDataDir(fullfile(rDataDirs(ii).folder,rDataDirs(ii).name));
+
+        %add these into the details structure
+        f=find([details.sections.sectionNumber] == tmp.sectionNumber);
+
+        tF=fields(tmp);
+        for kk=1:length(tF)
+            details.sections(f).(tF{kk}) = tmp.(tF{kk});
+        end
+
+    end
+
+
+
+function out = scrapeRawDataDir(tDir)
+    % Get info from various files in this raw data directory
+
+    % Determine the section number from the directory name and add to the output structure
+    tok=regexp(tDir,'.*rawData.*-(\d+)','tokens');
+    out.sectionNumber = str2num(tok{1}{1});
+
+    % Is there are "COMPLETED" file, indicating the section ran to completion
+    if exist(fullfile(tDir,'COMPLETED'),'file')
+        out.completed=true;
+    else
+        out.completed=false;
+    end
+
+    % Load the matrix describing the number of 
+    load(fullfile(tDir,'tilePositions.mat'),'positionArray')
+    out.numTilePositions = size(positionArray,1);
+
+    %Get the last imaged tile position from the array
+    f=find(~isnan(positionArray(:,end)));
+    out.lastImagedPosition = f(end);
+
+    if out.numTilePositions == out.lastImagedPosition
+        out.allPositionsImaged=true;
+    else
+        out.allPositionsImaged=false;
+    end
+
+    % Read in the section log file and determine if the microscope sliced the sample
+    fileText=fileread(fullfile(tDir,'acquisition_log.txt'));
+    if isempty(findstr(fileText,'Waiting for slice to settle'))
+        out.sectionSliced=false;
+    else
+        out.sectionSliced=true;
+    end
+
+

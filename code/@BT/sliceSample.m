@@ -234,5 +234,5 @@ function cleanupSlicer(obj,state)
     obj.isSlicing=false;
 
     obj.getXYpos; %Refreshes the currentPosition properties on the stages
-    obj.logMessage(inputname(1),dbstack,5,'Finish cutting cycle');
+    obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
 end
