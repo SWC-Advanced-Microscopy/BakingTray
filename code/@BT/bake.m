@@ -244,6 +244,7 @@ function bake(obj,varargin)
 
         % Save the downsampled tile cache to the rawData directory if this is appropriate
         if obj.keepAllDownSampledTiles
+            fprintf('Saving the tile cache from the last section\n')
             tileCache = obj.allDownsampledTilesOneSection;
             cacheFname = fullfile(obj.currentTileSavePath,'tileCache.mat');
             save(cacheFname,'tileCache')
@@ -261,11 +262,13 @@ function bake(obj,varargin)
                 TMP=scanimage.util.opentif(tmp_fname);
                 scanSettings = TMP.SI;
                 saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                fprintf('Saving ScanImage settings file to %s\n', saveSettingsTo)
                 save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
             end
         end
 
         if obj.abortAcqNow
+            fprintf('BT.bake: BT.abortAcq is true. Stopping acquisition.\n')
             break
         end
 
@@ -312,6 +315,7 @@ function bake(obj,varargin)
         chanDisp=obj.scanner.channelsToDisplay;
         if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
             % A bit horrible, but it will work
+            fprintf('Setting chan display to %d only in BT.bake\n', chanDisp(end))
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
 
