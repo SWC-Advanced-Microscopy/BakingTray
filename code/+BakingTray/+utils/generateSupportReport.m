@@ -160,8 +160,9 @@ try
                 filesToZip{end+1} = fullFileErr;
                 tempFilesToDelete{end+1} = fullFileErr;
             end
-        catch
+        catch ME
             disp('Warning: SI could not be accessed properly');
+            disp(ME.message)
         end
     end % if siAccessible
     
