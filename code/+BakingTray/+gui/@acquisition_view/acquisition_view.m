@@ -103,7 +103,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         setupListeners(obj) % Called once by the constructor
 
         % Callbacks
-        updateSectionImage(obj,~,~)
+        updateSectionImage(obj,~,~,forceUpdate)
 
         % Callbacks in direct response to user actions
         startPreviewScan(obj,~,~)
