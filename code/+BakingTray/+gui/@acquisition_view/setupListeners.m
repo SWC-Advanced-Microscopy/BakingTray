@@ -24,7 +24,9 @@ function setupListeners(obj)
 
     obj.listeners{end+1}=addlistener(obj.model.scanner, 'channelLookUpTablesChanged', 'PostSet', @obj.updateImageLUT);
     obj.listeners{end+1}=addlistener(obj.model.scanner, 'isScannerAcquiring', 'PostSet', @obj.updateBakeButtonState);
+
     obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
+    obj.listeners{end+1}=addlistener(obj.model, 'currentSectionNumber', 'PostSet', @obj.updateStatusText);
 
     obj.listeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.populateDepthPopup);
 

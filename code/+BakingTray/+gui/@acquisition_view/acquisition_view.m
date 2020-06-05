@@ -189,8 +189,13 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateStatusText(obj,~,~)
-            % Update the text in the top left of the acquisition view
+            % Update the text in the top left of the acquisition view if we are in an acquisition
+            % This is called when currentSectionNumber updates
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
+
+            if ~obj.model.acquisitionInProgress
+                return
+            end
 
             % We only want to run this on the first tile of each section. Faster this way.
             if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
