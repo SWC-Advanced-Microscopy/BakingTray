@@ -14,17 +14,34 @@ Install instructions for autoROI
 - In your default recipe which is to be loaded each time ensure you have "numOverlapZPlanes: 0.0" in the mosaic section 
 - You will likely to have to play with the fields in SIBT.setings.tileAcq until the preview image looks correct. 
   Make the changes permanent by editing the appropriate file in the SETTINGS directory. 
+- Update stitchit ini file. IMPORTANT: this includes the stitched image UD and LR flips. Ensure the final stitched images
+  aren't flipped compared to BakingTray! 
+
+
+6th June 2020
+- User [branch autoROI]: Bugfixes
+- User [branch autoROI]: Improve support report contents
+
+
+2nd June 2020
+- DEVELOPER [branch autoROI]: Add the option to save all preview tiles to disk for debugging purposes. 
+
+
+20th May 2020
+- DEVELOPER [branch autoROI]: Add more examples for using the API. In this case minimal bake examples.
 
 
 11th May 2020
 - DEVELOPER [branch autoROI]: Delete EPS300.m as likely it will never be completed. 
 - DEVELOPER [branch autoROI]: Speed ups for dummy acquisition mode. 
 
+
 29th April 2020
 - DEVELOPER [branch autoROI]: 
    * Recipe.tilePattern can now create a tile grid for one one defined ROI using a new input argument
    * Refactor of properties and methods in BT and acquisition_view to enable tile grids to be overlaid on top of the preview image
 - Note: as with changes from previous days there are numerous "TODOs"
+
 
 27th April 2020
 - USER [branch autoROI]: remove scanner ID (name) and scan type ("tile") from status text. This is not useful information and/or it can be found elsewhere.
@@ -33,6 +50,7 @@ Install instructions for autoROI
    * Removed ribbon-scanning code (autoROI)
    * Renamed default property value recipe.mosaic.scanmode from 'tile' to 'tiled: manual ROI' (autoROI)
    * Preview stack is returned rotated correctly so only axis xy is needed for it to look as it should
+
 
 24th April 2020
 - DEVELOPER [branch dev]:
