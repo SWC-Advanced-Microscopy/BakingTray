@@ -132,7 +132,6 @@ try
             fullFileUsr = fullfile(tempdir,[fname '.usr']);
             fullFileCfg = fullfile(tempdir,[fname '.cfg']);
             fullFileHeader = fullfile(tempdir,'TiffHeader.txt');
-            fullFileErr = fullfile(tempdir,'ErrorLog.txt');
 
             hSIlocal.hConfigurationSaver.usrSaveUsrAs(fullFileUsr,'',1);
             filesToZip{end+1} = fullFileUsr;
@@ -149,19 +148,7 @@ try
             filesToZip{end+1} = fullFileHeader;
             tempFilesToDelete{end+1} = fullFileHeader;
             
-            errN = numel(hSIlocal.errorLog);
-            if errN
-                fileID = fopen(fullFileErr,'W');
-                
-                for i = 1:errN
-                    e = hSIlocal.errorLog{i};
-                    fprintf(fileID, 'Logged error that occurred at %s:\n%s\n\n\n',datestr(e{1}),e{2}.getReport('extended'));
-                end
 
-                fclose(fileID);
-                filesToZip{end+1} = fullFileErr;
-                tempFilesToDelete{end+1} = fullFileErr;
-            end
         catch ME
             disp('Warning: SI could not be accessed properly');
             disp(ME.message)
