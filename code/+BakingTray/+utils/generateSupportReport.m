@@ -100,8 +100,10 @@ try
 
     % Get info from BakingTray
     if btAccessible
+
         % Dump a load of property values into a file
         filesToZip{end+1} = fullfile(tempdir,'hBT_state.txt');
+        fprintf('Writing hBT properties to file %s\n', filesToZip{end})
         fid = fopen(filesToZip{end},'w+');
         fprintf(fid,'sampleSavePath=%s\n',hBT.sampleSavePath);
         fprintf(fid,'leaveLaserOn=%d\n',hBT.leaveLaserOn);
@@ -290,6 +292,9 @@ try
     waitbar(0.9,wb); drawnow
 
     % Zip important information
+    fprintf('zipping files:\n')
+    cellfun(@(x) fprintf(' %s\n',x), filesToZip)
+    fprintf('\n')
     zip(reportFname, filesToZip);
 
     % Clean directory
