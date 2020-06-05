@@ -158,12 +158,14 @@ function bake(obj,varargin)
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
 
-        fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),sectionInd) % Print a line across the CLI
+        obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
+
+        fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),obj.currentSectionNumber) % Print a line across the CLI
 
         % Ensure hBT exists in the base workspace
         assignin('base','hBT',obj)
 
-        obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
+
         if obj.currentSectionNumber<0
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
@@ -519,6 +521,7 @@ function bakeCleanupFun(obj)
         fprintf('BT.bake notices that BakingTray thinks it is slicing. Likely it is not and this is a bug. Resetting this flag.\n')
         obj.isSlicing=false;
     end
+
 
     % Return to manual ROI mode
     obj.recipe.mosaic.scanmode = 'tiled: manual ROI';
