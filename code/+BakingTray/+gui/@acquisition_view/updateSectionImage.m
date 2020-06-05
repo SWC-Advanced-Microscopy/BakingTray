@@ -1,7 +1,11 @@
-function updateSectionImage(obj,~,~)
+function updateSectionImage(obj,~,~,forceUpdate)
     % This callback function updates when the listener on obj.model.lastPreviewImageStack 
     % (which is in BT) fires or if the user updates the popup boxes for depth or channel.
 
+
+    if nargin<4
+        forceUpdate=false;
+    end
 
     if obj.verbose
         fprintf('In acquisition_view.updateSectionImage callback\n')
@@ -15,7 +19,7 @@ function updateSectionImage(obj,~,~)
 
     %Only update the section image every so often to avoid slowing down the acquisition
     n=obj.model.currentTilePosition;
-    if n==1 || mod(n,obj.updatePreviewEveryNTiles)==0 || n>=length(obj.model.positionArray)
+    if n==1 || mod(n,obj.updatePreviewEveryNTiles)==0 || n>=length(obj.model.positionArray) || forceUpdate
         %Raise a console warning if it looks like the image has grown in size
         if numel(obj.sectionImage.CData) < numel(squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow, obj.chanToShow)))
             fprintf('The preview image data in the acquisition GUI grew in size from %d x %d to %d x %d\n', ...

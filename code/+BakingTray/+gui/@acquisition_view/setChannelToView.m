@@ -13,7 +13,7 @@ function setChannelToView(obj,~,~)
         return
     end
     obj.chanToShow=thisChannelIndex;
-    obj.updateSectionImage;
+    obj.updateSectionImage([],[],true); %force update
     obj.updateImageLUT;
 end %setDepthToView
 

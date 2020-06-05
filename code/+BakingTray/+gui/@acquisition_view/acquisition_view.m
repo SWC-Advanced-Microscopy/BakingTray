@@ -299,7 +299,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % BakingTray.gui.acquisition_view.updateChannelsPopup
             %
             % This calback ensures the channels available in the popup are the same as those
-            % available in the scanning software. 
+            % available in the scanning software.
 
             if obj.verbose, fprintf('In acquisition_view.updateChannelsPopup callback\n'), end
 

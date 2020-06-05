@@ -23,5 +23,5 @@ function setDepthToView(obj,~,~)
     end
 
     obj.depthToShow = thisDepthIndex;
-    obj.updateSectionImage;
+    obj.updateSectionImage([],[],true); %force update
 end %setDepthToView
