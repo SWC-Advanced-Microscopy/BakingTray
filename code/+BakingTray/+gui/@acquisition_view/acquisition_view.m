@@ -193,10 +193,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             % This is called when currentSectionNumber updates
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
-            if ~obj.model.acquisitionInProgress
-                return
-            end
-
             % We only want to run this on the first tile of each section. Faster this way.
             if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
                 if obj.verbose, fprintf('Caching end time in acquisition_view object\n'), end
