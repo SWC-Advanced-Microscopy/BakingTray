@@ -12,7 +12,7 @@ function updateSectionImage(obj,~,~,forceUpdate)
     end
 
     % Possibly excessive checks to avoid any possibility of triggering update when it should not be.
-    if ~obj.doSectionImageUpdate || obj.model.processLastFrames==false || obj.model.acquisitionInProgress == false
+    if ~obj.doSectionImageUpdate || obj.model.processLastFrames==false
         return
     end
 
@@ -30,7 +30,7 @@ function updateSectionImage(obj,~,~,forceUpdate)
         obj.sectionImage.CData = squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow, obj.chanToShow));
 
         if obj.verbose
-            fprintf('Updating section image...\n')
+            fprintf('Updating section image. depth=%d, chan=%d\n', obj.depthToShow, obj.chanToShow)
         end
 
 
