@@ -81,6 +81,7 @@ try
     btAccessible = false;
     if evalin('base','exist(''hBT'')')
         btAccessible = true;
+        hBT = evalin('base','hBT');
     end
 
     if attemptLaunch && ~btAccessible
