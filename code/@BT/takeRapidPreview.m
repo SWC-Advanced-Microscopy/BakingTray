@@ -127,6 +127,10 @@ function takeRapidPreview(obj)
 
         obj.lastTilePos.X=0;
         obj.lastTilePos.Y=0;
+
+        % Just in case we aborted the acquisition
+        obj.abortAfterSectionComplete=false;
+        obj.abortAcqNow=false;
     end
 
 end 

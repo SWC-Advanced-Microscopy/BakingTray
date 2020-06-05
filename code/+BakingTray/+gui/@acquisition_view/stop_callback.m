@@ -38,5 +38,6 @@ function stop_callback(obj,~,~)
 
         otherwise
             %Nothing happens
-    end 
+    end
+
 end %stop_callback
