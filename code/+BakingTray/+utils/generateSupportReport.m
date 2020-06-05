@@ -117,6 +117,20 @@ try
         fprintf(fid,'downsampleMicronsPerPixel=%d\n',hBT.downsampleMicronsPerPixel);
         fprintf(fid,'lastTileIndex=%d\n',hBT.lastTileIndex);
         fclose(fid);
+
+        %If possible get the current acquisition log files
+        acqLog=dir(fullfile(hBT.sampleSavePath,'acqLog_*.txt'));
+        if length(acqLog)==1
+            filesToZip{end+1} = fullfile(acqLog.folder,acqLog.name);
+        end
+
+        if exist(hBT.currentTileSavePath,'dir')
+            lastAcqLog = fullfile(hBT.currentTileSavePath,'acquisition_log.txt');
+            if exist(lastAcqLog,'file')
+                filesToZip{end+1} = lastAcqLog;
+            end
+        end
+
     end
 
     % Get info from ScanImage
