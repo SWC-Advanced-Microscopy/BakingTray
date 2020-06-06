@@ -109,14 +109,6 @@ function tileAcqDone(obj,~,~)
     end
 
 
-
-    % Store stage positions. this is done after all tiles in the z-stack have been acquired
-    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
-    % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
-    % you won't get the real stage positions
-    % The first tile was logged in BT.runTileScan.
-    obj.parent.logPositionToPositionArray(doFakeLog)
-
     if obj.hC.hChannels.loggingEnable==true
         positionArray = obj.parent.positionArray;
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
@@ -131,10 +123,21 @@ function tileAcqDone(obj,~,~)
 
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+    
+    % Store stage positions. this is done after all tiles in the z-stack have been acquired
+    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+    % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
+    % you won't get the real stage positions
+    % The first tile was logged in BT.runTileScan.
+    obj.parent.logPositionToPositionArray(doFakeLog)
+   
     if obj.parent.currentTilePosition == size(obj.parent.currentTilePattern,1)
         % Call for the final time in order to place the last tile
         obj.tileAcqDone
     end
+    
+
+
     % Initiate the next position (obj.initiateTileScan) so long as we aren't paused
     nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled
     while obj.acquisitionPaused
