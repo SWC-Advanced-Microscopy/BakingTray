@@ -89,7 +89,9 @@ function initiateTileScan(obj)
     % The first tile was logged in BT.runTileScan.
     obj.parent.logPositionToPositionArray;
 
-    obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
+    if ~obj.parent.abortAcqNow % Do not proceed if user asked to quit
+        obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
+    end
 
 
 end % initiateTileScan
