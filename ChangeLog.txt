@@ -16,6 +16,7 @@ Install instructions for autoROI
   Make the changes permanent by editing the appropriate file in the SETTINGS directory. 
 - Update stitchit ini file. IMPORTANT: this includes the stitched image UD and LR flips. Ensure the final stitched images
   aren't flipped compared to BakingTray! 
+- The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
 
 
 6th June 2020
