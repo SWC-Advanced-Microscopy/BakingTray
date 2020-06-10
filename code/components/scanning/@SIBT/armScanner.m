@@ -1,5 +1,6 @@
 function [success,msg] = armScanner(obj)
     %Arm scanner and tell it to acquire a fixed number of frames (as defined below)
+
     success=false;
     if isempty(obj.parent) || ~obj.parent.isRecipeConnected
         obj.logMessage(inputname(1) ,dbstack,7,'SIBT is not attached to a BT object with a recipe')
@@ -26,7 +27,7 @@ function [success,msg] = armScanner(obj)
     msg = '';
 
     if any(obj.hC.hChannels.channelSubtractOffset)
-        obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+        obj.hC.hChannels.channelSubtractOffset(:)=0;  % Disable offset subtraction
     end
 
     % Ensure the offset is auto-read so we can use this value later
