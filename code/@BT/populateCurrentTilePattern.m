@@ -22,6 +22,8 @@ function populateCurrentTilePattern(obj,isFullPreview)
     %
     % Outputs
     % None: this method updates the properties currentTilePattern and currentTilePattern
+    %
+    % Also see: BT.getNextROIs, runTileScan, takeRapidPreview
 
     if nargin<2
         isFullPreview=false;
@@ -57,5 +59,9 @@ function populateCurrentTilePattern(obj,isFullPreview)
 
     % Here we store where the stage went. This is just a pre-allocation.
     obj.positionArray = [indexes,pos,nan(size(pos))];
+
+    % Report to screen what's just been made
+    fprintf('BT.%s populated BT.positionArray with a tile pattern of length %d\n', ...
+     mfilename, size(obj.positionArray,1))
 
 end %populateCurrentTilePattern
