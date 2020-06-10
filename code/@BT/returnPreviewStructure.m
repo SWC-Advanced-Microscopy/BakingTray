@@ -10,7 +10,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
 
     verbose = true;
 
-    % TODO -- this is ro90 for some reason
+
     im = squeeze(mean(obj.lastPreviewImageStack,3)); % Average depths
 
 
