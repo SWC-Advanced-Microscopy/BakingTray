@@ -11,6 +11,10 @@ function runSuccess = runTileScan(obj)
 
     runSuccess=false;
 
+    % Ensure hBT exists in the base workspace. Placing this line here ensures it will
+    % be run periodically
+    assignin('base','hBT',obj)
+
     if isempty(obj.currentTilePattern)
         obj.populateCurrentTilePattern;
     end

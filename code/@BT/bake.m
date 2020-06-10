@@ -55,15 +55,24 @@ function bake(obj,varargin)
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
 
 
-    %Remove any attached file logger objects. We will add one per physical section
+    % Remove any attached file logger objects. We will add one per physical section.
+    % Reset properties in preparation for acquisition
     obj.detachLogObject
+    obj.currentTileSavePath=[];
+    obj.sectionCompletionTimes=[];
+    obj.acquisitionInProgress=true;
+    obj.abortAcqNow=false; % This and the following property can't be on before we've even started
+    obj.abortAfterSectionComplete=false; 
 
+    %assign cleanup function
+    tidy = onCleanup(@() bakeCleanupFun(obj));
 
     %----------------------------------------------------------------------------------------
 
+
     fprintf('\n\n\n ------>>  Starting To Bake  <<------ \n\n\n')
-    obj.currentTileSavePath=[];
-    tidy = onCleanup(@() bakeCleanupFun(obj));
+
+
 
     obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) )
 
@@ -95,12 +104,8 @@ function bake(obj,varargin)
     end
 
 
-    obj.sectionCompletionTimes=[]; %Clear the array of completion times
-
     %Log the current time to the recipe
     obj.recipe.Acquisition.acqStartTime = currentTimeStr();
-    obj.acquisitionInProgress=true;
-    obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
 
 
@@ -136,9 +141,6 @@ function bake(obj,varargin)
         obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
 
         fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),obj.currentSectionNumber) % Print a line across the CLI
-
-        % Ensure hBT exists in the base workspace
-        assignin('base','hBT',obj)
 
 
         if obj.currentSectionNumber<0
@@ -187,7 +189,7 @@ function bake(obj,varargin)
         % For syncAndCrunch to be happy we need to write the currently
         % displayed channels. A bit of hack, but it's easiest solution
         % for now. Alternative would be to have S&C rip it out of the
-        % TIFF header. 
+        % TIFF header. (TODO)
         if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
             scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
             saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
@@ -321,24 +323,25 @@ function bake(obj,varargin)
             return
         end
 
-        % TODO -- debugging horrible thing for auto-ROI dev
-        if doViewDebug && false
-            fprintf('Adding grid overlays for these ROIs\n')
-            % Overlay tile grid for next section
-            z=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
-            hBTview.view_acquire.overlayTileGridOnImage(z)
-            %hBTview.view_acquire.imageAxes.XLim=XL_orig;
-            %hBTview.view_acquire.imageAxes.YLim=YL_orig;
 
-            % plot in a separate window what autoROI should have asked for
-            a=obj.autoROI;
-            a.stats.roiStats = a.stats.roiStats(end);
-            figure(1988)
-            autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
-            axis xy
+            % TODO -- debugging horrible thing for auto-ROI dev
+            if doViewDebug && false
+                fprintf('Adding grid overlays for these ROIs\n')
+                % Overlay tile grid for next section
+                z=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
+                hBTview.view_acquire.overlayTileGridOnImage(z)
+                %hBTview.view_acquire.imageAxes.XLim=XL_orig;
+                %hBTview.view_acquire.imageAxes.YLim=YL_orig;
 
-            disp(' *** PRESS RETURN FOR NEXT ROIS *** '); pause % TODO - for debugging during auto-ROI dev
-        end
+                % plot in a separate window what autoROI should have asked for
+                a=obj.autoROI;
+                a.stats.roiStats = a.stats.roiStats(end);
+                figure(1988)
+                autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
+                axis xy
+
+                disp(' *** PRESS RETURN FOR NEXT ROIS *** '); pause % TODO - for debugging during auto-ROI dev
+            end
 
 
 
