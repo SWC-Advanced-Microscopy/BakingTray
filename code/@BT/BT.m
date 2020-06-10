@@ -139,6 +139,7 @@ classdef BT < loghandler
         [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
         [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords, imageFrontLeft)
         populateCurrentTilePattern(obj, isFullPreview)
+        msg = reportAcquisitionSize(obj)
 
         % House-keeping
         out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
