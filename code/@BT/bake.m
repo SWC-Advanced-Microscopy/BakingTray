@@ -72,14 +72,7 @@ function bake(obj,varargin)
     obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) )
 
     % Report to screen and the log file how much disk space is currently available
-    acqInGB = obj.recipe.estimatedSizeOnDisk;
-    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
-    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
-    volumeToWrite = volumeToWrite{1};
-    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
-    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
-        volumeToWrite, round(out.freeGB), round(out.totalGB));
-    fprintf(msg)
+    msg = obj.reportAcquisitionSize;
     obj.acqLogWriteLine(msg)
 
     if ~isempty(obj.laser)

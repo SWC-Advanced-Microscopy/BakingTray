@@ -1,5 +1,6 @@
 function bake_callback(obj,~,~)
-    % Run when the bake button is pressed
+    % This callback runs when the bake button is pressed
+
     if obj.verbose
         fprintf('In acquisition_view.bake callback\n')
     end
