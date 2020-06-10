@@ -95,20 +95,6 @@ function bake(obj,varargin)
     catch ME
     end
 
-    % Report to the acquisition log whether we will attempt to turn off the laser at the end
-    if obj.leaveLaserOn
-        obj.acqLogWriteLine('Laser set to stay on at the end of acquisition\n')
-    else
-        obj.acqLogWriteLine('Laser set to switch off at the end of acquisition\n')
-    end
-
-    % Report to the acquisition log whether we will attempt to slice the last section
-    if obj.sliceLastSection
-        obj.acqLogWriteLine('BakingTray will slice the final imaged section off the block\n')
-    else
-        obj.acqLogWriteLine('BakingTray will NOT slice the final imaged section off the block\n')
-    end
-
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake. 
