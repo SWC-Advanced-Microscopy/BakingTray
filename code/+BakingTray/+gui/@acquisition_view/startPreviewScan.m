@@ -44,9 +44,7 @@ function startPreviewScan(obj,~,~)
 
     % TODO -- this will need re-factoring -- CAN NOT BE HERE!
     if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
-        obj.model.getThreshold;
-        z=obj.model.recipe.tilePattern(false,false,obj.model.autoROI.stats.roiStats.BoundingBoxDetails);
-        obj.overlayTileGridOnImage(z)
+        obj.getThresholdAndOverlayGrid
     end
 
 end %startPreviewScan
