@@ -22,7 +22,7 @@ function minimalBake(nSections)
         nSections=2;
     end
 
-    doPlots = true;
+    doPlots = false;
 
     % Get hBT
     W = evalin('base','whos');
