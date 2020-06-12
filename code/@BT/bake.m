@@ -115,7 +115,9 @@ function bake(obj,varargin)
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
-        obj.getNextROIs;  %this calls BT.populateCurrentTilePattern
+        obj.populateCurrentTilePattern;  %this calls BT.populateCurrentTilePattern
+        fprintf('Starting auto-ROI acquisition with a grid of %d tiles\n', ...
+            length(obj.currentTilePattern))
         fprintf('\nDONE\n')
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         obj.populateCurrentTilePattern;

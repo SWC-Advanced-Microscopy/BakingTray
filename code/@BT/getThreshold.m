@@ -1,4 +1,4 @@
-function getThreshold(obj)
+function success=getThreshold(obj)
     % Get threshold from current preveiw image
     % 
     % Purpose
@@ -10,7 +10,8 @@ function getThreshold(obj)
     %
     % Rob Campbell - SWC, April 2020
     %
-
+    
+    success=false;
     if isempty(obj.lastPreviewImageStack)
         return
     end
@@ -31,4 +32,5 @@ function getThreshold(obj)
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);
     obj.autoROI.stats.roiStats.sectionNumber=0; %Indicates that this is the initial preview
 
+    success=true;
 end % getThreshold
