@@ -13,6 +13,9 @@ function getThresholdAndOverlayGrid(obj,~,~)
     % Outputs
     % none
 
+    if ~isfield(obj.model.autoROI,'stats')
+        return
+    end
 
     % Obtain the threshold between sample and background. This populates
     % data in obj.model.autoROI.stats

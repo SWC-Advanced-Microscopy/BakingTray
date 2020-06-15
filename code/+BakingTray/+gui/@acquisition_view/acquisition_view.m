@@ -42,6 +42,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         depthSelectPopup
         channelSelectPopup
 
+        button_runAutoThresh
         button_previewScan
 
         button_zoomIn
@@ -53,48 +54,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         checkBoxCutLast
 
     end %close hidden private properties
-
-
-
-    methods
-        function obj = acquisition_view(model,parentView)
-            obj = obj@BakingTray.gui.child_view;
-
-            if nargin>0
-                %TODO: all the obvious checks needed
-                obj.model = model;
-            else
-                fprintf('Can''t build acquisition_view: please supply a BT object\n');
-                return
-            end
-
-            if nargin>1
-                obj.parentView=parentView;
-            end
-
-
-            obj.buildFigure
-            obj.setupListeners
-
-
-            % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
-            % TODO: in future we might wish to make this more elegant, but for now it should work
-            obj.statusText.String = '** Applying settings to scanner **';
-            if isa(obj.model.scanner,'SIBT')
-                obj.model.scanner.applyZstackSettingsFromRecipe;
-            end
-            obj.statusText.Color = 'w';
-            obj.updateStatusText;
-        end
-
-        function delete(obj)
-            %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
-            obj.parentView.updateStatusText; %Resets the approx time for sample indicator
-            delete@BakingTray.gui.child_view(obj);
-        end
-
-    end % methods
-
 
 
     % Declare hidden methods in separate files
@@ -123,6 +82,45 @@ classdef acquisition_view < BakingTray.gui.child_view
     methods 
         getThresholdAndOverlayGrid(obj,~,~)
     end
+
+
+    methods
+        function obj = acquisition_view(model,parentView)
+            obj = obj@BakingTray.gui.child_view;
+
+            if nargin>0
+                %TODO: all the obvious checks needed
+                obj.model = model;
+            else
+                fprintf('Can''t build acquisition_view: please supply a BT object\n');
+                return
+            end
+
+            if nargin>1
+                obj.parentView=parentView;
+            end
+
+            obj.buildFigure
+            obj.setupListeners
+
+            % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
+            % TODO: in future we might wish to make this more elegant, but for now it should work
+            obj.statusText.String = '** Applying settings to scanner **';
+            if isa(obj.model.scanner,'SIBT')
+                obj.model.scanner.applyZstackSettingsFromRecipe;
+            end
+            obj.statusText.Color = 'w';
+            obj.updateStatusText;
+        end
+
+        function delete(obj)
+            %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
+            obj.parentView.updateStatusText; %Resets the approx time for sample indicator
+            delete@BakingTray.gui.child_view(obj);
+        end
+
+    end % methods
+
 
 
     % Short hidden methods 
