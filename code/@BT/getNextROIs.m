@@ -1,7 +1,7 @@
-function getNextROIs(obj)
+function success = getNextROIs(obj)
     % Determine which ROIs to image in the subsequent physical section.
     %
-    % function BT.getNextROIs(obj)
+    % function success = BT.getNextROIs(obj)
     %
     % Purpose
     % This method sets the bounding boxes for the *next* physical section. To achieve this
@@ -39,18 +39,29 @@ function getNextROIs(obj)
     % Thus, after we have extracted the pStack from section n (step 3, above) we also must 
     % shift the ROIs in BT.autoROI.stats.roiStats(n), as these were extracted from section
     % n-1. Once we have done this, the image extract from section n and the ROIs at index
-    % in BT.autoROI.stats.roiStats(n) will overlay each other **even though the ROIs were
+    % in BT.autoROI.stats.roiStats(n) will overlay each other **even though** the ROIs were
     % extracted from section n-1. 
+    %
+    %
+    % Inputs
+    % None -- extracts info from class
+    %
+    % Outputs
+    % success -- true if ROIs were found. false otherwise. For example, this class would
+    %            return false if the sample vanished from one section to the next. Reasons
+    %            why the sample would vanish include the user accidently switching off the 
+    %            PMTs, the agar block detaching from the slide to which it is glued, etc.
     %
     %
     % Rob Campbell - SWC, April 2020
     %
     % Also See:
     % This function does some of what happens in autoROI.test.runOnStackStruct 
+    % The ROI-shifting: autoROI.shiftROIsBasedOnStageFrontLeft(
 
     verbose=true;
     debugMessages=true; % for when things are really screwed up
-
+    success=true; % only set to false in the event of a problem
 
     if isempty(obj.lastPreviewImageStack)
         return
@@ -119,12 +130,21 @@ function getNextROIs(obj)
         figure(999)
     end
 
-    obj.autoROI.stats = autoROI(pStack, ...
+    tStats = autoROI(pStack, ...
         'doPlot', doPlot, ...
         'settings', settings, ...
         'tThreshSD',obj.autoROI.stats.roiStats(end).tThreshSD, ...
         'tThresh',thresh,...
         'lastSectionStats',obj.autoROI.stats);
+
+    % If tStats is empty, this means autoROI failed to find any ROIs, we want bake to 
+    % gracefully bail out if this happens.
+    if ~isempty(tStats)
+        obj.autoROI.stats = tStats;
+    else
+        success=false;
+        return
+    end
 
     if doPlot
         drawnow

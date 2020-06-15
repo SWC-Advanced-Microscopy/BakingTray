@@ -150,7 +150,7 @@ classdef BT < loghandler
         n=tilesRemaining(obj)
 
         % auto-ROI related
-        getNextROIs(obj)
+        success=getNextROIs(obj)
         getThreshold(obj)
         pStack = returnPreviewStructure(obj,chanToKeep)
     end % Declare methods in separate files

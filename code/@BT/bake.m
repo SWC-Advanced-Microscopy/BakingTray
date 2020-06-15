@@ -355,7 +355,19 @@ function bake(obj,varargin)
             sectionPreview = obj.autoROI.previewImages;
             sectionPreview = rmfield(sectionPreview,'recipe');
             save(pStack_fname,'sectionPreview')
-            obj.getNextROIs
+            success = obj.getNextROIs;
+
+
+            if ~success
+                % Bail out gracefully if no tissue was found
+                msg = sprintf('Found no tissue in Section %d during Bake. Quitting acquisition.', ...
+                    obj.currentSectionNumber);
+                obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
+                fprintf('\n*** %s ***\n\n',msg)
+                %obj.slack(msg)
+                return
+            end
+
             % Save to disk the stats for the auto-ROI
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
             autoROI_stats = obj.autoROI.stats;
