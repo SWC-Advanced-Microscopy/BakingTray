@@ -4,7 +4,7 @@ function buildWindow(obj)
 
     %Resize the figure window
     pos=get(obj.hFig, 'Position');
-    pos(3:4)=[300,435];
+    pos(3:4)=[300,465];
     set(obj.hFig, ...
         'Position',pos, ... 
         'units','pixels', ...
@@ -47,7 +47,7 @@ function buildWindow(obj)
     %Basic status panel - directory selection and recipe loading
     commonButtonSettings={'Units', 'pixels', 'FontSize', obj.fSize, 'FontWeight', 'bold'};
 
-    obj.basicSetupPanel = BakingTray.gui.newGenericGUIPanel([3.5, 380, 295, 55],obj.hFig);
+    obj.basicSetupPanel = BakingTray.gui.newGenericGUIPanel([3.5, 410, 295, 55],obj.hFig);
     obj.button_chooseDir = uicontrol(...
         commonButtonSettings{:}, ...
         'Parent', obj.basicSetupPanel, ...
@@ -99,7 +99,7 @@ function buildWindow(obj)
 
 
     %Buttons for interfacing with hardware
-    obj.hardwarePanel = BakingTray.gui.newGenericGUIPanel([3.5, 340, 295, 35],obj.hFig);
+    obj.hardwarePanel = BakingTray.gui.newGenericGUIPanel([3.5, 370, 295, 35],obj.hFig);
 
     obj.button_laser = uicontrol(...
         commonButtonSettings{:}, ...
@@ -138,7 +138,7 @@ function buildWindow(obj)
     end
 
     %Status panel
-    obj.statusPanel = BakingTray.gui.newGenericGUIPanel([3.5, 245, 295, 90],obj.hFig);
+    obj.statusPanel = BakingTray.gui.newGenericGUIPanel([3.5, 275, 295, 90],obj.hFig);
     obj.text_status = annotation(...
          obj.statusPanel, 'textbox', ...
         'Units', 'pixels', ...
@@ -154,7 +154,7 @@ function buildWindow(obj)
     % Build the recipe panel
     % This contains a selection of recipe fields and talks bidirectionally to the recipe
     % object attached to BT.
-    obj.recipePanel = BakingTray.gui.newGenericGUIPanel([3.5, 5, 295, 235],obj.hFig);
+    obj.recipePanel = BakingTray.gui.newGenericGUIPanel([3.5, 5, 295, 265],obj.hFig);
     obj.populateRecipePanel
 
 
@@ -174,12 +174,12 @@ function buildWindow(obj)
 
     fieldIndex=12; %Index (counting from the bottom) of the position into which we will add a field
 
-    obj.recipeTextLabels.other{end+1} = obj.makeRecipeLabel([0,18*(fieldIndex-1)+7,140,18], 'Tile Size');
+    obj.recipeTextLabels.other{end+1} = obj.makeRecipeLabel([-80,235,140,18], 'Tile Size');
     obj.recipeTextLabels.other{end}.VerticalAlignment='middle';
 
     obj.recipeEntryBoxes.other{end+1} = ...
         uicontrol(commonNonRecipeTextEditSettings{:}, ...
-        'Position', [140, 18*(fieldIndex-1)+11, 145, 17], ...
+        'Position', [60, 237, 225, 17], ...
         'Tag', 'tilesize', 'String' ,'', 'Style', 'PopupMenu');
 
     if ~obj.suppressToolTips

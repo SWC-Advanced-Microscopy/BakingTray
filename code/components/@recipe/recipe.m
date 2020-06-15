@@ -175,7 +175,7 @@ classdef recipe < handle
         % These are the valid possibilities for the scan mode. We place them here
         % as a property so the main GUI can query the valid values and use this to
         % building a drop-down menu. 
-        valid_scanMode_values = {'tiled: auto-ROI', 'tiled: manual ROI'};
+        valid_scanMode_values = {'tiled: manual ROI','tiled: auto-ROI'};
     end %close hidden properties
 
 
