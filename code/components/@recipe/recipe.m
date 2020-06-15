@@ -301,111 +301,6 @@ classdef recipe < handle
         end %numTilesInPhysicalSection
 
 
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        % Methods for setting up the imaging scene
-        function setCurrentPositionAsFrontLeft(obj)
-            % recipe.setCurrentPositionAsFrontLeft
-            %
-            % Store the current position as the front/left of the tile grid
-
-            if isempty(obj.parent)
-                fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
-                return
-            end
-            hBT=obj.parent;
-            [x,y]=hBT.getXYpos;
-            obj.FrontLeft.X = x;
-            obj.FrontLeft.Y = y;
-        end % setCurrentPositionAsFrontLeft
-
-        function setCurrentPositionAsCuttingPosition(obj)
-            % recipe.setCurrentPositionAsCuttingPosition
-            %
-            % Store the current stage position as the position at which we will start cutting
-
-            if isempty(obj.parent)
-                fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
-                return
-            end
-            hBT=obj.parent;
-            [x,y]=hBT.getXYpos;
-            obj.CuttingStartPoint.X = x;
-            obj.CuttingStartPoint.Y = 0; % By default force cutting to be centred on blade
-        end % setCurrentPositionAsCuttingPosition
-
-        function setFrontLeftFromVentralMidLine(obj)
-            % recipe.setFrontLeftFromVentralMidline
-            %
-            % Calculates the front-left position of sample based on the ventral mid-line.
-            % The idea is that the user exposes the cerebellum until the pons is visible.
-            % Then places the laser on the edge of the pons at the mid-line. If the brain
-            % is straight then we can calculate the front left position given that the 
-            % number of tiles in X and Y are set correctly. 
-            %
-            % This method sets the recipe.FrontLeft .X and .Y values. It doesn't move the stage.
-            if isempty(obj.parent)
-                fprintf('ERROR in setFrontLeftFromVentralMidLine: recipe class has nothing bound to property "parent". Can not access BT.\n')
-                return
-            end
-
-            % We just need a tile pattern and don't want to generate an out of bounds error due to a funny
-            % front/left position. So we pass "quiet" and "returnEvenIfOutOfBounds" to the tilePattern method
-            tp=obj.tilePattern(true,true);
-
-            if isempty(tp)
-                fprintf('ERROR in setFrontLeftFromVentralMidLine: tile position data are empty. Likely an invalid setting. Can not proceed.\n')
-                return
-            end
-
-            sizeOfSample=range(tp);
-            [x,y]=obj.parent.getXYpos;
-
-            left = x+sizeOfSample(1);
-            front = y+sizeOfSample(2)/2;
-
-            obj.FrontLeft.X=left;
-            obj.FrontLeft.Y=front;
-        end % setFrontLeftFromVentralMidLine
-
-        function estimatedSizeInGB = estimatedSizeOnDisk(obj,numTiles)
-            % recipe.estimatedSizeOnDisk(numTiles)
-            %
-            % Return the estimated size of of the acquisition on disk in gigabytes
-            %
-            % Inputs
-            % numTIles - this optional input defines the number of tiles the system
-            %            will acquire per optical plane. It is used to avoid this
-            %            method needing to call the NumTiles class, which can be slow. 
-            %            numTiles is calculated from the current scan settings if it's 
-            %            missing.
-
-
-            if ~obj.parent.isScannerConnected
-                fprintf('No scanner connected. Can not estimate size on disk\n')
-                estimatedSize=nan;
-                return
-            end
-
-            if nargin<2
-                N=obj.NumTiles;
-                numTiles = N.X * N.Y;
-            end
-
-
-            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * numTiles;
-
-            
-            scnSet = obj.ScannerSettings;
-            totalImages = imagesPerChannel * length(scnSet.activeChannels);
-
-            totalBytes = totalImages * scnSet.pixelsPerLine * scnSet.linesPerFrame * 2; %2 bytes per pixel (16 bit)
-
-            totalBytes = totalBytes *1.01; % Add 1% for headers and so forth
-
-            estimatedSizeInGB = totalBytes/1024^3;
-
-        end % estimatedSizeOnDisk
-
     end %methods
 
 
@@ -661,7 +556,7 @@ classdef recipe < handle
     end %methods: getters/setters
 
     methods (Hidden)
-        % Convenience methods that aren't methods
+        % Convenience methods
         function value=checkInteger(~,value,allowZero)
             % Confirm that an input is a positive integer
             % Returns empty if the input is not valid. 
@@ -703,44 +598,6 @@ classdef recipe < handle
                 return
             end
         end % checkFloat
-
-        function checkIfAcquisitionIsPossible(obj,~,~)
-            % Check if it will be possible to acquire data based on the current recipe settings
-            if isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y) || ...
-                isempty(obj.CuttingStartPoint.X) || isempty(obj.CuttingStartPoint.Y) || ...
-                isempty(obj.mosaic.sampleSize.X) || isempty(obj.mosaic.sampleSize.Y)
-
-                obj.acquisitionPossible=false;
-                return
-            end
-
-            if isempty(obj.sample.ID)
-                obj.acquisitionPossible=false;
-                return
-            end
-
-            % The front left position needs to be *at least* the thickness of a cut from the 
-            % blade plus half the X width of the specimen. This doesn't even account for
-            % the agar, etc. So it's a very relaxed criterion. 
-            if obj.SYSTEM.cutterSide==1
-                if (obj.FrontLeft.X-obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
-                    obj.acquisitionPossible=true;
-                else
-                    fprintf('recipe.checkIfAcquisitionIsPossible thinks the blade may hit the sample during acquisition\n')
-                    obj.acquisitionPossible=false;
-                end
-            elseif obj.SYSTEM.cutterSide==-1
-                fprintf('WARNING: recipe class may not be certain blade will not hit sample during acquisition\n')
-                % This scenario has never been tested with physical hardware
-                if obj.FrontLeft.X>obj.CuttingStartPoint.X
-                    obj.acquisitionPossible=true;
-                else
-                    obj.acquisitionPossible=false;
-                end
-            end
-
-        end % checkIfAcquisitionIsPossible
-
     end % Hidden methods
-    
+
 end
