@@ -1,5 +1,11 @@
 function populateRecipePanel(obj)
-    % Called once by the constructure of the view class to build the recipe panel
+    % Called once during the construction of the view class to build the recipe panel.
+    % This method is called by the buildWindow method, which in turn is called by
+    % the view constructor.
+    %
+    % The values in the GUI are filled in by the method updateAllRecipeEditBoxesAndStatusText
+    % When the values are changed, the callback updateRecipePropertyInRecipeClass runs.
+
 
 
     % The recipeFieldLabels and recipeProperty properties are used by the
@@ -40,11 +46,12 @@ function populateRecipePanel(obj)
     obj.recipeToolTips=fliplr(obj.recipeToolTips);
 
 
+
+    % Define settings to be applied to all edit boxes
     commonRecipeTextEditSettings={'Parent', obj.recipePanel, ...
                 'Style','edit', 'Units', 'pixels', 'FontSize', obj.fSize, ...
                 'HorizontalAlignment', 'Left', ...
                 'Callback',@obj.updateRecipePropertyInRecipeClass};
-
 
     % Build the recipe edit boxes using the properties: recipeFieldLabels and recipePropertyNames.
     for ii=length(obj.recipePropertyNames):-1:1 %So the tab focus moves down the window not up it
@@ -55,24 +62,10 @@ function populateRecipePanel(obj)
         obj.recipeTextLabels.(thisProp{1}).(thisProp{2}) = obj.makeRecipeLabel([0,18*(ii-1)+5,140,18], obj.recipeFieldLabels{ii});
         obj.recipeTextLabels.(thisProp{1}).(thisProp{2}).VerticalAlignment='middle';
         %Add a text entry box
-        if ~strcmp(thisProp{2},'sampleSize') %Because sample size is a structure that describes both X and Y
-            %Numeric boxes can be smaller than text boxes, so figure out which is which and set the length:
-            if ~isempty(regexp(obj.recipeFieldLabels{ii},'\(mm', 'once')) || ...
-                ~isempty(regexp(obj.recipeFieldLabels{ii},'Prop\.', 'once')) || ...
-                ~isempty(regexp(obj.recipeFieldLabels{ii},'Num\.', 'once')) 
-                textEditWidth=45;
-            else
-                textEditWidth=145;
-            end
-            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}) = ...
-            uicontrol(commonRecipeTextEditSettings{:}, ...
-                'Position', [140, 18*(ii-1)+5, textEditWidth, 17], ...
-                'TooltipString', obj.recipeToolTips{ii}, ...
-                'Tag', obj.recipePropertyNames{ii}); %The tag is used by obj.updateRecipePropertyInRecipeClass to update the recipe
 
-        elseif strcmp(thisProp{2},'sampleSize')
-
-            %We need a separate X and Y box for the sample size
+        % Certain recipe fields need unusual things done, so we handle those first in the following if statement
+        if strcmp(thisProp{2},'sampleSize') 
+            %Because sample size is a structure that describes both X and Y
             obj.recipeTextLabels.(thisProp{1}).([thisProp{2},'X']) = obj.makeRecipeLabel([152,18*(ii-1)+7,10,18],'X=');
             obj.recipeTextLabels.(thisProp{1}).([thisProp{2},'Y']) = obj.makeRecipeLabel([215,18*(ii-1)+7,10,18],'Y=');
 
@@ -87,12 +80,38 @@ function populateRecipePanel(obj)
                 'Position', [225, 18*(ii-1)+5, 35, 17], ...
                 'TooltipString', obj.recipeToolTips{ii}, ...
                 'Tag', [obj.recipePropertyNames{ii},'||Y']);
+
+        elseif strcmp(thisProp{2},'scanmode')
+            % The scan mode should be a drop-down as there are only a limited range of options.
+            % The possibilities are stored in a property of the recipe class attached to the model.
+            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}) = ...
+            uicontrol(commonRecipeTextEditSettings{:}, ...
+                'Style', 'popupmenu', ...
+                'String', obj.model.recipe.valid_scanMode_values, ...
+                'Position', [140, 18*(ii-1)+5, textEditWidth, 17], ...
+                'TooltipString', obj.recipeToolTips{ii}, ...
+                'Tag', obj.recipePropertyNames{ii}); 
+        else
+            % Now deal with the remaining recipe fields
+            % Numeric boxes can be smaller than text boxes, so figure out which is which and set the length:
+            if ~isempty(regexp(obj.recipeFieldLabels{ii},'\(mm', 'once')) || ...
+                ~isempty(regexp(obj.recipeFieldLabels{ii},'Prop\.', 'once')) || ...
+                ~isempty(regexp(obj.recipeFieldLabels{ii},'Num\.', 'once')) 
+                textEditWidth=45;
+            else
+                textEditWidth=145;
+            end
+            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}) = ...
+            uicontrol(commonRecipeTextEditSettings{:}, ...
+                'Position', [140, 18*(ii-1)+5, textEditWidth, 17], ...
+                'TooltipString', obj.recipeToolTips{ii}, ...
+                'Tag', obj.recipePropertyNames{ii}); %The tag is used by obj.updateRecipePropertyInRecipeClass to update the recipe
         end
 
     end
 
+    % The tooltips are optional, so if the user does not wich them, we simply wipe them here
     if obj.suppressToolTips
-        %just wipe them all
         p=fields(obj.recipeEntryBoxes);
         for ii=1:length(p)
             tmp=obj.recipeEntryBoxes.(p{ii});

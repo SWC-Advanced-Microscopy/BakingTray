@@ -10,11 +10,19 @@ function updateAllRecipeEditBoxesAndStatusText(obj,~,~)
 
     for ii=1:length(obj.recipePropertyNames)
         thisProp = strsplit(obj.recipePropertyNames{ii},'||');
-        if ~strcmp(thisProp{2},'sampleSize')
-            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).String = R.(thisProp{1}).(thisProp{2});
-        elseif strcmp(thisProp{2},'sampleSize')
+
+        % Certain recipe fields need unusual things done, so we handle those first in the following if statement.
+        % This mirrors code in the method populateRecipePanel
+
+        if strcmp(thisProp{2},'sampleSize')
             obj.recipeEntryBoxes.(thisProp{1}).([thisProp{2},'X']).String = R.(thisProp{1}).(thisProp{2}).X;
             obj.recipeEntryBoxes.(thisProp{1}).([thisProp{2},'Y']).String = R.(thisProp{1}).(thisProp{2}).Y;
+        elseif strcmp(thisProp{2},'scanmode')
+            % Find the index of the cell array in the popup which matches the current scan mode
+            ind = strmatch(R.(thisProp{1}).(thisProp{2}), obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).String);
+            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).Value = ind;
+        else
+            obj.recipeEntryBoxes.(thisProp{1}).(thisProp{2}).String = R.(thisProp{1}).(thisProp{2});
         end
     end
     obj.updateStatusText

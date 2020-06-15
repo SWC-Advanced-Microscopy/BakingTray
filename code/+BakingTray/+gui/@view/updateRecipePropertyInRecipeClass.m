@@ -11,7 +11,12 @@ function updateRecipePropertyInRecipeClass(obj,eventData,~)
     propertyPath = strsplit(eventData.Tag,'||');
 
     if length(propertyPath)==2
-        obj.model.recipe.(propertyPath{1}).(propertyPath{2})=newValue;
+        % Special properties handled first
+        if strcmp('scanmode',propertyPath{2})
+            obj.model.recipe.(propertyPath{1}).(propertyPath{2}) = eventData.String{eventData.Value};
+        else
+            obj.model.recipe.(propertyPath{1}).(propertyPath{2})=newValue;
+        end
     elseif length(propertyPath)==3
         obj.model.recipe.(propertyPath{1}).(propertyPath{2}).(propertyPath{3})=newValue;
     else
