@@ -171,6 +171,11 @@ classdef recipe < handle
         % took the last preparatory slices with the same specs as those they will image at.
         lastSliceThickness=[]
         lastCuttingSpeed=[]
+
+        % These are the valid possibilities for the scan mode. We place them here
+        % as a property so the main GUI can query the valid values and use this to
+        % building a drop-down menu. 
+        valid_scanMode_values = {'tiled: auto-ROI', 'tiled: manual ROI'};
     end %close hidden properties
 
 
@@ -398,13 +403,16 @@ classdef recipe < handle
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
 
-                            % If "tile" we convert to "tiled: manual ROI"
+                            % TODO: temporary hack just in case. Remove once we have deployed a 
+                            % a functioning auto-ROI
                             if strcmp(fieldValue,'tile')
                                 fieldValue = 'tiled: manual ROI';
                             end
 
-                            if ~strcmp(fieldValue,'tiled: manual ROI') && ~strcmp(fieldValue,'tiled: auto-ROI')
-                                fprintf('ERROR: mosaic.scanmode can only be set to "tiled: manual ROI" or "tiled: auto-ROI"\n')
+                            if isempty(strmatch(fieldValue,obj.valid_scanMode_values))
+                                fprintf('ERROR: mosaic.scanmode can only be set to one of the following values:\n')
+                                cellfun(@(x) fprintf(' *  %s\n',x),obj.valid_scanMode_values)
+                                fprintf('\n')
                                 fieldValue=[]; % As above, will stop the assignment.
                             end
 
