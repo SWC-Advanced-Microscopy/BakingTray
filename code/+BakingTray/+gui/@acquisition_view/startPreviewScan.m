@@ -42,9 +42,8 @@ function startPreviewScan(obj,~,~)
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
 
 
-    % TODO -- this will need re-factoring -- CAN NOT BE HERE!
-    if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
-        obj.getThresholdAndOverlayGrid
-    end
+    % Run auto-ROI stuff (the following only runs if the recipe says we are in auto-ROI mode)
+    obj.overlayThreshBorderOnImage
+
 
 end %startPreviewScan

@@ -13,13 +13,25 @@ function getThresholdAndOverlayGrid(obj,~,~)
     % Outputs
     % none
 
-    if ~isfield(obj.model.autoROI,'stats')
+    % Do not proceed if we are not in auto-ROI mode
+    if ~strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        return
+    end
+
+    % Obtain the section image and bail out if the image is empty
+    im = obj.sectionImage.CData;
+    if sum(im(:))==0
         return
     end
 
     % Obtain the threshold between sample and background. This populates
     % data in obj.model.autoROI.stats
     obj.model.getThreshold;
+
+    % If no threshold was obtained for some reason, we bail out
+    if ~isfield(obj.model.autoROI,'stats')
+        return
+    end
 
     % Use the data generated above to calculate a tile pattern for imaging
     % this sample
