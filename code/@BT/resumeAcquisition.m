@@ -1,7 +1,7 @@
-function success=resumeAcquisition(obj,recipeFname)
+function success=resumeAcquisition(obj,recipeFname,simulate)
     % Resume a previously terminated acquisition by loading its recipe
     %
-    % function success=resumeAcquisition(obj,recipeFname)
+    % function success=resumeAcquisition(obj,recipeFname,simulate)
     %
     % Purpose
     % Attempts to resume an existing acquisition, by appropriately setting
@@ -13,7 +13,10 @@ function success=resumeAcquisition(obj,recipeFname)
     %
     % Inputs
     % recipeFname - The path to the recipe file of the acquisition we hope to 
-    %         resume. name of
+    %         resume.
+    % simulate [optional, false by default] - If true, we report to screen 
+    %          what steps would have happened but do not modify the state
+    %          of BakingTray or move any stages.
     %
     % Outputs
     % success - Returns true if the resumption process succeeded and
@@ -21,53 +24,83 @@ function success=resumeAcquisition(obj,recipeFname)
     %
 
     if nargin<2
-        recipeFname=[];
+        fprintf('BT.resumeAcquisition requires at least one input argument\n')
+        return
+    end
+
+    if nargin<3
+        simulate=false;
     end
 
     success=false;
-    if ~exist(recipeFname,'file')
+    if exist(recipeFname)==7
+        fprintf('BT.resumeAcquisition requires a recipe to be supplied as an input argument. Quitting.\n')
+        return
+    end
+
+    if exist(recipeFname,'file')==0
         fprintf('No recipe found at %s - BT.resumeAcquisition is quitting\n', recipeFname)
         return
     end
+
 
     fprintf('Attempting to resume acquisition using recipe: %s\n', recipeFname)
     pathToRecipe = fileparts(recipeFname);
 
     % If pathToRecipe is empty then that must mean the user supplied only the file name with no path. 
     % Since recipeFname was found, that must mean it's in the current directory. Therefore:
-    if isempty(recipeFname)
+    if isempty(pathToRecipe)
         pathToRecipe=pwd;
     end
 
     [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
     if ~containsAcquisition
+         % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly 
+         % didn't spot the syntax error. When this methd was run it would hard-crash due to this.
         fprintf(['No existing acquisition found in in directory %s.', ...
-            'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe) %NOTE: the square bracket here was missing and MATLAB didn't spot the syntax error. When this methd was run it would hard-crash due to this
-        success = obj.attachRecipe(recipeFname);
+            'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe)
+        if ~simulate
+            success = obj.attachRecipe(recipeFname);
+        else
+            fprintf('Attaching recipe %s without resuming\n', recipeFname)
+        end
         return
     end
 
 
-    % If we're here, then the path exists and acquisition should exist in the path. 
+    % If we're here, then the path exists and an acquisition should exist within it.
     % Attempt to set up for resuming the acquisition:
 
     % Finally we attempt to load the recipe
-    success = obj.attachRecipe(recipeFname,true); % sets resume flag to true
+    if ~simulate
+        success = obj.attachRecipe(recipeFname,true); % sets resume flag to true
+    else
+        success = true;
+        fprintf('Attaching recipe %s and resuming.\n', recipeFname)
+    end
 
     if ~success
         fprintf('Failed to resume recipe %s. Loading default.\n', recipeFname)
-        obj.sampleSavePath=''; % So the user is forced to enter this before proceeding 
-        obj.attachRecipe; % To load the default
+        if ~simulate
+            obj.sampleSavePath=''; % So the user is forced to enter this before proceeding 
+            obj.attachRecipe; % To load the default
+        else
+            fprintf('Wiping sample save path and loading default recipe\n')
+        end
         return
     end
 
-    obj.sampleSavePath = pathToRecipe;
+    if ~simulate
+        obj.sampleSavePath = pathToRecipe;
+    end
 
     % Delete the FINISHED file if it exists
     if exist(fullfile(pathToRecipe,'FINISHED'),'file')
         fprintf('Deleting FINISHED file\n')
-        delete(fullfile(pathToRecipe,'FINISHED'))
+        if ~simulate
+            delete(fullfile(pathToRecipe,'FINISHED'))
+        end
     end
 
     % Find the last section. Did it complete and did it cut?
@@ -104,8 +137,13 @@ function success=resumeAcquisition(obj,recipeFname)
     newSectionStartNumber = sectionsCompleted+1;
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
 
-    obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
-    obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
+    if ~simulate
+        obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
+        obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
+    else
+        fprintf('Set recipe.mosaic.sectionStartNum to %d\nSet recipe.mosaic.numSections to %d\n', ...
+            newSectionStartNumber,newNumberOfRequestedSections)
+    end
 
 
     % If this is an autoROI acquisition, populate the autoROI variables.
@@ -118,7 +156,11 @@ function success=resumeAcquisition(obj,recipeFname)
         % Load the variable and place into the autoROI property
         varsInFile = whos('-file',autoROI_fname);
         tmp=load(autoROI_fname,varsInFile(1).name);
-        obj.autoROI.stats = tmp.(varsInFile(1).name);
+        if ~simulate
+            obj.autoROI.stats = tmp.(varsInFile(1).name);
+        else
+            fprintf('Apply autoROI stats from disk\n')
+        end
     end
 
 
@@ -126,7 +168,11 @@ function success=resumeAcquisition(obj,recipeFname)
     % So now we are safe to move the system to the last z-position plus one section.
     blocking=true;
     targetPosition = details.sections(end).Z + extraZMove;
-    obj.moveZto(targetPosition, blocking);
+    if ~simulate
+        obj.moveZto(targetPosition, blocking);
+    else
+        fprintf('Move Z stage to %0.3f\n', targetPosition)
+    end
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten
@@ -136,7 +182,9 @@ function success=resumeAcquisition(obj,recipeFname)
         fprintf('BT.resumeAcquisition failed to load recipe file for applying scanner settings\n')
         return
     else
-        obj.scanner.applyScanSettings(tmp.ScannerSettings)
+        if ~simulate
+            obj.scanner.applyScanSettings(tmp.ScannerSettings)
+        else
+            fprintf('Applying scan settings\n')
+        end
     end
-
-

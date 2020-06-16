@@ -133,7 +133,7 @@ classdef BT < loghandler
         success = defineSavePath(obj) 
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
-        success = resumeAcquisition(obj,recipeFname)
+        success = resumeAcquisition(obj,recipeFname,simulate)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
