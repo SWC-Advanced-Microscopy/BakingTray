@@ -77,7 +77,7 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
         success = obj.attachRecipe(recipeFname,true); % sets resume flag to true
     else
         success = true;
-        fprintf('Attaching recipe %s and resuming.\n', recipeFname)
+        fprintf('Attaching %s and resuming.\n', recipeFname)
     end
 
     if ~success
@@ -136,6 +136,12 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
 
     newSectionStartNumber = sectionsCompleted+1;
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
+    if newNumberOfRequestedSections<1
+        fprintf('\n** Original number of requested sections was %d but since section start number is now %d this is not possible.\n', ...
+            originalNumberOfRequestedSections, newSectionStartNumber)
+        fprintf('** Resuming acquisition asking for just one section. You may modify this value as appropriate.\n\n')
+        newNumberOfRequestedSections=1;
+    end
 
     if ~simulate
         obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
