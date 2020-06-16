@@ -62,6 +62,7 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     thisRecipeFile = fullfile(thisPath,recipeFile(1).name);
     tR = BakingTray.yaml.ReadYaml(thisRecipeFile);
     details.scanmode = tR.mosaic.scanmode;
+    details.sliceThickness = tR.mosaic.sliceThickness;
     if isempty(findstr(details.scanmode,'auto'))
         details.autoROI=false;
     else

@@ -103,30 +103,12 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
         end
     end
 
-    % Find the last section. Did it complete and did it cut?
-    lastSection = details.sections(end);
-    fprintf('The last acquired section was number %d and was taken at z=%0.3f\n', ...
-         lastSection.sectionNumber, lastSection.Z)
-
-    lastSectionLogFile = fullfile(lastSection.savePath,'acquisition_log.txt');
-
-    % If we can't find the last section directory or its log file we will proceed anyway and assume that the
-    % last section was cut (which means the block moves up one section thickness). Really, however, those 
-    % circumstances shold never happen.
-    extraZMove=0;
-    if ~exist(lastSection.savePath,'dir')
-        fprintf('The last section directory is not in %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
-            lastSection.savePath)
-        extraZMove = obj.recipe.mosaic.sliceThickness;
-    elseif ~exist(lastSectionLogFile,'file')
-        fprintf('The last section log file at %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
-            lastSectionLogFile)
-        extraZMove = obj.recipe.mosaic.sliceThickness;
-    elseif details.sections(end).sectionSliced==true
-        % If we're here, we can read the log file. We read it and determine if the last section was cut. 
-        % If it was, then we should ensure that the Z-stage is at the depth of the last completed section
-        % plus one section thickness. 
-        extraZMove = obj.recipe.mosaic.sliceThickness;
+    % Did it complete and cut the last section?
+    if details.sections(end).sectionSliced==true
+        % Ensure that the Z-stage is at the depth of the last completed sectionplus one section thickness. 
+        extraZMove = details.sliceThickness;
+    else
+        extraZMove=0;
     end
 
 
