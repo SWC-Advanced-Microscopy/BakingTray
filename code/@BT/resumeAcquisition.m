@@ -108,8 +108,8 @@ function success=resumeAcquisition(obj,recipeFname)
     obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
 
 
-    % Check if this is an autoROI acquisition. If so, we need to populate the autoROI variables.
-    if strcmp(obj.recipe.mosaic.scanmode, 'tiled: auto-ROI')
+    % If this is an autoROI acquisition, populate the autoROI variables.
+    if details.autoROI
         autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
         if ~exist(autoROI_fname,'file')
             fprintf('BT.%s can not find file %s. Failing to resume auto-ROI\n', mfilename, autoROI_fname)
@@ -135,6 +135,8 @@ function success=resumeAcquisition(obj,recipeFname)
     if isempty(tmp)
         fprintf('BT.resumeAcquisition failed to load recipe file for applying scanner settings\n')
         return
+    else
+        obj.scanner.applyScanSettings(tmp.ScannerSettings)
     end
-    obj.scanner.applyScanSettings(tmp.ScannerSettings)
+
 
