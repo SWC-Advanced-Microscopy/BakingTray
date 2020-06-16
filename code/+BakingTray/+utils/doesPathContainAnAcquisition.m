@@ -23,9 +23,11 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
 
     acqPresent=false;
     details=struct;
+
     if isempty(thisPath)
         return
     end
+
     if ~exist(thisPath,'dir')
         fprintf('BakingTray.utils.doesPathContainAnAcquisition finds directory %s does not exist. \n', thisPath)
         return
@@ -37,7 +39,7 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     recipeFile = dir(fullfile(thisPath,'recipe_*.yml'));
     rawDataDirPresent = exist(fullfile(thisPath,'rawData'),'dir');
 
-    if ~isempty(acqLogFile) && ~isempty(acqLogFile) && rawDataDirPresent
+    if ~isempty(acqLogFile) && ~isempty(recipeFile) && rawDataDirPresent
         acqPresent=true;
     else
         return
@@ -51,6 +53,10 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
 
     thisAcqLogFile = fullfile(thisPath,acqLogFile(1).name);
     details = BakingTray.utils.readAcqLogFile(thisAcqLogFile);
+
+    % Append extra information to the details structure
+    details.acqLogFilePath = thisAcqLogFile;
+    details.containsFINISHED = exist(fullfile(thisPath,'FINISHED'), 'file')==2;
 
 
     % Loop through all raw data directories and determine the state of each
