@@ -471,7 +471,7 @@ classdef recipe < handle
                                     minSampleSizeY=tileY;
                                 end
 
-                                % The maximum size of the sample is hard-coded here
+                                % The maximum size of the sample is *hard-coded* here
                                 fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 35);
                                 fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 25);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)
@@ -588,7 +588,8 @@ classdef recipe < handle
         function value=checkFloat(~,value,minVal,maxVal)
             % Confirm that an input is a positive float no smaller than minVal and 
             % no larger than maxVal. Returns empty if the input is not valid. 
-            % Empty values aren't assigned to a property by the setters
+            % Empty values aren't assigned to a property by the setters.
+            % Store to acccuracy of five decimal places
             if nargin<3
                 maxVal=inf;
             end
@@ -597,6 +598,7 @@ classdef recipe < handle
                 return
             end
 
+            value = round(value,5);
             if value<minVal
                 value=minVal;
                 return
