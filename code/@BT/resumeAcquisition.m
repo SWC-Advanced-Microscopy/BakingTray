@@ -78,7 +78,9 @@ function success=resumeAcquisition(obj,recipeFname)
     lastSectionLogFile = fullfile(lastSection.savePath,'acquisition_log.txt');
 
     % If we can't find the last section directory or its log file we will proceed anyway and assume that the
-    % last section was cut. So the block will be moved upwards.
+    % last section was cut (which means the block moves up one section thickness). Really, however, those 
+    % circumstances shold never happen.
+    extraZMove=0;
     if ~exist(lastSection.savePath,'dir')
         fprintf('The last section directory is not in %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
             lastSection.savePath)
@@ -88,13 +90,13 @@ function success=resumeAcquisition(obj,recipeFname)
             lastSectionLogFile)
         extraZMove = obj.recipe.mosaic.sliceThickness;
     else
-        % If we're here, we can read the log file. We read it and determine if the lst section was cut. 
+        % If we're here, we can read the log file. We read it and determine if the last section was cut. 
         % If it was, then we should ensure that the Z-stage is at the depth of the last completed section
         % plus one section thickness. 
-
-        % TODO: The slicing isn't being logged for some reason. Bug in the logger? Until then: 
-        extraZMove = obj.recipe.mosaic.sliceThickness;
-        % TODO: If it was not we need to check if the tile scan needs finishing then cut. 
+        fStr = findstr(fileread(lastSectionLogFile),'Waiting for slice to settle'); % If this string is present, it must have cut
+        if ~isempty(fStr)
+            extraZMove = obj.recipe.mosaic.sliceThickness;
+        end
     end
 
 
@@ -124,9 +126,10 @@ function success=resumeAcquisition(obj,recipeFname)
 
 
 
-    % So now we are safe to move the system to the last z-position plus one section
+    % So now we are safe to move the system to the last z-position plus one section.
     blocking=true;
-    obj.moveZto(details.sections(end).Z + extraZMove, blocking);
+    targetPosition = details.sections(end).Z + extraZMove;
+    obj.moveZto(targetPosition, blocking);
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten

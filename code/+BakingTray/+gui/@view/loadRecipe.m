@@ -1,5 +1,5 @@
 function loadRecipe(obj,~,~)
-    % Loads a new recipe 
+    % Loads a new recipe and initiates resumption of a previous acquisition if necessary
 
     % Load recipe button callback -- loads a new recipe from disk
     [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
