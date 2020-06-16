@@ -51,6 +51,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Don't waste time slicing if we have a dummy slicer
     if isa(obj.cutter,'dummyCutter')
         fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
+        obj.logMessage(inputname(1),dbstack,5,'Waiting for slice to settle') %Used in acquisition resume
         obj.moveZby(sliceThickness) % Move z up by one section thickness
         finished=true;
         obj.isSlicing=false;

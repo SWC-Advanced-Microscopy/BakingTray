@@ -58,6 +58,16 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     details.acqLogFilePath = thisAcqLogFile;
     details.containsFINISHED = exist(fullfile(thisPath,'FINISHED'), 'file')==2;
 
+    % Pull infor out of the recipe file
+    thisRecipeFile = fullfile(thisPath,recipeFile(1).name);
+    tR = BakingTray.yaml.ReadYaml(thisRecipeFile);
+    details.scanmode = tR.mosaic.scanmode;
+    if isempty(findstr(details.scanmode,'auto'))
+        details.autoROI=false;
+    else
+        details.autoROI=true;
+    end
+
 
     % Loop through all raw data directories and determine the state of each
     rDataDirs = dir(fullfile(thisPath,'rawData','*-*')); % all will have one hyphen
