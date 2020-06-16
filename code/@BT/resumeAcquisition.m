@@ -89,14 +89,11 @@ function success=resumeAcquisition(obj,recipeFname)
         fprintf('The last section log file at %s as expected.\nWill attempt to proceed and assume last section was cut.\n', ....
             lastSectionLogFile)
         extraZMove = obj.recipe.mosaic.sliceThickness;
-    else
+    elseif details.sections(end).sectionSliced==true
         % If we're here, we can read the log file. We read it and determine if the last section was cut. 
         % If it was, then we should ensure that the Z-stage is at the depth of the last completed section
         % plus one section thickness. 
-        fStr = findstr(fileread(lastSectionLogFile),'Waiting for slice to settle'); % If this string is present, it must have cut
-        if ~isempty(fStr)
-            extraZMove = obj.recipe.mosaic.sliceThickness;
-        end
+        extraZMove = obj.recipe.mosaic.sliceThickness;
     end
 
 
