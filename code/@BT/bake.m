@@ -90,7 +90,8 @@ function bake(obj,varargin)
     try
         G=BakingTray.utils.getGitInfo;
         obj.acqLogWriteLine(sprintf('Using BakingTray version %s from branch %s\n', G.hash, G.branch))
-    catch ME
+    catch
+        obj.acqLogWriteLine('Failed to extract git commit info for logging\n')
     end
 
 

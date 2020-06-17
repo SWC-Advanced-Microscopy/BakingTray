@@ -79,7 +79,6 @@ function details = doesPathContainAnAcquisition(thisPath)
         for kk=1:length(tF)
             details.sections(f).(tF{kk}) = tmp.(tF{kk});
         end
-
     end
 
 
