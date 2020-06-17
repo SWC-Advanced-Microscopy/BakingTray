@@ -68,7 +68,6 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         pathToRecipe=pwd;
     end
 
-    pathToRecipe
 
     details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
