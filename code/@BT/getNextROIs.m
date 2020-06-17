@@ -72,7 +72,7 @@ function success = getNextROIs(obj)
     end
     obj.autoROI.previewImages = obj.returnPreviewStructure;
     pStack = obj.autoROI.previewImages;
-    pStack.sectionNumber = obj.currentSectionNumber+1;
+    pStack.sectionNumber = obj.currentSectionNumber;
     pStack.fullFOV=false;
 
 

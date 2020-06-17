@@ -42,18 +42,18 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
     methods (Test)
 
         % - - - - - - - - 
-        % The following two tests confirm we can write to the recipe and our changes are made
-        function sampleID_write_API(obj)
+        % Confirm we can write to the recipe and our changes are made
+        function simple_write_API(obj)
 
+            % Check strings
             IDs={'mySample', 'my_Sample', 'my_sample_123'};
             for ii=1:length(IDs)
                 fprintf('Testing sampleID: %s\n', IDs{ii})
                 obj.hBT.recipe.sample.ID=IDs{ii};
                 obj.verifyTrue(strcmp(obj.hBT.recipe.sample.ID,IDs{ii}));
             end
-        end
 
-        function numSections_write_API(obj)
+            % Check numbers
             nSec = [5,10,100];
             for ii=1:length(nSec)
                 fprintf('Testing write of %d sections\n', nSec(ii))
@@ -63,9 +63,10 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
         end
 
         % - - - - - - - - 
-        % The following two tests confirm that the changes made in the recipe are reflected 
+        % The following confirms that the changes made in the recipe are reflected 
         % in the GUI so the user will see them
-        function sampleID_write_API_check_in_GUI(obj)
+        function simple_write_API_check_in_GUI(obj)
+            % Check strings
             IDs={'mySample', 'my_Sample', 'my_sample_123'};
             for ii=1:length(IDs)
                 fprintf('Writing sample name "%s" to sampleID\n', IDs{ii})
@@ -74,9 +75,8 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
                 fprintf('GUI contains name "%s"\n', ID_in_GUI)
                 obj.verifyTrue(strcmp(ID_in_GUI,IDs{ii}));
             end
-        end
 
-        function numSections_write_API_check_in_GUI(obj)
+            % Check numbers
             nSec = [5,10,100];
             for ii=1:length(nSec)
                 fprintf('Testing write of %d sections\n', nSec(ii))
@@ -86,7 +86,6 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
                 obj.verifyTrue(numSec_in_GUI == nSec(ii));
             end
         end
-
 
         % - - - - - - - - 
         % The following two tests confirm that recipe attachment works as expected, both in the 
