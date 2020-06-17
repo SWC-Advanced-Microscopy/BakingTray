@@ -1,4 +1,4 @@
-function success=resumeAcquisition(obj,recipeFname,simulate)
+function success=resumeAcquisition(obj,recipeFname,varargin)
     % Resume a previously terminated acquisition by loading its recipe
     %
     % function success=resumeAcquisition(obj,recipeFname,simulate)
@@ -11,9 +11,11 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
     % to consciously decide what to do next. 
     %
     %
-    % Inputs
+    % Inputs (required)
     % recipeFname - The path to the recipe file of the acquisition we hope to 
     %         resume.
+    %
+    % Inputs (param/val pairs)
     % simulate [optional, false by default] - If true, we report to screen 
     %          what steps would have happened but do not modify the state
     %          of BakingTray or move any stages.
@@ -24,11 +26,15 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
     %
 
 
-    success=false;
-    if nargin<3
-        simulate=false;
-    end
+    params = inputParser;
+    params.CaseSensitive = false;
 
+    params.addParameter('simulate', false,  @(x) islogical(x) || x==1 || x==0)
+
+    params.parse(varargin{:})
+    simulate = params.Results.simulate;
+
+    success=false;
 
     % Ensure the user supplied the path to a recipe file
     if nargin<2
@@ -47,7 +53,11 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
     end
 
 
-    fprintf('Attempting to resume acquisition using recipe: %s\n', recipeFname)
+    if simulate
+        fprintf('Simulating resumption of acquisition using recipe: %s\n', recipeFname)
+    else
+        fprintf('Attempting to resume acquisition using recipe: %s\n', recipeFname)
+    end
 
     % Hack to ensure we have a path to the file if it's in the current directory
     pathToRecipe = fileparts(recipeFname);
@@ -58,7 +68,7 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
         pathToRecipe=pwd;
     end
 
-
+    pathToRecipe
 
     details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
@@ -99,6 +109,9 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
     % We therefore need some way of getting it to use the ROIs from the section before and not
     % run getNextROIs on the partially imaged section.
     % Initially we can just not allow option 2b for autoROI
+
+
+
 
 
     % If we're here, then the path exists and an acquisition should exist within it.
