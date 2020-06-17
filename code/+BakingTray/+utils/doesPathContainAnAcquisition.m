@@ -37,7 +37,7 @@ function details = doesPathContainAnAcquisition(thisPath)
     recipeFile = dir(fullfile(thisPath,'recipe_*.yml'));
     rawDataDirPresent = exist(fullfile(thisPath,'rawData'),'dir');
 
-    if ~isempty(acqLogFile) && ~isempty(recipeFile) && rawDataDirPresent
+    if isempty(acqLogFile) || isempty(recipeFile) || rawDataDirPresent~=7
         return
     end
 

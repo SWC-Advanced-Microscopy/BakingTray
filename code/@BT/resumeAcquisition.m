@@ -72,7 +72,7 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
 
     details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
-    if details == false
+    if ~isstruct(details) && details == false
          % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly 
          % didn't spot the syntax error. When this methd was run it would hard-crash due to this.
         fprintf(['No existing acquisition found in in directory %s.', ...
