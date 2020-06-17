@@ -81,6 +81,11 @@ function details = doesPathContainAnAcquisition(thisPath)
         end
     end
 
+    % sections that are listed in the acquisition log file but were later deleted will 
+    % have a lot of empty fields. Use the "completed" field to delete these from the array.
+    f = arrayfun(@(x) isempty(x.completed), details.sections);
+    details.sections(f)=[];
+
 
 
 function out = scrapeRawDataDir(tDir)
