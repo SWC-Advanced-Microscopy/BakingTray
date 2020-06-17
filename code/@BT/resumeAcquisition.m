@@ -23,16 +23,19 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
     %           the system is ready to start.
     %
 
+
+    success=false;
+    if nargin<3
+        simulate=false;
+    end
+
+
+    % Ensure the user supplied the path to a recipe file
     if nargin<2
         fprintf('BT.resumeAcquisition requires at least one input argument\n')
         return
     end
 
-    if nargin<3
-        simulate=false;
-    end
-
-    success=false;
     if exist(recipeFname)==7
         fprintf('BT.resumeAcquisition requires a recipe to be supplied as an input argument. Quitting.\n')
         return
@@ -45,6 +48,8 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
 
 
     fprintf('Attempting to resume acquisition using recipe: %s\n', recipeFname)
+
+    % Hack to ensure we have a path to the file if it's in the current directory
     pathToRecipe = fileparts(recipeFname);
 
     % If pathToRecipe is empty then that must mean the user supplied only the file name with no path. 
@@ -53,9 +58,11 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
         pathToRecipe=pwd;
     end
 
-    [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
-    if ~containsAcquisition
+
+    details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
+
+    if details == false
          % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly 
          % didn't spot the syntax error. When this methd was run it would hard-crash due to this.
         fprintf(['No existing acquisition found in in directory %s.', ...
@@ -67,6 +74,31 @@ function success=resumeAcquisition(obj,recipeFname,simulate)
         end
         return
     end
+
+
+
+    % At this point we need to choose how the resumption itself will proceed. This will depend on the state of the acquisition
+    lastSection = details.sections(end);
+    if lastSection.completed
+        if lastSection.sectionSliced
+            nextAction.slice=false;
+            nextAction.continueToNextSection=true;
+        else
+            % User needs to choose whether to:
+            %  1a) re-image current section
+            %  1b) slice and carry on
+        end
+    else
+        % User needs to choose whether to:
+        %  2a) re-image current section from the start
+        %  2b) complete the remainder of this section
+        %  2c) slice and carry on with the next section
+    end
+
+    % TODO for scenario 2b, autoROI will have a problem: the preview image will be partial. 
+    % We therefore need some way of getting it to use the ROIs from the section before and not
+    % run getNextROIs on the partially imaged section.
+    % Initially we can just not allow option 2b for autoROI
 
 
     % If we're here, then the path exists and an acquisition should exist within it.

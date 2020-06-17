@@ -1,11 +1,11 @@
-function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
+function details = doesPathContainAnAcquisition(thisPath)
     % Returns whether a path contains an existing acquisition. Optionally provides further details
     %
-    % function [acqPresent,details] = BakingTray.utils.doesPathContainAnAcquisition(thisPath)
+    % function [details,pathToRecipe] = BakingTray.utils.doesPathContainAnAcquisition(thisPath)
     %
     % Purpose
-    % Returns whether a path contains an existing acquisition and if so optionally returns
-    % a second output key details about this acquisition. This function can be used to 
+    % Returns false if a path does not contain an acquisition. If an acquisition is present,
+    % returns a structure with key details about this acquisition. This function can be used to 
     % aid in re-starting an existing acquisition and to test if it's safe to write data
     % into thisPath
     %
@@ -14,15 +14,13 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     % fname - Path to directory to test.
     %
     % Outputs
-    % acqPresent - bool, true if an acquisition exists in thisPath
     % details - a structure contain details about the acquisition. 
     %
     % 
     % Rob Campbell - Basel, 2017
 
 
-    acqPresent=false;
-    details=struct;
+    details = false;
 
     if isempty(thisPath)
         return
@@ -40,8 +38,6 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     rawDataDirPresent = exist(fullfile(thisPath,'rawData'),'dir');
 
     if ~isempty(acqLogFile) && ~isempty(recipeFile) && rawDataDirPresent
-        acqPresent=true;
-    else
         return
     end
 
@@ -52,7 +48,7 @@ function [acqPresent,details] = doesPathContainAnAcquisition(thisPath)
     end
 
     thisAcqLogFile = fullfile(thisPath,acqLogFile(1).name);
-    details = BakingTray.utils.readAcqLogFile(thisAcqLogFile);
+    details = BakingTray.utils.readAcqLogFile(thisAcqLogFile); % Details is now a structure
 
     % Append extra information to the details structure
     details.acqLogFilePath = thisAcqLogFile;

@@ -12,9 +12,9 @@ function loadRecipe(obj,~,~)
     fullPath = fullfile(absPath,fname);
 
     %Does this path already contain an acquisition?
-    [containsAcquisition,details] = BakingTray.utils.doesPathContainAnAcquisition(absPath);
+    details = BakingTray.utils.doesPathContainAnAcquisition(absPath);
     doResume=false;
-    if containsAcquisition
+    if isstruct(details)
         reply=questdlg('Resume acquisition in this directory?','');
         if strcmpi(reply,'yes')
             doResume=true;
