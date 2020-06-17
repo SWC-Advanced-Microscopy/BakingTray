@@ -94,8 +94,8 @@ classdef BT_build_tests < matlab.unittest.TestCase
             % Check that the attachRecipe method fails gracefully if a bad path is fed to it
             obj.verifyFalse(obj.hBT.attachRecipe('./'))
             obj.verifyFalse(obj.hBT.attachRecipe('./readme.txt'))
-            obj.verifyFalse(obj.hBT.attachRecipe('./DoesNotExist.txt'))            
-            obj.verifyFalse(obj.hBT.attachRecipe('./DoesNotExist.yml'))            
+            obj.verifyFalse(obj.hBT.attachRecipe('./DoesNotExist.txt'))
+            obj.verifyFalse(obj.hBT.attachRecipe('./DoesNotExist.yml'))
         end
 
     end %methods (Test)
