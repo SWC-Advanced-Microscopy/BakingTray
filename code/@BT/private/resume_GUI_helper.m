@@ -1,15 +1,45 @@
 function [slicenow,existing] = resume_GUI_helper(hBT,pathToRecipe)
+    % helper function of BT.resumeAcquisition
+    %
+    % function [slicenow,existing] = resume_GUI_helper(hBT,pathToRecipe)
+    %
+    % Purpose
+    % This function examines the current acquisition state and determines
+    % what options are available for resuming. It brings up a simple GUI
+    % for the user to choose an option. It then returns the actions needed
+    % to implement this in the form of its two output arguments. 
+    %
+    % Inputs
+    % hBT - instance of class BT
+    % pathToRecipe - path to acquisition we want to resume
+    %
+    % Outputs
+    % slicenow - the "slicenow" input arg of BT.resumeAcquisition
+    % existing - the "existing" input arg of BT.resumeAcquisition
+    %
+    % If slicenow is NaN, BT.resumeAcquisition uses this as
+    % a flag to bail out and not conduct the resumption.
+    %
+    %
+    % Rob Campbell - SWC July 2020
+
+
 
 
     %Default outputs
     slicenow=false;
     existing='nothing';
 
+    % Extract info about this acquisition
     details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
+    % Define some useful variable
+    msgBoxName = 'Acquisition resume'; % Message box name: printed in window title-bar
+    lastSec = details.sections(end);   % convenience
+    YN = {'No','Yes'};                 % used to build the on-screen message
+
+
     % Print to screen a summary of what is here
-    lastSec = details.sections(end);
-    YN = {'No','Yes'};
     msg = sprintf(['\n Details:\n  Path: %s\n  # Sections: %d\n  Last section #: %d\n', ...
                     '  Last section completed: %s\n  Last section cut: %s\n', ...
                     '  Scan mode: %s\n\n'
@@ -25,34 +55,71 @@ function [slicenow,existing] = resume_GUI_helper(hBT,pathToRecipe)
 
 
 
-    % At this point we need to choose how the resumption itself will proceed. This will depend on the state of the acquisition
-    lastSection = details.sections(end);
-    if lastSection.completed
-        if lastSection.sectionSliced
-            nextAction.slice=false;
-            nextAction.continueToNextSection=true;
-        else
-            % User needs to choose whether to:
-            %  1a) re-image current section
-            %  1b) slice and carry on
+    if lastSec.sectionSliced
+        % The last section was sliced and so all positions must also have been imaged.
+        % Options are either to carry on with imaging the next section ot to bail out.
+        msg = sprintf(['The last section completed and was sliced.\n', ...
+                    'Do you want to carry on imaging the next section?\n']);
+        reply = questdlg(msg,msgBoxName,'Yes','No','No');
+        switch reply
+            case 'Yes'
+                slicenow=false;
+                existing='nothing';
+            case 'No'
+                slicenow=nan;
         end
-    else
-        % User needs to choose whether to:
-        %  2a) re-image current section from the start
-        %  2b) complete the remainder of this section
-        %  2c) slice and carry on with the next section
+        return
     end
 
-    % TODO for scenario 2b, autoROI will have a problem: the preview image will be partial. 
-    % We therefore need some way of getting it to use the ROIs from the section before and not
-    % run getNextROIs on the partially imaged section.
-    % Initially we can just not allow option 2b for autoROI
+    % If we are here, the last section was sliced but we don't know whether
+    % all positions were imaged. Even if they were, we don't know that the
+    % user wants to keep the data.
 
-    % NEEDS TO BE IN THERE SOMEWHERE
-    % Did it complete and cut the last section?
-    if details.sections(end).sectionSliced==true
-        % Ensure that the Z-stage is at the depth of the last completed sectionplus one section thickness. 
-        extraZMove = details.sliceThickness;
+    if lastSec.allPositionsImaged
+        msg = sprintf(['The last section was not sliced but all tile positions were imaged.\n', ...
+                       'Do you want to:\n', ...
+                       'A) Re-acquire the last section then carry on\n', ...
+                       'B) Slice, removing the last section, then carry on\n', ...
+                       'C) Nothing']);
+        reply = questdlg(msg,msgBoxName,'A','B','C','C');
+
+        switch reply
+            case 'A'
+                slicenow=false;
+                existing='reimage';
+             case 'B'
+                slicenow=true;
+                existing='nothing';
+            case 'C'
+                slicenow=nan;
+        end
+
     else
-        extraZMove=0;
+        % If we are here, it means the acquisition stopped midway through the last section. 
+        % It won't have cut if this happens.
+
+        % TODO -- we also want to offer the choice of resuming from the last imaged tile. 
+        % However, autoROI will have a problem with this as the preview image will be partial. 
+        % We therefore need some way of getting it to use the ROIs from the section before and not
+        % run getNextROIs on the partially imaged section.
+        % Initially we can just not allow option 2b for autoROI
+
+        msg = sprintf(['The last section was partially imaged.\n', ...
+                    'Do you want to:\n', ...
+                    'A) Re-acquire the last section from the start then carry on\n', ...
+                    'B) Slice, leaving the last section partially imaged, then carry on\n', ...
+                    'C) Nothing']);
+
+        reply = questdlg(msg,msgBoxName,'A','B','C','C');
+
+        switch reply
+            case 'A'
+                slicenow=false;
+                existing='reimage';
+             case 'B'
+                slicenow=true;
+                existing='nothing';
+            case 'C'
+                slicenow=nan;
+        end
     end

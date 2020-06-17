@@ -4,21 +4,38 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     % function success=resumeAcquisition(obj,recipeFname,simulate)
     %
     % Purpose
-    % Attempts to resume an existing acquisition, by appropriately setting
-    % the section start number, end number, and so forth. If resumption fails 
-    % the default recipe is loaded instead and the acquisition path is set to 
-    % an empty string. This is a safety feature to ensure that the user *has*
-    % to consciously decide what to do next. 
+    % Attempts to resume an existing acquisition, by appropriately setting the section start number, 
+    % end number, and so forth. If resumption fails the default recipe is loaded instead and the 
+    % acquisition path is set to an empty string. This is a safety feature to ensure that the user 
+    % *has* to consciously decide what to do next. 
+    %
+    % By default, a helper GUI is presented to allow the user to select the exact way the resumption
+    % should occur. There are multiple options depending on why we are resuming. If 'helpergui' is
+    % false, then this method by default starts imaging the sample at the last z-position, does not cut, 
+    % and increments the section counter by one. Often this will not be what is needed, which is a choice
+    % the user must make. The optional 'slicenow' and 'existing' input arguments allow us to specify
+    % how the function will handle the resumption. These can be defined at the command line by
+    % super-users, for debugging, or for novel applications. Normal users should use the GUI. 
+    %
+    % There is a simulated option for debugging.
     %
     %
     % Inputs (required)
-    % recipeFname - The path to the recipe file of the acquisition we hope to 
-    %         resume.
+    % recipeFname - The path to the recipe file of the acquisition we hope to resume.
     %
     % Inputs (param/val pairs)
-    % simulate [optional, false by default] - If true, we report to screen 
-    %          what steps would have happened but do not modify the state
-    %          of BakingTray or move any stages.
+    % 'helpergui' [true by default] - If true, a GUI allowing the user to choose the best resumption
+    %             option is presented. This option over-rides 'slicenow' and 'existing'.
+    % 'slicenow' [false by default] - Once at last section depth, moves up one section thickness 
+    %         then slices.
+    % 'existing' ['nothing' by default] - What do with data in the last section if the system
+    %           did not cut: 
+    %              a) 'nothing' - ignore the data. don't delete.
+    %              b) 'reimage' - delete the data in the last section directory and re-image
+    %              c) 'complete' - carry on from the last imaged tile position. [TODO- this option is functional yet]
+    %   Note that if we sliced the last section, options (b) and (c) aren't possible. 
+    % 'simulate' [false by default] - If true, report to screen what steps would have happened 
+    %         but do not modify the state of BakingTray or move any stages.
     %
     % Outputs
     % success - Returns true if the resumption process succeeded and
@@ -26,15 +43,23 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     %
 
 
+    success=false;
+
     params = inputParser;
     params.CaseSensitive = false;
 
+    params.addParameter('helpergui', true,  @(x) islogical(x) || x==1 || x==0)
+    params.addParameter('slicenow', false,  @(x) islogical(x) || x==1 || x==0)
+    params.addParameter('existing', 'nothing', @(x) ischar(x) && (strcmp(x,'nothing') || strcmp(x,'reimage') ) )
     params.addParameter('simulate', false,  @(x) islogical(x) || x==1 || x==0)
 
     params.parse(varargin{:})
+    helpergui = params.Results.helpergui;
+    slicenow = params.Results.slicenow;
+    existing = params.Results.existing;
     simulate = params.Results.simulate;
 
-    success=false;
+
 
     % Ensure the user supplied the path to a recipe file
     if nargin<2
@@ -71,10 +96,11 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
 
     details = BakingTray.utils.doesPathContainAnAcquisition(pathToRecipe);
 
+    % Bail out gracefully if this isn't an acquisition directory
     if ~isstruct(details) && details == false
          % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly 
          % didn't spot the syntax error. When this methd was run it would hard-crash due to this.
-        fprintf(['No existing acquisition found in in directory %s.', ...
+        fprintf(['No existing acquisition found in in directory %s. ', ...
             'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe)
         if ~simulate
             success = obj.attachRecipe(recipeFname);
@@ -84,32 +110,38 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         return
     end
 
-
-
-    % At this point we need to choose how the resumption itself will proceed. This will depend on the state of the acquisition
-    lastSection = details.sections(end);
-    if lastSection.completed
-        if lastSection.sectionSliced
-            nextAction.slice=false;
-            nextAction.continueToNextSection=true;
-        else
-            % User needs to choose whether to:
-            %  1a) re-image current section
-            %  1b) slice and carry on
-        end
-    else
-        % User needs to choose whether to:
-        %  2a) re-image current section from the start
-        %  2b) complete the remainder of this section
-        %  2c) slice and carry on with the next section
+    if details.autoROI
+        fprintf('auto-ROI resumption not working yet\n')
+        return
     end
 
-    % TODO for scenario 2b, autoROI will have a problem: the preview image will be partial. 
-    % We therefore need some way of getting it to use the ROIs from the section before and not
-    % run getNextROIs on the partially imaged section.
-    % Initially we can just not allow option 2b for autoROI
+    % The user chooses how the resumption should proceed
+    if helpergui
+        [slicenow,existing] = resume_GUI_helper(obj,pathToRecipe);
+        if length(slicenow)==1 && isnan(slicenow)
+            return
+        end
+    end
 
 
+    % Do not proceed if the inputs provided by the user make no sense
+    if strcmp('reimage',existing) || strcmp('complete',existing)
+        if slicenow
+            fprintf('BT.resumeAcquisition: Can not slice the last section and then image it. Quitting.\n')
+            return
+        end
+        if details.sections(end).sectionSliced
+            fprintf('BT.resumeAcquisition: Last section was already sliced. Can not image it again as requested. Quitting.\n')
+            return
+        end
+    end
+
+    if strcmp('complete',existing) && details.sections(end).allPositionsImaged
+        fprintf('BT.resumeAcquisition: Last section has already been completely imaged. Will simply slice and carry on.\n')
+        slicenow=true;
+        existing='nothing';
+        return
+    end
 
 
 
@@ -147,20 +179,51 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         end
     end
 
-    % Did it complete and cut the last section?
-    if details.sections(end).sectionSliced==true
-        % Ensure that the Z-stage is at the depth of the last completed sectionplus one section thickness. 
-        extraZMove = details.sliceThickness;
+    % Move the system to the last z-position
+    targetPosition = details.sections(end).Z;
+    if simulate
+        fprintf('Move Z stage to %0.3f\n', targetPosition)
     else
-        extraZMove=0;
+        obj.moveZto(targetPosition, true); % execute blocking motion to last stage position
     end
+
+
+    % Slicing and then re-imaging makes no sense, but we have checked at the top for this and 
+    % so everything that follows is safe.
+    if slicenow
+        if simulate
+            fprintf('Slicing sample\n')
+        else
+            obj.sliceSample
+        end
+    end
+
+
+    if strcmp('reimage',existing)
+        % We delete the directory containing the last section
+        lastDirPath = details.sections(end).savePath;
+        if simulate
+            fprintf('Deleting last section (# %d) directory: %s\n', ...
+                details.sections(end).sectionNumber, lastDirPath)
+        else
+            rmdir(lastDirPath,'s')
+        end
+        details.sections(end) = [];
+    end
+
 
 
     % Set the section start number and num sections
     originalNumberOfRequestedSections = obj.recipe.mosaic.numSections;
-    sectionsCompleted = details.sections(end).sectionNumber;
+    lastImagedSectionNumber = details.sections(end).sectionNumber;
 
-    newSectionStartNumber = sectionsCompleted+1;
+
+    if strcmp(existing,'complete')
+        newSectionStartNumber = lastImagedSectionNumber;
+    else
+        newSectionStartNumber = lastImagedSectionNumber+1;
+    end
+
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
     if newNumberOfRequestedSections<1
         fprintf('\n** Original number of requested sections was %d but since section start number is now %d this is not possible.\n', ...
@@ -169,14 +232,28 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         newNumberOfRequestedSections=1;
     end
 
-    if ~simulate
+
+    if simulate
+        fprintf(['Last section directory on disk: %d\n',...
+            'Set recipe.mosaic.sectionStartNum to %d\nSet recipe.mosaic.numSections to %d\n'], ...
+            details.sections(end).sectionNumber, ...
+            newSectionStartNumber, ...
+            newNumberOfRequestedSections)
+    else
         obj.recipe.mosaic.sectionStartNum = newSectionStartNumber;
         obj.recipe.mosaic.numSections = newNumberOfRequestedSections;
-    else
-        fprintf('Set recipe.mosaic.sectionStartNum to %d\nSet recipe.mosaic.numSections to %d\n', ...
-            newSectionStartNumber,newNumberOfRequestedSections)
     end
 
+
+    % %TODO -- this code is dead right now as we don't give the user the option to continue. 
+    if strcmp(existing,'complete')
+        if simulate
+            fprintf('Resuming acquisition at tile position %d section %d\n', ...
+                details.sections(end).lastImagedPosition+1, details.sections(end).sectionNumber)
+        else
+            hBT.currentTilePosition = details.sections(end).lastImagedPosition+1;
+        end
+    end
 
     % If this is an autoROI acquisition, populate the autoROI variables.
     if details.autoROI
@@ -196,15 +273,7 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     end
 
 
-
-    % So now we are safe to move the system to the last z-position plus one section.
-    blocking=true;
-    targetPosition = details.sections(end).Z + extraZMove;
-    if ~simulate
-        obj.moveZto(targetPosition, blocking);
-    else
-        fprintf('Move Z stage to %0.3f\n', targetPosition)
-    end
+    return
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten
