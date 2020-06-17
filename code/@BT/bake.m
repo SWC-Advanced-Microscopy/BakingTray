@@ -372,6 +372,10 @@ function bake(obj,varargin)
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
             autoROI_stats = obj.autoROI.stats;
             save(autoROI_fname,'autoROI_stats')
+        else
+            % Wipe the last two columns of the position array. These save the actual stage 
+            % positions. This is necessary for the acquisition resume to work properly.
+            obj.positionArray(:,end-1:end)=nan;
         end
 
         % TODO -- debugging horrible thing for auto-ROI dev
