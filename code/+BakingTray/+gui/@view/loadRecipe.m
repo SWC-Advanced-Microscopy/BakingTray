@@ -21,6 +21,9 @@ function loadRecipe(obj,~,~)
         end
     end
 
+    % NOTE - if the recipe is attached in the API (the model) then it will not trigger
+    % detach and attach of the listeners and so the GUI will stop updating:
+    % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
     obj.detachRecipeListeners;
     if ~doResume
         % Just load as normal
