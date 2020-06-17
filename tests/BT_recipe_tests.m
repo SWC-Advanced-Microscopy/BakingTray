@@ -91,6 +91,7 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
         % The following two tests confirm that recipe attachment works as expected, both in the 
         % API and also in the GUI
         function testAttach_API(obj)
+            % Test that the recipe attached correctly
             obj.hBT.attachRecipe(obj.testRecipeFname);
             % Test a string
             obj.verifyTrue(strcmp(obj.hBT.recipe.sample.ID,obj.testRecipe.sample.ID))
@@ -99,6 +100,7 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
         end
 
         function testAttach_API_check_in_GUI(obj)
+            % Test that the attached recipe produces changes that are visible in the GUI
             obj.hBT.attachRecipe(obj.testRecipeFname);
             GUIvals = obj.hBTview.recipeEntryBoxes;
             % Test a string
