@@ -15,7 +15,7 @@ function loadRecipe(obj,~,~)
     details = BakingTray.utils.doesPathContainAnAcquisition(absPath);
     doResume=false;
     if isstruct(details)
-        reply=questdlg('Resume acquisition in this directory?','');
+        reply=questdlg(sprintf('Resume acquisition in %s?',absPath),'');
         if strcmpi(reply,'yes')
             doResume=true;
         end

@@ -24,8 +24,6 @@ function [slicenow,existing] = resume_GUI_helper(hBT,pathToRecipe)
     % Rob Campbell - SWC July 2020
 
 
-
-
     %Default outputs
     slicenow=false;
     existing='nothing';
