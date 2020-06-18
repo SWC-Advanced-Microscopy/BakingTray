@@ -125,19 +125,6 @@ function bake(obj,varargin)
     end
 
 
-
-        % TODO -- debugging horrible thing for auto-ROI dev
-        doViewDebug=false;
-        if obj.importLastFrames && false
-            % Overlay tile grid for next section
-            hBTview=evalin('base','hBTview');
-            if isvalid(hBTview.view_acquire)
-                XL_orig = hBTview.view_acquire.imageAxes.XLim;
-                YL_orig = hBTview.view_acquire.imageAxes.YLim;
-                doViewDebug=true;
-            end
-        end
-
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
 
@@ -204,6 +191,14 @@ function bake(obj,varargin)
         if ~obj.runTileScan
             fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
             return
+        end
+        % We will use this later to decide whether to cut. This test asks if the positionArray is complete 
+        % so we don't cut if tiles are missing. We test here because the position array is modified before
+        % cutting can happen.
+        if obj.tilesRemaining==0
+            sectionCompleted=true;
+        else
+            sectionCompleted=false;
         end
         % ===> Tile scan finished <===
 
@@ -335,7 +330,7 @@ function bake(obj,varargin)
 
 
         % Cut the sample if necessary
-        if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
+        if sectionCompleted
             %Mark the section as complete
             fname=fullfile(obj.currentTileSavePath,'COMPLETED');
             fid=fopen(fname,'w+');
@@ -357,47 +352,6 @@ function bake(obj,varargin)
             fprintf('Still waiting for %d tiles. Not cutting. Aborting.\n',obj.tilesRemaining)
             obj.scanner.abortScanning;
             return
-        end
-
-
-            % TODO -- debugging horrible thing for auto-ROI dev
-            if doViewDebug && false
-                fprintf('Adding grid overlays for these ROIs\n')
-                % Overlay tile grid for next section
-                z=obj.recipe.tilePattern(false,false,obj.autoROI.stats.roiStats(end).BoundingBoxDetails);
-                hBTview.view_acquire.overlayTileGridOnImage(z)
-                %hBTview.view_acquire.imageAxes.XLim=XL_orig;
-                %hBTview.view_acquire.imageAxes.YLim=YL_orig;
-
-                % plot in a separate window what autoROI should have asked for
-                a=obj.autoROI;
-                a.stats.roiStats = a.stats.roiStats(end);
-                figure(1988)
-                autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
-                axis xy
-
-                disp(' *** PRESS RETURN FOR NEXT ROIS *** '); pause % TODO - for debugging during auto-ROI dev
-            end
-
-
-        % TODO -- debugging horrible thing for auto-ROI dev
-        if doViewDebug
-            fprintf('\n Adding grid overlays after next ROI\n')
-            % Overlay tile grid for next section
-
-            hBTview.view_acquire.overlayTileGridOnImage(obj.currentTilePattern)
-            %hBTview.view_acquire.imageAxes.XLim=XL_orig;
-            %hBTview.view_acquire.imageAxes.YLim=YL_orig;
-
-            % plot in a separate window what autoROI should have asked for
-            a=obj.autoROI;
-            a.stats.roiStats = a.stats.roiStats(end);
-            figure(1988)
-            autoROI.plotting.showBoundingBoxesForSection(a.previewImages,a.stats)
-
-            disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause % TODO - for debugging during auto-ROI dev
-            hBTview.view_acquire.removeOverlays
-
         end
 
         obj.detachLogObject %Close the log file that writes to the section directory

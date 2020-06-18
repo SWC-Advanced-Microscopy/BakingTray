@@ -181,6 +181,11 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
 
     % Move the system to the last z-position
     targetPosition = details.sections(end).Z;
+    %If the last section ws sliced and we just move on to the next section then we need to
+    %add one section thickness
+    if slicenow==false && strcmp(existing,'nothing')
+        targetPosition = targetPosition + details.sliceThickness;
+    end
     if simulate
         fprintf('Move Z stage to %0.3f\n', targetPosition)
     else
