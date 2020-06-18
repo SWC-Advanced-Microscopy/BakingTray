@@ -301,6 +301,39 @@ function bake(obj,varargin)
             obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
         end
 
+
+        % If the user is running auto-ROI, we now re-calculated the bounding boxes. The method call
+        % to getNextROIs does this and also updates currentTilePattern.
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            % Save the pStack file (TODO -- should we leave this here?)
+            pStack_fname = fullfile(obj.currentTileSavePath, 'sectionPreview.mat');
+            sectionPreview = obj.autoROI.previewImages;
+            sectionPreview = rmfield(sectionPreview,'recipe');
+            save(pStack_fname,'sectionPreview')
+            success = obj.getNextROIs;
+
+
+            if ~success
+                % Bail out gracefully if no tissue was found
+                msg = sprintf('Found no tissue in Section %d during Bake. Quitting acquisition.', ...
+                    obj.currentSectionNumber);
+                obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
+                fprintf('\n*** %s ***\n\n',msg)
+                obj.slack(msg)
+                return
+            end
+
+            % Save to disk the stats for the auto-ROI
+            autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
+            autoROI_stats = obj.autoROI.stats;
+            save(autoROI_fname,'autoROI_stats')
+        else
+            % Wipe the last two columns of the position array. These save the actual stage 
+            % positions. This is necessary for the acquisition resume to work properly.
+            obj.positionArray(:,end-1:end)=nan;
+        end
+
+
         % Cut the sample if necessary
         if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
             %Mark the section as complete
@@ -346,38 +379,6 @@ function bake(obj,varargin)
                 disp(' *** PRESS RETURN FOR NEXT ROIS *** '); pause % TODO - for debugging during auto-ROI dev
             end
 
-
-
-        % If the user is running auto-ROI, we now re-calculated the bounding boxes. The method call
-        % to getNextROIs does this and also updates currentTilePattern.
-        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            % Save the pStack file (TODO -- should we leave this here?)
-            pStack_fname = fullfile(obj.currentTileSavePath, 'sectionPreview.mat');
-            sectionPreview = obj.autoROI.previewImages;
-            sectionPreview = rmfield(sectionPreview,'recipe');
-            save(pStack_fname,'sectionPreview')
-            success = obj.getNextROIs;
-
-
-            if ~success
-                % Bail out gracefully if no tissue was found
-                msg = sprintf('Found no tissue in Section %d during Bake. Quitting acquisition.', ...
-                    obj.currentSectionNumber);
-                obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
-                fprintf('\n*** %s ***\n\n',msg)
-                %obj.slack(msg)
-                return
-            end
-
-            % Save to disk the stats for the auto-ROI
-            autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
-            autoROI_stats = obj.autoROI.stats;
-            save(autoROI_fname,'autoROI_stats')
-        else
-            % Wipe the last two columns of the position array. These save the actual stage 
-            % positions. This is necessary for the acquisition resume to work properly.
-            obj.positionArray(:,end-1:end)=nan;
-        end
 
         % TODO -- debugging horrible thing for auto-ROI dev
         if doViewDebug
