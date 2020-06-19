@@ -154,7 +154,9 @@ classdef acquisition_view < BakingTray.gui.child_view
             % acquired. It is called via recipeListener. 
             % It is also called in the constructor and bake_callback. It adds the correct 
             % number of optical planes (depths) to the depths popup so the user 
-            % can select which plane they want to view.             opticalPlanes_str = {};
+            % can select which plane they want to view.
+
+            opticalPlanes_str = {};
             for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
                 opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
             end
