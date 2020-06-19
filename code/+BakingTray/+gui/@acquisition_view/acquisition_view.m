@@ -146,12 +146,41 @@ classdef acquisition_view < BakingTray.gui.child_view
             set(obj.imageAxes.YAxis,'Direction','Reverse'); % TODO-- buildFigure also does this. But has to be here or work of buildfigure gets undone. Buildfigure should call this!
             set(obj.hFig,'Colormap', gray(256))
         end %setUpImageAxes
+
+        function populateDepthPopup(obj)
+            % BakingTray.gui.acquisition_view.populateDepthPopup
+            %
+            % This callback runs when the user changes the number of depths to be 
+            % acquired. It is called via recipeListener. 
+            % It is also called in the constructor and bake_callback. It adds the correct 
+            % number of optical planes (depths) to the depths popup so the user 
+            % can select which plane they want to view.             opticalPlanes_str = {};
+            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
+                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
+            end
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.getChannelsToDisplay)
+                obj.depthSelectPopup.String = opticalPlanes_str;
+                obj.depthSelectPopup.Enable='on';
+            else
+                obj.depthSelectPopup.String = 'NONE';
+                obj.depthSelectPopup.Enable='off';
+            end
+        end %populateDepthPopup
+
     end %close hidden methods
 
 
     % Short callbacks. Particularly those for updating the GUI
     methods(Hidden)
+
+        function recipeListener(obj,~,~)
+            % Runs when the recipe is updated
+            obj.populateDepthPopup
+        end
+
         function updateGUIonResize(obj,~,~)
+            % Runs when the figure window is resized in order to keep the panels and so on
+            % in the required positions
             figPos=obj.hFig.Position;
 
             %Keep the status panel at the top of the screen and in the centre
@@ -332,26 +361,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateChannelsPopup
 
 
-        function populateDepthPopup(obj,~,~)
-            % BakingTray.gui.acquisition_view.populateDepthPopup
-            %
-            % This callback runs when the user changes the number of depths to be 
-            % acquired. It is also called in the constructor. It adds the correct 
-            % number of optical planes (depths) to the depths popup so the user 
-            % can select which plane they want to view. 
-
-            opticalPlanes_str = {};
-            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
-                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
-            end
-            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.getChannelsToDisplay)
-                obj.depthSelectPopup.String = opticalPlanes_str;
-                obj.depthSelectPopup.Enable='on';
-            else
-                obj.depthSelectPopup.String = 'NONE';
-                obj.depthSelectPopup.Enable='off';
-            end
-        end %populateDepthPopup
 
 
         function pointerReporter(obj,~,~)

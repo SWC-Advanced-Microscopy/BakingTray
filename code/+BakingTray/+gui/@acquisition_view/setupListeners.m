@@ -1,9 +1,10 @@
 function setupListeners(obj)
+    % Set up listeners for the acuisition view
+
 
     % Look at the preview image stack and run method to update the section image when the
     % stack has been altered by the model (BT)
     obj.listeners{end+1}=addlistener(obj.model, 'lastPreviewImageStack', 'PostSet', @obj.updateSectionImage);
-
 
 
     obj.listeners{end+1}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updatePauseButtonState);
@@ -28,7 +29,8 @@ function setupListeners(obj)
     obj.listeners{end+1}=addlistener(obj.model, 'isSlicing', 'PostSet', @obj.indicateCutting);
     obj.listeners{end+1}=addlistener(obj.model, 'currentSectionNumber', 'PostSet', @obj.updateStatusText);
 
-    obj.listeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.populateDepthPopup);
+    % This listener runs when the recipe changes
+    obj.listeners{end+1}=addlistener(obj.model.recipe, 'mosaic', 'PostSet', @obj.recipeListener);
 
     % Update checkboxes
     obj.listeners{end+1}=addlistener(obj.model, 'leaveLaserOn', 'PostSet', @(~,~) set(obj.checkBoxLaserOff,'Value',~obj.model.leaveLaserOn) );
