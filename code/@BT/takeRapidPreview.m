@@ -26,23 +26,24 @@ function takeRapidPreview(obj)
     %in obj.checkIfAcquisitionIsPossible; TODO: a better solution is needed for this.
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
-
-    % Perform auto-ROI actions
-    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
-    % SCRUB THE autoROIs! Danger but do for now
-    fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
-        obj.autoROI=[];
-
-        % Enable all channels for preview
-        hBT.scanner.setChannelsToDisplay(hBT.scanner.getChannelsToAcquire);
-
-    end
-
     if ~acqPossible
         warndlg(msg,''); %TODO: this somewhat goes against the standard procedure of having no GUI elements arise from 
                          %from the API, but it's easier in the case because of the nasty hack above with setting the sample ID name. 
         fprintf(msg)
     end
+
+    % Perform auto-ROI actions
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        % SCRUB THE autoROIs! Danger but do for now
+        if ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
+            fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
+        end
+        obj.autoROI=[];
+
+        % Enable all channels for preview
+        obj.scanner.setChannelsToDisplay(obj.scanner.getChannelsToAcquire);
+    end
+
 
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
     %TODO: All this ought to be in SIBT
@@ -125,4 +126,4 @@ function takeRapidPreview(obj)
         obj.abortAcqNow=false;
     end
 
-end 
+end

@@ -1,23 +1,23 @@
-function pStack = returnPreviewStructure(obj,chanToKeep)
+function pStack = returnPreviewStructure(obj)
     % return a "preview stack" that we can feed into the autoROI.
+    %
+    % Purpose
+    % The preview stack (pStack) is a structure that contains an average of 
+    % all depths in the last preview image. If the preview image contains
+    % multiple channels, this method finds the one with the greatest range
+    % and returns only that.
+    %
     % Details on what the preview stack is are here:
     %  https://github.com/raacampbell/autofinder/issues/61
-    % Not settled on a final spec yet. TODO!
 
-    if nargin<2 || isempty(chanToKeep)
-        chanToKeep=[];
-    end
+
 
     verbose = true;
 
-
     im = squeeze(mean(obj.lastPreviewImageStack,3)); % Average depths
 
-
     % Get the channel with the highest median if no channel was requested
-    if isempty(chanToKeep)
-        chanToKeep = determineChannelWithHighestSNR(im);
-    end
+    chanToKeep = determineChannelWithHighestSNR(im);
 
     im = im(:,:,chanToKeep);
 
@@ -26,6 +26,7 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
     pStack.recipe = obj.recipe;
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
+    pStack.channel = chanToKeep;
 
     % Now only acquire this channel for the preview
     if isa(obj.scanner,'SIBT')
@@ -53,8 +54,20 @@ function pStack = returnPreviewStructure(obj,chanToKeep)
 end
 
 
+
+% Non-nested internal functions folloe
 function chan = determineChannelWithHighestSNR(im)
     % Determine the plane with the largest range, which we treat as being that with the highest SNR. 
+    %
+    % Purpose
+    % Used by auto-ROI to choose which channel to base the acquisition on. 
+    %
+    % Inputs
+    % im - the preview image
+    %
+    % Outputs
+    % chan - the channel which is brightest
+
     chanRange = zeros(1,size(im,3));
     for ii = 1:size(im,3)
         tChan = im(:,:,ii);

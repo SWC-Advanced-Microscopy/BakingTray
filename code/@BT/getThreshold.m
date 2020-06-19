@@ -32,5 +32,10 @@ function success=getThreshold(obj)
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);
     obj.autoROI.stats.roiStats.sectionNumber=0; %Indicates that this is the initial preview
 
+    % Set for display only the brightest channel
+    obj.scanner.setChannelsToDisplay(obj.autoROI.previewImages.channel);
+    % Log this to the stats structure
+    obj.autoROI.stats.channel = obj.autoROI.previewImages.channel;
+
     success=true;
 end % getThreshold

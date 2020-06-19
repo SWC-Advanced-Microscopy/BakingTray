@@ -152,7 +152,7 @@ classdef BT < loghandler
         % auto-ROI related
         success=getNextROIs(obj)
         getThreshold(obj)
-        pStack = returnPreviewStructure(obj,chanToKeep)
+        pStack = returnPreviewStructure(obj)
     end % Declare methods in separate files
 
 
