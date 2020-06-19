@@ -154,6 +154,15 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
+    % Stop the user baking an auto-ROI with different channels to those used for the preview
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && ~isempty(obj.autoROI)
+        if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.channelsToSave)
+            msg=sprintf(['%s%d) You are trying to bake an auto-ROI with different channels to those used for obtaining the threshold. ', ...
+                'To use these channels you must repeat preview scan and Auto-Thresh'], msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+
     % Is there a valid path to which we can save data?
     if isempty(obj.sampleSavePath)
         msg=sprintf('%s%d) No save path has been defined for this sample.\n', msg, msgNumber);

@@ -43,6 +43,9 @@ function takeRapidPreview(obj)
 
         % Enable all channels for preview
         obj.scanner.setChannelsToDisplay(obj.scanner.getChannelsToAcquire);
+
+        % Log which channels the user has chosen to acquire
+        obj.autoROI.channelsToSave = obj.scanner.getChannelsToAcquire;
     end
 
 

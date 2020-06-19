@@ -32,11 +32,14 @@ function success=getThreshold(obj)
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);
     obj.autoROI.stats.roiStats.sectionNumber=0; %Indicates that this is the initial preview
 
+    % Log which channels the user has chosen to acquire
+    obj.autoROI.stats.channelsToSave = obj.scanner.getChannelsToAcquire;
+
     % Log the brightest channel index to the stats structure
-    obj.autoROI.stats.channel = obj.autoROI.previewImages.channel;
+    obj.autoROI.channel = obj.autoROI.previewImages.channel;
 
     % Set for display only the brightest channel
-    obj.scanner.setChannelsToDisplay(obj.autoROI.stats.channel);
+    obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
 
     success=true;
 end % getThreshold
