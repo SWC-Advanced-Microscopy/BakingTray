@@ -50,6 +50,11 @@ function details = doesPathContainAnAcquisition(thisPath)
     thisAcqLogFile = fullfile(thisPath,acqLogFile(1).name);
     details = BakingTray.utils.readAcqLogFile(thisAcqLogFile); % Details is now a structure
 
+    % If a section number appears multiple times (e.g. because it was re-imaged) we keep only the
+    % last instance
+    [~,sectionInd]=unique([details.sections.sectionNumber],'last');
+    details.sections = details.sections(sectionInd);
+
     % Append extra information to the details structure
     details.acqLogFilePath = thisAcqLogFile;
     details.containsFINISHED = exist(fullfile(thisPath,'FINISHED'), 'file')==2;
