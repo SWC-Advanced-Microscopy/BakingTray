@@ -42,7 +42,7 @@ function bake(obj,varargin)
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
-    [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
+    [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
         fprintf(msg)
         warndlg(msg,'Acquisition failed to start');

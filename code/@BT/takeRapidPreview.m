@@ -9,11 +9,9 @@ function takeRapidPreview(obj)
     % than the final scan. In addition, the preview scan acquires only one optical plane,
     % even if the final acquisition will involved multiple planes. This method performs
     % preview scan. It first sets scan parameters to the required lower resolution,
-    % performs the scan, then returns the scan parameters to their original values. To
-    % indicate that the settings are at the lower resolution, the sample ID is changed
-    % to the string "FASTPREVIEW" for the duration of the preview scan.
+    % performs the scan, then returns the scan parameters to their original values.
     %
-    % 
+    %
 
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
@@ -31,8 +29,6 @@ function takeRapidPreview(obj)
 
     %Temporarily change the sample ID so it won't trigger the blocking of acquisition 
     %in obj.checkIfAcquisitionIsPossible; TODO: a better solution is needed for this.
-    ID=obj.recipe.sample.ID;
-    obj.recipe.sample.ID='FASTPREVIEW';
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
     % SCRUB THE autoROIs! Danger but do for now
@@ -45,10 +41,6 @@ function takeRapidPreview(obj)
         warndlg(msg,''); %TODO: this somewhat goes against the standard procedure of having no GUI elements arise from 
                          %from the API, but it's easier in the case because of the nasty hack above with setting the sample ID name. 
         fprintf(msg)
-
-        %Return settings to previous state
-        obj.recipe.sample.ID=ID;
-        return
     end
 
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
@@ -121,7 +113,6 @@ function takeRapidPreview(obj)
 
         obj.recipe.mosaic.numOpticalPlanes = numZ;
         obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
-        obj.recipe.sample.ID=ID;
 
         obj.scanner.setNumAverageFrames(frameAve);
 

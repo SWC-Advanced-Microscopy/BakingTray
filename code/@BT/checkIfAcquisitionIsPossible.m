@@ -1,13 +1,20 @@
-function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
+function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % Check if acquisition is possible 
     %
-    % [acquisitionPossible,msg] = BT.checkIfAcquisitionIsPossible(obj)
+    % [acquisitionPossible,msg] = BT.checkIfAcquisitionIsPossible(obj,isBake)
     %
     % Purpose
     % This method determines whether it is possible to begin an acquisiton. 
     % e.g. does the cutting position seem plausible, is the scanner ready
     % and conncted, are the axes connected, is there a recipe, is there 
     % enough disk space, etc. 
+    %
+    % Inputs
+    % isBake - The method is run when the user initiates a bake or a previewScan.
+    %       The isBake input is false by default. If true, more extensive checks
+    %       are taken. 
+    % 
+    %
     % 
     % Behavior
     % The method returns true if acquisition is possible and false otherwise.
@@ -16,6 +23,9 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     % string can be sent to a warning dialog box, etc, if there is a GUI. 
 
 
+    if nargin<2
+        isBake = false;
+    end
 
     msg='';
     msgNumber=1;
@@ -114,7 +124,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
 
 
     % Check if we will end up writing into existing directories
-    if obj.isRecipeConnected
+    if obj.isRecipeConnected && isBake
         n=0;
         origCurrentSectionNum = obj.currentSectionNumber; % store the current section number because it's going to be modified here
         for ii=1:obj.recipe.mosaic.numSections

@@ -131,7 +131,7 @@ classdef BT < loghandler
 
         % Acquisition-related helper functions
         success = defineSavePath(obj) 
-        [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
+        [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         success = resumeAcquisition(obj,recipeFname,varargin)
         abortSlicing(obj)
