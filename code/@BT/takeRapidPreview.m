@@ -30,6 +30,7 @@ function takeRapidPreview(obj)
         warndlg(msg,''); %TODO: this somewhat goes against the standard procedure of having no GUI elements arise from 
                          %from the API, but it's easier in the case because of the nasty hack above with setting the sample ID name. 
         fprintf(msg)
+        return
     end
 
     % Perform auto-ROI actions
