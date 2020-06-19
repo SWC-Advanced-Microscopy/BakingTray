@@ -278,7 +278,6 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     end
 
 
-    return
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten
