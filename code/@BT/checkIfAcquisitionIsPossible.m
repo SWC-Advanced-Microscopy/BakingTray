@@ -147,9 +147,16 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         obj.currentSectionNumber = origCurrentSectionNum; % revert it
     end
 
+
+    % If we are in auto-ROI mode, there must be ROI stats before a bake can proceed
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && isempty(obj.autoROI)
+        msg=sprintf('%s%d) You are in auto-ROI mode but have not obtained initial ROIs via Auto-Thresh.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
+    end
+
     % Is there a valid path to which we can save data?
     if isempty(obj.sampleSavePath)
-        msg=sprintf(['%s%d) No save path has been defined for this sample.\n'], msg, msgNumber);
+        msg=sprintf('%s%d) No save path has been defined for this sample.\n', msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 
