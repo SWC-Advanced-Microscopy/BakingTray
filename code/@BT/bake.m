@@ -292,9 +292,8 @@ function sectionInd = bake(obj,varargin)
         % If too many channels are being displayed, fix this before carrying on
         chanDisp=obj.scanner.getChannelsToDisplay;
         if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
-            % A bit horrible, but it will work
             fprintf('Setting chan display to %d only in BT.bake\n', chanDisp(end))
-            obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
+            obj.scanner.setChannelsToDisplay = chanDisp(end);
         end
 
 
