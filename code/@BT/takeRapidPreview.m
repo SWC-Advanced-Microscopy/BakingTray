@@ -18,11 +18,6 @@ function takeRapidPreview(obj)
         return
     end
 
-    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
-        fprintf('Only acquisition with ScanImage supported at the moment.\n')
-        return
-    end
-
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
@@ -31,10 +26,16 @@ function takeRapidPreview(obj)
     %in obj.checkIfAcquisitionIsPossible; TODO: a better solution is needed for this.
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
-    % SCRUB THE autoROIs! Danger but do for now
+
+    % Perform auto-ROI actions
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
-        fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
+    % SCRUB THE autoROIs! Danger but do for now
+    fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
         obj.autoROI=[];
+
+        % Enable all channels for preview
+        hBT.scanner.setChannelsToDisplay(hBT.scanner.getChannelsToAcquire);
+
     end
 
     if ~acqPossible
@@ -44,7 +45,7 @@ function takeRapidPreview(obj)
     end
 
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
-    %TODO: all this needs shim methods in SIBT
+    %TODO: All this ought to be in SIBT
     scanPixPerLine = obj.scanner.getPixelsPerLine;
     frameAve = obj.scanner.getNumAverageFrames;
 
