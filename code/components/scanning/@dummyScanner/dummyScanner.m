@@ -25,7 +25,7 @@ classdef dummyScanner < scanner
         imageStackData %Downsampled image stack that we "image"
         imageStackVoxelSizeXY %voxel size of loaded stack in x/y
         imageStackVoxelSizeZ %voxel size of loaded stack in z
-        maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
+        maxChans=1; %Arbitrarily, the dummy scanner can handle 1 channel
 
         currentOpticalPlane=1
 
@@ -211,14 +211,18 @@ classdef dummyScanner < scanner
         end
 
 
-        function chans = channelsToAcquire(obj)
+        function chans = getChannelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
 
 
-        function chans = channelsToDisplay(obj)
-            chans=obj.channelsToAcquire;
+        function chans = getChannelsToDisplay(obj)
+            chans=obj.getChannelsToAcquire;
             chans=chans(1);
+        end
+
+
+        function setChannelsToDisplay(obj,chans)
         end
 
 

@@ -204,20 +204,29 @@ classdef (Abstract) scanner < handle & loghandler
         % So even if only one channel is being used, if the scanner can handle 4 channels then
         % the output of maxChannelsAvailable will be 4. 
 
-        channelsToAcquire(obj)
-        % channelsToAcquire
+        getChannelsToAcquire(obj)
+        % getChannelsToAcquire
         % 
         % Behavior
         % Return the indexes of the channels which are active and will be saved to disk. 
         % e.g. if channels one and three are to be saved to disk this method should be [1,3]
 
-        channelsToDisplay(obj)
-        % channelsToDisplay
+        getChannelsToDisplay(obj)
+        % getChannelsToDisplay
         % 
         % Behavior
         % Return the indexes of the channels which are going to be displayed during acquisition 
         % by the scanner software. 
-        % e.g. if channels one and three are to be displayed this method should be [1,3]
+        % e.g. if channels one and three are to be displayed this method should return [1,3]
+
+        setChannelsToDisplay(obj,chans)
+        % setChannelsToDisplay(chans)
+        %
+        % Behavior
+        % Set the channels to be displayed by the scanner. 
+        %
+        % Inputs
+        % chans - a vector of channels to display
 
         scannerType(obj)
         % scannerType

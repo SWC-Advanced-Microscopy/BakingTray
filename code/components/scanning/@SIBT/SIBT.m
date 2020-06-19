@@ -87,7 +87,7 @@ classdef SIBT < scanner
 
             % Add ScanImage-specific listeners
 
-            obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
+            obj.getChannelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
@@ -274,7 +274,7 @@ classdef SIBT < scanner
                 doReset = ones(1,length(obj.hC.hPmts.tripped));
             else
                 doReset = zeros(1,length(obj.hC.hPmts.tripped));
-                doReset(obj.channelsToAcquire) = 1;
+                doReset(obj.getChannelsToAcquire) = 1;
             end
 
             for ii=1:length(obj.hC.hPmts.tripped)
@@ -347,10 +347,10 @@ classdef SIBT < scanner
         end %maxChannelsAvailable
 
 
-        function theseChans = channelsToAcquire(obj,~,~)
+        function theseChans = getChannelsToAcquire(obj,~,~)
             % This is also a listener callback function
             if obj.verbose
-                fprintf('Hit SIBT.channelsToAcquire\n')
+                fprintf('Hit SIBT.getChannelsToAcquire\n')
             end
             theseChans = obj.hC.hChannels.channelSave;
 
@@ -363,13 +363,23 @@ classdef SIBT < scanner
                 obj.channelsToSave = theseChans(:); %store the currently selected channels to save
             end
 
-        end %channelsToAcquire
+        end %getChannelsToAcquire
 
 
-        function theseChans = channelsToDisplay(obj)
+        function theseChans = getChannelsToDisplay(obj)
             theseChans = obj.hC.hChannels.channelDisplay;
             theseChans = theseChans(:);
-        end %channelsToDisplay
+        end %getChannelsToDisplay
+
+
+        function setChannelsToDisplay(obj,chans)
+            % Ensure chans is valid
+            chans = unique(chans);
+            chans(chans<1)=[];
+            chans(chans>obj.maxChannelsAvailable)=[];
+
+            obj.hC.hChannels.channelDisplay = chans;
+        end %setChannelsToDisplay
 
 
         function scannerType = scannerType(obj)

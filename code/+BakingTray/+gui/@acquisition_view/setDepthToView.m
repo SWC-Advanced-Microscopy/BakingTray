@@ -6,7 +6,7 @@ function setDepthToView(obj,~,~)
 
     if obj.verbose, fprintf('In acquisition_view.setDepthToView callback\n'), end
 
-    if isempty(obj.model.scanner.channelsToDisplay)
+    if isempty(obj.model.scanner.getChannelsToDisplay)
         %Don't do anything if no channels are being viewed
         return
     end

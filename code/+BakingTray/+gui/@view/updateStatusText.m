@@ -32,11 +32,11 @@ function varargout = updateStatusText(obj,~,~)
             endTime.timeForSampleString = ... 
                 regexprep(endTime.timeForSampleString, ...
                         ' \d+ secs', '');
-            if length(obj.model.scanner.channelsToAcquire)>1
-                 channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.channelsToAcquire));
-            elseif length(obj.model.scanner.channelsToAcquire)==1
-                channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.channelsToAcquire));
-            elseif length(obj.model.scanner.channelsToAcquire)==0
+            if length(obj.model.scanner.getChannelsToAcquire)>1
+                 channelsToAcquireString = sprintf('%d channels',length(obj.model.scanner.getChannelsToAcquire));
+            elseif length(obj.model.scanner.getChannelsToAcquire)==1
+                channelsToAcquireString = sprintf('%d channel',length(obj.model.scanner.getChannelsToAcquire));
+            elseif length(obj.model.scanner.getChannelsToAcquire)==0
                 channelsToAcquireString = 'NO CHANNELS!';
             end
 

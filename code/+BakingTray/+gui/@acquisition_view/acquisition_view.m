@@ -283,8 +283,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if obj.verbose, fprintf('In acquisition_view.chooseChanToDisplay callback\n'), end
 
-            channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
-            channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
+            channelsBeingAcquired = obj.model.scanner.getChannelsToAcquire;
+            channelsScannerDisplays = obj.model.scanner.getChannelsToDisplay;
 
             if isempty(channelsScannerDisplays)
                 % Then we can't display anything
@@ -310,7 +310,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 % if it's not displayed we have no access to the image data. This isn't
                 % the case with galvo/galvo, unfortunately, but we'll just proceed like this
                 % and hope galvo/galvo works OK.
-                activeChannels = obj.model.scanner.channelsToDisplay;
+                activeChannels = obj.model.scanner.getChannelsToDisplay;
                 activeChannels_str = {};
                 for ii=1:length(activeChannels)
                     activeChannels_str{end+1} = sprintf('Chan %d',activeChannels(ii));
@@ -344,7 +344,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
                 opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
             end
-            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.getChannelsToDisplay)
                 obj.depthSelectPopup.String = opticalPlanes_str;
                 obj.depthSelectPopup.Enable='on';
             else
