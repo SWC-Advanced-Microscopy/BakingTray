@@ -125,7 +125,7 @@ classdef BT < loghandler
         success=checkAttachedStages(obj,ControllerObject,axisName)
 
         % Key methods that trigger acquisition events
-        bake(obj,varargin)
+        sectionInd = bake(obj,varargin)
         takeRapidPreview(obj)
         runSuccess = runTileScan(obj,boundingBoxDetails) %is called by bake and takeRapidPreview
 

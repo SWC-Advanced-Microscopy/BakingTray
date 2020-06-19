@@ -49,7 +49,7 @@ function bake_callback(obj,~,~)
     obj.model.leaveLaserOn=false; % TODO: For now always set the laser to switch off when starting [17/08/2017]
 
     try
-        obj.model.bake;
+        sectionInd = obj.model.bake; %if the bake loop didn't start, it returns 0
     catch ME
         fprintf('\nBAKE FAILED IN acquisition_view. CAUGHT THE FOLLOWING ERROR:\n %s\n', ME.message)
         for ii=1:length(ME.stack)
@@ -57,16 +57,17 @@ function bake_callback(obj,~,~)
                 ME.stack(ii).line, ME.stack(ii).file)
         end
         fprintf('\n')
-        obj.button_BakeStop.Enable='on'; 
         rethrow(ME)
         return
     end
 
-    if obj.checkBoxLaserOff.Value
+    obj.button_BakeStop.Enable='on'; 
+
+    if obj.checkBoxLaserOff.Value && sectionInd>0
         % If the laser was slated to turn off then we also close
         % the acquisition GUI. This is because a lot of silly bugs
         % seem to crop up after an acquisition but they go away if
-        % the user closes and re-opens the window.
+        % the user closes and re-opens the window. 
         obj.delete
     end
 

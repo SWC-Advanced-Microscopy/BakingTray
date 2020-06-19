@@ -1,4 +1,4 @@
-function bake(obj,varargin)
+function sectionInd = bake(obj,varargin)
     % Runs an automated anatomy acquisition using the currently attached parameter file
     %
     % function BT.bake('Param1',val1,'Param2',val2,...)
@@ -14,13 +14,15 @@ function bake(obj,varargin)
     %                      BT.leaveLaserOn. If not supplied, this built-in value is used. 
     %
     %
-    %
+    % Outputs
+    % sectionInd - the index of the main bake loop. If the loop didn't start, this will be 0.
     %
     % Rob Campbell - Basel, Feb, 2017
     %
     % See also BT.runTileScan
 
 
+    sectionInd = 0; 
     obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
@@ -64,8 +66,8 @@ function bake(obj,varargin)
     obj.abortAcqNow=false; % This and the following property can't be on before we've even started
     obj.abortAfterSectionComplete=false; 
 
-    %assign cleanup function
-    tidy = onCleanup(@() bakeCleanupFun(obj));
+    % Assign cleanup function, which is in private directory
+    tidy = onCleanup(@() bakeCleanupFun(obj)); 
 
     %----------------------------------------------------------------------------------------
 
@@ -127,7 +129,6 @@ function bake(obj,varargin)
 
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
-
         obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
 
         fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),obj.currentSectionNumber) % Print a line across the CLI
