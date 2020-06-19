@@ -178,6 +178,13 @@ classdef acquisition_view < BakingTray.gui.child_view
         function recipeListener(obj,~,~)
             % Runs when the recipe is updated
             obj.populateDepthPopup
+
+            % Disable the auto-thresh button if we aren't in auto-thresh mode
+            if ~strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+                obj.button_runAutoThresh.Enable='off';
+            else
+                obj.button_runAutoThresh.Enable='on';
+            end
         end
 
         function updateGUIonResize(obj,~,~)
