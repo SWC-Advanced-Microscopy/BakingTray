@@ -164,7 +164,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.depthSelectPopup.String = opticalPlanes_str;
                 obj.depthSelectPopup.Enable='on';
             else
-                obj.depthSelectPopup.String = 'NONE';
+                obj.depthSelectPopup.String = '1';
                 obj.depthSelectPopup.Enable='off';
             end
         end %populateDepthPopup
