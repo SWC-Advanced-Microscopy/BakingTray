@@ -143,18 +143,17 @@ function buildFigure(obj)
     drawnow
 
 
-    % Populate the depth popup
-    obj.populateDepthPopup
-    obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
+        % Populate the depth popup
+        obj.populateDepthPopup
+        obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
     obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
         'Position', [420, 0, 70, 30], 'String', '', 'Callback', @obj.setChannelToView,...
         'Interruptible', 'off');
-
-    % Add the channel names. This is under the control of a listener in case the user makes a 
-    % change in ScanImage after the acquisition_view GUI has opened.
-    obj.updateChannelsPopup
-    obj.setChannelToView % Ensure that the property is set to a valid channel
+        % Add the channel names. This is under the control of a listener in case the user makes a 
+        % change in ScanImage after the acquisition_view GUI has opened.
+        obj.updateChannelsPopup
+        obj.setChannelToView % Ensure that the property is set to a valid channel
 
 
     % Report the cursor position with a callback function
@@ -245,5 +244,10 @@ function buildFigure(obj)
         'BackgroundColor', [1,1,1]*0.075, ...
         'Value', obj.model.sliceLastSection, ...
         'Callback', @obj.updateSliceLastSection);
+
+
+
+        % Ensure any another recipe-related things are up to date
+        obj.recipeListener
 
 end %close buildFigure

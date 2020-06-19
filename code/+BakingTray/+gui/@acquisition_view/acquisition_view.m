@@ -152,7 +152,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             %
             % This callback runs when the user changes the number of depths to be 
             % acquired. It is called via recipeListener. 
-            % It is also called in the constructor and bake_callback. It adds the correct 
+            % It is also called in obj.buildFigure and obj.bake_callback. It adds the correct 
             % number of optical planes (depths) to the depths popup so the user 
             % can select which plane they want to view.
 
