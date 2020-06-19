@@ -187,6 +187,10 @@ function sectionInd = bake(obj,varargin)
             save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
         end
 
+        % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            obj.scanner.setChannelsToDisplay(obj.autoROI.stats.channel);
+        end
 
         %  ===> Now the scanning runs <===
         if ~obj.runTileScan
