@@ -66,5 +66,10 @@ function loadRecipe(obj,~,~)
         if ~isempty(obj.view_prepare)
             obj.view_prepare.updateCuttingConfigurationText
         end
+
+        % Open the acquisition view
+        if doResume
+            obj.startPreviewSampleGUI
+        end
     end
 end %loadRecipe
