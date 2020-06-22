@@ -153,10 +153,4 @@ function tileAcqDone(obj,~,~)
     % Write message to the log file using the logger class
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-
-    obj.initiateTileScan  % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
-                          % to soft-trigger another acquisition.
-                          % See also: BT.runTileScan
-
-
-
+    obj.hC.hScan2D.trigIssueSoftwareAcq
