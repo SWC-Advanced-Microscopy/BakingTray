@@ -439,7 +439,7 @@ classdef recipe < handle
                             end % if ~isempty(fieldValue) ...
 
                         case 'cuttingSpeed'
-                            fieldValue = obj.checkFloat(fieldValue,0.05,2); %min/max allowed speeds
+                            fieldValue = obj.checkFloat(fieldValue,0.05,0.75); %min/max allowed speeds
                         case 'cutSize'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'sliceThickness'
