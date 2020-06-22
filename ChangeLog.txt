@@ -18,6 +18,9 @@ Install instructions for autoROI
   aren't flipped compared to BakingTray! 
 - The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
 
+22nd June 2020
+- User [branch autoROI]: Number of overlapping z-planes is now a setting in the GUI. 
+
 
 15th June 2020
 - User [branch autoROI]: Main view is re-organised so order of elements is more logical
