@@ -297,7 +297,7 @@ function sectionInd = bake(obj,varargin)
         chanDisp=obj.scanner.getChannelsToDisplay;
         if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
             fprintf('Setting chan display to %d only in BT.bake\n', chanDisp(end))
-            obj.scanner.setChannelsToDisplay = chanDisp(end);
+            obj.scanner.setChannelsToDisplay(chanDisp(end));
         end
 
 
