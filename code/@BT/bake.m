@@ -167,11 +167,6 @@ function sectionInd = bake(obj,varargin)
             obj.attachLogObject(bkFileLogger(logFilePath))
         end % if obj.saveToDisk
 
-        if ~obj.scanner.armScanner
-            disp('FAILED TO START -- COULD NOT ARM SCANNER')
-            return
-        end
-
         % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
         if sectionInd==1
             obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
@@ -188,11 +183,19 @@ function sectionInd = bake(obj,varargin)
         end
 
         % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
+        % This is also done in obj.getThreshold, but repeating it here ensures the user can't
+        % alter the channel during acquisition. 
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.scanner.setChannelsToDisplay(obj.autoROI.stats.channel);
+            obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
         end
 
+
         %  ===> Now the scanning runs <===
+        if ~obj.scanner.armScanner
+            disp('FAILED TO START -- COULD NOT ARM SCANNER')
+            return
+        end
+
         if ~obj.runTileScan
             fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
             return
