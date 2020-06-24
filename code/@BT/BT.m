@@ -39,6 +39,11 @@ classdef BT < loghandler
 
     properties (Hidden)
         saveToDisk = 1 %By default we save to disk when running
+        % By default a "FINISHED" is writen to the acquisition directory when the sample completes.
+        % The user may wish to skip this if they stop the acquisition early for some reason (e.g. to 
+        % change a cutting parameter then re-start)
+        completeAcquisitionOnBakeLoopExit = true
+
         logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
 
         % Cached/stored settings

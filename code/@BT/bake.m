@@ -127,6 +127,9 @@ function sectionInd = bake(obj,varargin)
     end
 
 
+    % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise). 
+    obj.completeAcquisitionOnBakeLoopExit=true;
+
     %loop and tile scan
     for sectionInd=1:obj.recipe.mosaic.numSections
         obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
@@ -396,12 +399,16 @@ function sectionInd = bake(obj,varargin)
         obj.scanner.abortScanning;
     end
 
-    obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
+    % Create an empty "FINISHED" file, which will trigger stitching from syncAndCrunch. 
+    % It is the default to create the file. The only likely way it will not be created is if the user
+    % chooses not to when the stop the acquisition early.
+    if obj.completeAcquisitionOnBakeLoopExit
+        obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
 
-
-    %Create an empty finished file
-    fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
-    fclose(fid);
+        %Create an empty finished file
+        fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+        fclose(fid);
+    end
 
 end
 
