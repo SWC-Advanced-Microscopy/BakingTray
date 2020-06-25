@@ -39,7 +39,7 @@ The current feature set is as follows:
 
 
 ### Getting started ###
-See [the wiki](https://github.com/SainsburyWellcomeCentre/BakingTray/wiki)
+See the documentation at [bakingtray.mouse.vision](https://bakingtray.mouse.vision)
 
 
 ### Related work
