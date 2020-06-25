@@ -118,7 +118,6 @@ classdef SIBT < scanner
 
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
-            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
             if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
@@ -642,28 +641,6 @@ classdef SIBT < scanner
             obj.hC.hScan2D.trigIssueSoftwareAcq;
         end % tileAcqDone_minimal(obj,~,~)
 
-
-        function tileScanAbortedInScanImage(obj,~,~)
-            % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
-            if obj.verbose
-                fprintf('Hit obj.tileScanAbortedInScanImage\n')
-            end
-            % Wait for scanner to stop being in acquisition mode
-            obj.disableArmedListeners
-            obj.abortScanning
-            fprintf('Waiting to disarm scanner in SIBT.tileScanAbortedInScanImage\n')
-            for ii=1:20
-                if ~obj.isAcquiring
-                    obj.disarmScanner;
-                    return
-                end
-                fprintf('.')
-                pause(0.25)
-            end
-
-            %If we get here we failed to disarm
-            fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
-        end %tileScanAbortedInScanImage
 
         function changeChecker(obj,s,e)
 
