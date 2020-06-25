@@ -15,7 +15,7 @@ function tileAcqDone(obj,~,~)
     % That causes us to re-enter this callback once the frames in that tile position have been 
     % completed. 
 
-
+    fprintf('\nENTERING tileAcqDone\n')
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     if ~isempty(obj.parent.positionArray)
         obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
@@ -26,7 +26,7 @@ function tileAcqDone(obj,~,~)
     end
 
     %Initiate move to the next X/Y position (blocking motion)
-    %the if statment stops us from attempting a move once this callback is
+    %the if statement stops us from attempting a move once this callback is
     %called for the final time (a self-call, see below)
     if obj.parent.currentTilePosition < size(obj.parent.currentTilePattern,1)
         obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
@@ -34,7 +34,7 @@ function tileAcqDone(obj,~,~)
     end
 
     % Import the last frames and downsample them
-    debugMessages=true;
+    debugMessages=false;
 
 
     % Import image data from the ScanImage API
@@ -43,13 +43,16 @@ function tileAcqDone(obj,~,~)
         planeNum=1; %This counter indicates the current z-plane
         %Loop through the buffer, pulling out the first frame from each depth
         for z = 1 : obj.hC.hDisplay.displayRollingAverageFactor : length(obj.hC.hDisplay.stripeDataBuffer)
-            if debugMessages
-                fprintf('%d. %s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n', ...
-                        obj.parent.currentTilePosition, mfilename, z)
-            end
+
             % scanimage stores image data in a data structure called 'stripeData'
             %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
             lastStripe = obj.hC.hDisplay.stripeDataBuffer{z};
+
+            if debugMessages
+                fprintf('%d. %s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n', ...
+                        lastStripe.acqNumber, mfilename, z)
+            end
+
             if isempty(lastStripe)
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} is empty. ',z);
             elseif ~isprop(lastStripe,'roiData')
@@ -124,19 +127,14 @@ function tileAcqDone(obj,~,~)
 
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-    
+
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
     % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
     % you won't get the real stage positions
     % The first tile was logged in BT.runTileScan.
     obj.parent.logPositionToPositionArray(doFakeLog)
-   
-    if obj.parent.currentTilePosition == size(obj.parent.currentTilePattern,1)
-        % Call for the final time in order to place the last tile
-        %obj.tileAcqDone
-    end
-    
+
 
 
     % Initiate the next position (obj.initiateTileScan) so long as we aren't paused

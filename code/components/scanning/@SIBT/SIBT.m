@@ -651,7 +651,7 @@ classdef SIBT < scanner
             % Wait for scanner to stop being in acquisition mode
             obj.disableArmedListeners
             obj.abortScanning
-            fprintf('Waiting to disarm scanner.')
+            fprintf('Waiting to disarm scanner in SIBT.tileScanAbortedInScanImage\n')
             for ii=1:20
                 if ~obj.isAcquiring
                     obj.disarmScanner;
