@@ -34,7 +34,7 @@ function tileAcqDone(obj,~,~)
     end
 
     % Import the last frames and downsample them
-    debugMessages=false;
+    debugMessages=true;
 
 
     % Import image data from the ScanImage API
@@ -44,7 +44,8 @@ function tileAcqDone(obj,~,~)
         %Loop through the buffer, pulling out the first frame from each depth
         for z = 1 : obj.hC.hDisplay.displayRollingAverageFactor : length(obj.hC.hDisplay.stripeDataBuffer)
             if debugMessages
-                fprintf('%s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n',mfilename,z)
+                fprintf('%d. %s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n', ...
+                        obj.parent.currentTilePosition, mfilename, z)
             end
             % scanimage stores image data in a data structure called 'stripeData'
             %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
@@ -133,7 +134,7 @@ function tileAcqDone(obj,~,~)
    
     if obj.parent.currentTilePosition == size(obj.parent.currentTilePattern,1)
         % Call for the final time in order to place the last tile
-        obj.tileAcqDone
+        %obj.tileAcqDone
     end
     
 
