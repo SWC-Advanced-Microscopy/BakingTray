@@ -64,7 +64,7 @@ function runSuccess = runTileScan(obj)
     % Instruct the scanner to initiate the tile scan. This may simply involving issuing a trigger if tile scanning
     obj.scanner.initiateTileScan; %acquires a stack and triggers the scanner (e.g. ScanImage) to acquire the rest of the stacks
 
-    obj.currentTilePosition = round(obj.currentTilePosition);
+
     %block until done
     while 1
         if ~obj.scanner.isAcquiring
@@ -81,18 +81,21 @@ function runSuccess = runTileScan(obj)
     totalTime = now-startTime;
     totalTime = totalTime*24*60^2;
 
+    % Because of a hack in scanner.tileAcqDone that I hope to get rid of at some point 
+    obj.currentTilePosition = round(obj.currentTilePosition);
+
     switch obj.recipe.mosaic.scanmode
     case 'tiled: manual ROI'
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
     fprintf('\nFinished %d tile positions. Acquired %d images per channel (%d x %d x %d) in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
-        floor(obj.currentTilePosition), nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
-        obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/(obj.currentTilePosition))
+        obj.currentTilePosition, nTilesToAcquire, obj.recipe.NumTiles.X, obj.recipe.NumTiles.Y, ...
+        obj.recipe.mosaic.numOpticalPlanes, totalTime, totalTime/obj.currentTilePosition)
 
     case 'tiled: auto-ROI'
         % TODO -- is this the neatest way of going?
         nTilesToAcquire = obj.recipe.numTilesInPhysicalSection;
         fprintf('\nFinished %d tile positions in %0.1f seconds (averaging %0.2f s per tile)\n\n', ...
-            floor(obj.currentTilePosition), totalTime, totalTime/(obj.currentTilePosition))
+            obj.currentTilePosition, totalTime, totalTime/obj.currentTilePosition)
     end
 
 
