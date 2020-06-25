@@ -15,7 +15,7 @@ function stop_callback(obj,~,~)
 
     stopAfterSection='Yes: stop after this section';
     noWay= 'No way';
-    choice = questdlg('Are you sure you want to stop acquisition?', '', stopNow, stopAfterSection, noWay, noWay);
+    [choice,finishAndStitch] = BakingTray.gui.questdlgchckbox('Are you sure you want to stop acquisition?', '', stopNow, stopAfterSection, noWay, noWay);
 
     switch choice
         case stopNow
@@ -30,12 +30,12 @@ function stop_callback(obj,~,~)
             obj.model.scanner.disarmScanner;
             obj.model.detachLogObject;
             set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
-
+            obj.model.completeAcquisitionOnBakeLoopExit=finishAndStitch;
         case stopAfterSection
             %If the acquisition is paused we resume it then it will go on to stop.
             obj.model.scanner.resumeAcquisition;
             obj.model.abortAfterSectionComplete=true;
-
+            obj.model.completeAcquisitionOnBakeLoopExit=finishAndStitch;
         otherwise
             %Nothing happens
     end
