@@ -73,6 +73,8 @@ function runSuccess = runTileScan(obj)
         pause(0.25)
     end
 
+    % Run a final time to place the last tile in the grid
+    obj.placeNewTilesInPreviewData
 
     %Ensure we are back at normal motion speed
     obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 
@@ -80,9 +82,6 @@ function runSuccess = runTileScan(obj)
     % Report the total time
     totalTime = now-startTime;
     totalTime = totalTime*24*60^2;
-
-    % Because of a hack in scanner.tileAcqDone that I hope to get rid of at some point 
-    obj.currentTilePosition = round(obj.currentTilePosition);
 
     switch obj.recipe.mosaic.scanmode
     case 'tiled: manual ROI'

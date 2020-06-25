@@ -119,12 +119,6 @@ function tileAcqDone(obj,~,~)
     end
 
 
-    if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
-        fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
-        obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time
-        return
-    end
-
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 

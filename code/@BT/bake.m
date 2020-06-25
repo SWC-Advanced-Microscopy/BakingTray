@@ -348,7 +348,7 @@ function sectionInd = bake(obj,varargin)
             fclose(fid);
 
             obj.acqLogWriteLine(sprintf('%s -- acquired %d tile positions in %s\n',...
-            currentTimeStr(), floor(obj.currentTilePosition), prettyTime((now-startAcq)*24*60^2)) );
+            currentTimeStr(), obj.currentTilePosition, prettyTime((now-startAcq)*24*60^2)) );
 
             if sectionInd<obj.recipe.mosaic.numSections || obj.sliceLastSection
                 %But don't slice if the user asked for an abort and sliceLastSection is false
