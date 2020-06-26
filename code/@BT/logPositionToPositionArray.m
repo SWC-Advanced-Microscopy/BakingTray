@@ -15,7 +15,7 @@ function logPositionToPositionArray(obj,fakeLog)
 
 
     % Do not increase the size of the position array
-    if obj.currentTilePosition > size(obj.parent.logPositionToPositionArray,1)
+    if obj.currentTilePosition > size(obj.positionArray,1)
         return
     end
 
