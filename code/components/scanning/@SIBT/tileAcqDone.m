@@ -119,20 +119,14 @@ function tileAcqDone(obj,~,~)
 
 
     % Increment the counter and make the new position the current one
-    if obj.parent.currentTilePosition < size(obj.parent.logPositionToPositionArray,1)
-        obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
-        % Store stage positions. this is done after all tiles in the z-stack have been acquired
-        doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
-        % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
-        % you won't get the real stage positions
-        % The first tile was logged in BT.runTileScan.
-        obj.parent.logPositionToPositionArray(doFakeLog)
-    elseif obj.parent.currentTilePosition >= size(obj.parent.logPositionToPositionArray,1)
-        % TODO -- this may not be needed, but we leave it here for now anyway
-        obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-        obj.parent.currentTilePosition = obj.parent.currentTilePosition-1;
-    end
+    % Store stage positions. this is done after all tiles in the z-stack have been acquired
+    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+    % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
+    % you won't get the real stage positions
+    % The first tile was logged in BT.runTileScan.
+    obj.parent.logPositionToPositionArray(doFakeLog)
 
 
 
