@@ -15,7 +15,6 @@ function tileAcqDone(obj,~,~)
     % That causes us to re-enter this callback once the frames in that tile position have been 
     % completed. 
 
-    fprintf('\nENTERING tileAcqDone\n')
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     if ~isempty(obj.parent.positionArray)
         obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);

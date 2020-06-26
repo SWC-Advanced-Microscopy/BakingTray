@@ -21,8 +21,6 @@ function placeNewTilesInPreviewData(obj,~,~)
         return
     end
 
-    fprintf('BT.placeNewTilesInPreviewData is inserting the last tile into the preview image\n')
-
     % Do not attempt to place empty tiles
     if sum(obj.downSampledTileBuffer(:))==0
         return
