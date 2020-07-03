@@ -15,7 +15,17 @@ function stop_callback(obj,~,~)
 
     stopAfterSection='Yes: stop after this section';
     noWay= 'No way';
-    [choice,finishAndStitch] = BakingTray.gui.questdlgchckbox('Are you sure you want to stop acquisition?', '', stopNow, stopAfterSection, noWay, noWay);
+
+    rawDataDirPath = fullfile(obj.model.currentTileSavePath,obj.model.rawDataSubDirName);
+
+    if exist(rawDataDirPath,'dir')
+        showFinishedCheckBox=true;
+    else
+        showFinishedCheckBox=false;
+    end
+
+    [choice,finishAndStitch] = BakingTray.gui.questdlgchckbox('Are you sure you want to stop acquisition?', '', ...
+        stopNow, stopAfterSection, noWay, noWay, showFinishedCheckBox);
 
     switch choice
         case stopNow

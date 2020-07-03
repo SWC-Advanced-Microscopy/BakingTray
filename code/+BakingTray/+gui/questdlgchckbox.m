@@ -1,4 +1,4 @@
-function [ButtonName,finishAndStitch]=questdlgchckbox(Question,Title,Btn1,Btn2,Btn3,Default)
+function [ButtonName,finishAndStitch]=questdlgchckbox(Question,Title,Btn1,Btn2,Btn3,Default,doCheckbox)
 %QUESTDLG Question dialog box.
 %  ButtonName = QUESTDLG(Question) creates a modal dialog box that
 %  automatically wraps the cell array or string (vector or matrix)
@@ -139,11 +139,15 @@ if nargin == 5
     Btn3 = [];
     NumButtons = 2;
 end
-if nargin == 6
+if nargin >= 6
     NumButtons = 3;
 end
-if nargin > 6
+if nargin > 7
     error(message('MATLAB:questdlg:TooManyInputs'));
+end
+
+if nargin < 7
+    doCheckbox = true;
 end
 
 if isstruct(Default)
@@ -386,11 +390,12 @@ if DefaultValid
 end
 
 
-%ADD CHECKBOX
-hCheckFinished=uicontrol(QuestFig,'style','checkbox','units','pixels',...
-                'position',[50,65,150,15], ...
-                'string','Mark as FINISHED & stitch','Value',true);
-
+%ADD CHECKBOX IF NEEDED
+if doCheckbox
+    hCheckFinished=uicontrol(QuestFig,'style','checkbox','units','pixels',...
+                    'position',[50,65,150,15], ...
+                    'string','Mark as FINISHED & stitch','Value',true);
+end
 
 delete(MsgHandle);
 
@@ -443,7 +448,13 @@ end
 % Check handle validity again since we may be out of uiwait because the
 % figure was deleted.
 if ishghandle(QuestFig)
-    finishAndStitch = hCheckFinished.Value;
+
+    if doCheckbox
+        finishAndStitch = hCheckFinished.Value;
+    else
+        finishAndStitch = [];
+    end
+
     if DefaultWasPressed
         ButtonName=Default;
     else
