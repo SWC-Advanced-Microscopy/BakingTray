@@ -21,8 +21,9 @@ function overlayThreshBorderOnImage(obj)
     % obj.removeOverlays
 
 
-    % Bail out if we are not in auto-ROI mode
+    % Bail out and remove any borders if we are not in auto-ROI mode
     if ~strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        obj.removeOverlays(mfilename)
         return
     end
 
@@ -49,14 +50,14 @@ function overlayThreshBorderOnImage(obj)
     n=size(im,1);
     y=[b+1,b+1,n-b,n-b,b+1];
     
-    obj.plotOverlayHandles.(mfilename) = plot(x,y,'--g','Parent',obj.imageAxes);
+    obj.plotOverlayHandles.(mfilename) = plot(x,y,':g','Parent',obj.imageAxes);
 
     n=size(im,2);
     x=[1,n,n,1,1];
     n=size(im,1);
     y=[1,1,n,n,1];
 
-    obj.plotOverlayHandles.(mfilename)(2) = plot(x,y,'--g','Parent',obj.imageAxes);
+    obj.plotOverlayHandles.(mfilename)(2) = plot(x,y,':g','Parent',obj.imageAxes);
 
     set(obj.plotOverlayHandles.(mfilename),'LineWidth',2)
 
