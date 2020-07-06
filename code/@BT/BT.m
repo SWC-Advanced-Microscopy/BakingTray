@@ -106,6 +106,7 @@ classdef BT < loghandler
 
     % These properties are used by GUIs and general broadcasting
     properties (SetObservable, AbortSet)
+        acquisitionState='idle'     % Can be "idle", "bake", or "preview"
         acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 

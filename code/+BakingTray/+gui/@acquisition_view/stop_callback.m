@@ -18,7 +18,7 @@ function stop_callback(obj,~,~)
 
     rawDataDirPath = fullfile(obj.model.currentTileSavePath,obj.model.rawDataSubDirName);
 
-    if exist(rawDataDirPath,'dir')
+    if strcmp(obj.model.acquisitionState,'bake')
         showFinishedCheckBox=true;
     else
         showFinishedCheckBox=false;

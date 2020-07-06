@@ -13,6 +13,7 @@ function bakeCleanupFun(obj)
     obj.scanner.disarmScanner;
     obj.scanner.averageSavedFrames=true; % Just in case a testing session was done before
     obj.acquisitionInProgress=false;
+    obj.acquisitionState='idle';    
     obj.sectionCompletionTimes=[]; %clear the array of completion times. 
 
     obj.lastTilePos.X=0;

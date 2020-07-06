@@ -63,6 +63,7 @@ function sectionInd = bake(obj,varargin)
     obj.currentTileSavePath=[];
     obj.sectionCompletionTimes=[];
     obj.acquisitionInProgress=true;
+    obj.acquisitionState='bake';
     obj.abortAcqNow=false; % This and the following property can't be on before we've even started
     obj.abortAfterSectionComplete=false; 
 

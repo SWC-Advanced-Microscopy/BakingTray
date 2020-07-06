@@ -79,6 +79,7 @@ function takeRapidPreview(obj)
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
     obj.acquisitionInProgress=true;
+    obj.acquisitionState='preview';
 
     obj.scanner.disableTileSaving
     obj.currentTileSavePath=[];
@@ -109,6 +110,7 @@ function takeRapidPreview(obj)
         %Tidy up: put all settings back to what they were
         obj.scanner.disarmScanner;
         obj.acquisitionInProgress=false;
+        obj.acquisitionState='idle';
 
         obj.scanner.setImageSize(scanPixPerLine); % Return to original image size
 
