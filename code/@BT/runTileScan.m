@@ -41,16 +41,6 @@ function runSuccess = runTileScan(obj)
     obj.logPositionToPositionArray;
 
 
-    % PLACEHOLDER: in case we need specific actions for acq type. TODO!
-    switch obj.recipe.mosaic.scanmode
-        case 'tiled: manual ROI'
-            % pass
-        case 'tiled: auto-ROI'
-            % pass
-    end
-
-    %TODO: ensure the acquisition is stopped before we proceed
-
     % Concept
     % We can't run the tile scan in an explicit for loop because we need to trigger the next frame
     % *immediately* after the acquisition of the current frame. So this needs to be an event
