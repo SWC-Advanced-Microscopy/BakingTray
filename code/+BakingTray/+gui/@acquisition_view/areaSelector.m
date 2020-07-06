@@ -10,6 +10,9 @@ function areaSelector(obj,~,~)
     roi = images.roi.Rectangle(obj.imageAxes,'Position',defaultPos);
     roi.Label='Adjust then double-click';
 
+    % The only way I can find to move the label to the centre
+    roi.RotationAngle=1E-10;
+
     % Zoom out slightly
     obj.imageAxes.YLim = [-5,imSize(1)+7];
     obj.imageAxes.XLim = [-5,imSize(2)+7];
