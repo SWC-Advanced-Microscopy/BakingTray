@@ -5,10 +5,14 @@ function areaSelector(obj,~,~)
 
 
     % Draw box and get coords
-    defaultPos = [5,5,floor(obj.imageAxes.XLim(2)-10), ...
-                     floor(obj.imageAxes.YLim(2)-10)];
+    imSize = size(obj.model.lastPreviewImageStack,[1,2]);
+    defaultPos = [1,1,imSize(2), imSize(1)];
     roi = images.roi.Rectangle(obj.imageAxes,'Position',defaultPos);
     roi.Label='Adjust then double-click';
+
+    % Zoom out slightly
+    obj.imageAxes.YLim = [-5,imSize(1)+7];
+    obj.imageAxes.XLim = [-5,imSize(2)+7];
 
     % Place tile width and overlap proportion into the roi object
     dsMixPix = obj.model.downsampleMicronsPerPixel;
