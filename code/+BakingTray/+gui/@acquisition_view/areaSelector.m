@@ -13,9 +13,11 @@ function areaSelector(obj,~,~)
     % The only way I can find to move the label to the centre
     roi.RotationAngle=1E-10;
 
-    % Zoom out slightly
-    obj.imageAxes.YLim = [-5,imSize(1)+7];
-    obj.imageAxes.XLim = [-5,imSize(2)+7];
+    % Zoom out slightly if we are not already zoomed out
+    if obj.imageAxes.YLim(1)>0
+        obj.imageAxes.YLim = [-5,imSize(1)+7];
+        obj.imageAxes.XLim = [-5,imSize(2)+7];
+    end
 
     % Place tile width and overlap proportion into the roi object
     dsMixPix = obj.model.downsampleMicronsPerPixel;
@@ -102,7 +104,7 @@ function snapToTiles(src,~)
     % Update ROI label
     labTxt = sprintf('%d by %d tiles', ...
             floor(pos(4)/stepSize.Ymics), ...
-            floor(pos(3)/stepSize.Xmics))
+            floor(pos(3)/stepSize.Xmics));
     src.Label = labTxt;
 end
 
