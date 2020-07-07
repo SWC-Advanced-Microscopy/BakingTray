@@ -1,7 +1,7 @@
 function varargout=writeFullRecipeForAcquisition(obj,dirName)
     % Write recipe to disk and name it according to the sample ID and today's date
     % 
-    % recipe.writeFullRecipeForAcquisition
+    % recipe.writeFullRecipeForAcquisition(dirName)
     %
     % Purpose
     % Turns all the public properties of the recipe class into a structure containing
@@ -27,21 +27,7 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName)
         dirName=pwd;
     end
 
-    theseFields = ['Acquisition';properties(obj)]; %Acquisition (which contains the acquisition start time) is hidden so is added explicitly here
-
-    thisRecipe = struct;
-    for ii=1:length(theseFields)
-
-        % We have to manually add the NumTiles and TileStepSize fields because they're classes 
-        % and WriteYaml can't handle this. 
-        if isa(obj.(theseFields{ii}), theseFields{ii}) % sorry, I know it's naughty but can't help myself
-            thisRecipe.(theseFields{ii}).X = obj.(theseFields{ii}).X;
-            thisRecipe.(theseFields{ii}).Y = obj.(theseFields{ii}).Y;
-            continue
-        end
-
-        thisRecipe.(theseFields{ii}) = obj.(theseFields{ii});
-    end
+    thisRecipe = obj.recipe2struct;
 
     recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd_HHMMSS'));
 

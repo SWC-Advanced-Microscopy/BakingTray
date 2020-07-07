@@ -23,7 +23,7 @@ function pStack = returnPreviewStructure(obj)
 
     % Build the output structure
     pStack.imStack = int16(im); % The auto-thresh can fail unless this an int16
-    pStack.recipe = obj.recipe;
+    pStack.recipe = obj.recipe.recipe2struct; % store recipe as a structure to easy loading
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
     pStack.channel = chanToKeep;
