@@ -110,10 +110,6 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         return
     end
 
-    if details.autoROI
-        fprintf('auto-ROI resumption not working yet\n')
-        return
-    end
 
     % The user chooses how the resumption should proceed
     if helpergui
@@ -170,6 +166,8 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     if ~simulate
         obj.sampleSavePath = pathToRecipe;
     end
+
+
 
     % Delete the FINISHED file if it exists
     if exist(fullfile(pathToRecipe,'FINISHED'),'file')
@@ -271,7 +269,7 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         varsInFile = whos('-file',autoROI_fname);
         tmp=load(autoROI_fname,varsInFile(1).name);
         if ~simulate
-            obj.autoROI.stats = tmp.(varsInFile(1).name);
+            obj.autoROI = tmp.(varsInFile(1).name);
         else
             fprintf('Apply autoROI stats from disk\n')
         end
