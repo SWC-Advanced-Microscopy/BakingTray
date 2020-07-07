@@ -329,9 +329,10 @@ function sectionInd = bake(obj,varargin)
                 return
             end
 
-            % Save to disk the stats for the auto-ROI
+            % Save to disk the whole auto-ROI structure
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
-            autoROI_stats = obj.autoROI.stats;
+            autoROI_stats = obj.autoROI;
+
             save(autoROI_fname,'autoROI_stats')
         else
             % Wipe the last two columns of the position array. These save the actual stage 
