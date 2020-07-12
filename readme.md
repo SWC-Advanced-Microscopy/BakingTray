@@ -40,6 +40,7 @@ The current feature set is as follows:
 
 ### Getting started ###
 See the documentation at [bakingtray.mouse.vision](https://bakingtray.mouse.vision)
+Please do get in touch if use the software: especially if you are publishing with it!
 
 
 ### Related work
