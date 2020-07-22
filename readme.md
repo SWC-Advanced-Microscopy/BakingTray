@@ -24,7 +24,7 @@ Imaging itself is performed via ScanImage, which is freely available MATLAB-base
 This software has been thoroughly stress-tested and is capable of generating production-quality data.
 The current feature set is as follows:
 
-* Easy sample set up: take a fast preview image of the sample then draw a box around the area to be imaged. 
+* Easy sample set up: take a fast preview image of the sample then draw a box around the area to be imaged. Auto-ROI feature currently [under development](https://www.youtube.com/watch?v=yHEkR3nZsOw) and should make its way to `master` by Q3 2020.
 * Acquisition of up to four channels using resonant or linear scanning.
 * A low-resolution preview image of the current section is assembled in real time.
 * Graceful acquisition abort (either immediately or at the end of the current section) and pausing.
@@ -39,7 +39,8 @@ The current feature set is as follows:
 
 
 ### Getting started ###
-See [the wiki](https://github.com/SainsburyWellcomeCentre/BakingTray/wiki)
+See the documentation at [bakingtray.mouse.vision](https://bakingtray.mouse.vision)
+Please do get in touch if use the software: especially if you are publishing with it!
 
 
 ### Related work
