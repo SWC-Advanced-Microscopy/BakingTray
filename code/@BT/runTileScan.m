@@ -10,6 +10,12 @@ function runSuccess = runTileScan(obj)
     runSuccess=false;
 
 
+    % Set counters to zero
+    obj.lastTileIndex=0;
+    obj.lastTilePos.X=0;
+    obj.lastTilePos.Y=0;
+
+
     % Create the position array
     [pos,indexes]=obj.recipe.tilePattern;
     obj.positionArray = [indexes,pos,nan(size(pos))]; %We will store the stage locations here as we go

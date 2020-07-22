@@ -8,7 +8,7 @@ function tileAcqDone(obj,~,~)
     % that performs the tile scanning. It is an "implicit" loop, since it is called 
     % repeatedly until all tiles have been acquired. There is no for loop anywhere. 
     % 
-    % This function records runs aftet each x/y tile position has finished acquiring and
+    % This function runs after each x/y tile position has finished acquiring and
     % gets the stage positions, moves to the *next* stage position, and whilst that is happening
     % extracts image data from the ScanImage API. Finally, it runs
     % hSI.hScan2D.trigIssueSoftwareAcq to soft-trigger another tile position to be acquired.
@@ -58,7 +58,7 @@ function tileAcqDone(obj,~,~)
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} is empty. ',z);
             elseif ~isprop(lastStripe,'roiData')
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} has no field "roiData"',z);
-            elseif ~iscell(lastStripe.roiData) && ~isempty(iscell(lastStripe.roiData)) %% TODO -- temporarilty don't report errors if this is empty since this seems to be a ScanImage bug 04/12/17
+            elseif ~iscell(lastStripe.roiData) && ~isempty(iscell(lastStripe.roiData)) %% TODO -- temporarily don't report errors if this is empty since this seems to be a ScanImage bug 04/12/17
                  msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell. It is a %s.',z, class(lastStripe.roiData));
             elseif length(lastStripe.roiData)<1
                 msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell with length >1',z);
@@ -153,5 +153,4 @@ function tileAcqDone(obj,~,~)
                           % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
                           % to soft-trigger another acquisition.
                           % See also: BT.runTileScan
-
 
