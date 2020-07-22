@@ -365,10 +365,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         fprintf('Homing axis on AMS_SIN11')
-        obj.relativeMove(1); %move up one mm to pre-load
-        while obj.isMoving
-          pause(0.5)
-        end
+
         obj.sendAndReceiveSerial([obj.axID,'M-20000']); %go all the way down
         while obj.isMoving
           pause(0.2)
@@ -376,7 +373,13 @@ classdef AMS_SIN11 < linearcontroller
         end
         fprintf('\n')
 
+        obj.relativeMove(1); %move up one mm to pre-load
+        while obj.isMoving
+          pause(0.5)
+        end
+
         obj.sendAndReceiveSerial([obj.axID,'O0']); %Set this as zero (home)
+
         obj.stageRefCompleted=true;
 
       end %reference stage
