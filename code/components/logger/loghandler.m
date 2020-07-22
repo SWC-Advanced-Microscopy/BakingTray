@@ -131,6 +131,11 @@ classdef (Abstract) loghandler < handle
                 msg='';
             end
 
+            if msgID<obj.logMessageThreshScreen && msgID<obj.logMessageThreshFile
+                % Then we won't need to write anything for sure and we can
+                % quit right now
+                return
+            end
 
             %Get the dbstack chain
             if msgID<6 %unimportant messages have no line numbers

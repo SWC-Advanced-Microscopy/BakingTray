@@ -6,6 +6,10 @@ classdef BT < loghandler
 % happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
 % an abstract class.
 %
+% Also see the bootstrap function "BakingTray.m", which starts an instance of BakingTray 
+% in a user-friendly manner.
+%
+% Examples
 % e.g.
 %  B=buildDummyControllers;
 %  hBT=BT(B);
@@ -25,6 +29,7 @@ classdef BT < loghandler
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
+        disabledAxisReadyCheckDuringAcq=false %If true, we don't check whether stages are ready to move before each motion when we are in an acquisition
     end %close properties
 
 
@@ -61,7 +66,7 @@ classdef BT < loghandler
         % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
         % TODO: should channels contain empty slots for non-acquired channels? 
         downSampledTileBuffer = []
-        downsamplePixPerLine=125 %TODO: for now this is a value in pixels only. This is brittle! CAUTION
+        downsampleMicronsPerPixel = 20;
         lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
         %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
@@ -71,11 +76,6 @@ classdef BT < loghandler
     end
 
     properties (Hidden,SetObservable,AbortSet,Transient,Dependent)
-        %The getter for this property calculates the number of mm per pixel for the
-        %preview tile size. This, in combination with BT.recipe.tilePattern, can be 
-        %use to determine where in the final tile grid each tile is placed. 
-        downsampleTileMMperPixel %TODO: non-square images
-
         % The following dependent properties make file paths (but don't check if the paths are valid)
         pathToSectionDirs % This will be fullfile(obj.sampleSavePath,obj.rawDataSubDirName)
         thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
@@ -119,7 +119,8 @@ classdef BT < loghandler
             params.parse(varargin{:});
 
             % Test read of the system settings file. It will be created if not present. 
-            % Nothing is done with the system settings at this point.
+            % Nothing is done with the system settings at this point. The settings are 
+            % are read by the recipe file. 
             BakingTray.settings.readSystemSettings;
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
@@ -176,9 +177,10 @@ classdef BT < loghandler
             [x,y]=obj.getXYpos;
             z=obj.getZpos;
 
+            % Ensure that x/y stage speeds are what they should be
+            obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
+
             obj.buildFailed=false;
-
-
 
         end %Constructor
 
@@ -218,7 +220,7 @@ classdef BT < loghandler
             obj.yAxis.printAxisStatus
             obj.zAxis.printAxisStatus
         end
-        
+
         function varargout=moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Absolute move position defined by xPos and yPos
             % Wait for motion to complete before returning if blocking is true. 
@@ -359,48 +361,6 @@ classdef BT < loghandler
                 return
             end
             success=obj.moveXYto(FL.X,FL.Y,true); %blocking motion
-        end
-
-        function success = toSampleSide(obj,side)
-            %Move to the mid-point of the 'front', 'left', 'back', or 'right' sides of the sample
-            success=false;
-            if isempty(obj.recipe)
-                return
-            end
-
-            FL = obj.recipe.FrontLeft;
-            if isempty(FL.X) || isempty(FL.Y)
-                fprintf('Front/Left position has not been set.')
-                return
-            end
-
-            errMsg = sprintf('Input argument side must be one of the strings: "front", "left", "right", or "back"\n');
-            if ~ischar(side)
-                fprintf(errMsg)
-                return
-            end
-
-            %The four most extreme positions
-            TP=obj.recipe.tilePattern;
-            L=max(TP(:,1));
-            R=min(TP(:,1));
-            F=max(TP(:,2));
-            B=min(TP(:,2));
-
-            switch lower(side)
-                case 'front'
-                    success=obj.moveXYto(mean([L,R]),F);
-                case 'back'
-                    success=obj.moveXYto(mean([L,R]),B);
-                case 'left'
-                    success=obj.moveXYto(L,mean([F,B]));
-                case 'right'
-                    success=obj.moveXYto(R,mean([F,B]));
-                otherwise
-                    fprintf(errMsg)
-                    return
-            end
-
         end
 
 
@@ -777,17 +737,6 @@ classdef BT < loghandler
 
     methods
         %These methods are getters and setters
-        function mmPerPixel = get.downsampleTileMMperPixel(obj)
-            if ~obj.isRecipeConnected || ~obj.isScannerConnected
-                mmPerPixel=[];
-                return
-            end
-            scnSet=obj.scanner.returnScanSettings;
-            downsampleRatio = scnSet.pixelsPerLine / obj.downsamplePixPerLine;
-            %TODO: as a temporary hack this should work since pixels should be square even with rectangular images
-            mmPerPixel = scnSet.micronsPerPixel_cols * downsampleRatio * 1E-3;
-        end
-
         function out = get.pathToSectionDirs(obj)
             % This is the full path to the sample directory
             out = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);

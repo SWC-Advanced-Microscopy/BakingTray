@@ -2,13 +2,25 @@ function takeRapidPreview(obj)
     % Runs one section with faster scan settings to see what the sample looks like
     %
     % function BT.takeRapidPreview
+    %
+    % Purpose
+    % During sample set-up the user images the face of the block to determine where 
+    % draw the imaging area. This is called a "preview scan" and is of lower resolution
+    % than the final scan. In addition, the preview scan acquires only one optical plane,
+    % even if the final acquisition will involved multiple planes. This method performs
+    % preview scan. It first sets scan parameters to the required lower resolution,
+    % performs the scan, then returns the scan parameters to their original values. To
+    % indicate that the settings are at the lower resolution, the sample ID is changed
+    % to the string "FASTPREVIEW" for the duration of the preview scan.
+    %
+    % 
 
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
         return
     end
 
-    if ~isa(obj.scanner,'SIBT')
+    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
         fprintf('Only acquisition with ScanImage supported at the moment.\n')
         return
     end
@@ -44,7 +56,6 @@ function takeRapidPreview(obj)
     end
     numZ = obj.recipe.mosaic.numOpticalPlanes;
 
-
     if strcmp(obj.scanner.scannerType,'linear')
         obj.scanner.setImageSize(128); %Set pixels per line, the method takes care of the rest
     else
@@ -53,15 +64,13 @@ function takeRapidPreview(obj)
 
     % This is a nasty hack for ensuring fast scanning galvos proceeds at a reasonable frame rate
     if isa(obj.scanner, 'SIBT') && strcmp(obj.scanner.scannerType,'linear')
-        obj.scanner.hC.hScan2D.pixelBinFactor=8;
+        obj.scanner.hC.hScan2D.pixelBinFactor=12;
         obj.scanner.hC.hScan2D.sampleRate=1.25E6;
     end
-
 
     %Image just one plane without averaging
     obj.recipe.mosaic.numOpticalPlanes=1;
     obj.scanner.setNumAverageFrames(1);
-
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
@@ -74,34 +83,30 @@ function takeRapidPreview(obj)
 
     obj.preAllocateTileBuffer
 
-
     if ~obj.scanner.armScanner
-        disp('FAILED TO START -- COULD NOT ARM SCANNER')
+        fprintf('\n\n ** FAILED TO START RAPID PREVIEW -- COULD NOT ARM SCANNER.\n\n')
     else
         %This initiates the tile scan
         try
             obj.runTileScan;
         catch ME
-             obj.scanner.abortScanning;
-             %obj.scanner.disarmScanner;
-             %obj.acquisitionInProgress=false;
-             tidyUpAfterPreview
-             disp(' RAPID PREVIEW FAILED ')
-           	 rethrow(ME)
+            obj.scanner.abortScanning;
+            tidyUpAfterPreview
+            fprintf('\n\n ** RAPID PREVIEW FAILED\n\n')
+            report=getReport(ME);
+            fprintf(report)
+            rethrow(ME)
         end
     end
 
 
-    
 
-    
     tidyUpAfterPreview
 
-    
+
     % Nested functions follow
     function tidyUpAfterPreview
         %Tidy up: put all settings back to what they were
-        disp('TIDYING')
         obj.scanner.disarmScanner;
         obj.acquisitionInProgress=false;
 

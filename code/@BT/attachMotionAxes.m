@@ -74,8 +74,7 @@ function success=attachMotionAxes(obj,settings)
                                              thisStage.type, thisStage.settings);
 
             catch ME1
-                disp(ME1.message)
-                fprintf('FAILED TO BUILD AXIS: %s\n',thisAxisName)
+                fprintf('\nFAILED TO BUILD AXIS: %s\n',thisAxisName)
                 disp(ME1.message)
                 for ii=1:length(ME1.stack)
                     st=ME1.stack(ii);
@@ -83,12 +82,13 @@ function success=attachMotionAxes(obj,settings)
                 end
                 fprintf('\n')
                 obj.(thisAxisName)=[];
+                rethrow(ME1)
             end
 
-            %Return false if the attachment failed
+
             if ~isempty(obj.(thisAxisName))
                 %Add a link to the BT parent object to the component so this component can access
-                %other attached components
+                %other attached components.
                 obj.(thisAxisName).parent=obj;
             else
                 fprintf('No axis attached for %s\n',thisAxisName)
@@ -97,7 +97,7 @@ function success=attachMotionAxes(obj,settings)
     end
 
 
-
+    % Return false if the attachment failed
     success = ~isempty(obj.xAxis) && ~isempty(obj.yAxis) && ~isempty(obj.zAxis);
 
 end

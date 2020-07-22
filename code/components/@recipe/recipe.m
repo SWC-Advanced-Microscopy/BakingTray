@@ -123,6 +123,7 @@ classdef recipe < handle
                     'cuttingSpeed', 0.5, ...       % Number defining how fast the blade should move through the sample (mm/s)
                     'cutSize', 20, ...             % Number defining the distance in mm to cut
                     'sliceThickness', 0.1, ...     % Number defining the thickness in mm to cut
+                    'numOverlapZPlanes', 0, ...   % Number of extra optical planes to add. Allows for z overlap in a slightly crappy way.
                     'numOpticalPlanes', 2, ...     % Integer defining the number of optical planes (layers) to image
                     'overlapProportion', 0.05, ... % Value from 0 to 0.5 defining how much overlap there should be between adjacent tiles
                     'sampleSize', struct('X',1, 'Y',1), ...  % The size of the sample in mm
@@ -280,93 +281,6 @@ classdef recipe < handle
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         % Convenience methods
-        function success=recordScannerSettings(obj)
-            % Checks if a scanner object is connected to the parent (BakingTray) object and if so runs
-            % its scanner.returnScanSettings method and store the output in recipe.ScannerSettings
-            if isempty(obj.parent)
-                success=false;
-                fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
-                return
-            end
-            if ~isempty(obj.parent.scanner)
-                obj.ScannerSettings = obj.parent.scanner.returnScanSettings;
-
-                % Update properties related to the scanner. 
-                % Some stuff will be duplicated, but is stored in a nicer format.
-                % Other stuff is calculated from the scanner and recipe information
-                obj.VoxelSize.X = obj.ScannerSettings.micronsPerPixel_cols;
-                obj.VoxelSize.Y = obj.ScannerSettings.micronsPerPixel_rows;
-
-                if strcmp(obj.mosaic.scanmode,'ribbon')
-                    obj.VoxelSize.Z = round( (obj.mosaic.sliceThickness*1E3) / obj.mosaic.numOpticalPlanes,1);
-                else
-                    if obj.ScannerSettings.numOpticalSlices == 1
-                        obj.VoxelSize.Z = obj.mosaic.sliceThickness * 1E3;
-                    elseif obj.ScannerSettings.numOpticalSlices > 1
-                        obj.VoxelSize.Z = obj.ScannerSettings.micronsBetweenOpticalPlanes;
-                    end
-                end
-
-                obj.Tile.nRows  = obj.ScannerSettings.linesPerFrame;
-                obj.Tile.nColumns = obj.ScannerSettings.pixelsPerLine;
-
-                % Figure out if we are using one the pre-set scan settings and copy these
-                % values from the scanner to the recipe
-
-                tileOptions = obj.parent.scanner.frameSizeSettings;
-
-                if isempty(tileOptions) || length(fields(tileOptions))==0
-                    success=false;
-                    return
-                end
-                pixLin = [tileOptions.pixelsPerLine];
-                linFrm = [tileOptions.linesPerFrame];
-                zmFact = [tileOptions.zoomFactor];
-
-                ind = ([tileOptions.pixelsPerLine]==obj.Tile.nColumns) .* ...
-                    ([tileOptions.linesPerFrame]==obj.Tile.nRows) .* ...
-                    ([tileOptions.zoomFactor]==obj.ScannerSettings.zoomFactor); 
-                ind = find(ind);
-                if ~isempty(ind) && length(ind)==1
-                    FrameData = tileOptions(ind);
-                else
-                    FrameData=[];
-                    fprintf('Recipe can not find scanner stitching settings\n')
-                end
-
-                if isstruct(FrameData) && ...
-                    (~isfield(FrameData,'stitchingVoxelSize') || isempty(FrameData.stitchingVoxelSize))
-                    scnSet = obj.parent.scanner.returnScanSettings;
-                    % Just take nominal values. It doesn't matter too much. 
-                    mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
-                    obj.StitchingParameters.VoxelSize.X=mu;
-                    obj.StitchingParameters.VoxelSize.Y=mu;
-                elseif isstruct(FrameData)
-                    obj.StitchingParameters.VoxelSize = FrameData.stitchingVoxelSize;
-                else
-                    fprintf('NOT USING PRE-DEFINED STITCHING PARAMS! NONE AVILABLE\n')
-                end
-
-                if isstruct(FrameData) 
-                    if ~isempty(FrameData.lensDistort)
-                        obj.StitchingParameters.lensDistort = FrameData.lensDistort;
-                    else
-                        obj.StitchingParameters.lensDistort.rows=0;
-                        obj.StitchingParameters.lensDistort.cols=0;
-                    end
-                    if ~isempty(FrameData.affineMat)
-                        obj.StitchingParameters.affineMat = FrameData.affineMat;
-                    else
-                        obj.StitchingParameters.affineMat = eye(3);
-                    end
-                end
-
-                success=true;
-            else
-                success=false;
-            end
-        end
-
         function numTiles = numTilesInOpticalSection(obj)
             % Return the number of tiles to be imaged in one plane
             numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
@@ -614,6 +528,8 @@ classdef recipe < handle
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'sliceThickness'
                             fieldValue = obj.checkFloat(fieldValue,0.01,1); %Allow slices up to 1 mm thick
+                        case 'numOverlapZPlanes'
+                            fieldValue = obj.checkInteger(fieldValue);
                         case 'numOpticalPlanes'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'overlapProportion'
@@ -731,16 +647,19 @@ classdef recipe < handle
 
     methods (Hidden)
         % Convenience methods that aren't methods
-        function value=checkInteger(~,value)
+        function value=checkInteger(~,value,allowZero)
             % Confirm that an input is a positive integer
             % Returns empty if the input is not valid. 
             % Empty values aren't assigned to a property by the setters
+            if nargin<3
+                allowZero=false;
+            end
             if ~isnumeric(value) || ~isscalar(value)
                 value=[];
                 return
             end
 
-            if value<=0
+            if allowZero==false && value<=0
                 value=[];
                 return
             end

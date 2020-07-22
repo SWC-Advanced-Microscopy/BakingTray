@@ -121,6 +121,8 @@ classdef view < handle
             %TODO: these menu items should react to whether or not the scanner is connected
             if isa(obj.model.scanner,'SIBT')
                 obj.menu.connectScanImage = uimenu(obj.menu.scanner,'Label','Connect ScanImage','Callback',@obj.connectScanImage);
+            elseif isa(obj.model.scanner,'dummyScanner')
+                obj.menu.openDummyScanner = uimenu(obj.menu.scanner,'Label','Open dummy scanner','Callback',@(~,~) obj.model.scanner.createFigureWindow);
             else
                 fprintf('BakingTray is configured to run without ScanImage\n')
             end
@@ -128,7 +130,7 @@ classdef view < handle
 
             obj.menu.armScanner = uimenu(obj.menu.scanner,'Label','Arm Scanner','Callback', @(~,~) obj.model.scanner.armScanner);
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Disarm Scanner','Callback', @(~,~) obj.model.scanner.disarmScanner);
-            
+
             %TODO: this item should only appear if the scanner if ScanImage
             obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
 
@@ -231,7 +233,7 @@ classdef view < handle
                 commonButtonSettings{:}, ...
                 'Parent', obj.hardwarePanel, ...
                 'Position', [180,6, 70, 20], ...
-                'Callback',@obj.previewSample, ...
+                'Callback',@obj.startPreviewSampleGUI, ...
                 'String', 'Preview', ....
                 'ForegroundColor','k');
             if ~obj.suppressToolTips
@@ -586,7 +588,7 @@ classdef view < handle
 
 
 
-        function previewSample(obj,~,~)
+        function startPreviewSampleGUI(obj,~,~)
             if isempty(obj.view_prepare)
                 % The user must be resuming since they never prepared anything
                 warndlg('You seem to be resuming an acquisition. Please first open the Prepare Sample window and confirm the settings look correct','');
@@ -633,7 +635,7 @@ classdef view < handle
                 %otherwise raise it (TODO: currently not possible since button is disabled when acq GUI starts)
                 figure(obj.view_acquire.hFig)
             end
-        end %previewSample
+        end %startPreviewSampleGUI
 
 
         %The following methods are callbacks from the menu
@@ -750,7 +752,8 @@ classdef view < handle
             end
         end
 
-        function updateStatusText(obj,~,~)
+        function varargout = updateStatusText(obj,~,~)
+            % Update the status text in the main BakingTray GUI window
             if obj.model.isRecipeConnected
                 R=obj.model.recipe;
 
@@ -793,12 +796,10 @@ classdef view < handle
 
 
                     estimatedSize = obj.model.recipe.estimatedSizeOnDisk(tilesPlane.total);
-                    msg = sprintf(['Scanner: %s ; Scan Mode: %s\n', ...
-                        'FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
+                    msg = sprintf(['FOV: %d x %d\\mum ; Voxel: %0.1f x %0.1f x %0.1f \\mum\n', ...
                         'Tiles: %d x %d ; Depth: %0.1f mm ; %s\n', ...
                         'Time left: %s; Per slice: %s\n',  ....
                         'Disk usage: %0.2f GB'], ...
-                        scannerID, R.mosaic.scanmode, ...
                         round(scnSet.FOV_alongColsinMicrons), ...
                         round(scnSet.FOV_alongRowsinMicrons), ...
                         scnSet.micronsPerPixel_cols, scnSet.micronsPerPixel_rows, micronsBetweenOpticalPlanes, ...
@@ -815,7 +816,12 @@ classdef view < handle
 
                 % Finally we highlight the tile size label as needed
                 obj.updateTileSizeLabelText(scnSet)
-            end 
+
+                if nargout>0
+                    varargout{1} = msg;
+                end
+
+            end
         end %updateStatusText
 
         function updateTileSizeLabelText(obj,scnSet)

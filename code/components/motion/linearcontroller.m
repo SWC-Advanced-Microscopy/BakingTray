@@ -255,7 +255,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
     methods %These are non-critical abstract methods (TODO: check this is true)
 
         %As positionUnits, but for the stage's target, or maximum, velocity
-        velocity = getMaxVelocity(obj)
+        velocity = getMaxVelocity(obj) %The target speed not stage absolute max
         success = setMaxVelocity(obj,velocity)
         %true/false
 
@@ -362,9 +362,13 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % ready - true/false
             %   ready is true if the object is set up and ready to perform axis motions or 
             %   query the axis, etc. false otherwise.
-
-
             ready=false;
+
+            if ~isempty(obj.parent) && obj.parent.disabledAxisReadyCheckDuringAcq && obj.parent.acquisitionInProgress 
+                ready=true;
+                return
+            end
+
 
             % Is a connection established to the hardare and is at least one linearstage connected?
             if ~obj.isControllerConnected || ~obj.isStageConnected 

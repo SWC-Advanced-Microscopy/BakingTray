@@ -116,6 +116,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     % Check if we will end up writing into existing directories
     if obj.isRecipeConnected
         n=0;
+        origCurrentSectionNum = obj.currentSectionNumber; % store the current section number because it's going to be modified here
         for ii=1:obj.recipe.mosaic.numSections
             obj.currentSectionNumber = ii+obj.recipe.mosaic.sectionStartNum-1; % Sets obj.thisSectionDir
             if exist(obj.thisSectionDir,'dir')
@@ -133,6 +134,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
                 '\t* Change the section start number.\n'], msg, msgNumber, n, nDirStr);
             msgNumber=msgNumber+1;
         end
+        obj.currentSectionNumber = origCurrentSectionNum; % revert it
     end
 
     % Is there a valid path to which we can save data?
@@ -142,8 +144,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     end
 
     % If using ScanImage, did the user switch on all the PMTs for the channels being saved?
-    if isa(obj.scanner,'SIBT') && ~isequal(obj.scanner.channelsToAcquire,obj.scanner.getEnabledPMTs)
-        obj.scanner.channelsToAcquire,obj.scanner.getEnabledPMTs
+    if isa(obj.scanner,'SIBT') && ~isempty(obj.scanner.hC.hPmts.gains) && ~isequal(obj.scanner.channelsToAcquire,obj.scanner.getEnabledPMTs)
         msg=sprintf('%s%d) Check you have enabled the correct PMTs and try again.\n', msg,msgNumber);
         msgNumber=msgNumber+1;
     end

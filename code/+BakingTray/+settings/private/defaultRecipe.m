@@ -15,6 +15,7 @@ function dRecipe=defaultRecipe
     dRecipe.mosaic.cutSize=20;
     dRecipe.mosaic.sliceThickness=0.1;
     dRecipe.mosaic.numOpticalPlanes=2;
+    dRecipe.mosaic.numOverlapZPlanes=0;
     dRecipe.mosaic.overlapProportion=0.05;
     dRecipe.mosaic.sampleSize.X=2;
     dRecipe.mosaic.sampleSize.Y=2;

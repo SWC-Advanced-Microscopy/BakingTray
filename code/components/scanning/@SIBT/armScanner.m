@@ -45,6 +45,7 @@ function [success,msg] = armScanner(obj)
         R = obj.returnScanSettings;
         xResInMM = R.micronsPerPixel_cols * 1E-3;
 
+        % TODO - why is this here? It should already be done by BT.bake or BT.takeRapidPreview
         if isempty(obj.parent.currentTilePattern)
             obj.parent.currentTilePattern = obj.parent.recipe.tilePattern;
         end

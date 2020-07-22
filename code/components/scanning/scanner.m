@@ -16,6 +16,8 @@ classdef (Abstract) scanner < handle & loghandler
     
     properties (Hidden)
         parent  %A copy of the parent object (likely BakingTray) to which this component is attached
+        averageSavedFrames=true; %If false, with averaging enabled we save each frame separately.
+                                 %The implementation of this needs to be handled by the concrete scanner class
     end
 
     properties (SetAccess=protected)
@@ -35,7 +37,7 @@ classdef (Abstract) scanner < handle & loghandler
                 % i.e. any setting that might impact image size, FOV, frame rate, size of the final
                 % acquisition (e.g. number of channels), etc. This setting will be monitored by 
                 % at least BakingTray.gui.view and BakingTray.gui.acquisition_view
-        frameSizeSettings =struct % This struct contains the available frame size options along with the
+        frameSizeSettings=struct % This struct contains the available frame size options along with the
                                   % the stitching parameters. Can be scanner-specific. See SIBT.
     end
 
@@ -50,6 +52,7 @@ classdef (Abstract) scanner < handle & loghandler
             obj.scanSettingsChanged = obj.scanSettingsChanged*-1;
         end
     end
+
     % The following are all critical methods that your class should define
     % You should also define a suitable destructor to clean up after you class
     methods (Abstract)
@@ -137,7 +140,9 @@ classdef (Abstract) scanner < handle & loghandler
         % 
         % Behavior
         % Conduct any operations necessary to allow for image saving. e.g.
-        % may need to tell the scanner what the path and filenames are.
+        % may need to tell the scanner what the path and filenames are. This method
+        % is called once per section to update things like the directory into which
+        % data are to be saved.
 
         disableTileSaving(obj)
         % disableTileSaving
@@ -344,5 +349,18 @@ classdef (Abstract) scanner < handle & loghandler
         
      end % close abstract methods
 
+     % The following concrete methods are shared by all scanner classes
+     methods
+        function fname = returnTileFname(obj)
+            % Return the file name stem for the images and this x/y position
+            fname = sprintf('%s-%04d', obj.parent.recipe.sample.ID,obj.parent.currentSectionNumber);
+        end
 
+        function fname = returnRibbonFname(obj)
+            % Return the file name stem for the ribbon image at this x/y position
+            fname = sprintf('%s-%04d-%02d', obj.parent.recipe.sample.ID, ...
+                obj.parent.currentSectionNumber, obj.parent.currentOpticalSectionNumber);
+        end
+
+     end
 end %close classdef

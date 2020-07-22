@@ -1,9 +1,9 @@
 classdef recipe_tests < matlab.unittest.TestCase
-    % Unit tests for ensuring that the recipe class does not let the 
-    % user apply settings that are out of range or otherwise inappropriate. 
+    % Unit tests for ensuring that the recipe class does not let the
+    % user apply settings that are out of range or otherwise inappropriate.
 
     properties
-        hR 
+        hR
     end %properties
 
 
@@ -16,13 +16,12 @@ classdef recipe_tests < matlab.unittest.TestCase
             obj.hR.CuttingStartPoint.X=18;
         end
     end
- 
+
     methods(TestMethodTeardown)
         function closeRecipe(obj)
             delete(obj.hR);
         end
     end
-
 
 
 
@@ -74,7 +73,7 @@ classdef recipe_tests < matlab.unittest.TestCase
             obj.verifyEmpty(hBT.recipe.tilePattern);
             hBT.yAxis.attachedStage.maxPos=maxY+10; %reset
             obj.verifyNotEmpty(hBT.recipe.tilePattern);
-            
+
         end
 
 
@@ -113,7 +112,7 @@ classdef recipe_tests < matlab.unittest.TestCase
         function checkIntegerValid(obj)
             %Check just one of the integer fields, all use the same method
             testVal=[2,99,1000,10.1,0.5];
-            for ii=1:length(testVal)            
+            for ii=1:length(testVal)
                 obj.hR.mosaic.sectionStartNum=testVal(ii);
                 obj.verifyTrue(obj.hR.mosaic.sectionStartNum==ceil(testVal(ii)))
             end
@@ -122,7 +121,7 @@ classdef recipe_tests < matlab.unittest.TestCase
         function checkIntegerInValid(obj)
             %Check just one of the integer fields, all use the same method
             testVal={0,-1,-1.1,[],'hello','H',{},struct};
-            for ii=1:length(testVal)            
+            for ii=1:length(testVal)
                 initialVal = obj.hR.mosaic.sectionStartNum;
                 obj.hR.mosaic.sectionStartNum=testVal{ii};
                 obj.verifyTrue(obj.hR.mosaic.sectionStartNum==initialVal)
@@ -131,7 +130,7 @@ classdef recipe_tests < matlab.unittest.TestCase
 
         function checkOverlapPropValid(obj)
             testVal=[0,0.5];
-            for ii=1:length(testVal)            
+            for ii=1:length(testVal)
                 obj.hR.mosaic.overlapProportion=testVal(ii);
                 obj.verifyTrue(obj.hR.mosaic.overlapProportion==testVal(ii))
             end
@@ -139,7 +138,7 @@ classdef recipe_tests < matlab.unittest.TestCase
 
         function checkOverlapPropInValid(obj)
             testVal={[],'hello','H',{},struct};
-            for ii=1:length(testVal)            
+            for ii=1:length(testVal)
                 initialVal = obj.hR.mosaic.overlapProportion;
                 obj.hR.mosaic.overlapProportion=testVal{ii};
                 obj.verifyTrue(obj.hR.mosaic.overlapProportion==initialVal)

@@ -1,39 +1,62 @@
-Acquisition: {acqStartTime: '2017/04/08 19:17:55'}
+Acquisition: {acqStartTime: '2020/02/21 10:21:31'}
 sample: {ID: BLANKTEST, objectiveName: nikon 16x}
 mosaic:
   sectionStartNum: 1.0
-  numSections: 110.0
-  cuttingSpeed: 0.35
-  cutSize: 22.0
-  sliceThickness: 0.1
-  numOpticalPlanes: 5.0
-  overlapProportion: 0.07
-  sampleSize: {X: 6.5, Y: 10.1}
+  numSections: 250.0
+  cuttingSpeed: 0.5
+  cutSize: 29.0
+  sliceThickness: 0.04
+  numOverlapZPlanes: 0.0
+  numOpticalPlanes: 1.0
+  overlapProportion: 0.1
+  sampleSize: {X: 17.98, Y: 13.11}
   scanmode: tile
-CuttingStartPoint: {X: 10.000308, Y: 2.0E-6}
-FrontLeft: {X: 0.0, Y: 0.0}
-NumTiles: {X: 10.0, Y: 16.0}
-Tile: {nRows: 620.0, nColumns: 620.0}
-TileStepSize: {X: 0.6631, Y: 0.6631}
-VoxelSize: {X: 1.15, Y: 1.15, Z: 50.0}
+CuttingStartPoint: {X: 25.799999, Y: 0.0}
+FrontLeft: {X: 18.6548150176, Y: 11.364716618666664}
+StitchingParameters:
+  VoxelSize: {X: 1.01, Y: 0.996}
+  lensDistort: {rows: 0.0, cols: 0.02}
+  affineMat:
+  - [1.0, -0.013, 0.0]
+  - [0.0, 1.0, 0.0]
+  - [0.0, 0.0, 1.0]
+NumTiles: {X: 19.0, Y: 14.0}
+Tile: {nRows: 1024.0, nColumns: 1024.0}
+TileStepSize: {X: 0.9424, Y: 0.9424}
+VoxelSize: {X: 1.023, Y: 1.023, Z: 40.0}
 ScannerSettings:
-  pixelsPerLine: 620.0
-  linesPerFrame: 620.0
-  micronsBetweenOpticalPlanes: 50.0
-  zoomFactor: 1.1
-  scannerMechanicalAnglePP: 16.364
-  scannedFOVinMicrons: 712.96
-  micronsPerPixel: 1.15
-  framePeriodInSeconds: 0.514
-  pixelTimeInMicroSeconds: 1.2
-  linePeriodInMicroseconds: 827.2
+  pixelsPerLine: 1024.0
+  linesPerFrame: 1024.0
+  micronsBetweenOpticalPlanes: 0.0
+  numOpticalSlices: 1.0
+  zoomFactor: 1.2
+  FOV_alongColsinMicrons: 1047.15
+  FOV_alongRowsinMicrons: 1047.15
+  micronsPerPixel_cols: 1.023
+  micronsPerPixel_rows: 1.023
+  framePeriodInSeconds: 0.066
   bidirectionalScan: true
   activeChannels:
-  - [1.0]
   - [2.0]
   - [3.0]
-  - [4.0]
-  beamPower: 3.2
-SYSTEM: {ID: brainsaw, xySpeed: 100.0, objectiveZSettlingDelay: 0.05, enableFlyBackBlanking: false,
-  cutterSide: 1.0, type: bakingtray, version: 0.5}
-SLICER: {approachSpeed: 25.0, vibrateRate: 60.0, postCutDelay: 6.0, postCutVibrate: 3.0}
+  beamPower: 45.0
+  powerZAdjust: true
+  beamPowerLengthConstant: 250.0
+  powerZAdjustType:
+  - []
+  scanMode: resonant
+  scannerID: ScanImage via SIBT
+  version: ScanImage v5.6.0 on MATLAB 9.3.0.713579 (R2017b)
+  pixEqLinCheckBox: true
+  slowMult: 1.0
+  fastMult: 1.0
+  averageEveryNframes: 10.0
+SYSTEM:
+  ID: brainsaw
+  xySpeed: 100.0
+  cutterSide: 1.0
+  defaultFrontLeft: [17.0, 4.0]
+  type: bakingtray
+  version: 0.55
+SLICER: {approachSpeed: 25.0, vibrateRate: 9.0, postCutDelay: 6.0, postCutVibrate: 3.0}
+SLACK: {user: '@BrainSaw', hook: 'https://hooks.slack.com/services/T7S8UFBGR/BEK6T58HW/qKC7Ie2m1'}
