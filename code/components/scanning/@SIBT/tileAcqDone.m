@@ -8,13 +8,12 @@ function tileAcqDone(obj,~,~)
     % that performs the tile scanning. It is an "implicit" loop, since it is called 
     % repeatedly until all tiles have been acquired. There is no for loop anywhere. 
     % 
-    % This function runs after each x/y tile position has finished acquiring and
+    % This function records runs aftet each x/y tile position has finished acquiring and
     % gets the stage positions, moves to the *next* stage position, and whilst that is happening
     % extracts image data from the ScanImage API. Finally, it runs
     % hSI.hScan2D.trigIssueSoftwareAcq to soft-trigger another tile position to be acquired.
     % That causes us to re-enter this callback once the frames in that tile position have been 
     % completed. 
-
 
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     if ~isempty(obj.parent.positionArray)
@@ -25,22 +24,17 @@ function tileAcqDone(obj,~,~)
         fprintf('BT.positionArray is empty. Not logging last tile positions. Likely hBT.runTileScan was not run.\n')
     end
 
-    
-    % Move to the *next* X/Y position. 
-    switch obj.parent.recipe.mosaic.scanmode
-        case 'tile'
-            %Initiate move to the next X/Y position (blocking motion)
-            obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
+    %Initiate move to the next X/Y position (blocking motion)
+    %the if statement stops us from attempting a move once this callback is
+    %called for the final time (a self-call, see below)
+    if obj.parent.currentTilePosition < size(obj.parent.currentTilePattern,1)
+        obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
                 obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
-        case 'ribbon'
-            % TODO: remove this -- we won't implement this feature in the end. 
-            %Initiate move to the next X position. Non-blocking, keep Y unchanged.
-            obj.parent.moveXto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), false);
     end
-
 
     % Import the last frames and downsample them
     debugMessages=false;
+
 
     % Import image data from the ScanImage API
     if obj.parent.importLastFrames
@@ -48,17 +42,21 @@ function tileAcqDone(obj,~,~)
         planeNum=1; %This counter indicates the current z-plane
         %Loop through the buffer, pulling out the first frame from each depth
         for z = 1 : obj.hC.hDisplay.displayRollingAverageFactor : length(obj.hC.hDisplay.stripeDataBuffer)
-            if debugMessages
-                fprintf('%s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n',mfilename,z)
-            end
+
             % scanimage stores image data in a data structure called 'stripeData'
             %ptr=obj.hC.hDisplay.stripeDataBufferPointer; % get the pointer to the last acquired stripeData (ptr=1 for z-depth 1, ptr=5 for z-depth, etc)
             lastStripe = obj.hC.hDisplay.stripeDataBuffer{z};
+
+            if debugMessages
+                fprintf('%d. %s pulling in obj.hC.hDisplay.stripeDataBuffer{%d}\n', ...
+                        lastStripe.acqNumber, mfilename, z)
+            end
+
             if isempty(lastStripe)
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} is empty. ',z);
             elseif ~isprop(lastStripe,'roiData')
                 msg = sprintf('obj.hC.hDisplay.stripeDataBuffer{%d} has no field "roiData"',z);
-            elseif ~iscell(lastStripe.roiData) && ~isempty(iscell(lastStripe.roiData)) %% TODO -- temporarily don't report errors if this is empty since this seems to be a ScanImage bug 04/12/17
+            elseif ~iscell(lastStripe.roiData) && ~isempty(iscell(lastStripe.roiData)) %% TODO -- temporarilty don't report errors if this is empty since this seems to be a ScanImage bug 04/12/17
                  msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell. It is a %s.',z, class(lastStripe.roiData));
             elseif length(lastStripe.roiData)<1
                 msg = sprintf('Expected obj.hC.hDisplay.stripeDataBuffer{%d}.roiData to be a cell with length >1',z);
@@ -113,26 +111,24 @@ function tileAcqDone(obj,~,~)
         obj.resetTrippedPMTs
     end
 
-    % Increment the counter and make the new position the current one
-    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
-
-    if obj.parent.currentTilePosition>size(obj.parent.currentTilePattern,1)
-        fprintf('hBT.currentTilePosition > number of positions. Breaking in SIBT.tileAcqDone\n')
-        return
-    end
-
-
-
-    % Store stage positions. this is done after all tiles in the z-stack have been acquired
-    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
-    % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
-    % you won't get the real stage positions
-    obj.parent.logPositionToPositionArray(doFakeLog)
 
     if obj.hC.hChannels.loggingEnable==true
         positionArray = obj.parent.positionArray;
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
+
+
+    % Increment the counter and make the new position the current one
+    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+
+    % Store stage positions. this is done after all tiles in the z-stack have been acquired
+    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+    % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
+    % you won't get the real stage positions
+    % The first tile was logged in BT.runTileScan.
+    obj.parent.logPositionToPositionArray(doFakeLog)
+
+
 
     % Initiate the next position (obj.initiateTileScan) so long as we aren't paused
     nPauses=0; % A counter to poll the laser every few seconds so it doesn't turn off if it has a watchdog timer enabled
@@ -149,8 +145,4 @@ function tileAcqDone(obj,~,~)
     % Write message to the log file using the logger class
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
-    obj.initiateTileScan  % Start the next position (initiates a motion if ribbon scanning)
-                          % obj.initiateTileScan just runs hSI.hScan2D.trigIssueSoftwareAcq;
-                          % to soft-trigger another acquisition.
-                          % See also: BT.runTileScan
-
+    obj.hC.hScan2D.trigIssueSoftwareAcq

@@ -143,8 +143,6 @@ function OUT=buildStack(dirPath,sampleName)
     end
     fprintf('\n')
 
-    OUT = rot90(OUT,-1);
-
     %Delete any planes that are empty:
     OUT = OUT(:,:, ~(squeeze([sum(sum(OUT))])==0) );
 

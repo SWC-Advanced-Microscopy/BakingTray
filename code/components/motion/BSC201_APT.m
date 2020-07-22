@@ -35,37 +35,29 @@ classdef BSC201_APT < linearcontroller
 % myDevice.connect;
 
 
-    properties 
+    properties
         % controllerID - the information necessary to build a connected object
-        %
-        % This property is filled in if needed... (TODO)
-        %
         % The BSC201_APT is connected via USB.
-
         loggingObject %property to which we attach the logging object
-
-        % The handle to the figure where ActiveX will be connected 
-        figH
-
+        figH         % The handle to the figure where ActiveX will be connected 
     end %close public properties
-      
 
     methods
-        
+
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function obj=BSC201_APT(stageObject,logObject)
 
         if nargin<1
-          stageObject=[];
+            stageObject=[];
         end
         if nargin<2
-          logObject=[];
+            logObject=[];
         end
 
         obj.maxStages=1;
 
         if ~isempty(stageObject)
-          obj.attachLinearStage(stageObject);
+            obj.attachLinearStage(stageObject);
         end
 
         if ~isempty(logObject)
@@ -78,9 +70,9 @@ classdef BSC201_APT < linearcontroller
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function delete(obj)
         if ~isempty(obj.hC)
-          fprintf('Closing connection to BSC201 controller\n')
-          obj.hC.StopCtrl;
-          delete(obj.figH)
+            fprintf('Closing connection to BSC201 controller\n')
+            obj.hC.StopCtrl;
+            delete(obj.figH)
         end
       end %destructor
 
@@ -94,15 +86,15 @@ classdef BSC201_APT < linearcontroller
         % hideControls    - 1/0 or empty or missing (ignored if connectedObject is a figure handle)
 
         if ~obj.isStageConnected
-          obj.logMessage(inputname(1),dbstack,7,'Not completing connection routine. Closing')
-          success=false;
-          return
+            obj.logMessage(inputname(1),dbstack,7,'Not completing connection routine. Closing')
+            success=false;
+            return
         end
 
         if nargin<2 || isempty(hFig)
-          obj.figH=figure; %Create a figure to which we can attach the ActiveX handles
+            obj.figH=figure; %Create a figure to which we can attach the ActiveX handles
         elseif isa(hFig,'handle') & strcmp(get(f,'type'),'figure')
-          obj.figH=hFig;
+            obj.figH=hFig;
         end
         set(obj.figH,'Name','THORLABS', ...
           'ToolBar','None', ...
@@ -114,14 +106,13 @@ classdef BSC201_APT < linearcontroller
         set(obj.figH,'CloseRequestFcn', @obj.closeBSC201window)
 
         if nargin<3 || isempty(hideContols)
-          hideContols=0;
+            hideContols=0;
         end
         %The size of the ActiveX control in the figure 
-        %TODO: this will need to go elsewhere
         if hideContols
-          pos=[0,0,1,1];
+            pos=[0,0,1,1];
         else
-          pos=[0,0,380,350];
+            pos=[0,0,380,350];
         end
 
 
@@ -150,7 +141,7 @@ classdef BSC201_APT < linearcontroller
         %Create a motor control ActiveX connection
         fprintf('Creating Motor object for BSC201 controller.\n')
         obj.hC =  actxcontrol('MGMOTOR.MGMotorCtrl.1', pos, obj.figH);
-        obj.hC.StartCtrl; %TODO: we've already done this with the logging object. Does it need to be done here too?
+        obj.hC.StartCtrl;
         set(obj.hC,'HWSerialNum',obj.controllerID)
 
         success = obj.isControllerConnected; %Check that the object is connected
@@ -162,7 +153,7 @@ classdef BSC201_APT < linearcontroller
 
 
         if ~obj.isStageReferenced & ~isempty(obj.attachedStage)
-          obj.referenceStage;
+            obj.referenceStage;
         end
 
       end %connect
@@ -173,14 +164,14 @@ classdef BSC201_APT < linearcontroller
       function success = isControllerConnected(obj)
         success=false;
         if isempty(obj.hC)
-          fprintf('No attempt to connect to the controller has been made\n')
-          return
+            fprintf('No attempt to connect to the controller has been made\n')
+            return
         end
 
         try 
-          [~,success]=obj.hC.GetHWCommsOK(0);
+            [~,success]=obj.hC.GetHWCommsOK(0);
         catch
-          fprintf('Failed to communicate with BSC201 controller\n')
+            fprintf('Failed to communicate with BSC201 controller\n')
         end
       end %isControllerConnected
 
@@ -190,14 +181,14 @@ classdef BSC201_APT < linearcontroller
       function moving = isMoving(obj, ~) 
         bits=obj.getStatusBits;
         if isempty(bits)
-          moving=false; %unlikely to be moving if we can't talk to the controller 
-          return
+            moving=false; %unlikely to be moving if we can't talk to the controller 
+            return
         end
 
         if bitget(bits,5) || bitget(bits,6)
-          moving=true;
-        else 
-          moving=false;
+            moving=true;
+        else
+            moving=false;
         end
       end %isMoving
 
@@ -207,8 +198,8 @@ classdef BSC201_APT < linearcontroller
       function pos = axisPosition(obj)
         ready=obj.isAxisReady;
         if ~ready
-          pos=[];
-          return
+            pos=[];
+            return
         end
         [~,pos]=obj.hC.GetPosition(0,0);
 
@@ -223,18 +214,18 @@ classdef BSC201_APT < linearcontroller
         %TODO: figure out what output we get from the ActiveX stuff if the stage failed to move. 
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         if ~obj.checkDistanceToMove(distanceToMove)
-          return
+            return
         end
 
         %Check that it's OK to move here
         willMoveTo = distanceToMove+obj.axisPosition;
         if ~obj.isMoveInBounds(willMoveTo)
-          success=false;
-          return
+            success=false;
+            return
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
@@ -250,12 +241,12 @@ classdef BSC201_APT < linearcontroller
         %TODO: figure out what output we get from the ActiveX stuff if the stage failed to move. 
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         if ~obj.isMoveInBounds(targetPosition)
-          success=false;
-          return
+            success=false;
+            return
         end
 
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
@@ -268,14 +259,14 @@ classdef BSC201_APT < linearcontroller
       function success = stopAxis(obj)
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         success=obj.hC.StopImmediate(0);
-        if success==0 %TODO: I think this is is right. 
-          success=true;
+        if success==0 %TODO: I think this is is right.
+            success=true;
         else
-          success=false;
+            success=false;
         end
 
       end %stopAxis
@@ -284,14 +275,14 @@ classdef BSC201_APT < linearcontroller
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function posUnits = getPositionUnits(~)
           %TODO - get this method working, even though we will never set it to degrees
-          posUnits='mm'; %The units of the BSC201 are fixed at mm or degrees. Stick to mm. 
+            posUnits='mm'; %The units of the BSC201 are fixed at mm or degrees. Stick to mm.
       end %getPositionUnits
 
       function success=setPositionUnits(obj,controllerUnits)
         %TODO - get this method working, even though we will never set it to degrees
         if ~strcmp(controllerUnits,'mm')
-          obj.logMessage(inputname(1),dbstack,6,'BSC201 units can only be mm')
-          success=false;
+            obj.logMessage(inputname(1),dbstack,6,'BSC201 units can only be mm')
+            success=false;
         end
         success=true;
       end %setPositionUnits
@@ -304,7 +295,7 @@ classdef BSC201_APT < linearcontroller
         [minPos,ID]=getMinPos@linearcontroller(obj);
 
         if isempty(minPos)
-          obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MIN POS.')  %TODO!
+            obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MIN POS.')  %TODO!
         end
       end
 
@@ -312,7 +303,7 @@ classdef BSC201_APT < linearcontroller
         [maxPos,ID]=getMaxPos@linearcontroller(obj);
 
         if isempty(maxPos)
-          obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MAX POS.') %TODO!
+            obj.logMessage(inputname(1),dbstack,5,'** NO CODE YET FOR GETTING MAX POS.') %TODO!
         end
       end
 
@@ -323,8 +314,8 @@ classdef BSC201_APT < linearcontroller
       function velocity = getMaxVelocity(obj)
         success=obj.isAxisReady;
         if ~success
-          velocity=false;
-          return
+            velocity=false;
+            return
         end
         velocity=obj.hC.GetVelParams_MaxVel(0);
       end
@@ -332,8 +323,8 @@ classdef BSC201_APT < linearcontroller
       function success = setMaxVelocity(obj, velocity)
         success=obj.isAxisReady;
         if ~success
-          velocity=false;
-          return
+            velocity=false;
+            return
         end
         minVel = obj.getInitialVelocity;
         accel = obj.getAcceleration;
@@ -341,18 +332,18 @@ classdef BSC201_APT < linearcontroller
         [~,minV,accel,maxV]=obj.hC.GetVelParams(0,0,0,0); %read
 
         if abs(velocity-maxV)<1E-2
-          success=true;
+            success=true;
         else
-          obj.logMessage(inputname(1),dbstack,6,'Failed to set maximum velocity')
-          success=false;
+            obj.logMessage(inputname(1),dbstack,6,'Failed to set maximum velocity')
+            success=false;
         end
       end %getMaxVelocity
 
       function velocity = getInitialVelocity(obj)
         success=obj.isAxisReady;
         if ~success
-          velocity=false;
-          return
+            velocity=false;
+            return
         end
         [~,velocity]=obj.hC.GetVelParams(0,0,0,0);
       end
@@ -360,7 +351,7 @@ classdef BSC201_APT < linearcontroller
       function success = setInitialVelocity(obj, velocity)
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         accel = obj.getAcceleration;
@@ -370,18 +361,18 @@ classdef BSC201_APT < linearcontroller
 
         
         if abs(velocity-minV)<1E-2
-          success=true;
+            success=true;
         else
-          obj.logMessage(inputname(1),dbstack,6,'Failed to set minimum velocity')
-          success=false;
+            obj.logMessage(inputname(1),dbstack,6,'Failed to set minimum velocity')
+            success=false;
         end
       end %setInitialVelocity
 
       function accel = getAcceleration(obj)
         success=obj.isAxisReady;
         if ~success
-          accel=false;
-          return
+            accel=false;
+            return
         end
         accel=obj.hC.GetVelParams_Accn(0);
       end
@@ -389,7 +380,7 @@ classdef BSC201_APT < linearcontroller
       function success = setAcceleration(obj, acceleration)
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         minVel = obj.getInitialVelocity;
@@ -398,10 +389,10 @@ classdef BSC201_APT < linearcontroller
         obj.hC.SetVelParams(0,minVel,acceleration,maxVel); %set
         [~,minV,accel,maxV]=obj.hC.GetVelParams(0,0,0,0); %read
         if abs(acceleration-accel)<1E-2
-          success=true;
+            success=true;
         else
-          obj.logMessage(inputname(1),dbstack,6,'Failed to set acceleration')
-          success=false;
+            obj.logMessage(inputname(1),dbstack,6,'Failed to set acceleration')
+            success=false;
         end
       end
 
@@ -411,7 +402,7 @@ classdef BSC201_APT < linearcontroller
         %NOTE: can not return false if the command failed
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
         obj.hC.EnableHWChannel(0);
       end %enableAxis
@@ -421,7 +412,7 @@ classdef BSC201_APT < linearcontroller
         %NOTE: can not return false if the command failed
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
         obj.hC.DisableHWChannel(0);
       end %disableAxis
@@ -433,7 +424,7 @@ classdef BSC201_APT < linearcontroller
         %will be safer for our application. 
         success=obj.isAxisReady;
         if ~success
-          return
+            return
         end
 
         obj.hC.MoveHome(0,0);
@@ -441,18 +432,18 @@ classdef BSC201_APT < linearcontroller
         fprintf('Homing axis on BSC201')
         pause(0.1)
         while obj.isMoving
-          pause(0.2)
-          fprintf('.')
+            pause(0.2)
+            fprintf('.')
         end
         fprintf('\n')
 
         pause(1) %Because this might help with the APT crashing problems
 
         if obj.isStageReferenced
-          success=true; 
+            success=true; 
         else
-          obj.logMessage(inputname(1),dbstack,6,'Controller reports motor is not homed. Stage may not be referenced')
-          success=false;
+            obj.logMessage(inputname(1),dbstack,6,'Controller reports motor is not homed. Stage may not be referenced')
+            success=false;
         end
       end %reference stage
 
@@ -462,14 +453,14 @@ classdef BSC201_APT < linearcontroller
 
         bits=obj.getStatusBits;
         if isempty(bits)
-          motorHomed=[]; 
-          return
+            motorHomed=[]; 
+            return
         end
 
         if bitget(bits,11)
-          motorHomed=true;
+            motorHomed=true;
         else 
-          motorHomed=false;
+            motorHomed=false;
         end
 
       end %isStageReferenced
@@ -493,14 +484,14 @@ classdef BSC201_APT < linearcontroller
 
         %Check that we have values for all of the fields
         if isempty(stageObj.minPos) | isempty(stageObj.maxPos)
-          obj.logMessage(inputname(1),dbstack,6,'You must fill in the max and min positions in the stage object')
-          return
+            obj.logMessage(inputname(1),dbstack,6,'You must fill in the max and min positions in the stage object')
+            return
         end
 
 
         %Note, max and min pos are inverted here:
         obj.hC.SetStageAxisInfo(c,stageObj.invertDistance*stageObj.maxPos, ...
-          stageObj.invertDistance*stageObj.minPos,U,ptc,sns);
+            stageObj.invertDistance*stageObj.minPos,U,ptc,sns);
 
         %re-read the parameters to check that they were changed
         [c,maxPos,minPos,U,ptc,sns]=obj.hC.GetStageAxisInfo(0,0,0,0,0,0);
@@ -510,11 +501,11 @@ classdef BSC201_APT < linearcontroller
         minPos = round(minPos,5);
 
         if maxPos~=stageObj.invertDistance*stageObj.maxPos || minPos~=stageObj.invertDistance*stageObj.minPos
-          msg=sprintf('Failed to set min and max positions on BSC201. maxRequested=%0.2f, maxActual=%0.2f, minRequested=%0.2f, minActual=%0.2f', ...
+            msg=sprintf('Failed to set min and max positions on BSC201. maxRequested=%0.2f, maxActual=%0.2f, minRequested=%0.2f, minActual=%0.2f', ...
             stageObj.invertDistance*stageObj.maxPos ,maxPos, stageObj.invertDistance*stageObj.minPos ,minPos)
-          obj.logMessage(inputname(1),dbstack,6,msg)
+            obj.logMessage(inputname(1),dbstack,6,msg)
         else
-          success=true;
+            success=true;
         end
       end %setMotionRange
 
@@ -525,8 +516,8 @@ classdef BSC201_APT < linearcontroller
         success=false;
         %Check that we have values for all of the fields
         if isempty(st.limitSwitch) | isempty(st.homingDir) | isempty(st.homeVel) | isempty(st.zeroOffset)
-          obj.logMessage(inputname(1),dbstack,6,'You must fill in all referencing properties in stage object.\n')
-          return
+            obj.logMessage(inputname(1),dbstack,6,'You must fill in all referencing properties in stage object.\n')
+            return
         end
 
         obj.hC.SetHomeParams(st.axisID,st.homingDir,st.limitSwitch,st.homeVel,st.zeroOffset);
@@ -535,9 +526,9 @@ classdef BSC201_APT < linearcontroller
         [a,hD,lS,hV,zO]=obj.hC.GetHomeParams(0,0,0,0,0);
 
         if hD~=st.homingDir | lS~=st.limitSwitch | hV~=st.homeVel | zO~=st.zeroOffset
-          obj.logMessage(inputname(1),dbstack,6,'Failed to set reference parameters on BSC201. Stage may not be possible to reference')
+            obj.logMessage(inputname(1),dbstack,6,'Failed to set reference parameters on BSC201. Stage may not be possible to reference')
         else
-          success=true;
+            success=true;
         end
 
       end
@@ -554,9 +545,9 @@ classdef BSC201_APT < linearcontroller
         fprintf('Controller minPos = %0.2f mm ; Controller maxPos = %0.2f mm\n', ... 
               obj.attachedStage.invertDistance*minPos, obj.attachedStage.invertDistance*maxPos)
         if obj.isStageReferenced
-          fprintf('Motor is homed\n')
+            fprintf('Motor is homed\n')
         else
-          fprintf('Motor is NOT homed!\n')
+            fprintf('Motor is NOT homed!\n')
         end
 
       end
@@ -573,8 +564,8 @@ classdef BSC201_APT < linearcontroller
             %
             success=obj.isAxisReady;
             if ~success
-              bits=[];
-              return
+                bits=[];
+                return
             end
             bits = obj.hC.GetStatusBits_Bits(0);
             bits = abs(bits);
@@ -594,4 +585,4 @@ classdef BSC201_APT < linearcontroller
 
     end %private methods
 
-end %close classdef 
+end %close classdef

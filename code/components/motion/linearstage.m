@@ -63,9 +63,9 @@ classdef (Abstract) linearstage < handle
         % The BakingTray object expects it to be one of the following
         % strings: 
         % 'xAxis' - the stage that moves the sample along the X dimension. 
-        %           the X axis is that which is parallel to the X scan axis. TODO: check
+        %           the X stage axis is that which moves the sample towards or away from the vibratome
         % 'yAxis' - the stage that moves the sample along the Y dimension. 
-        %           the Y axis is that which is parallel to the Y scan axis. TODO: check
+        %           the Y stage axis is that which moves the sample towards or away from the user.
         % 'zAxis' - the actuator that jacks the X/Y stages up and down.
         % 'fastZ' - the fast focuser axis (e.g. a PIFOC) (NOT SUPPORTED RIGHT NOW)
         % 'slowZ' - slow objective focus (NOT SUPPORTED RIGHT NOW)

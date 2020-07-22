@@ -22,10 +22,6 @@ function scanSettings = returnScanSettings(obj)
 
     scanSettings.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
 
-    if strcmp(obj.parent.recipe.mosaic.scanmode,'ribbon')
-        scanSettings.linePeriodInMicroseconds = round(obj.hC.hRoiManager.linePeriod * 1E6,4);
-    end
-
     scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
     scanSettings.activeChannels = obj.hC.hChannels.channelSave;
 

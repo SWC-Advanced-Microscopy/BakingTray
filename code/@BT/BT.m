@@ -19,28 +19,49 @@ classdef BT < loghandler
     properties (Transient)
         scanner % The object that handles the scanning (e.g. SIBT, our scanImage wrapper)
         cutter  % The vibrotome motor 
-        laser   % An object providing control of the laser goes here. If present, BakingTray can 
-                % can turn off the laser at the end of the experiment and stop acquisition if the 
+        laser   % An object providing control of the laser goes here. If present, BakingTray can
+                % can turn off the laser at the end of the experiment and stop acquisition if the
                 % laser fails. If it's missing, these features just aren't available.
         recipe  % The details for the experiment go here
 
-        % These properties control the three axis sample stage. 
+        % These properties control the three axis sample stage.
         xAxis
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
-        disabledAxisReadyCheckDuringAcq=false %If true, we don't check whether stages are ready to move before each motion when we are in an acquisition
+        disabledAxisReadyCheckDuringAcq=false % If true, we don't check whether stages are ready to 
+                                              % move before each motion when we are in an acquisition
+        previewTilePositions % Pixel locations defining where tiles will be placed in the lastPreviewImageStack.
+                             % We take into account the overlap between tiles: BT.initialisemodel)
+        autoROI = [] % All info related to the autoROI goes here.
     end %close properties
 
 
     properties (Hidden)
-        % TODO: these should be moved elsewhere. 
         saveToDisk = 1 %By default we save to disk when running
+        % By default a "FINISHED" is writen to the acquisition directory when the sample completes.
+        % The user may wish to skip this if they stop the acquisition early for some reason (e.g. to 
+        % change a cutting parameter then re-start)
+        completeAcquisitionOnBakeLoopExit = true
+
         logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
+
+        % Cached/stored settings
+        % Log front/left position when the preview stack (BT.lastPreviewImageStack) is taken. 
+        % We need to do this because BT.convertImageCoordsToStagePosition calculates stage position 
+        % based on this value. We can't use the recipe front/left position because then the stage coords
+        % derived from the image would be wrong until the user re-acquires a preview stack.
+        frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
+    end
+
+    properties (SetObservable)
+        lastPreviewImageStack = [] % The last preview image stack. It is a 4D matrix: [pixel rows, pixel columns, z depth, channel]
     end
 
     properties (SetAccess=immutable,Hidden)
         componentSettings
+        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
+        autoROIstats_fname='auto_ROI_stats.mat' % The statistics associated with auto-ROI acquisitions will be saved to this file name in rawDataSubDirName
     end
 
     properties (SetObservable,AbortSet,Transient)
@@ -53,26 +74,28 @@ classdef BT < loghandler
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
-        rawDataSubDirName='rawData' % Section directories will be placed in this sub-directory.
         currentTileSavePath=''  % The path to which data for the currently acquired section are being saved (see BT.defineSavePath)
         currentSectionNumber=1  % The current section
         currentTilePosition=1   % The current index in the X/Y grid. This is used by the scanimage user function to know where in the grid we are
         positionArray           % Array of stage positions that we save to disk
         sectionCompletionTimes  % A vector containing the number of seconds it took to acquire the data for each section (including cutting)
-        currentOpticalSectionNumber=1 % This is only used for cases where the scanner does not to handle the fast Z.
         currentTilePattern      % The cached currently used tilePattern. Saves having to regenerate each time from the recipe
+        keepAllDownSampledTiles = false; % If true, all downsampled tiles for one section are stored in the property allDownsampledTilesOneSection
+                                         % This is used only for debugging so keepAllDownSampledTiles should generally be false.
 
-        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored here.
-        % scanner.tileBuffer should be a 4D array: [imageRows,imageCols,zDepths,channels]; 
-        % TODO: should channels contain empty slots for non-acquired channels? 
-        downSampledTileBuffer = []
+        % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored in
+        % scanner.tileBuffer should be 
+        downSampledTileBuffer = [] % A 4D array: [imageRows,imageCols,zDepths,channels]; 
         downsampleMicronsPerPixel = 20;
-        lastPreviewImageStack = [] % The last preview image stack. This is placed here by acquisition_view indicateCutting callback
-        %The X and Y positions in the grid at which the above tiles were obtained
         %i.e. 1,2,3,... not a position in mm)
-        lastTilePos =  struct('X',0,'Y',0);
+        lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
         lastTileIndex = 0; %This tells us which row in the tile pattern the last tile came from
 
+    end
+
+    properties (Hidden)
+        listeners = {};
+        allDownsampledTilesOneSection = {}
     end
 
     properties (Hidden,SetObservable,AbortSet,Transient,Dependent)
@@ -82,16 +105,69 @@ classdef BT < loghandler
     end
 
     % These properties are used by GUIs and general broadcasting
-    properties (Hidden, SetObservable, AbortSet)
-        isSlicing=false
+    properties (SetObservable, AbortSet)
+        acquisitionState='idle'     % Can be "idle", "bake", or "preview"
         acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
                                     % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
                                     % once all sections have been acquired. 
+    end
+
+    properties (Hidden, SetObservable, AbortSet)
+        isSlicing=false
         abortSlice=false %Used as a flag to tell BT.sliceSection to abort the cutting routine
-        abortAcqNow=false   %Used when aborting an acquisition so we break out of the ribbon depth loop in BT.bake
+        abortAcqNow=false  %Used when aborting an acquisition
         abortAfterSectionComplete=false %If true, BT will abort after the current section has finished
     end
 
+
+    % Declare methods in separate files
+    methods
+        % startup-related
+        varargout=attachCutter(obj,settings)
+        success=attachLaser(obj,settings)
+        success=attachMotionAxes(obj,settings)
+        success=attachRecipe(obj,fname,resume)
+        varargout=attachScanner(obj,settings)
+        success=checkAttachedStages(obj,ControllerObject,axisName)
+
+        % Key methods that trigger acquisition events
+        sectionInd = bake(obj,varargin)
+        takeRapidPreview(obj)
+        runSuccess = runTileScan(obj,boundingBoxDetails) %is called by bake and takeRapidPreview
+
+        % Acquisition-related helper functions
+        success = defineSavePath(obj) 
+        [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
+        [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
+        success = resumeAcquisition(obj,recipeFname,varargin)
+        abortSlicing(obj)
+        finished = sliceSample(obj,sliceThickness,cuttingSpeed)
+        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
+        [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords, imageFrontLeft)
+        populateCurrentTilePattern(obj, isFullPreview)
+        msg = reportAcquisitionSize(obj)
+
+        % House-keeping
+        out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
+        success=renewLaserConnection(obj)
+        initialisePreviewImageData(obj,tp, frontLeft)
+        preAllocateTileBuffer(obj)
+        slack(obj,message)
+        n=tilesRemaining(obj)
+
+        % auto-ROI related
+        success=getNextROIs(obj)
+        getThreshold(obj)
+        pStack = returnPreviewStructure(obj)
+    end % Declare methods in separate files
+
+
+    methods (Hidden)
+        logPositionToPositionArray(obj,fakeLog)
+
+        % Callbacks
+        placeNewTilesInPreviewData(obj,~,~)
+    end
 
 
     methods
@@ -180,6 +256,10 @@ classdef BT < loghandler
             % Ensure that x/y stage speeds are what they should be
             obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
 
+
+            % Add a listener on currentTilePosition, which updates the section preview
+            obj.listeners{1}=addlistener(obj, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
+
             obj.buildFailed=false;
 
         end %Constructor
@@ -207,9 +287,6 @@ classdef BT < loghandler
             end
 
         end  %Destructor
-
-
-        %TODO: declare external methods
 
 
         % ----------------------------------------------------------------------
@@ -247,18 +324,21 @@ classdef BT < loghandler
             end
 
             success=obj.moveXto(xPos) & obj.moveYto(yPos);
-            if success
-                obj.logMessage(inputname(1),dbstack,3,sprintf('moving X to %0.3f and Y to %0.3f',xPos,yPos))
+
+            if nargout>0
+                varargout{1}=success;
+            end
+
+            % This ensures dummy acquisitions run as fast as possible
+            if isa(obj.yAxis,'dummy_linearcontroller')
+                return
             end
 
             if blocking && success
                 obj.waitXYsettle(extraSettlingTime,timeOut)
             end
 
-            if nargout>0
-                varargout{1}=success;
-            end
-        end
+        end %moveXYto
 
         function varargout=moveXYby(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Relative move defined by xPos and yPos
@@ -287,9 +367,6 @@ classdef BT < loghandler
 
             success = obj.moveXby(xPos) & obj.moveYby(yPos);
 
-            if success
-                obj.logMessage(inputname(1),dbstack,3,sprintf('moving X by %0.3f and Y by %0.3f',xPos,yPos))
-            end
             if blocking && success
                 obj.waitXYsettle(extraSettlingTime,timeOut)
             end
@@ -297,7 +374,7 @@ classdef BT < loghandler
             if nargout>0
                 varargout{1}=success;
             end
-        end
+        end %moveXYby
 
         function waitXYsettle(obj,extraSettlingTime,timeOut)
             % Purpose
@@ -349,7 +426,7 @@ classdef BT < loghandler
         % ----------------------------------------------------------------------
         % Public methods for moving the X/Y stage with respect to the sample
         function success = toFrontLeft(obj)
-            %Move stage to the front left position (the starting position for a grid tile scan)
+            %Move stage to the front left position (the starting position for a manual-ROI grid tile scan)
             success=false;
             if isempty(obj.recipe)
                 return
@@ -361,6 +438,16 @@ classdef BT < loghandler
                 return
             end
             success=obj.moveXYto(FL.X,FL.Y,true); %blocking motion
+        end
+
+        function success = toFirstTilePosition(obj)
+            %Move stage to the first position in the tile grid. This may differ from the 
+            %Front/Left position if we are doing an auto-ROI acquisition
+            success=false;
+            if isempty(obj.recipe) || isempty(obj.positionArray)
+                return
+            end
+            success=obj.moveXYto(obj.positionArray(1,3),obj.positionArray(1,4),true); %blocking motion
         end
 
 
@@ -447,14 +534,14 @@ classdef BT < loghandler
             X=obj.getXpos;
             Y=obj.getYpos;
             if nargout<1
-            	fprintf('X=%0.2f, Y=%0.2f\n',X,Y)
-            	return
+                fprintf('X=%0.2f, Y=%0.2f\n',X,Y)
+                return
             end
             if nargout>0
-            	varargout{1}=X;
+                varargout{1}=X;
             end
             if nargout>1
-            	varargout{2}=Y;
+                varargout{2}=Y;
             end
         end
 
@@ -516,6 +603,7 @@ classdef BT < loghandler
             acqLogFname = fullfile(obj.sampleSavePath, ['acqLog_',obj.recipe.sample.ID,'.txt']);
         end %acquisitionLogFileName
 
+
         function acqLogWriteLine(obj,msg,fname)
             % Writes text to the acquisition log file that sits in the sample root directory. 
             % Be careful not to overwrite this if it exists, since we may be resuming a 
@@ -535,66 +623,6 @@ classdef BT < loghandler
             fclose(fid);
         end %acqLogWriteLine
 
-        function out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
-            % Use BT.sectionCompletionTimes to estimate how much time is left assuming we acquire all sections
-            % If no sections have been completed, BT.sectionCompletion times will be empty. In this case we
-            % estimate how long it will take from the scan settings. 
-            %
-            % Returns a structure containing information about when the recording will finish
-            %
-            %
-            % Optional input arguments used to speed up this method
-            % scnSet - the output of obj.scanner.returnScanSettings
-            % numTilesPerOpticalSection - output of obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y
-
-            out=[];
-
-            if ~obj.isRecipeConnected
-                return
-            end
-
-
-            if ~isempty(obj.sectionCompletionTimes) && obj.acquisitionInProgress
-                %If we determine how long the acquisition will take using the actual section times. 
-                mu=mean(obj.sectionCompletionTimes);
-                sectionsRemaining = obj.recipe.mosaic.numSections-obj.currentSectionNumber;
-                out.timePerSectionInSeconds = mu;
-                out.timeLeftInSeconds = sectionsRemaining * mu;
-
-            elseif obj.isScannerConnected
-                if nargin<2
-                    scnSet = obj.scanner.returnScanSettings;
-                end
-                if nargin<3
-                    numTilesPerOpticalSection = obj.recipe.NumTiles.X * obj.recipe.NumTiles.Y;
-                end
-
-                approxTimePerSection = scnSet.framePeriodInSeconds * ...
-                                    obj.recipe.mosaic.numOpticalPlanes * ...
-                                    numTilesPerOpticalSection * ...
-                                    scnSet.averageEveryNframes;
-                % Guesstimate 375 ms per X/Y move plus something added on for buffering time.
-                motionTime = numTilesPerOpticalSection*0.375;
-                approxTimePerSection = round(approxTimePerSection + motionTime);
-                out.motionTime = motionTime;
-
-                %Estimate cut time
-                out.cutTime = (obj.recipe.mosaic.cutSize/obj.recipe.mosaic.cuttingSpeed) + 12;
-                out.timePerSectionInSeconds = approxTimePerSection+out.cutTime;
-                out.timeLeftInSeconds = out.timePerSectionInSeconds * obj.recipe.mosaic.numSections; %Use all sections because nothing would have been imaged
-            else
-                fprintf('Failed to calculate sample completion time\n')
-                return
-            end
-
-            out.timePerSectionString = prettyTime(out.timePerSectionInSeconds);
-            out.timeForSampleString = prettyTime(out.timeLeftInSeconds);
-            timeToConvertToString = now+(out.timeLeftInSeconds/(24*60^2));
-            if ~isnan(timeToConvertToString)
-                out.expectedFinishTimeString = datestr(now+(out.timeLeftInSeconds/(24*60^2)), 'dd-mm-yyyy, HH:MM');
-            end
-        end %estimateTimeRemaining
-
     end %close methods
 
 
@@ -610,7 +638,11 @@ classdef BT < loghandler
         function success = moveXto(obj,position,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.absoluteMove(position);
-            if ~success, return, end
+
+            if ~success || isa(obj.xAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving X to %0.3f',position))
 
             if blocking
@@ -623,8 +655,13 @@ classdef BT < loghandler
         function success = moveYto(obj,position,blocking)
             if nargin<3, blocking=0; end
             success=obj.yAxis.absoluteMove(position);
-            if ~success, return, end
+
+            if ~success || isa(obj.yAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y to %0.3f',position))
+
 
             if blocking
                 while obj.yAxis.isMoving
@@ -637,7 +674,11 @@ classdef BT < loghandler
         function success = moveXby(obj,distanceToMove,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.relativeMove(distanceToMove);
-            if ~success, return, end
+ 
+            if ~success || isa(obj.xAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving X by %0.3f',distanceToMove))
 
             if blocking
@@ -650,7 +691,11 @@ classdef BT < loghandler
         function success = moveYby(obj,distanceToMove,blocking)
             if nargin<3, blocking=0; end
             success=obj.yAxis.relativeMove(distanceToMove);
-            if ~success, return, end
+
+            if ~success || isa(obj.yAxis,'dummy_linearcontroller')
+                return
+            end
+
             obj.logMessage(inputname(1),dbstack,2,sprintf('moving Y by %0.3f',distanceToMove))
 
             if blocking

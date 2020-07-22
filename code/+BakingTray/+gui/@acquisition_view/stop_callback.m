@@ -15,7 +15,17 @@ function stop_callback(obj,~,~)
 
     stopAfterSection='Yes: stop after this section';
     noWay= 'No way';
-    choice = questdlg('Are you sure you want to stop acquisition?', '', stopNow, stopAfterSection, noWay, noWay);
+
+    rawDataDirPath = fullfile(obj.model.currentTileSavePath,obj.model.rawDataSubDirName);
+
+    if strcmp(obj.model.acquisitionState,'bake')
+        showFinishedCheckBox=true;
+    else
+        showFinishedCheckBox=false;
+    end
+
+    [choice,finishAndStitch] = BakingTray.gui.questdlgchckbox('Are you sure you want to stop acquisition?', '', ...
+        stopNow, stopAfterSection, noWay, noWay, showFinishedCheckBox);
 
     switch choice
         case stopNow
@@ -25,18 +35,19 @@ function stop_callback(obj,~,~)
 
             %TODO: these three lines also appear in BT.bake
             obj.model.leaveLaserOn=true; %TODO: we could have a GUI come up that allows the user to choose if they want this happen.
-            obj.model.abortAcqNow=true; %Otherwise in ribbon scanning it moved to the next optical plane
+            obj.model.abortAcqNow=true;
             obj.model.scanner.abortScanning;
             obj.model.scanner.disarmScanner;
             obj.model.detachLogObject;
             set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
-
+            obj.model.completeAcquisitionOnBakeLoopExit=finishAndStitch;
         case stopAfterSection
             %If the acquisition is paused we resume it then it will go on to stop.
             obj.model.scanner.resumeAcquisition;
             obj.model.abortAfterSectionComplete=true;
-
+            obj.model.completeAcquisitionOnBakeLoopExit=finishAndStitch;
         otherwise
             %Nothing happens
-    end 
+    end
+
 end %stop_callback

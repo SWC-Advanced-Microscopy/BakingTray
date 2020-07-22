@@ -10,9 +10,9 @@ function success = defineSavePath(obj)
     % Inputs
     % none
     %
-    % 
+    %
     % Outputs
-    % success - true if everything was created as needed. false otherwse 
+    % success - true if everything was created as needed. false otherwse.
 
     if obj.currentSectionNumber<0
         fprintf('Current section number is less than zero: %d. THIS IS ODD\n', obj.currentSectionNumber)

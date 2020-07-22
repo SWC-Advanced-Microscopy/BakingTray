@@ -28,7 +28,6 @@ classdef SIBT < scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
-        currentTilePattern
         allowNonSquarePixels=false
         cachedChanLUT={} %Used to determine if channel look-up tables have changed
         lastSeenScanSettings = struct %A structure that stores the last seen scan setting to determine if a setting has changed
@@ -88,7 +87,7 @@ classdef SIBT < scanner
 
             % Add ScanImage-specific listeners
 
-            obj.channelsToAcquire; %Stores the currently selected channels to save in an observable property
+            obj.getChannelsToAcquire; %Stores the currently selected channels to save in an observable property
             % Update channels to save property whenever the user makes changes in scanImage
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelSave', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1} = addlistener(obj.hC.hChannels,'channelDisplay', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
@@ -119,7 +118,6 @@ classdef SIBT < scanner
 
             % Add "armedListeners" that are used during tiled acquisition only.
             obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqDone', @obj.tileAcqDone);
-            obj.armedListeners{end+1}=addlistener(obj.hC.hUserFunctions, 'acqAbort', @obj.tileScanAbortedInScanImage);
             obj.disableArmedListeners % Because we only want them active when we start tile scanning
 
             if isfield(obj.hC.hScan2D.mdfData,'stripingMaxRate') &&  obj.hC.hScan2D.mdfData.stripingMaxRate>obj.maxStripe
@@ -275,7 +273,7 @@ classdef SIBT < scanner
                 doReset = ones(1,length(obj.hC.hPmts.tripped));
             else
                 doReset = zeros(1,length(obj.hC.hPmts.tripped));
-                doReset(obj.channelsToAcquire) = 1;
+                doReset(obj.getChannelsToAcquire) = 1;
             end
 
             for ii=1:length(obj.hC.hPmts.tripped)
@@ -314,13 +312,7 @@ classdef SIBT < scanner
             % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
             obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1. 
 
-
-            switch obj.parent.recipe.mosaic.scanmode
-            case 'tile'
-                obj.hC.hScan2D.logFileStem = obj.returnTileFname;
-            case 'ribbon'
-                obj.hC.hScan2D.logFileStem = obj.returnRibbonFname;
-            end
+            obj.hC.hScan2D.logFileStem = obj.returnTileFname;
 
             obj.hC.hChannels.loggingEnable = true;
         end %setUpTileSaving
@@ -332,45 +324,8 @@ classdef SIBT < scanner
 
 
         function initiateTileScan(obj)
-            % If tile-scanning, we initiate the next tile simply by issuing a software trigger.
-            % If ribbon-scanning, it is triggered from the stage itself when it starts move
-            % and so comes in through the PFI line defined in ScanImage, thus initiateTileScan
-            % must start a stage motion rather than send a trigger
-
-            if isempty(obj.parent)
-                fprintf('SIBT is not attached to BakingTray. Just sending software trigger\n')
-                obj.hC.hScan2D.trigIssueSoftwareAcq;
-                return
-            end
-
-            switch obj.parent.recipe.mosaic.scanmode
-            case 'tile'
-                obj.hC.hScan2D.trigIssueSoftwareAcq;
-            case 'ribbon'
-                % Issue a non-blocking Y motion
-
-                %obj.parent.yAxis.resumeInMotionTrigger(1,2)
-                yA = obj.parent.currentTilePattern(1,2);
-                yB = obj.parent.currentTilePattern(2,2);
-                delta = 0.5; %Inter pulse trigger interval from stage in mm
-                % fprintf('Producing triggers between %0.2f and %0.2f mm\n', yA-delta, yB+delta)
-                if mod(obj.parent.currentTilePosition,2) %If it's odd
-                    obj.parent.yAxis.motionTrigMin(2,yB+delta)
-                    obj.parent.yAxis.motionTrigMax(2, yA-0)
-
-                    fprintf('Initiating a motion to %0.1f\n', obj.parent.currentTilePattern(2,2) )
-                    obj.parent.moveYto(obj.parent.currentTilePattern(2,2), true); 
-                else
-                    obj.parent.yAxis.motionTrigMin(2,yA-delta)
-                    obj.parent.yAxis.motionTrigMax(2,yB+0)
-
-                    fprintf('Initiating a motion to %0.1f\n', obj.parent.currentTilePattern(1,2) )
-                    obj.parent.moveYto(obj.parent.currentTilePattern(1,2), true);
-                end
-                %obj.parent.yAxis.pauseInMotionTrigger(1,2)
-            otherwise
-                % This will never happen
-            end
+            % We are tile-scanning so can initiate the next tile simply by issuing a software trigger.
+            obj.hC.hScan2D.trigIssueSoftwareAcq;
         end
 
 
@@ -391,10 +346,10 @@ classdef SIBT < scanner
         end %maxChannelsAvailable
 
 
-        function theseChans = channelsToAcquire(obj,~,~)
+        function theseChans = getChannelsToAcquire(obj,~,~)
             % This is also a listener callback function
             if obj.verbose
-                fprintf('Hit SIBT.channelsToAcquire\n')
+                fprintf('Hit SIBT.getChannelsToAcquire\n')
             end
             theseChans = obj.hC.hChannels.channelSave;
 
@@ -407,13 +362,23 @@ classdef SIBT < scanner
                 obj.channelsToSave = theseChans(:); %store the currently selected channels to save
             end
 
-        end %channelsToAcquire
+        end %getChannelsToAcquire
 
 
-        function theseChans = channelsToDisplay(obj)
+        function theseChans = getChannelsToDisplay(obj)
             theseChans = obj.hC.hChannels.channelDisplay;
             theseChans = theseChans(:);
-        end %channelsToDisplay
+        end %getChannelsToDisplay
+
+
+        function setChannelsToDisplay(obj,chans)
+            % Ensure chans is valid
+            chans = unique(chans);
+            chans(chans<1)=[];
+            chans(chans>obj.maxChannelsAvailable)=[];
+
+            obj.hC.hChannels.channelDisplay = chans;
+        end %setChannelsToDisplay
 
 
         function scannerType = scannerType(obj)
@@ -676,28 +641,6 @@ classdef SIBT < scanner
             obj.hC.hScan2D.trigIssueSoftwareAcq;
         end % tileAcqDone_minimal(obj,~,~)
 
-
-        function tileScanAbortedInScanImage(obj,~,~)
-            % This is similar to what happens in the acquisition_view GUI in the "stop_callback"
-            if obj.verbose
-                fprintf('Hit obj.tileScanAbortedInScanImage\n')
-            end
-            % Wait for scanner to stop being in acquisition mode
-            obj.disableArmedListeners
-            obj.abortScanning
-            fprintf('Waiting to disarm scanner.')
-            for ii=1:20
-                if ~obj.isAcquiring
-                    obj.disarmScanner;
-                    return
-                end
-                fprintf('.')
-                pause(0.25)
-            end
-
-            %If we get here we failed to disarm
-            fprintf('WARNING: failed to disarm scanner.\nYou should try: >> hBT.scanner.disarmScanner\n')
-        end %tileScanAbortedInScanImage
 
         function changeChecker(obj,s,e)
 

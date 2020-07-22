@@ -5,7 +5,6 @@ classdef DRV014 < linearstage
 % All abstract methods should have doc text only in the abstract method class file.
 
 properties
-    %TODO: go through these -- are they all needed?
     positionUnits
     
     %Referencing variables. Fill these in for defining how the actuator

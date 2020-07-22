@@ -6,7 +6,7 @@ classdef stressTestTilePreviewBuffer < handle
 % scanned sample. We also would like access to these data in order to do things 
 % like scan only the sample. It's important to ensure that all images are placed
 % in my buffer. This class runs a stress-test using a similar approach to that 
-% employed in a full acquisition so that I can narrow down on the problem. 
+% employed in a full acquisition so that I can narrow down on any problems. 
 %
 %
 % Instructions
@@ -19,6 +19,8 @@ classdef stressTestTilePreviewBuffer < handle
 %
 % Rob Campbell - July 2017
 
+    % TODO: do we really need to instruct it which trigger to use? Can we do this based on the
+    % values of hSI.hScan2D.scannerType or hSI.hScan2D.scanMode?
 
     properties
         loggedBufferData=[] % The (downsampled) images go into here 

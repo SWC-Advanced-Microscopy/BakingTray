@@ -1,20 +1,19 @@
 function initiateTileScan(obj)
     % This method rolls together what takes place in SIBT.initiateTileScan and SIBT.tileAcqDone
     %
+    % function dummyScanner.initiateTileScan(obj)
+    % 
     % Purpose
     % Moves the virtual stages. Acquires a tile. Moves the stages. Calls itself
     % recursively until all done. 
 
     verbose = false;
 
-    if strcmp(obj.parent.recipe.mosaic.scanmode,'ribbon')
-        fprintf('** dummyScanner can not handle ribbon scanning\n')
-        return
-    end
-
     % Performs a tile scan. This method rolls together what is done in SIBT.initiateTileScan
     % and the ScanImage callback SIBT.tileAcqDone.
-    obj.acquireTile % Acquire a tile right away because we are already at the front/left position
+    obj.acquireTile % Acquire a tile right away because we are already at the front/left position and
+                    % because SIBT.tileAcqDone, which we are replicating, is a callback that runs
+                    % after a tile is a acquired.
 
 
     % Now log this tile position so we later can save it to disk
@@ -65,9 +64,6 @@ function initiateTileScan(obj)
 
 
 
-    % Store stage positions. this is done after all tiles in the z-stack have been acquired
-    obj.parent.logPositionToPositionArray
-
 
     if obj.writeData==true
         positionArray = obj.parent.positionArray;
@@ -79,8 +75,6 @@ function initiateTileScan(obj)
         pause(0.25)
     end
 
-    obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
-
     if obj.parent.currentTilePosition>=size(obj.parent.currentTilePattern,1)
         fprintf('hBT.currentTilePosition > number of positions. Breaking in dummyScanner.tileAcqDone\n')
         obj.parent.currentTilePosition = obj.parent.currentTilePosition+0.01; %Small increment to trigger the previewscan update one more time
@@ -88,11 +82,16 @@ function initiateTileScan(obj)
         return
     end
 
-  % Increment the counter and make the new position the current one
+    % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
 
+    % Store stage positions. this is done after all tiles in the z-stack have been acquired
+    % The first tile was logged in BT.runTileScan.
+    obj.parent.logPositionToPositionArray;
 
-    obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
+    if ~obj.parent.abortAcqNow % Do not proceed if user asked to quit
+        obj.initiateTileScan  % Start the next position. See also: BT.runTileScan
+    end
 
 
 end % initiateTileScan

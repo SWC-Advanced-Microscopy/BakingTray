@@ -21,7 +21,7 @@ function logData = readAcqLogFile(fname)
         fprintf('BakingTray.utils.%s failed to open file %s for reading\n', mfilename, fname)
         logData=struct;
         return
-	end
+    end
 
 
     % Read whole text file in one go

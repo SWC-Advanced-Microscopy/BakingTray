@@ -23,17 +23,12 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Outputs
     % finished : true/false depending on whether or not it ran to the end
 
-    % Don't waste time slicing if we have a dummy slicer
-    if isa(obj.cutter,'dummyCutter')
-        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
-        finished=true;
-        return
-    end
 
-    finished=false;
     obj.isSlicing=true;
+    finished=false;
     if isempty(obj.cutter)
         fprintf('Can not cut. No cutter connected\n')
+        obj.isSlicing=false;
         return
     end
 
@@ -50,6 +45,18 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     %Record in the recipe what are the values we are going to cut at. See the main recipe class help text. 
     obj.recipe.lastSliceThickness=sliceThickness;
     obj.recipe.lastCuttingSpeed=cuttingSpeed;
+
+
+
+    % Don't waste time slicing if we have a dummy slicer
+    if isa(obj.cutter,'dummyCutter')
+        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
+        obj.logMessage(inputname(1),dbstack,5,'Waiting for slice to settle') %Used in acquisition resume
+        obj.moveZby(sliceThickness) % Move z up by one section thickness
+        finished=true;
+        obj.isSlicing=false;
+        return
+    end
 
 
     % Ensure that the abort flag is false. If this is is ever true, 
@@ -83,7 +90,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     if isempty(cuttingStartPoint.X) || isempty(cuttingStartPoint.Y)
         obj.logMessage(inputname(1),dbstack,6,'obj.recipe.cuttingStartPoint is empty. NOT CUTTING')
         obj.isSlicing=false;
-        return 
+        return
     end
 
     obj.logMessage(inputname(1),dbstack,5,'Start cutting cycle')
@@ -228,5 +235,5 @@ function cleanupSlicer(obj,state)
     obj.isSlicing=false;
 
     obj.getXYpos; %Refreshes the currentPosition properties on the stages
-    obj.logMessage(inputname(1),dbstack,5,'Finish cutting cycle');
+    obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
 end

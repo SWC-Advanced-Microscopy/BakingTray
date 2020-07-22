@@ -6,7 +6,7 @@ function setDepthToView(obj,~,~)
 
     if obj.verbose, fprintf('In acquisition_view.setDepthToView callback\n'), end
 
-    if isempty(obj.model.scanner.channelsToDisplay)
+    if isempty(obj.model.scanner.getChannelsToDisplay)
         %Don't do anything if no channels are being viewed
         return
     end
@@ -16,12 +16,12 @@ function setDepthToView(obj,~,~)
     thisSelection = obj.depthSelectPopup.String{obj.depthSelectPopup.Value};
     thisDepthIndex = str2double(regexprep(thisSelection,'\w+ ',''));
 
-    if thisDepthIndex>size(obj.previewImageData,3)
+    if thisDepthIndex>size(obj.model.lastPreviewImageStack,3)
         %If the selected value is out of bounds default to the first depth
         thisDepthIndex=1;
         obj.depthSelectPopup.Value=1;
     end
 
     obj.depthToShow = thisDepthIndex;
-    obj.updateSectionImage;
+    obj.updateSectionImage([],[],true); %force update
 end %setDepthToView
