@@ -171,6 +171,11 @@ classdef recipe < handle
         % took the last preparatory slices with the same specs as those they will image at.
         lastSliceThickness=[]
         lastCuttingSpeed=[]
+
+        % These are the valid possibilities for the scan mode. We place them here
+        % as a property so the main GUI can query the valid values and use this to
+        % building a drop-down menu. 
+        valid_scanMode_values = {'tiled: manual ROI','tiled: auto-ROI'};
     end %close hidden properties
 
 
@@ -283,121 +288,23 @@ classdef recipe < handle
         % Convenience methods
         function numTiles = numTilesInOpticalSection(obj)
             % Return the number of tiles to be imaged in one plane
-            numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
-        end
+            %
+            % If we are doing a manual ROI, this is the product of the number of
+            % tiles in X and Y. If this is an auto-ROI, the result is the number
+            % of rows in BT.currentTilePattern. Of course that means one must have
+            % have updated the current tile pattern before running this!
+            if strcmp(obj.mosaic.scanmode,'tiled: auto-ROI')
+                numTiles = size(obj.parent.currentTilePattern,1);
+            elseif strcmp(obj.mosaic.scanmode,'tiled: manual ROI')
+                numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
+            end
+        end %numTilesInOpticalSection
 
         function numTiles = numTilesInPhysicalSection(obj)
             % Return the number of tiles to be imaged in one physical section
-            numTiles = obj.NumTiles.X * obj.NumTiles.Y * obj.mosaic.numOpticalPlanes ;
-        end
+            numTiles = obj.numTilesInOpticalSection * obj.mosaic.numOpticalPlanes ;
+        end %numTilesInPhysicalSection
 
-
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        % Methods for setting up the imaging scene
-        function setCurrentPositionAsFrontLeft(obj)
-            % recipe.setCurrentPositionAsFrontLeft
-            %
-            % Store the current position as the front/left of the tile grid
-
-            % TODO: add error checks
-            if isempty(obj.parent)
-                fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
-                return
-            end
-            hBT=obj.parent;
-            [x,y]=hBT.getXYpos;
-            obj.FrontLeft.X = x;
-            obj.FrontLeft.Y = y;
-        end % setCurrentPositionAsFrontLeft
-
-        function setCurrentPositionAsCuttingPosition(obj)
-            % recipe.setCurrentPositionAsCuttingPosition
-            %
-            % Store the current stage position as the position at which we will start cutting
-
-            % TODO: add error checks
-            if isempty(obj.parent)
-                fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
-                return
-            end
-            hBT=obj.parent;
-            [x,y]=hBT.getXYpos;
-            obj.CuttingStartPoint.X = x;
-            obj.CuttingStartPoint.Y = 0; % By default force cutting to be centred on blade
-        end % setCurrentPositionAsCuttingPosition
-
-        function setFrontLeftFromVentralMidLine(obj)
-            % recipe.setFrontLeftFromVentralMidline
-            %
-            % Calculates the front-left position of sample based on the ventral mid-line.
-            % The idea is that the user exposes the cerebellum until the pons is visible.
-            % Then places the laser on the edge of the pons at the mid-line. If the brain
-            % is straight then we can calculate the front left position given that the 
-            % number of tiles in X and Y are set correctly. 
-            %
-            % This method sets the recipe.FrontLeft .X and .Y values. It doesn't move the stage.
-            if isempty(obj.parent)
-                fprintf('ERROR in setFrontLeftFromVentralMidLine: recipe class has nothing bound to property "parent". Can not access BT.\n')
-                return
-            end
-
-            % We just need a tile pattern and don't want to generate an out of bounds error due to a funny
-            % front/left position. So we pass "quiet" and "returnEvenIfOutOfBounds" to the tilePattern method
-            tp=obj.tilePattern(true,true);
-
-            if isempty(tp)
-                fprintf('ERROR in setFrontLeftFromVentralMidLine: tile position data are empty. Likely an invalid setting. Can not proceed.\n')
-                return
-            end
-
-            sizeOfSample=range(tp);
-            [x,y]=obj.parent.getXYpos;
-
-            left = x+sizeOfSample(1);
-            front = y+sizeOfSample(2)/2;
-
-            obj.FrontLeft.X=left;
-            obj.FrontLeft.Y=front;
-        end % setFrontLeftFromVentralMidLine
-
-        function estimatedSizeInGB = estimatedSizeOnDisk(obj,numTiles)
-            % recipe.estimatedSizeOnDisk(numTiles)
-            %
-            % Return the estimated size of of the acquisition on disk in gigabytes
-            %
-            % Inputs
-            % numTIles - this optional input defines the number of tiles the system
-            %            will acquire per optical plane. It is used to avoid this
-            %            method needing to call the NumTiles class, which can be slow. 
-            %            numTiles is calculated from the current scan settings if it's 
-            %            missing.
-
-
-            if ~obj.parent.isScannerConnected
-                fprintf('No scanner connected. Can not estimate size on disk\n')
-                estimatedSize=nan;
-                return
-            end
-
-            if nargin<2
-                N=obj.NumTiles;
-                numTiles = N.X * N.Y;
-            end
-
-
-            imagesPerChannel = obj.mosaic.numOpticalPlanes * obj.mosaic.numSections * numTiles;
-
-            
-            scnSet = obj.ScannerSettings;
-            totalImages = imagesPerChannel * length(scnSet.activeChannels);
-
-            totalBytes = totalImages * scnSet.pixelsPerLine * scnSet.linesPerFrame * 2; %2 bytes per pixel (16 bit)
-
-            totalBytes = totalBytes *1.01; % Add 1% for headers and so forth
-
-            estimatedSizeInGB = totalBytes/1024^3;
-
-        end % estimatedSizeOnDisk
 
     end %methods
 
@@ -495,8 +402,17 @@ classdef recipe < handle
                                 fprintf('ERROR: mosaic.scanmode must be a string!\n')
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
-                            if ~strcmp(fieldValue,'tile') && ~strcmp(fieldValue,'ribbon')
-                                fprintf('ERROR: mosaic.scanmode can only be set to "tile" or "ribbon"\n')
+
+                            % TODO: temporary hack just in case. Remove once we have deployed a 
+                            % a functioning auto-ROI
+                            if strcmp(fieldValue,'tile')
+                                fieldValue = 'tiled: manual ROI';
+                            end
+
+                            if isempty(strmatch(fieldValue,obj.valid_scanMode_values))
+                                fprintf('ERROR: mosaic.scanmode can only be set to one of the following values:\n')
+                                cellfun(@(x) fprintf(' *  %s\n',x),obj.valid_scanMode_values)
+                                fprintf('\n')
                                 fieldValue=[]; % As above, will stop the assignment.
                             end
 
@@ -523,7 +439,7 @@ classdef recipe < handle
                             end % if ~isempty(fieldValue) ...
 
                         case 'cuttingSpeed'
-                            fieldValue = obj.checkFloat(fieldValue,0.05,2); %min/max allowed speeds
+                            fieldValue = obj.checkFloat(fieldValue,0.05,0.75); %min/max allowed speeds
                         case 'cutSize'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'sliceThickness'
@@ -535,11 +451,12 @@ classdef recipe < handle
                         case 'overlapProportion'
                             fieldValue = obj.checkFloat(fieldValue,0,0.5); %Overlap allowed up to 50%
                         case 'sampleSize'
-                            % TODO: in fact, this should be larger than the tile size but we carry on like this for now
+                            % The minimum sample size in one tile step size
                             if ~isstruct(fieldValue)
                                 fieldValue=[];
                             else 
-                                % Do not allow the sample size to be smaller than the tile size
+                                % Do not allow the sample size to be smaller than the tile size.
+                                % This is a little weirdly written here, but it works. 
                                 tileX = obj.TileStepSize.X;
                                 if tileX==0
                                     minSampleSizeX=0.05;
@@ -554,6 +471,7 @@ classdef recipe < handle
                                     minSampleSizeY=tileY;
                                 end
 
+                                % The maximum size of the sample is *hard-coded* here
                                 fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 35);
                                 fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 25);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)
@@ -646,7 +564,7 @@ classdef recipe < handle
     end %methods: getters/setters
 
     methods (Hidden)
-        % Convenience methods that aren't methods
+        % Convenience methods
         function value=checkInteger(~,value,allowZero)
             % Confirm that an input is a positive integer
             % Returns empty if the input is not valid. 
@@ -670,7 +588,8 @@ classdef recipe < handle
         function value=checkFloat(~,value,minVal,maxVal)
             % Confirm that an input is a positive float no smaller than minVal and 
             % no larger than maxVal. Returns empty if the input is not valid. 
-            % Empty values aren't assigned to a property by the setters
+            % Empty values aren't assigned to a property by the setters.
+            % Store to acccuracy of five decimal places
             if nargin<3
                 maxVal=inf;
             end
@@ -679,6 +598,7 @@ classdef recipe < handle
                 return
             end
 
+            value = round(value,5);
             if value<minVal
                 value=minVal;
                 return
@@ -688,44 +608,6 @@ classdef recipe < handle
                 return
             end
         end % checkFloat
-
-        function checkIfAcquisitionIsPossible(obj,~,~)
-            % Check if it will be possible to acquire data based on the current recipe settings
-            if isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y) || ...
-                isempty(obj.CuttingStartPoint.X) || isempty(obj.CuttingStartPoint.Y) || ...
-                isempty(obj.mosaic.sampleSize.X) || isempty(obj.mosaic.sampleSize.Y)
-
-                obj.acquisitionPossible=false;
-                return
-            end
-
-            if isempty(obj.sample.ID)
-                obj.acquisitionPossible=false;
-                return
-            end
-
-            % The front left position needs to be *at least* the thickness of a cut from the 
-            % blade plus half the X width of the specimen. This doesn't even account for
-            % the agar, etc. So it's a very relaxed criterion. 
-            if obj.SYSTEM.cutterSide==1
-                if (obj.FrontLeft.X-obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
-                    obj.acquisitionPossible=true;
-                else
-                    fprintf('recipe.checkIfAcquisitionIsPossible thinks the blade may hit the sample during acquisition\n')
-                    obj.acquisitionPossible=false;
-                end
-            elseif obj.SYSTEM.cutterSide==-1
-                fprintf('WARNING: recipe class may not be certain blade will not hit sample during acquisition\n')
-                % This scenario has never been tested with physical hardware
-                if obj.FrontLeft.X>obj.CuttingStartPoint.X
-                    obj.acquisitionPossible=true;
-                else
-                    obj.acquisitionPossible=false;
-                end
-            end
-
-        end % checkIfAcquisitionIsPossible
-
     end % Hidden methods
-    
+
 end

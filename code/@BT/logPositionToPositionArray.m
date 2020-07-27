@@ -14,6 +14,11 @@ function logPositionToPositionArray(obj,fakeLog)
     % the actual position. False by default
 
 
+    % Do not increase the size of the position array
+    if obj.currentTilePosition > size(obj.positionArray,1)
+        return
+    end
+
     if isempty(obj.currentSectionNumber)
         obj.logMessage(inputname(1),dbstack,6,'no current section number defined. Can not log position to array')
         return

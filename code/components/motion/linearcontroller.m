@@ -13,8 +13,6 @@ classdef (Abstract) linearcontroller < handle & loghandler
 % hardware manufacturer's API and BakingTray. These classes provide a consistent
 % interface, so that any hardware can be used with the BakingTray class.
 %
-% TODO: A constructor defined in the child class is optional (but recommended). 
-% It depends how you want to initialize your hardware. 
 %
 % NOTE!
 % When setting up your system, always ensure that it is not possible for hardware to 
@@ -27,7 +25,8 @@ classdef (Abstract) linearcontroller < handle & loghandler
 %
 % Rob Campbell - Basel 2016
 
-    properties 
+
+    properties
 
         hC  %A handle to the hardware controller object. e.g. this could be a serial port
             %or another object that actually sends out the commands over serial, USB, or whatever.
@@ -72,7 +71,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % Behavior
         % This method establishes a connection between the physical controller device
         % and the host PC. The method uses the controllerID  property to establish the 
-        % connection. 
+        % connection.
         %
         % Outputs
         % success - true or false depending on whether a connection was established
@@ -163,7 +162,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         %
         %
         % Inputs
-        % targetPosition - required. signed number defining the position to move to (TODO: in microns?)
+        % targetPosition - required. signed number defining the position to move to (in mm)
         %
         %
         % Outputs
@@ -529,7 +528,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
 
             fprintf('\n** Status of stage and controller of %s\n', obj.attachedStage.axisName)
             fprintf('Axis position = %0.2f mm\n', obj.axisPosition)
-            fprintf('BakingTray minPos = %0.2f mm ; BakingTray maxPos = %0.2f mm\n', ... 
+            fprintf('BakingTray minPos = %0.2f mm ; BakingTray maxPos = %0.2f mm\n', ...
                 obj.attachedStage.minPos, obj.attachedStage.maxPos)
         end
 

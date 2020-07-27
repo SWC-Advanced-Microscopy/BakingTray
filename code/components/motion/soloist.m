@@ -271,7 +271,7 @@ classdef soloist < linearcontroller
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function pos = getPositionUnits(~,~)
-              pos='mm'; %The units of the C-891 are fixed at mm and can't be queried %TODO -- is this the case for all PI controllers?
+              pos='mm'; %The units will stay in mm 
         end %getPositionUnits
 
         function success=setPositionUnits(obj,controllerUnits,~)

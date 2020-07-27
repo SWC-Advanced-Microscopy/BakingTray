@@ -32,8 +32,8 @@ function settings=componentSettings_dummy
     motionAxis(nC).stage(nS).type='dummy_linearstage'; 
     motionAxis(nC).stage(nS).settings.invertAxis=false;
     motionAxis(nC).stage(nS).settings.axisName='xAxis';
-    motionAxis(nC).stage(nS).settings.minPos=-20;
-    motionAxis(nC).stage(nS).settings.maxPos=20;
+    motionAxis(nC).stage(nS).settings.minPos=-25;
+    motionAxis(nC).stage(nS).settings.maxPos=30;
 
     % Y
     nC=2;
@@ -43,8 +43,8 @@ function settings=componentSettings_dummy
     motionAxis(nC).stage(nS).type='dummy_linearstage'; 
     motionAxis(nC).stage(nS).settings.invertAxis=false;
     motionAxis(nC).stage(nS).settings.axisName='yAxis'; 
-    motionAxis(nC).stage(nS).settings.minPos=-20;
-    motionAxis(nC).stage(nS).settings.maxPos=20;
+    motionAxis(nC).stage(nS).settings.minPos=-25;
+    motionAxis(nC).stage(nS).settings.maxPos=25;
 
     % Z
     nC=3;

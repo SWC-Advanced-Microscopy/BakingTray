@@ -3,7 +3,7 @@ function setChannelToView(obj,~,~)
 
     % This callback runs when the user ineracts with the channel popup.
     % The callback sets which channel will be displayed
-    if isempty(obj.model.scanner.channelsToDisplay)
+    if isempty(obj.model.scanner.getChannelsToDisplay)
         %Don't do anything if no channels are being viewed
         return
     end
@@ -13,7 +13,7 @@ function setChannelToView(obj,~,~)
         return
     end
     obj.chanToShow=thisChannelIndex;
-    obj.updateSectionImage;
+    obj.updateSectionImage([],[],true); %force update
     obj.updateImageLUT;
 end %setDepthToView
 
@@ -22,8 +22,8 @@ function chooseChanToDisplay(obj)
 
     if obj.verbose, fprintf('In acquisition_view.chooseChanToDisplay callback\n'), end
 
-    channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
-    channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
+    channelsBeingAcquired = obj.model.scanner.getChannelsToAcquire;
+    channelsScannerDisplays = obj.model.scanner.getChannelsToDisplay;
 
     if isempty(channelsScannerDisplays)
         % Then we can't display anything

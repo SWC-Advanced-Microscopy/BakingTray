@@ -1,5 +1,6 @@
 function [success,msg] = armScanner(obj)
     %Arm scanner and tell it to acquire a fixed number of frames (as defined below)
+
     success=false;
     if isempty(obj.parent) || ~obj.parent.isRecipeConnected
         obj.logMessage(inputname(1) ,dbstack,7,'SIBT is not attached to a BT object with a recipe')
@@ -26,7 +27,7 @@ function [success,msg] = armScanner(obj)
     msg = '';
 
     if any(obj.hC.hChannels.channelSubtractOffset)
-        obj.hC.hChannels.channelSubtractOffset(:)=0;   % Disable offset subtraction
+        obj.hC.hChannels.channelSubtractOffset(:)=0;  % Disable offset subtraction
     end
 
     % Ensure the offset is auto-read so we can use this value later
@@ -37,42 +38,8 @@ function [success,msg] = armScanner(obj)
     msg = sprintf('%sDisabled offset subtraction.\n',msg);
 
 
-    % Set up ScanImage according the type of scan pattern we will use
-    switch obj.parent.recipe.mosaic.scanmode
-    case 'tile'
-        obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
-    case 'ribbon'
-        R = obj.returnScanSettings;
-        xResInMM = R.micronsPerPixel_cols * 1E-3;
-
-        % TODO - why is this here? It should already be done by BT.bake or BT.takeRapidPreview
-        if isempty(obj.parent.currentTilePattern)
-            obj.parent.currentTilePattern = obj.parent.recipe.tilePattern;
-        end
-
-        yRange = range(obj.parent.currentTilePattern(:,2));
-
-        numLines = round(yRange/xResInMM);
-
-        obj.allowNonSquarePixels=true;
-        if obj.hC.hRoiManager.forceSquarePixels==true
-            obj.hC.hRoiManager.forceSquarePixels=false;
-        end
-
-        %Set linesPerFrame for ribbon scanning
-        linesPerFrame = round(numLines*1.05);
-        if mod(linesPerFrame,2)~=0 %Ensure an odd number of lines
-            linesPerFrame=linesPerFrame+1;
-        end
-
-        if obj.hC.hRoiManager.linesPerFrame ~= linesPerFrame
-            obj.hC.hRoiManager.linesPerFrame = linesPerFrame;
-        end
-
-        %Disable Z-stack
-        obj.hC.hStackManager.numSlices = 1;
-        obj.hC.hStackManager.stackZStepSize = 0;
-    end
+    % Set up ScanImage z-stacks
+    obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
     % Set the system to display just the first depth in ScanImage. 
     % Should run a little faster this way, especially if we have 

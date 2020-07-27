@@ -25,11 +25,11 @@ classdef dummyScanner < scanner
         imageStackData %Downsampled image stack that we "image"
         imageStackVoxelSizeXY %voxel size of loaded stack in x/y
         imageStackVoxelSizeZ %voxel size of loaded stack in z
-        maxChans=4; %Arbitrarily, the dummy scanner can handle up to 4 chans. 
+        maxChans=1; %Arbitrarily, the dummy scanner can handle 1 channel
 
         currentOpticalPlane=1
 
-
+        skipSaving=false %If true we do not write image data but do everything else
     end
 
     properties (SetObservable)
@@ -68,6 +68,12 @@ classdef dummyScanner < scanner
 
         scannerSettings % This structure will hold settings that other classes need to acccess
         listeners = {}
+
+        % The following are obtained once each time the scanner is armed at the start of a section
+        xStepInMicrons
+        yStepInMicrons
+        xStepInPixels
+        yStepInPixels
     end
 
     methods
@@ -88,9 +94,9 @@ classdef dummyScanner < scanner
             obj.listeners{1}=addlistener(obj, 'stack_clim', 'PostSet', @obj.flipClimFlag);
 
             % Hard-code settings for acquisition behavior
-            obj.settings.tileAcq.tileFlipUD=true; % see initiateTileScan
+            obj.settings.tileAcq.tileFlipUD=false; % see initiateTileScan
             obj.settings.tileAcq.tileFlipLR=false; % see initiateTileScan
-            obj.settings.tileAcq.tileRotate=1;     % see initiateTileScan
+            obj.settings.tileAcq.tileRotate=0;     % see initiateTileScan
 
             obj.readFrameSizeSettings; % Populate the frame setings 
             obj.scannerSettings = obj.returnDefaultScanSettings;
@@ -127,9 +133,18 @@ classdef dummyScanner < scanner
             if isa(obj.parent.xAxis,'dummy_linearcontroller')
                 obj.parent.xAxis.instantMotions=true;
             end
+
             if isa(obj.parent.yAxis,'dummy_linearcontroller')
                 obj.parent.yAxis.instantMotions=true;
             end
+
+            %tile step size
+            obj.xStepInMicrons = obj.parent.recipe.TileStepSize.X*1E3;
+            obj.yStepInMicrons = obj.parent.recipe.TileStepSize.Y*1E3;
+
+            obj.xStepInPixels = round(obj.xStepInMicrons / obj.imageStackVoxelSizeXY);
+            obj.yStepInPixels = round(obj.yStepInMicrons / obj.imageStackVoxelSizeXY);
+
             success=true;
         end %armScanner
 
@@ -196,14 +211,18 @@ classdef dummyScanner < scanner
         end
 
 
-        function chans = channelsToAcquire(obj)
+        function chans = getChannelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
 
 
-        function chans = channelsToDisplay(obj)
-            chans=obj.channelsToAcquire;
+        function chans = getChannelsToDisplay(obj)
+            chans=obj.getChannelsToAcquire;
             chans=chans(1);
+        end
+
+
+        function setChannelsToDisplay(obj,chans)
         end
 
 
