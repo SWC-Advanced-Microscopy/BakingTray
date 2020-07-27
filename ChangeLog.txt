@@ -18,6 +18,9 @@ Install instructions for autoROI
   aren't flipped compared to BakingTray! 
 - The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
 
+27th July 2020
+- Pre-release and dev branches - Now merged with auto-ROI
+- autoROI code merged into dev
 
 6th July 2020
 - User [branch autoROI]: ROI rectangle snaps to the nearest number of whole tiles.
