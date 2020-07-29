@@ -45,15 +45,21 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     'skipMergeNROIThresh',settings.autoThresh.skipMergeNROIThresh,...
     'doBinaryExpansion',settings.autoThresh.doBinaryExpansion};
 
-    if size(pStack.imStack,3)>pStack.sectionNumber
-        fprintf('\n\n\nIn autoThresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d', ...
-            size(pStack.imStack,3), pStack.sectionNumber)
-        pStack.sectionNumber = size(pStack.imStack,3);
-        fprintf('Forcing sectionNumber to equal stack length')
-    end
 
     if nargin>3 && ~isempty(BBstats) && length(BBstats)==1
-        origIM = pStack.imStack(:,:, pStack.sectionNumber); % Make a backup of the original image
+
+        % The following is a somewhat hacky bug-fix for handling the 
+        % situation where a live acquisition requests a re-run of the threshold
+        if size(pStack.imStack,3)==1 && pStack.sectionNumber>1
+            fprintf('\n\n\nIn autoThresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d\n', ...
+                size(pStack.imStack,3), pStack.sectionNumber)
+            fprintf('Forcing sectionNumber to equal stack length')
+            origIM = pStack.imStack(:,:, 1); % Make a backup of the original image
+        else
+            origIM = pStack.imStack(:,:, pStack.sectionNumber); % Make a backup of the original image
+        end
+
+
         BB = BBstats.roiStats(pStack.sectionNumber).BoundingBoxes;
         pStack.sectionNumber=1; % We will use just one plane
 
