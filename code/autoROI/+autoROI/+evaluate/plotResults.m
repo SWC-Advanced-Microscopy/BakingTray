@@ -116,13 +116,13 @@ xlim([1,size(summaryTable,1)])
 
 
 subplot(nRows,nCols,2)
-plot(summaryTable.totalNonImagedSqMM, pS.basePlotStyle{:})
+plot(summaryTable.maxNonImagedSqMM, pS.basePlotStyle{:})
 hold on 
 plot(xlim,[0,0],'k:')
 grid on
 hold off
 xlabel('Acquisition #')
-ylabel('Aquare mm missed')
+ylabel('Square mm missed')
 title('Worst section square mm missed (lower better)')
 xlim([1,size(summaryTable,1)])
 
