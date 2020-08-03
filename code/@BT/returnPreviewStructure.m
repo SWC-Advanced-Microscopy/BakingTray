@@ -77,12 +77,12 @@ function chan = determineChannelWithHighestSNR(im)
         tChan(tChan == 0) = nan;
 
         tChan = medfilt2(tChan,[3,3]);
+        tChan(tChan == 0) = nan; % Remove the padding values
+
         tChan = tChan(:);
-
-        % remove pixels that did not have data laid down
-
         chanRange(ii) = range(tChan);
-        %fprintf('Channel %d: range %d\n', ii, chanRange(ii))
+        %fprintf('Channel %d: min: %d; max: %d; range %d\n', ii, ...
+        %    min(tChan), max(tChan), chanRange(ii))
     end
 
     [~,chan] = max(chanRange);

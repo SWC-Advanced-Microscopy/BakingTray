@@ -78,6 +78,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     fprintf('Finding bounding box in first section\n')
     stats = autoROI(pStack, boundingBoxArgIn{:},'tThreshSD',tThreshSD);
     stats.roiStats.tThreshSD_recalc=false; %Flag to signal if we had to re-calc the threshold due to increase in laser power
+    stats.roiStats.sectionNumber=1; % This is needed because it's provided in live acquisitions
     drawnow
 
     if pauseBetweenSections
@@ -86,7 +87,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         pause
     end
 
-   
+
     rollingThreshold=settings.stackStr.rollingThreshold; %If true we base the threshold on the last few slices
 
     % Enter main for loop in which we process each section one at a time using the ROIs from the previous section
@@ -123,6 +124,8 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
         if ~isempty(tmp)
             stats=tmp;
+            % The following line is needed to simulate a live acquisition
+            stats.roiStats(end).sectionNumber=pStack.sectionNumber;
             if ~noPlot
                 set(gcf,'Name',sprintf('%d/%d',ii,size(pStack.imStack,3)))
                 drawnow
