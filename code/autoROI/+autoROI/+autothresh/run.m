@@ -53,7 +53,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
         if size(pStack.imStack,3)==1 && pStack.sectionNumber>1
             fprintf('\n\n\nIn autoThresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d\n', ...
                 size(pStack.imStack,3), pStack.sectionNumber)
-            fprintf('Forcing sectionNumber to equal stack length')
+            fprintf('Likely re-calculating thresh in live acq. Forcing sectionNumber to equal stack length\n')
             origIM = pStack.imStack(:,:, 1); % Make a backup of the original image
         else
             origIM = pStack.imStack(:,:, pStack.sectionNumber); % Make a backup of the original image
