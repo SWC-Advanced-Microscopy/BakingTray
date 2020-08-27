@@ -6,12 +6,12 @@ function spawnTilePickerWindow(obj)
     %
     % Instructions
     % - Run a preview scan as normal. Then type at the command line:
-    % - hBTview.view_acquire.spawnTilePickerWindow 
+    %   hBTview.view_acquire.spawnTilePickerWindow 
     % - Resize the window as needed
     % - Left-click on the tile numbers to set them to grey (non-imaged)
     % - Right-click on grey numbers to reset them to red (imaged)
     % - The function produces a vector in the base workspace called
-    %.  tilesToRemove. This contains the indexes of all grey tiles.
+    %   tilesToRemove. This contains the indexes of all grey tiles.
     % - When you are ready do: hBT.recipe.mosaic.tilesToRemove=tilesToRemove;
     %   to store your changes in the recipe. Re-run the preview scan to confirm
     % - If you wish to image all tiles do: hBT.recipe.mosaic.tilesToRemove=[];
