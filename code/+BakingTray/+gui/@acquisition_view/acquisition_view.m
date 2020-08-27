@@ -78,9 +78,10 @@ classdef acquisition_view < BakingTray.gui.child_view
         setChannelToView(obj,~,~)
 
     end
-    
-    methods 
+
+    methods
         getThresholdAndOverlayGrid(obj,~,~)
+        spawnTilePickerWindow(obj)
     end
 
 
