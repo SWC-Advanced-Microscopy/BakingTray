@@ -83,7 +83,7 @@ function takeRapidPreview(obj)
 
     obj.scanner.disableTileSaving
     obj.currentTileSavePath=[];
-    obj.populateCurrentTilePattern(true); % Build and log the current tile pattern before starting
+    obj.populateCurrentTilePattern('isFullPreview',true); % Build and log the current tile pattern before starting
                                           % The "true" indicates we will run a full FOV preview.
 
     if ~obj.scanner.armScanner

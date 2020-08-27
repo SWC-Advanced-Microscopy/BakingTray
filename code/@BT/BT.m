@@ -144,7 +144,7 @@ classdef BT < loghandler
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
         [imageCoords,mmPerPixelDownSampled] = convertStagePositionToImageCoords(obj, coords, imageFrontLeft)
-        populateCurrentTilePattern(obj, isFullPreview)
+        populateCurrentTilePattern(obj, varargin)
         msg = reportAcquisitionSize(obj)
 
         % House-keeping

@@ -1,4 +1,4 @@
-function populateCurrentTilePattern(obj,isFullPreview)
+function populateCurrentTilePattern(obj,varargin)
     % populate obj.currentTilePattern and obj.positionArray
     %
     % Purpose
@@ -14,20 +14,44 @@ function populateCurrentTilePattern(obj,isFullPreview)
     %  The auto-ROI uses obj.autoROI.stats.roiStats(end).BoundingBoxDetails
     %
     %
-    % Inputs
+    % Inputs (optional param/val pairs)
     % isFullPreview - false by default. If true, we do a preview scan over the whole
     %                 area defined by the number of x and y tiles and front/left in the
     %                 recipe. This is used to allow a preview scan even when we are in
     %                 auto-ROI mode.
+    % 'keepTiles' - empty by default. If provided, the current tile pattern is calculated
+    %               and only these tile indexes are kept. (supply a vector to use)
+    % 'removeTiles' - empty by default. If provided, the current tile pattern is calculated
+    %               and these tiles index values are removed. (supply a vector to use)
+    %
+    % Note that you can not supply both keepTiles and removeTiles. If you want to, say,
+    % remove the first and last tiles of a tile pattern having length 256 you would supply
+    % " 'removeTiles', [1,256] " as input param/val pair.
     %
     % Outputs
     % None: this method updates the properties currentTilePattern and currentTilePattern
     %
     % Also see: BT.getNextROIs, runTileScan, takeRapidPreview
 
-    if nargin<2
-        isFullPreview=false;
+
+    % Parse optional inputs
+    P = inputParser;
+    P.CaseSensitive = false;
+    P.addParameter('isFullPreview',false)
+    P.addParameter('removeTiles',[])
+    P.addParameter('keepTiles', [])
+
+    P.parse(varargin{:})
+
+    isFullPreview = P.Results.isFullPreview;
+    removeTiles = P.Results.removeTiles;
+    keepTiles = P.Results.keepTiles;
+
+    if ~isempty(removeTiles) && ~isempty(keepTiles)
+        error('Can not supply both removeTiles and keepTiles');
     end
+
+
 
     pos=[]; % In case for whatever reason no tile pattern is generated. During an acquisition
             % this won't be a problem.
@@ -52,6 +76,14 @@ function populateCurrentTilePattern(obj,isFullPreview)
         return
     end
 
+    % Modify tile pattern as appropriate
+    if ~isempty(removeTiles)
+        pos(removeTiles,:)=[];
+        indexes(removeTiles,:)=[];
+    elseif ~isempty(keepTiles)
+        pos = pos(keepTiles,:);
+        indexes = indexes(keepTiles,:);
+    end
 
     % This is where the stage will go. Positions in mm.
     obj.currentTilePattern=pos;
