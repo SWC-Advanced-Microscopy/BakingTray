@@ -201,8 +201,13 @@ end % tilePattern
         tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
         tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
 
-        if ~isempty(obj.mosaic.tilesToRemove)
-            tilePosArray(obj.mosaic.tilesToRemove,:)=[];
-            tileIndexArray(obj.mosaic.tilesToRemove,:)=[];
+        % Optionally remove tile positions from the grid. The user will have specified this if they want it.
+        % This is won't normally be the case: usually a rectangular grid will be imaged.
+        tR = obj.mosaic.tilesToRemove;
+        tR(tR<0)=[];
+        tR(tR>size(tilePosArray,1))=[];
+        if ~isempty(tR)
+            tilePosArray(tR,:)=[];
+            tileIndexArray(tR,:)=[];
         end
     end

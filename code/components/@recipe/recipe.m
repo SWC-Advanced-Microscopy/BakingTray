@@ -128,7 +128,7 @@ classdef recipe < handle
                     'overlapProportion', 0.05, ... % Value from 0 to 0.5 defining how much overlap there should be between adjacent tiles
                     'sampleSize', struct('X',1, 'Y',1), ...  % The size of the sample in mm
                     'scanmode', 'tile', ... % String defining how the data are to be acquired.
-                    'tilesToRemove', [])
+                    'tilesToRemove', -1) %vector defining which tile locations from the grid will be skipped. -1 means all are imaged
 
 
         % These properies are set via methods of BT, not directly by the user.
@@ -428,11 +428,13 @@ classdef recipe < handle
                             end
 
                         case 'tilesToRemove'
-                            if isnumeric(fieldValue)
+                            if isnumeric(fieldValue) && isvector(fieldValue)
                                 %pass
+                            elseif isempty(fieldValue)
+                                fieldValue=-1;
                             else
-                                fprintf('ERROR: mosaic.tilesToRemove must be empty or a vector!\n')
-                                fieldValue=[];
+                                fprintf('ERROR: mosaic.tilesToRemove must be empty or a numeric vector!\n')
+                                fieldValue=-1;
                             end
 
                         case 'sectionStartNum'
