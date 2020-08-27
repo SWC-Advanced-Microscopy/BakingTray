@@ -200,4 +200,9 @@ end % tilePattern
         tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
         tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
         tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
+
+        if ~isempty(obj.mosaic.tilesToRemove)
+            tilePosArray(obj.mosaic.tilesToRemove,:)=[];
+            tileIndexArray(obj.mosaic.tilesToRemove,:)=[];
+        end
     end
