@@ -86,6 +86,10 @@ classdef BT < loghandler
         % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored in
         % scanner.tileBuffer should be 
         downSampledTileBuffer = [] % A 4D array: [imageRows,imageCols,zDepths,channels]; 
+        % The following parameter defines the number of microns per pixel of the downsampled image.
+        % It is set to 20 microns/pixel by default. ** The autoROI feature is tested only at 20 mics/pix **
+        % If you change this value the autoROI might not work as expected. In addition, decreasing this value 
+        % will slow down the autoROI slightly. 
         downsampleMicronsPerPixel = 20;
         %i.e. 1,2,3,... not a position in mm)
         lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
