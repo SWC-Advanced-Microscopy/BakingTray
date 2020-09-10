@@ -6,6 +6,17 @@ function bake_callback(obj,~,~)
     end
 
     obj.updateStatusText
+
+    % Temporary HACK: Do not do anything if we are in autoROI mode the
+    % autoROI stats do not exist
+    if strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        if isempty(obj.model.autoROI) || ~isfield(obj.model.autoROI,'stats')
+            warndlg('Run autothresh before bake')
+            return
+        end
+    end
+    % END HACK
+    
     %Check whether it's safe to begin
     [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible;
     if ~acqPossible
