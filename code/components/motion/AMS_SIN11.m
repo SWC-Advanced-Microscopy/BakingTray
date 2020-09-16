@@ -173,7 +173,7 @@ classdef AMS_SIN11 < linearcontroller
         ready=obj.isAxisReady;
 
         if ~ready
-          pos=[];          
+          pos=[];
           return
         end
 
