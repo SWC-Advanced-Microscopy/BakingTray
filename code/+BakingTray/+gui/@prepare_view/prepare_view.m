@@ -21,8 +21,8 @@ classdef prepare_view < BakingTray.gui.child_view
     end
 
     properties (Hidden)
-        hBTview
-        %Panels
+        hBTview  % Handle to the main view class that spawns this GUI
+        % The following properties store GUI panel handles
         move_panel
         slice_panel
         absMove_panel
@@ -35,6 +35,10 @@ classdef prepare_view < BakingTray.gui.child_view
         jogSizeCoarseOrFine='fine' %can also be "coarse" TODO: add a radio button and callback to switch between coarse and fine 
         lastSliceThickness=0.1
         lastCuttingSpeed=0.5
+
+        %Timer-related properties. These are involved in keeping the GUI up to date
+        prepareViewUpdateTimer
+        prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
     end
 
     properties (Hidden,Access=protected)
@@ -50,9 +54,6 @@ classdef prepare_view < BakingTray.gui.child_view
         %Ready text color: the color of a text element when it's at the correct value to proceed
         readyTextColor=[0.25,1,0.25]
 
-        %Timer-related properties. These are involved in keeping the GUI up to date
-        prepareViewUpdateTimer
-        prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
         lastXpos=0
         lastYpos=0
         lastZpos=0
@@ -502,9 +503,14 @@ classdef prepare_view < BakingTray.gui.child_view
         takeNslices(obj,~,~)
         stopAllAxes(obj,~,~)
 
+
         function toggleEnable(obj,toggleState)
-            % Enables/disables all UI elements. Used during scanning. 
-            % toggleState should be the string: 'on' or 'off'
+            % Enables/disables all UI elements. This method is triggered by the callback prepare_view.updateGUIduringAcq so 
+            % that it automatically disables the GUI during preview scans and bakes. 
+            %
+            % Inputs
+            % toggleState - should be the string: 'on' or 'off' The function does nothing if this is not the case
+
             if ~ischar(toggleState)
                 return
             end
