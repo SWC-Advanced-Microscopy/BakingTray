@@ -236,4 +236,10 @@ function cleanupSlicer(obj,state)
 
     obj.getXYpos; %Refreshes the currentPosition properties on the stages
     obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
+
+    % Read all axis positions. This is to force any GUI listeners on stage position properties to update. 
+    % This slightly breaks the model/view paradignm, but does so totally silentlt. 
+    obj.xAxis.axisPosition;
+    obj.yAxis.axisPosition;
+    obj.zAxis.axisPosition;
 end
