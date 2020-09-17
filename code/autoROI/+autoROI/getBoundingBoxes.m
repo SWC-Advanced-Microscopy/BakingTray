@@ -28,10 +28,9 @@ function stats = getBoundingBoxes(BW,im,pixelSize)
     end
 
     % -------------------
-    % TEMP UNTIL WE FIX BAKINGTRAY WE MUST REMOVE THE NON-IMAGED CORNER PIXELS
-    %Look for ROIs smaller than 2 by 2 mm and ask whether they are the un-imaged corner tile.
-    %(BakingTray currently (Dec 2019) produces these tiles and this needs sorting.)
-    %If so delete. TODO: longer term we want to get rid of the problem at acquisition. 
+    % Get rid of the non-imaged pixels in the corner tile. This is done because the older
+    % test acquisitions have final tiles that were not imaged. This has since been fixed
+    % so in live acquisitions all tiles have been imaged.
 
     for ii=length(stats):-1:1
         % If it's large, we skip analysing it

@@ -90,8 +90,6 @@ function varargout=autoROI(pStack, varargin)
     doBinaryExpansion = params.Results.doBinaryExpansion;
     settings = params.Results.settings;
 
-
-
     % Get defaults from settings file if needed
     if isempty(tThreshSD)
         fprintf('%s is using a default threshold of %0.2f\n',mfilename,tThreshSD)
@@ -120,10 +118,9 @@ function varargout=autoROI(pStack, varargin)
     end
 
 
-    % Remove sharp edges. This helps with artifacts associated with the 
-    % missing corner tile. TODO: could remove this step in the future. 
-    % However, since it will clean up local very large values it might not
-    % be a bad idea it to leave it in.
+    % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
+    % data. TODO: could remove this step in the future. However, since it will clean up local very large 
+    % values it might not be a bad idea it to leave it in.
     im = autoROI.removeCornerEdgeArtifacts(im);
 
 

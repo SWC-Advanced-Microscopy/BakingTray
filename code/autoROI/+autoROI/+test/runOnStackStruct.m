@@ -143,7 +143,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
 
     % Log aspects of the run in the output structure
-    pStack.fullFOV=true;
+    pStack.fullFOV=true; % This is true because these test stacks are full FOVs (not auto-ROI) which we use for testing
 
     % Did we get all sections?
     if isfield(pStack,'lastSliceWithData')
