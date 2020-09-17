@@ -102,7 +102,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         fprintf('Binarized size before dilation: %d by %d\n',size(BW));
     end
     if nargout>1
-        stats.step_two = getStatsFromBW(BW);
+        binStats.step_two = getStatsFromBW(BW);
     end
 
 
@@ -130,7 +130,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
        %hist([r.MinorAxisLength],100)
     end
     if nargout>1
-        stats.step_three = getStatsFromBW(BW);
+        binStats.step_three = getStatsFromBW(BW);
     end
 
 
@@ -140,11 +140,11 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
             round(settings.mainBin.expansionSize/pixelSize));
         BW = imdilate(BW,SE);
         if nargout>1
-            stats.step_four = getStatsFromBW(BW);
+            binStats.step_four = getStatsFromBW(BW);
         end
     elseif doBinaryExpansion==false && nargout>1
         % Just copy data from three as step four never happened
-        stats.step_four = stats.step_three;
+        binStats.step_four = binStats.step_three;
     end
 
     if showImages
@@ -165,7 +165,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     end
 
     if nargout>1
-        varargout{2}=stats;
+        varargout{2}=binStats;
     end
 
 
