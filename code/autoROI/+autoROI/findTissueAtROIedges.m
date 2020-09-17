@@ -19,7 +19,7 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
 
     imagesc(BW)
     cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
-    drawnow, pause(0.15)
+    drawnow, pause(1.15)
     for ii=1:length(BBstats)
         tBW=autoROI.getSubImageUsingBoundingBox(BW,BBstats{ii});
         edgeData = lookForTissueAtEdges(tBW,BBstats{ii},settings);
@@ -55,36 +55,67 @@ function out = lookForTissueAtEdges(BW,ROI,settings)
     sampleProfileCols = sum(BW,1);
 
     % This deals with cases where there is tissue at the edges on the North and/or South sides
-    if any(out.NSEW(1:2)>eThresh)
-        
-        %plot(sampleProfileRows==0,'ok-')
-        if out.NSEW(1)>eThresh && out.NSEW(2)>eThresh
-            % Then it's both sides that are clipping. We grow accordingly
+    %plot(sampleProfileRows==0,'ok-')
+    if out.NSEW(1)>eThresh && out.NSEW(2)>eThresh
+        % Then it's both sides that are clipping. We grow accordingly
+        ROI(2) = ROI(2) - growByPix;
+        ROI(4) = ROI(4) + growByPix*2;
 
-        elseif out.NSEW(1)>eThresh
-            n = numClearPixels(flip(sampleProfileRows)); %if the clipped edge was on the north side we flip the word
-
-
-            if n>growByPix
-                ROI(2) = ROI(2)-n; %Shift up ROI by this much
-            else
-                %Increase height by the difference
-                ROI(4) = ROI(4) + (growByPix-n);
-                ROI(2) = ROI(2) - growByPix; %Now can shift up by e-thresh
-
-            end
-        elseif out.NSEW(2)>eThresh
-            shiftROIUD=true;
-            n = numClearPixels(sampleProfileRows);
+    elseif out.NSEW(1)>eThresh
+        n = numClearPixels(flip(sampleProfileRows)); %if the clipped edge was on the north side we flip the word
+        if n>growByPix
+            ROI(2) = ROI(2)-n; %Shift up ROI by this much
+        else
+            %Increase height by the difference
+            ROI(4) = ROI(4) + (growByPix-n);
+            ROI(2) = ROI(2) - growByPix; %Now can shift up by e-thresh
         end
+    elseif out.NSEW(2)>eThresh
+        % South end clipped
+        shiftROIUD=true;
+        n = numClearPixels(sampleProfileRows);
 
-        % Repeat for LR
-
-        %Expand ROI, say, 750 microns in the direction of the clipping. We can subtract the above. 
-        %We need to know the scale factor. 
-        %Then we feed back to ROIs from calller function.
-
+        if n>growByPix
+            ROI(2) = ROI(2)+n; %Shift down ROI by this much
+        else
+            %Increase height by the difference
+            ROI(4) = ROI(4) + (growByPix-n);
+            ROI(2) = ROI(2) + n; %Now can shift up by e-thresh
+        end
     end
+
+
+
+    % Repeat for LR
+    if out.NSEW(3)>eThresh && out.NSEW(4)>eThresh
+        % Then it's both sides that are clipping. We grow accordingly
+        ROI(1) = ROI(1) - growByPix;
+        ROI(3) = ROI(3) + growByPix*2;
+
+    elseif out.NSEW(4)>eThresh
+        % West clips
+        n = numClearPixels(flip(sampleProfileCols)); %if the clipped edge was on the north side we flip the word
+        if n>growByPix
+            ROI(1) = ROI(1)-n; %Shift up ROI by this much
+        else
+            %Increase height by the difference
+            ROI(3) = ROI(3) + (growByPix-n);
+            ROI(1) = ROI(1) - growByPix; %Now can shift up by e-thresh
+        end
+    elseif out.NSEW(3)>eThresh
+        % East clips
+        shiftROIUD=true;
+        n = numClearPixels(sampleProfileCols);
+
+        if n>growByPix
+            ROI(1) = ROI(1)+n; %Shift down ROI by this much
+        else
+            %Increase height by the difference
+            ROI(3) = ROI(3) + (growByPix-n);
+            ROI(1) = ROI(1) + n; %Now can shift up by e-thresh
+        end
+    end
+
 
     out.ROI = ROI;
 
