@@ -28,7 +28,7 @@ function moveToSample(obj,~,~)
 
     % These calls update the stage position in the linear_stage class and so
     % trigger the GUI to update, as it listens to this property.
-    obj.model.getXpos
-    obj.model.getYpos
+    obj.model.getXpos;
+    obj.model.getYpos;
 
 end

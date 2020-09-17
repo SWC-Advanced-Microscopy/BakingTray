@@ -475,7 +475,7 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.prepareViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
             obj.prepareViewUpdateTimer.StopFcn = @(~,~) [];
             obj.prepareViewUpdateTimer.ExecutionMode = 'fixedDelay';
-            start(obj.prepareViewUpdateTimer);
+            %start(obj.prepareViewUpdateTimer);
 
         end %Constructor
 
@@ -675,10 +675,11 @@ classdef prepare_view < BakingTray.gui.child_view
             %text label doesn't reflect this. 
             pause(0.1)
             pos=axisToMove.axisPosition;
-            if success==false %if there was no motion the box won't update so we have to force it                                
+            if success==false %if there was no motion the box won't update so we have to force it=
                 event.String=sprintf('%0.3f',round(pos,3));
                 event.ForegroundColor='k';
             end
+            start(obj.prepareViewUpdateTimer)
         end
 
         function setCuttingPos_callback(obj,~,~)
@@ -709,12 +710,17 @@ classdef prepare_view < BakingTray.gui.child_view
         %Update methods for motion axis boxes and the timer update method
         function regularGUIupdater(obj,~,~)
             %Timer callback function to update GUI components regularly
-            obj.updateXaxisEditBox;
-            obj.updateYaxisEditBox;
-            obj.updateZaxisEditBox;
+            disp('IN REG UPDATER')
+            xMoved = obj.updateXaxisEditBox;
+            yMoved = obj.updateYaxisEditBox;
+            zMoved = obj.updateZaxisEditBox;
+            % If no axes moved we stop the timer
+            if ~xMoved && ~yMoved && ~zMoved
+                stop(obj.prepareViewUpdateTimer)
+            end
         end %regularGUIupdater
 
-        function updateXaxisEditBox(obj,~,~)
+        function axisMoved = updateXaxisEditBox(obj,~,~)
             pos=round(obj.model.xAxis.axisPosition,3);
             if obj.lastXpos ~= pos || obj.model.xAxis.isMoving
                 obj.lastXpos=pos;
@@ -722,10 +728,14 @@ classdef prepare_view < BakingTray.gui.child_view
                     pos=0;
                 end
                 obj.editBox.xPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
+
         end %updateXaxisEditBox
 
-        function updateYaxisEditBox(obj,~,~)
+        function axisMoved = updateYaxisEditBox(obj,~,~)
             pos=round(obj.model.yAxis.axisPosition,3);
             if obj.lastYpos ~= pos || obj.model.yAxis.isMoving
                 obj.lastYpos=pos;
@@ -733,14 +743,20 @@ classdef prepare_view < BakingTray.gui.child_view
                     pos=0;
                 end
                 obj.editBox.yPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
         end %updateYaxisEditBox
 
-        function updateZaxisEditBox(obj,~,~)
+        function axisMoved = updateZaxisEditBox(obj,~,~)
             pos=round(obj.model.zAxis.axisPosition,3);
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
         end %updateZaxisEditBox
 

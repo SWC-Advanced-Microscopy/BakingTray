@@ -44,8 +44,8 @@ function toggleEnable(obj,toggleState)
     end
 
     % Read the stage positions to force a GUI update of the positions, just in case
-    obj.model.getXpos
-    obj.model.getYpos
-    obj.model.getZpos
+    obj.model.getXpos;
+    obj.model.getYpos;
+    obj.model.getZpos;
 
 end %toggleEnable
