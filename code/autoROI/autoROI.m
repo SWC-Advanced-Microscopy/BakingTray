@@ -103,7 +103,7 @@ function varargout=autoROI(pStack, varargin)
     % Extract settings from setting structure
     borderPixSize = settings.main.borderPixSize;
 
-    rescaleTo = settings.stackStr.rescaleTo;
+    rescaleTo = settings.main.rescaleTo;
 
 
 

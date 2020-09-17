@@ -1,11 +1,15 @@
-function out = findTissueAtROIedges(BW,BBstats)
+function out = findTissueAtROIedges(BW,BBstats,settings)
     % Does the edge of a ROI contain tissue?
     %
     % function out = findTissueAtROIedges(BW,BBstats)
     %
     %
 
-    settings = autoROI.readSettings;
+
+    if nargin<3
+        settings = autoROI.readSettings;
+    end
+
 
     % convert to cell array if needed
     if isstruct(BBstats)
@@ -18,58 +22,61 @@ function out = findTissueAtROIedges(BW,BBstats)
 
     for ii=1:length(BBstats)
         tBW=autoROI.getSubImageUsingBoundingBox(BW,BBstats{ii});
-        edgeData(ii) = lookForTissueAtEdges(tBW);
+        edgeData = lookForTissueAtEdges(tBW,BBstats{ii},settings);
+        BBstats{ii} = edgeData.ROI;
     end
 
+    disp('PRESS RETURN'), pause
+    imagesc(BW)
+    cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
 
 
 
-function out = lookForTissueAtEdges(BW)
 
+function out = lookForTissueAtEdges(BW,ROI,settings)
+
+    % this function is called by getBoundingBoxes, which works with downsampled images defined thus:
+    micsPix = settings.main.rescaleTo; 
+
+    eThresh = settings.clipper.edgeThreshMicrons / micsPix;
+    growByPix = settings.clipper.growROIbyMicrons / micsPix;
 
     out.NSEW = [sum(BW(1,:)), ...
                 sum(BW(end,:)), ...
                 sum(BW(:,end)), ...
                 sum(BW(:,1))];
-
+    out.ROI = ROI;
     if ~any(out.NSEW)
         return
     end
 
-    % First let's see if the box can be moved
-
-    sampleProfileRows = sum(BW,2)';
+    % These will be used to detect clipping
+    sampleProfileRows = sum(BW,2);
     sampleProfileCols = sum(BW,1);
 
     % This deals with cases where there is tissue at the edges on the North and/or South sides
-    if any(out.NSEW(1:2))
-        % Make a binary word to identify all the zeros
-        bWord = strrep(num2str(sampleProfileRows==0),' ','');
+    if any(out.NSEW(1:2)>eThresh)
+        
+        %plot(sampleProfileRows==0,'ok-')
+        if out.NSEW(1)>eThresh && out.NSEW(2)>eThresh
+            % Then it's both sides that are clipping. We grow accordingly
 
-        if out.NSEW(1) && out.NSEW(2)
-            % Then it's both sides that are clipping.
-            shiftROIUD=false;
-        elseif out.NSEW(1)
-            %if the edge was on the south side we flip the word
-            bWord = fliplr(bWord);
-            shiftROIUD=true;
-        elseif out.NSEW(2)
-            shiftROIUD=true;
-        end
+        elseif out.NSEW(1)>eThresh
+            n = numClearPixels(flip(sampleProfileRows)); %if the clipped edge was on the north side we flip the word
 
-        tok=regexp(bWord,'^(1+)','tokens');
-        if ~isempty(tok)
-            numEmptyPixels = length(tok{1}{1});
-            if shiftROIUD && out.NSEW(1)
-                shiftROIUD = numEmptyPixels;
-            else shiftROIUD && out.NSEW(2)
-                shiftROIUD = -numEmptyPixels;
+
+            if n>eThresh
+                ROI(2) = ROI(2)-n; %Shift up ROI by this much
+            else
+                %Increase height by the difference
+                ROI(4) = ROI(4) + (eThresh-n);
+                ROI(4) = ROI(4) + eThresh; %Now can shift up by e-thresh
+
             end
-        else
-            fprintf('FAILED TO FIND EMPTY PIXELS WHICH SHOULD EXIST')
+        elseif out.NSEW(2)>eThresh
+            shiftROIUD=true;
+            n = numClearPixels(sampleProfileRows);
         end
-
-
 
         % Repeat for LR
 
@@ -79,5 +86,19 @@ function out = lookForTissueAtEdges(BW)
 
     end
 
+    out.ROI = ROI;
 
-    %clf,imagesc(BW)
+function n = numClearPixels(sampleProfile)
+    % Return the number of clear (empty) pixels between an edge and the sample
+    % Sample profile must be flipped so that the first index corresponds to the edge we know has no sample
+
+    n=0;
+    sampleProfile = sampleProfile(:)'; % Get a row vector
+
+    % Make a binary word to identify all locations with sample (zeros)
+    bWord = strrep(num2str(sampleProfile==0),' ','');
+
+    tok=regexp(bWord,'^(1+)','tokens'); %Search from the start
+    if ~isempty(tok)
+        n = length(tok{1}{1});
+    end
