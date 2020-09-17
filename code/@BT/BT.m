@@ -304,14 +304,21 @@ classdef BT < loghandler
 
         function varargout=moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Absolute move position defined by xPos and yPos
-            % Wait for motion to complete before returning if blocking is true. 
-            % blocking is false by default.
-            % extraSettlingTime is an additional waiting period after the end of a blockin motion.
-            % This extra wait is used when tile scanning to ensure that vibration has ceased. zero by default.
-            % timeOut (inf by default) if true, we don't wait longer than
-            % this many seconds for motion to complete
             %
             % moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
+            %
+            % Inputs [required]
+            % xPos - x stage target position in mm
+            % yPos - y stage target position in mm
+            %
+            % Inputs [optional]
+            % blocking - [false by default] Wait for motion to complete before returning
+            % extraSettlingTime is an additional waiting period after the end of a blockin motion.
+            %   This extra wait is used when tile scanning to ensure that vibration has ceased. zero by default.
+            % timeOut (inf by default) if true, we don't wait longer than
+            %  this many seconds for motion to complete
+            %
+
             if nargin<3
                 success=false;
                 fprintf('moveXYto expects two input arguments: xPos and yPos in mm -- NOT MOVING\n')
