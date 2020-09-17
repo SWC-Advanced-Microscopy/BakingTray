@@ -19,14 +19,14 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
 
     imagesc(BW)
     cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
-
+    drawnow, pause(0.15)
     for ii=1:length(BBstats)
         tBW=autoROI.getSubImageUsingBoundingBox(BW,BBstats{ii});
         edgeData = lookForTissueAtEdges(tBW,BBstats{ii},settings);
         BBstats{ii} = edgeData.ROI;
     end
 
-    disp('PRESS RETURN'), pause
+
     imagesc(BW)
     cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
 
@@ -65,12 +65,12 @@ function out = lookForTissueAtEdges(BW,ROI,settings)
             n = numClearPixels(flip(sampleProfileRows)); %if the clipped edge was on the north side we flip the word
 
 
-            if n>eThresh
+            if n>growByPix
                 ROI(2) = ROI(2)-n; %Shift up ROI by this much
             else
                 %Increase height by the difference
-                ROI(4) = ROI(4) + (eThresh-n);
-                ROI(4) = ROI(4) + eThresh; %Now can shift up by e-thresh
+                ROI(4) = ROI(4) + (growByPix-n);
+                ROI(2) = ROI(2) - growByPix; %Now can shift up by e-thresh
 
             end
         elseif out.NSEW(2)>eThresh
