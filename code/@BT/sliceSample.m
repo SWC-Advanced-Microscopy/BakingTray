@@ -151,7 +151,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
        if obj.abortSlice
            return
        end
-       pause(0.05)
+       pause(0.025)
     end
 
     if obj.abortSlice
@@ -181,7 +181,6 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     if obj.abortSlice
         return
     end
-    obj.getXpos;
 
     for ii=1:2
         swipeSize = swipeSize*-1;
@@ -189,9 +188,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         if obj.abortSlice
             return
         end
-        obj.getXpos;
     end
-
 
     %Reset speeds of stages to what they were originally    
     obj.setYvelocity(moveStepSpeed);
@@ -242,7 +239,7 @@ function cleanupSlicer(obj,state)
 
     % Read all axis positions. This is to force any GUI listeners on stage position properties to update. 
     % This slightly breaks the model/view paradignm, but does so totally silentlt. 
-    obj.getXpos;
-    obj.getYpos;
-    obj.getZpos;
+    obj.xAxis.axisPosition;
+    obj.yAxis.axisPosition;
+    obj.zAxis.axisPosition;
 end
