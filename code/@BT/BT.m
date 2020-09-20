@@ -558,10 +558,6 @@ classdef BT < loghandler
         function varargout = getZpos(obj)
             %print to screen if no outputs asked for
             pos=obj.zAxis.axisPosition;
-            if nargout<1
-                fprintf('Z=%0.2f\n',pos)
-                return
-            end
             if nargout>0
                 varargout{1}=pos;
             end
