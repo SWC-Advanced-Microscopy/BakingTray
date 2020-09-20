@@ -60,22 +60,22 @@ function varargout = acquireTile(obj,~,~)
 
     % Check that the coordinates are within range of the image
     if xRange(1)<1
-        fprintf('x tile range has coordinate is <1. Not acquiring tile\n')
+        fprintf('x tile range has coordinate that is <1. Not acquiring tile\n')
         return
     end
 
     if yRange(1)<1
-        fprintf('y tile range has coordinate is <1. Not acquiring tile\n')
+        fprintf('y tile range has coordinate that is <1. Not acquiring tile\n')
         return
     end
 
     if xRange(end)>size(thisSection,1)
-        fprintf('x tile range has coordinate is <1. Not acquiring tile\n')
+        fprintf('x tile range has coordinate that is <1. Not acquiring tile\n')
         return
     end
 
     if yRange(end)>size(thisSection,2)
-        fprintf('y tile range has coordinate is <1. Not acquiring tile\n')
+        fprintf('y tile range has coordinate that is <1. Not acquiring tile\n')
         return
     end
 

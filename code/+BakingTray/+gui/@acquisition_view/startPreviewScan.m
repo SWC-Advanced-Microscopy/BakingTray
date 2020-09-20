@@ -31,10 +31,12 @@ function startPreviewScan(obj,~,~)
     obj.updateImageLUT;
 
     % Take the preview scan
+    obj.removeOverlays
     try
         obj.model.takeRapidPreview
     catch ME
         fprintf('BT.takeRapidPreview failed with error message:\n%s\n',ME.message)
+        obj.overlayThreshBorderOnImage
     end
 
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
