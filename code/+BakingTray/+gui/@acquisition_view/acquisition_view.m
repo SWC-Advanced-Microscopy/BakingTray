@@ -12,9 +12,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         doSectionImageUpdate=true %if false we don't update the image
         updatePreviewEveryNTiles=10 % Update the preview image each time a multiple of updatePreviewEveryNTiles has been acquired
 
-        %% TODO -- may not implement this
-        %%overlayTileGridsAfterSection=true % If true overlay diagnostic tile grids on section preview after each section
-
         verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
     end
 
@@ -146,6 +143,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'YColor','w')
             set(obj.imageAxes.YAxis,'Direction','Reverse'); % TODO-- buildFigure also does this. But has to be here or work of buildfigure gets undone. Buildfigure should call this!
             set(obj.hFig,'Colormap', gray(256))
+            obj.overlayStageBoundariesOnImage
         end %setUpImageAxes
 
         function populateDepthPopup(obj)
