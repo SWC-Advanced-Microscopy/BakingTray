@@ -42,14 +42,14 @@ function overlayThreshBorderOnImage(obj)
     sAuto=autoROI.readSettings;
     b = sAuto.main.borderPixSize;
     % Scale by amount we resize by, as the border pixels are pulled out of a downsampled image
-    b = b * (sAuto.stackStr.rescaleTo / obj.model.downsampleMicronsPerPixel);
+    b = b * (sAuto.main.rescaleTo / obj.model.downsampleMicronsPerPixel);
 
     % Now plot the border area
     n=size(im,2);
     x=[b+1,n-b,n-b,b+1,b+1];
     n=size(im,1);
     y=[b+1,b+1,n-b,n-b,b+1];
-    
+
     obj.plotOverlayHandles.(mfilename) = plot(x,y,':g','Parent',obj.imageAxes);
 
     n=size(im,2);
