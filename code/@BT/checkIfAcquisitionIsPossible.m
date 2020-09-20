@@ -44,6 +44,12 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
+    % We need a recipe connected and it must indicate that acquisition is possible
+    if obj.isRecipeConnected && isempty(obj.recipe.tilePattern)
+        msg=sprintf('%s%d) Tile pattern is empty. Likely you asked for pattern that has out of bounds positions.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
+    end
+
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
         msg=sprintf('%s%d) No scanner is connected.\n' ,msg, msgNumber);

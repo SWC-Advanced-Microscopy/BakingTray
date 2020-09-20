@@ -89,7 +89,7 @@ classdef BT < loghandler
     % This is because BT.displayMessage listens to messageString and will read what is in messageID
     % immediately after the messageString is changed.
     % NOTE: only write messages to messageString that you would like to be displayed in the GUI too.
-    properties (SetObservable,AbortSet,Transient)
+    properties (SetObservable,Transient)
         messageID = ''
         messageString = ''
     end
