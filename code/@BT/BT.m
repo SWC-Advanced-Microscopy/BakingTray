@@ -54,9 +54,11 @@ classdef BT < loghandler
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
     end
 
+
     properties (SetObservable)
         lastPreviewImageStack = [] % The last preview image stack. It is a 4D matrix: [pixel rows, pixel columns, z depth, channel]
     end
+
 
     properties (SetAccess=immutable,Hidden)
         componentSettings
@@ -64,6 +66,8 @@ classdef BT < loghandler
         autoROIstats_fname='auto_ROI_stats.mat' % The statistics associated with auto-ROI acquisitions will be saved to this file name in rawDataSubDirName
     end
 
+
+    % Short flags or variables used during acquisition
     properties (SetObservable,AbortSet,Transient)
         sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         leaveLaserOn=false      % If true, the laser is not switched off when acquisition finishes.
@@ -71,6 +75,25 @@ classdef BT < loghandler
         importLastFrames=true   % If true, we keep a copy of the frames acquired at the last X/Y position in BT.downSampledTileBuffer
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
+
+
+    % Message structure. Messages to be displayed to the command line are written to these properies
+    % The BT.displayMessage method prints them to screen. The reason for this is that the view classes
+    % for the GUI also monitor this same structure and display a dialog box if appropriate. Furthermore,
+    % we can set up particular sorts of messages to be formatted differently depending on messageID.
+    %
+    % The messageString property contains the text to be displayed. 
+    % The mesageID property is for internal use only and could contain flags so that messages are, say,
+    % skipped by the GUI. 
+    % IMPORTANT: functions wishing to write a message MUST write to messageID first then messageString. 
+    % This is because BT.displayMessage listens to messageString and will read what is in messageID
+    % immediately after the messageString is changed.
+    % NOTE: only write messages to messageString that you would like to be displayed in the GUI too.
+    properties (SetObservable,AbortSet,Transient)
+        messageID = ''
+        messageString = ''
+    end
+
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
@@ -159,6 +182,7 @@ classdef BT < loghandler
         slack(obj,message)
         n=tilesRemaining(obj)
 
+
         % auto-ROI related
         success=getNextROIs(obj)
         getThreshold(obj)
@@ -171,6 +195,7 @@ classdef BT < loghandler
 
         % Callbacks
         placeNewTilesInPreviewData(obj,~,~)
+        displayMessage(obj,~,~)
     end
 
 
@@ -263,7 +288,8 @@ classdef BT < loghandler
 
             % Add a listener on currentTilePosition, which updates the section preview
             obj.listeners{1}=addlistener(obj, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
-
+            % Listener to display messages to CLI
+            obj.listeners{end+1}=addlistener(obj, 'messageString', 'PostSet', @obj.displayMessage);
             obj.buildFailed=false;
 
         end %Constructor

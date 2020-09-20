@@ -74,6 +74,7 @@ classdef view < handle
         % Recipe-related callback methods
         updateAllRecipeEditBoxesAndStatusText(obj,evt,src)
         updateRecipePropertyInRecipeClass(obj,evt,src)
+        displayMessage(obj,~,~)
 
         % Button callback functions
         startPreviewSampleGUI(obj,evt,src)
@@ -119,7 +120,8 @@ classdef view < handle
 
             obj.listeners{end+1} = addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.disableDuringAcquisition);
 
-
+            % Displays messages in a warning dialog box
+            obj.listeners{end+1}=addlistener(obj.model, 'messageString', 'PostSet', @obj.displayMessage);
 
             obj.updateStatusText
 
