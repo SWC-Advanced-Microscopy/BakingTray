@@ -70,7 +70,6 @@ function areaSelector(obj,~,~)
         obj.model.recipe.FrontLeft.Y = frontPos;
         obj.model.recipe.mosaic.sampleSize.X = extentAlongX;
         obj.model.recipe.mosaic.sampleSize.Y = extentAlongY;
-        fprintf('\nRECIPE UPDATED\n')
     end
 
 end % areaSelector
