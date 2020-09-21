@@ -21,11 +21,15 @@ function overlayStageBoundariesOnImage(obj)
     hold(obj.imageAxes,'on')
     obj.removeOverlays(mfilename)
 
-
     % The limits of the stages
     x_lim = [obj.model.xAxis.getMinPos, obj.model.xAxis.getMaxPos]; 
-    y_lim = [obj.model.yAxis.getMinPos, obj.model.yAxis.getMaxPos]; 
+    y_lim = [obj.model.yAxis.getMinPos, obj.model.yAxis.getMaxPos];
 
+    % Shift the negative y limit out by one tile size, otherwise the 
+    % border will not be intuitive to the user. This is because the
+    % position of the tile is counted as the top/left corner. 
+    y_lim(1) = y_lim(1) - obj.model.recipe.TileStepSize.Y;
+    
     % Top left pixel is maxPos for both axes and bottom right is minPos.
     % The line we will draw therefore will be:
     x = [x_lim(2),x_lim(1),x_lim(1),x_lim(2),x_lim(2)];
