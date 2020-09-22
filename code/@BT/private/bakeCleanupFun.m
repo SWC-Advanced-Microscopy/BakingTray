@@ -76,6 +76,7 @@ function bakeCleanupFun(obj)
 
     % Reset
     obj.currentSectionNumber=1;
+    obj.autoROI=[]; % Ensure these stats are never applied to another session
 
     % Return to manual ROI mode
     obj.recipe.mosaic.scanmode = 'tiled: manual ROI';
