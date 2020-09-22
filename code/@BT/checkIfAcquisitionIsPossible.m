@@ -102,6 +102,16 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     end
 
 
+    % If this is a bake in autoROI mode and no stats are available, then do not proceed
+    if isBake && strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        if isempty(obj.autoROI) || ~isfield(obj.autoROI,'stats')
+            msg=sprintf('%s%d) You must run Auto-Thresh before Baking.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+    % END HACK
+    
+
     % Ensure we have enough travel on the Z-stage to acquire all the sections
     % This is also checked in the recipe, so it's very unlikely we will fail at this point.
     % The only way this could happen is if:
