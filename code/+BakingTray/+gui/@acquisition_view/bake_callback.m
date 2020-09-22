@@ -74,7 +74,7 @@ function bake_callback(obj,~,~)
 
     obj.button_BakeStop.Enable='on'; 
 
-    if obj.checkBoxLaserOff.Value && sectionInd>0
+    if obj.checkBoxLaserOff.Value==1 & sectionInd>0
         % If the laser was slated to turn off then we also close
         % the acquisition GUI. This is because a lot of silly bugs
         % seem to crop up after an acquisition but they go away if
