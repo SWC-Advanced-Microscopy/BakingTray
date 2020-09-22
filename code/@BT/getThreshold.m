@@ -15,7 +15,10 @@ function success=getThreshold(obj)
     if isempty(obj.lastPreviewImageStack)
         return
     end
-
+    
+    % First wipe the structure to completely ensure we don't end up with one 
+    % that is a chimera of different preview stacks or threshold runs.
+    obj.autoROI =[];
     obj.autoROI.previewImages=obj.returnPreviewStructure;
 
     % Do not proceed if the image seems empty
@@ -27,6 +30,12 @@ function success=getThreshold(obj)
 
     % Obtain the threshold
     threshSD = autoROI.autothresh.run(obj.autoROI.previewImages);
+
+    % Bail out if it failed
+    if isnan(threshSD)
+        obj.messageString = 'Auto-Thresh failed to find the sample';
+        return
+    end
 
     % Get stats
     obj.autoROI.stats=autoROI(obj.autoROI.previewImages,'tThreshSD',threshSD,'doPlot',false);

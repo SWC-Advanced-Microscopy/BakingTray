@@ -120,7 +120,15 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
 
 
     out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',false);
-    tThresh = out.roiStats(pStack.sectionNumber).tThresh;
+    
+    % If the roiStats field does not exist then a threshold was not found
+    % and likely the sample is empty.
+    if isfield(out,'roiStats')
+        tThresh = out.roiStats(pStack.sectionNumber).tThresh;
+    else
+        tThresh=[];
+        obj.messageString = 'Auto-Thresh failed to find tissue';
+    end
 
     % Nested functions follow
     function stats = calcStatsFromThreshold(tThreshSD)

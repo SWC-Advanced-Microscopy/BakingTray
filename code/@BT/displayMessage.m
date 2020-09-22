@@ -16,3 +16,7 @@ function displayMessage(obj,~,~)
 
 
     fprintf(obj.messageString)
+    
+    if ~endsWith(obj.messageString,'\n')
+        fprintf('\n')
+    end
