@@ -95,11 +95,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     obj.logMessage(inputname(1),dbstack,5,'Start cutting cycle')
 
-    % Move Z stage up by the thickness of one slice
-    obj.moveZby(sliceThickness)
-    if obj.abortSlice
-        return
-    end
+
 
     obj.logMessage(inputname(1),dbstack,3,sprintf('Initial position - X:%0.3f Y:%0.3f',state.xInit,state.yInit))
 
@@ -108,12 +104,17 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.logMessage(inputname(1),dbstack,4,msg)
     obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
     obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
-    obj.moveXYto(cuttingStartPoint.X, cuttingStartPoint.Y,1);
+    obj.moveXYto(cuttingStartPoint.X, cuttingStartPoint.Y,true);
 
     if obj.abortSlice
         return
     end
 
+    % Move Z stage up by the thickness of one slice
+    obj.moveZby(sliceThickness,true)
+    if obj.abortSlice
+        return
+    end
 
     pause(1) % a second before carrying on
 
