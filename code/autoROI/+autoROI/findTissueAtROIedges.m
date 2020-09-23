@@ -1,15 +1,33 @@
 function out = findTissueAtROIedges(BW,BBstats,settings)
-    % Does the edge of a ROI contain tissue?
+    % Expands ROIs that contain tissue at the edges
     %
-    % function out = findTissueAtROIedges(BW,BBstats)
+    % function out = findTissueAtROIedges(BW,BBstats,settings)
     %
     %
+    % Purpose
+    % Expand ROIs that contain tissue at the edges. This function is to 
+    % be called from autoROI.getBoundingBoxes.
+    %
+    %
+    % Inputs [required]
+    % BW - the binarized images where 1s are areas with tissue and 0s are areas without
+    % BBstats - the first output argument of regionprops
+    % 
+    % Inputs [optional]
+    % settings - the outpit of autoROI.readSettings
+    %
+    % Outputs
+    % out - the modified version of stats, with larger bounding boxes
+    %
+    %
+    % Rob Campbell - SWC 2020
 
 
     if nargin<3
         settings = autoROI.readSettings;
     end
 
+    makePlots = false;
 
     % convert to cell array if needed
     if isstruct(BBstats)
@@ -17,18 +35,22 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
     end
 
 
-    imagesc(BW)
-    cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
-    drawnow, pause(1.15)
+    if makePlots
+        imagesc(BW)
+        cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
+        drawnow, pause(1.15)
+    end
+
     for ii=1:length(BBstats)
         tBW=autoROI.getSubImageUsingBoundingBox(BW,BBstats{ii});
         edgeData = lookForTissueAtEdges(tBW,BBstats{ii},settings);
         BBstats{ii} = edgeData.ROI;
     end
 
-
-    imagesc(BW)
-    cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
+    if makePlots
+        imagesc(BW)
+        cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats
+    end
 
 
 

@@ -20,3 +20,4 @@ function dRecipe=defaultRecipe
     dRecipe.mosaic.sampleSize.X=2;
     dRecipe.mosaic.sampleSize.Y=2;
     dRecipe.mosaic.scanmode='tiled: manual ROI';
+    dRecipe.mosaic.tilesToRemove=-1;
