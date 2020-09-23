@@ -5,13 +5,13 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
     %
     %
     % Purpose
-    % Expand ROIs that contain tissue at the edges. This function is to 
-    % be called from autoROI.getBoundingBoxes.
+    % Expand ROIs that contain tissue at the edges. This function is intended to 
+    % be called from other functions rather than directly by the user.
     %
     %
     % Inputs [required]
     % BW - the binarized images where 1s are areas with tissue and 0s are areas without
-    % BBstats - the first output argument of regionprops
+    % BBstats - the first output argument of regionprops (or a cell array of boundingboxes)
     % 
     % Inputs [optional]
     % settings - the outpit of autoROI.readSettings
@@ -30,8 +30,9 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
     makePlots = false;
 
     % convert to cell array if needed
+    out = BBstats; 
     if isstruct(BBstats)
-        BBstats = {BWstats.BoundingBox};
+        BBstats = {BBstats.BoundingBox};
     end
 
 
@@ -49,14 +50,21 @@ function out = findTissueAtROIedges(BW,BBstats,settings)
 
     if makePlots
         imagesc(BW)
-        cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats
+        cellfun(@(x) autoROI.overlayBoundingBox(x),BBstats)
+    end
+
+    % Return the output in the same format as the input
+    if iscell(out)
+        out = BBstats;
+    elseif isstruct(out)
+        for ii = 1:length(out)
+            out(ii).BoundingBox = BBstats{ii};
+        end
     end
 
 
-
-
 function out = lookForTissueAtEdges(BW,ROI,settings)
-
+    verbose=false;
     % this function is called by getBoundingBoxes, which works with downsampled images defined thus:
     micsPix = settings.main.rescaleTo; 
 
@@ -84,6 +92,9 @@ function out = lookForTissueAtEdges(BW,ROI,settings)
         ROI(4) = ROI(4) + growByPix*2;
 
     elseif out.NSEW(1)>eThresh
+        if verbose
+            fprintf('\n\nEXPANDING\n\')
+        end
         n = numClearPixels(flip(sampleProfileRows)); %if the clipped edge was on the north side we flip the word
         if n>growByPix
             ROI(2) = ROI(2)-n; %Shift up ROI by this much
@@ -93,6 +104,9 @@ function out = lookForTissueAtEdges(BW,ROI,settings)
             ROI(2) = ROI(2) - growByPix; %Now can shift up by e-thresh
         end
     elseif out.NSEW(2)>eThresh
+        if verbose
+            fprintf('\n\nEXPANDING\n\')
+        end
         % South end clipped
         shiftROIUD=true;
         n = numClearPixels(sampleProfileRows);

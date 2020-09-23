@@ -147,6 +147,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         binStats.step_four = binStats.step_three;
     end
 
+
     if showImages
         subplot(2,2,4)
         imagesc(BW)

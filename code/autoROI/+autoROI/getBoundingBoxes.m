@@ -6,6 +6,7 @@ function stats = getBoundingBoxes(BW,im,pixelSize)
     % Find bounding boxes, removing very small ones and 
     stats = regionprops(BW,'boundingbox', 'area');
 
+
     if isempty(stats)
         fprintf('autofindBrainsInSection.image2boundingBoxes found no sample in ROI! BAD!\n')
         return

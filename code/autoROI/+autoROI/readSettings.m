@@ -71,7 +71,7 @@ function settings = readSettings(readFromYaml)
         settings.mainBin.expansionSize = 600;  %in microns
 
         % The following are used in autoROI > getBoundingBoxes
-        settings.mainGetBB.minSizeInSqMicrons = 15000;
+        settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
 
         % The following settings are used for extending ROIs at edges where the sample seems to be clipped
         settings.clipper.edgeThreshMicrons = 250; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
