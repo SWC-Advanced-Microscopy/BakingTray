@@ -314,7 +314,7 @@ function varargout=autoROI(pStack, varargin)
     BoundingBoxes = {stats.BoundingBox};
     for ii=1:length(BoundingBoxes)
         tIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBoxes{ii});
-        tBW = autoROI.getSubImageUsingBoundingBox(BW,BoundingBoxes{ii});
+        tBW = autoROI.getSubImageUsingBoundingBox(BW.afterExpansion,BoundingBoxes{ii});
         imStats(ii) = autoROI.getForegroundBackgroundPixels(tIm,pixelSize,borderPixSize,tThresh,tBW);
     end
 

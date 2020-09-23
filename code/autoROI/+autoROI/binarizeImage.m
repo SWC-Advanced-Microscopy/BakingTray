@@ -23,7 +23,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     %
     %
     % Output
-    % BW - The binarised imaged.
+    % binIm - The binarised images at key steps in the process as a structure.
     % stats - An optional structure containing stats describing the number of ROIs, their sizes, etc
     %         this is only calculated if requested. 
     %
@@ -91,6 +91,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     end
 
     BW = medfilt2(BW,[settings.mainBin.medFiltBW,settings.mainBin.medFiltBW]);
+    binIm.initial = BW;
 
     if showImages
         subplot(2,2,2)
@@ -121,6 +122,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         BW=bwpropfilt(BW,'MinorAxisLength',[2,inf]); %Get rid of things that are thin
     end
     BW = imdilate(BW,SE);
+    binIm.beforeExpansion = BW;
 
     if showImages
         subplot(2,2,3)
@@ -146,7 +148,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         % Just copy data from three as step four never happened
         binStats.step_four = binStats.step_three;
     end
-
+    binIm.afterExpansion = BW;
 
     if showImages
         subplot(2,2,4)
@@ -162,7 +164,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
 
 
     if nargout>0
-        varargout{1}=BW;
+        varargout{1}=binIm;
     end
 
     if nargout>1

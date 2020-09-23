@@ -1,11 +1,30 @@
-function stats = getBoundingBoxes(BW,im,pixelSize)
+function stats = getBoundingBoxes(BWims,im,pixelSize)
     % Get bounding boxes in binarized image, BW. 
-    verbose=true;
-    settings = autoROI.readSettings;
 
+    settings = autoROI.readSettings;
+    verbose=false;
+    diagnosticPlots = false;
+
+    BW = BWims.afterExpansion; 
     % Find bounding boxes, removing very small ones and 
     stats = regionprops(BW,'boundingbox', 'area');
 
+    if diagnosticPlots && length(stats)==1
+        clf
+        subplot(2,2,1)
+        imagesc(im)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+
+        subplot(2,2,2)
+        imagesc(BWims.beforeExpansion)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+
+        subplot(2,2,3)
+        imagesc(BWims.afterExpansion)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+        drawnow
+        pause
+    end
 
     if isempty(stats)
         fprintf('autofindBrainsInSection.image2boundingBoxes found no sample in ROI! BAD!\n')
@@ -27,6 +46,7 @@ function stats = getBoundingBoxes(BW,im,pixelSize)
     if length(stats)==0
         fprintf('%s > getBoundingBoxes after removing small ROIs there are none left.\n',mfilename)
     end
+
 
     % -------------------
     % Get rid of the non-imaged pixels in the corner tile. This is done because the older
