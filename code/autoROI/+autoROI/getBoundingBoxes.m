@@ -4,7 +4,7 @@ function stats = getBoundingBoxes(BW,im,pixelSize)
     settings = autoROI.readSettings;
 
     % Find bounding boxes, removing very small ones and 
-    stats = regionprops(BW,'boundingbox', 'area', 'extrema');
+    stats = regionprops(BW,'boundingbox', 'area');
 
     if isempty(stats)
         fprintf('autofindBrainsInSection.image2boundingBoxes found no sample in ROI! BAD!\n')
