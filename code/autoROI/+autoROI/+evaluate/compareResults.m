@@ -68,7 +68,7 @@ pS = plotSettings;
 
 clf
 
-subplot(3,2,1)
+subplot(3,2,[1,2])
 plot(cTable.d_totalNonImagedSqMM, pS.basePlotStyle{:})
 hold on 
 plot(xlim,[0,0],'k:')
@@ -76,18 +76,9 @@ grid on
 hold off
 xlabel('Acquisition #')
 ylabel('ref minus test square mm missed')
-title('Total square mm missed (higher better)')
+title('\Delta Total square mm missed (higher better)')
 xlim([1,size(refTable,1)])
 
-subplot(3,2,2)
-%plot(sqmmB_max - sqmmA_max, '.r-')
-%hold on 
-%%plot(xlim,[0,0],'k:')
-%grid on
-%hold off
-%xlabel('Acquisition #')
-%ylabel('B minus A square mm missed')
-%title('Worst section square mm missed (lower better)')
 
 subplot(3,2,3)
 plot(cTable.d_totalExtraSqMM, pS.basePlotStyle{:})
@@ -97,7 +88,7 @@ grid on
 hold off
 xlabel('Acquisition #')
 ylabel('ref minus test square mm extra')
-title('Total square mm extra (lower better)')
+title('Total sq mm extra -- pixels imaged more than once (lower better)')
 xlim([1,size(cTable,1)])
 
 subplot(3,2,4)
