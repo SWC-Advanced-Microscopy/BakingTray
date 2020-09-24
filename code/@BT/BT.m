@@ -166,7 +166,7 @@ classdef BT < loghandler
         success = defineSavePath(obj) 
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
-        [cutSeries,msg] = genAutoTrimSequence(obj,lastCutThickness)
+        [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
         finished = autoTrim(obj)
         success = resumeAcquisition(obj,recipeFname,varargin)
         abortSlicing(obj)
