@@ -1,6 +1,8 @@
 function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Perform the cutting sequence
     % 
+    % function finished = BT.sliceSample(obj,sliceThickness,cuttingSpeed)
+    %
     % Purpose
     % This method moves to the cutting start point and initiates a cut. 
     % It uses the following parameters to know how to cut:

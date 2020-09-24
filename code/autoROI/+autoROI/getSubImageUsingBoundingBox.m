@@ -1,6 +1,9 @@
 function subIm = getSubImageUsingBoundingBox(im,BoundingBox,maintainSize,padValue)
     % Pull out a sub-region of the image based on a bounding box.
     %
+    % function subIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBox,maintainSize,padValue)
+    %
+    %
     % Inputs
     % im - 2d image from which we will extract a sub-region
     % BoundingBox - in the form: [left corner pos, bottom corner pos, width, height]
