@@ -9,6 +9,36 @@ function stats = getBoundingBoxes(BWims,im,pixelSize)
     % Find bounding boxes, removing very small ones and 
     stats = regionprops(BW,'boundingbox', 'area');
 
+
+    % If length stats is 1 then we likely are acquiring data and not doing
+    % an auto-thresh. TODO -- perhaps we need to explicitly signal this 
+    % since there will be cases where the auto-thresh produces one ROI.
+    if length(stats)==1 && settings.clipper.doExtension
+
+        % First we extract only the area imaged so we can see if tissue is at the edge
+        % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
+        TT=im>0;
+        rawBB = regionprops(TT,'boundingbox');
+        BB = rawBB.BoundingBox;
+        BB(1:2) = ceil(BB(1:2));
+        BB(3:4) = ceil(BB(3:4))-1;
+
+        % Is there tissue at the border?
+        [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB});
+
+        if changed
+            fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
+
+            [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB}, [], false);
+            ROIDELTA = newBB{1}-BB; % Difference between ROIs
+
+            % Apply this difference to the bounding box calculated  based on the border-expanded tissue
+            stats.BoundingBox = stats.BoundingBox + ROIDELTA;
+        end
+
+    end
+
+
     if diagnosticPlots && length(stats)==1
         clf
         subplot(2,2,1)
