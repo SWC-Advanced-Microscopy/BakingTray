@@ -126,8 +126,7 @@ function varargout=autoROI(pStack, varargin)
 
     sizeIm=size(im);
     if rescaleTo>1
-        fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', ...
-            mfilename, rescaleTo, pixelSize);
+        %fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', mfilename, rescaleTo, pixelSize);
 
         sizeIm = round( sizeIm / (rescaleTo/pixelSize) );
         im = imresize(im, sizeIm,'nearest'); %Must use nearest-neighbour to avoid interpolation
@@ -208,7 +207,6 @@ function varargout=autoROI(pStack, varargin)
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
-            fprintf('* Analysing ROI %d/%d for sub-ROIs\n', ii, length(lastROI.BoundingBoxes))
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
             minIm = min(im(:));
             tIm = autoROI.getSubImageUsingBoundingBox(im,lastROI.BoundingBoxes{ii},true,minIm); % Pull out just this sub-region
@@ -243,7 +241,6 @@ function varargout=autoROI(pStack, varargin)
             % TODO -- possibly we can do only the final merge?
 
             if length(stats) < skipMergeNROIThresh
-                fprintf('* Doing final merge\n')
                 stats = autoROI.mergeOverlapping(stats,size(im));
             end
         else
@@ -272,7 +269,6 @@ function varargout=autoROI(pStack, varargin)
 
     % Merge ROIs that overlap too much
     if settings.main.doTiledMerge && length(stats) < skipMergeNROIThresh
-        fprintf('* Doing merge of tiled bounding boxes\n')
         [stats,delta_n_ROI] = ...
             autoROI.mergeOverlapping(stats, size(im), ...
             settings.main.tiledMergeThresh);
@@ -282,7 +278,6 @@ function varargout=autoROI(pStack, varargin)
 
 
     % We now expand the tight bounding boxes to larger ones that correspond to a tiled acquisition
-    fprintf('\n -> Creating tiled bounding boxes\n');
     %Convert to a tiled ROI size 
     for ii=1:length(stats)
         [stats(ii).BoundingBox, stats(ii).BoundingBoxDetails] = ...
