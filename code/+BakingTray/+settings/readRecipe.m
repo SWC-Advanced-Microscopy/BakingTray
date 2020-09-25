@@ -79,6 +79,12 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         tRecipe.sample.ID='';
     end
 
+
+    if ~isfield(tRecipe.mosaic,'tilesToRemove')
+        fprintf('Adding missing field: recipe.mosaic.tilesToRemove and setting to an empty array')
+            tRecipe.mosaic.tilesToRemove=-1;
+   end
+
     for tF = theseFields'
         if ~isfield(tRecipe,tF{1})
             msg=sprintf('BakingTray.settings.readRecipe finds no field "%s" in %s. NOT A RECIPE FILE\n',tF{1},recipeFname);

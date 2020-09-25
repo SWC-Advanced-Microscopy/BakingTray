@@ -232,11 +232,6 @@ classdef recipe < handle
             end % if nargin<1
 
 
-            if ~isfield(params.mosaic,'tilesToRemove')
-                fprintf('Adding missing field: recipe.mosaic.tilesToRemove and setting to an empty array')
-                params.mosaic.tilesToRemove=[];
-            end
-
             % Build instances of TileStepSize and NumTiles classes that will calculate these properties 
             % using dependent variables
             obj.TileStepSize = TileStepSize(obj); 
