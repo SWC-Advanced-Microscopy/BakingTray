@@ -553,17 +553,17 @@ classdef BT < loghandler
             % Return the position of the X stage in mm
             pos=obj.xAxis.axisPosition;
         end
+
         function pos = getYpos(obj)
             % Return the position of the Y stage in mm
             pos=obj.yAxis.axisPosition;
         end
-        function varargout = getZpos(obj)
+
+        function pos = getZpos(obj)
             %print to screen if no outputs asked for
             pos=obj.zAxis.axisPosition;
-            if nargout>0
-                varargout{1}=pos;
-            end
         end
+
         function varargout = getXYpos(obj)
             %print to screen if no outputs asked for
             X=obj.getXpos;
