@@ -44,6 +44,12 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
+    % We need a recipe connected and it must indicate that acquisition is possible
+    if obj.isRecipeConnected && isempty(obj.recipe.tilePattern)
+        msg=sprintf('%s%d) Tile pattern is empty. Likely you asked for pattern that has out of bounds positions.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
+    end
+
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
         msg=sprintf('%s%d) No scanner is connected.\n' ,msg, msgNumber);
@@ -95,6 +101,16 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         end
     end
 
+
+    % If this is a bake in autoROI mode and no stats are available, then do not proceed
+    if isBake && strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        if isempty(obj.autoROI) || ~isfield(obj.autoROI,'stats')
+            msg=sprintf('%s%d) You must run Auto-Thresh before Baking.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+    % END HACK
+    
 
     % Ensure we have enough travel on the Z-stage to acquire all the sections
     % This is also checked in the recipe, so it's very unlikely we will fail at this point.
@@ -156,7 +172,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
 
     % Stop the user baking an auto-ROI with different channels to those used for the preview
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && ~isempty(obj.autoROI)
-        if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.channelsToSave)
+        if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.stats.channelsToSave)
             msg=sprintf(['%s%d) You are trying to bake an auto-ROI with different channels to those used for obtaining the threshold. ', ...
                 'To use these channels you must repeat preview scan and Auto-Thresh'], msg, msgNumber);
             msgNumber=msgNumber+1;

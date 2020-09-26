@@ -47,8 +47,20 @@ function executeJogMotion(obj,event,~)
         fprintf('Jog reports that it failed\n')
     end
 
-    %Stick in a bit of a time out so the user can't hammer the button too hard
-    pause(0.25)
+    % Block whilst axis moves then read position. Ensure there is a minimum timeout between motion
+    % commands to keep things sane
+    minTimeOut = 0.25; % seconds
+    timeSoFar = tic; % We will subtract the time it takes to move from the min timeout
+    while jogAxis.isMoving
+        pause(0.05)
+    end
 
+    % Stores new stage position in the stage currentPosition property, which triggers
+    % the prepare_view GUI to update.
+    jogAxis.axisPosition;
+
+    % Pause if needed
+    timeElapsed = toc(timeSoFar);
+    pause(minTimeOut - timeElapsed) % Handles negative numbers gracefully
 
 end

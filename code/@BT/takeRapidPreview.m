@@ -27,20 +27,22 @@ function takeRapidPreview(obj)
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
     if ~acqPossible
-        warndlg(msg,''); %TODO: this somewhat goes against the standard procedure of having no GUI elements arise from 
-                         %from the API, but it's easier in the case because of the nasty hack above with setting the sample ID name. 
-        fprintf(msg)
+        obj.messageString = msg;
         return
     end
 
+    % It is safest if the previous autoROI threshold is discarded when
+    % a preview stack is taken. We do this regardless of the state of the
+    % the acquisition mode. This avoids the possibility of an old 
+    % set of autoROI stats being used for a new acquisition because the 
+    % user didn't re-calculate the threshold.
+    if ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
+        fprintf('WIPING PREVIOUS autoROI STATS!\n')
+        obj.autoROI=[];
+    end
+        
     % Perform auto-ROI actions
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-        % SCRUB THE autoROIs! Danger but do for now
-        if ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
-            fprintf(' ---> WIPING PREVIOUS autoROI STATS!\n')
-        end
-        obj.autoROI=[];
-
         % Enable all channels for preview
         obj.scanner.setChannelsToDisplay(obj.scanner.getChannelsToAcquire);
 

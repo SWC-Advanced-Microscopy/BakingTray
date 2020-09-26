@@ -22,11 +22,16 @@ function populateCurrentTilePattern(obj,varargin)
     % 'keepTiles' - empty by default. If provided, the current tile pattern is calculated
     %               and only these tile indexes are kept. (supply a vector to use)
     % 'removeTiles' - empty by default. If provided, the current tile pattern is calculated
-    %               and these tiles index values are removed. (supply a vector to use)
+    %               and these tiles index values are removed. The argument is supplied as a 
+    %               vector so to remove the first and last tiles of a tile pattern having 
+    %               length 256 you would supply [1,256] as the value for this parameter.
     %
-    % Note that you can not supply both keepTiles and removeTiles. If you want to, say,
-    % remove the first and last tiles of a tile pattern having length 256 you would supply
-    % " 'removeTiles', [1,256] " as input param/val pair.
+    % NOTE:
+    % a) You can not supply both keepTiles and removeTiles. 
+    % b) The keepTiles and removeTiles arguments are currently not used for anything and are
+    %    present for possible future use only.
+    % c) see also recipe.mosaic.tilesToRemove, which is honoured in recipe.tilePattern
+    %
     %
     % Outputs
     % None: this method updates the properties currentTilePattern and currentTilePattern

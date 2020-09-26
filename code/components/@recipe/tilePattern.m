@@ -200,4 +200,14 @@ end % tilePattern
         tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
         tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
         tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
+
+        % Optionally remove tile positions from the grid. The user will have specified this if they want it.
+        % This is won't normally be the case: usually a rectangular grid will be imaged.
+        tR = obj.mosaic.tilesToRemove;
+        tR(tR<0)=[];
+        tR(tR>size(tilePosArray,1))=[];
+        if ~isempty(tR)
+            tilePosArray(tR,:)=[];
+            tileIndexArray(tR,:)=[];
+        end
     end

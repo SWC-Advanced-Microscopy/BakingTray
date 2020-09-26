@@ -58,6 +58,8 @@ function settings = readSettings(readFromYaml)
         settings.main.tiledMergeThresh=1.05;
         settings.main.defaultThreshSD=7; %This appears both in autoROI and in runOnStackStruct
         settings.main.reCalcThreshSD_threshold=10; %If foreground/background area ratio changes by more than this factor from one section to the next we re-calc tThreshSD
+        settings.main.rescaleTo=50; % Target microns per pixel to work at. autoROI uses this rescale images
+
 
         % The following are used in autoROI > binarizeImage
         settings.mainBin.removeNoise = true; % Noise removal: targets electrical noise
@@ -66,17 +68,20 @@ function settings = readSettings(readFromYaml)
         settings.mainBin.primaryFiltSize = 50; %in microns
         settings.mainBin.expansionShape = 'square';
         settings.mainBin.doExpansion = true; % Expand binarized image 
-        settings.mainBin.expansionSize = 600;  %in microns
+        settings.mainBin.expansionSize = 700;  %in microns
 
         % The following are used in autoROI > getBoundingBoxes
-        settings.mainGetBB.minSizeInSqMicrons = 15000;
+        settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
 
+        % The following settings are used for extending ROIs at edges where the sample seems to be clipped
+        settings.clipper.doExtension = true; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
+        settings.clipper.edgeThreshMicrons = 250; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
+        settings.clipper.growROIbyMicrons = 500; % Grow ROIs by this many microns in the direction of the clipped tissue
 
         % The following are used in autoROI.mergeOverlapping
         settings.mergeO.mergeThresh=1.3; %This is the default value
 
         % The following are used in autoROI.runOnStackStruct
-        settings.stackStr.rescaleTo=50; 
         settings.stackStr.rollingThreshold=true;
 
 

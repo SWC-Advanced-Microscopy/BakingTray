@@ -1,6 +1,13 @@
 function BoundingBox = validateBoundingBox(BoundingBox,imSize)
-    % Ensure bounding box remains within the image FOV before proceeding. 
+    % Ensure bounding box remains within the image FOV (imSize)
     %
+    % function BoundingBox = validateBoundingBox(BoundingBox,imSize)
+    %
+    % Purpose
+    % Ensure we don't have bounding boxes that stray outside of the available space
+    %
+    % Inputs
+    % BoundingBox - 1 by 4 vector defining one bounding box
     % imSize is the output of size(im) from the image where the bounding box was determined. 
     %
     % 

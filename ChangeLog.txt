@@ -18,6 +18,11 @@ Install instructions for autoROI
   aren't flipped compared to BakingTray! 
 - The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
 
+22nd September 2020
+- dev - stage boundaries overlaid on preview image
+- dev - stage position timer runs only after a stage motion entered in absolute position windows. Jog motions are now blocking.
+- dev - cutting cycle now moves to XY position before moving in Z and stage positions beyond the blade no longer block cutting. 
+
 27th July 2020
 - Pre-release and dev branches - Now merged with auto-ROI
 - autoROI code merged into dev

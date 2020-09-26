@@ -1,10 +1,68 @@
-function stats = getBoundingBoxes(BW,im,pixelSize)
+function stats = getBoundingBoxes(BWims,im,pixelSize)
     % Get bounding boxes in binarized image, BW. 
-    verbose=true;
-    settings = autoROI.readSettings;
 
+    settings = autoROI.readSettings;
+    verbose=false;
+    diagnosticPlots = false;
+
+    BW = BWims.afterExpansion; 
     % Find bounding boxes, removing very small ones and 
-    stats = regionprops(BW,'boundingbox', 'area', 'extrema');
+    stats = regionprops(BW,'boundingbox', 'area');
+
+
+    % If length stats is 1 then we likely are acquiring data and not doing
+    % an auto-thresh. TODO -- perhaps we need to explicitly signal this 
+    % since there will be cases where the auto-thresh produces one ROI.
+    if length(stats)==1 && settings.clipper.doExtension
+
+        % First we extract only the area imaged so we can see if tissue is at the edge
+
+        TT=im>0;
+        rawBB = regionprops(TT,'boundingbox');
+
+        if length(rawBB)==1
+            % Only proceed with finding edge tissue if there is one ROI only
+
+            % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
+            BB = rawBB.BoundingBox;
+            BB(1:2) = ceil(BB(1:2));
+            BB(3:4) = ceil(BB(3:4))-1;
+
+            % Is there tissue at the border?
+            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB});
+        else
+            changed = false;
+        end
+
+        if changed
+            fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
+
+            [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB}, [], false);
+            ROIDELTA = newBB{1}-BB; % Difference between ROIs
+
+            % Apply this difference to the bounding box calculated  based on the border-expanded tissue
+            stats.BoundingBox = stats.BoundingBox + ROIDELTA;
+        end
+
+    end
+
+
+    if diagnosticPlots && length(stats)==1
+        clf
+        subplot(2,2,1)
+        imagesc(im)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+
+        subplot(2,2,2)
+        imagesc(BWims.beforeExpansion)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+
+        subplot(2,2,3)
+        imagesc(BWims.afterExpansion)
+        autoROI.overlayBoundingBox(stats.BoundingBox)
+        drawnow
+        pause
+    end
 
     if isempty(stats)
         fprintf('autofindBrainsInSection.image2boundingBoxes found no sample in ROI! BAD!\n')
@@ -27,11 +85,11 @@ function stats = getBoundingBoxes(BW,im,pixelSize)
         fprintf('%s > getBoundingBoxes after removing small ROIs there are none left.\n',mfilename)
     end
 
+
     % -------------------
-    % TEMP UNTIL WE FIX BAKINGTRAY WE MUST REMOVE THE NON-IMAGED CORNER PIXELS
-    %Look for ROIs smaller than 2 by 2 mm and ask whether they are the un-imaged corner tile.
-    %(BakingTray currently (Dec 2019) produces these tiles and this needs sorting.)
-    %If so delete. TODO: longer term we want to get rid of the problem at acquisition. 
+    % Get rid of the non-imaged pixels in the corner tile. This is done because the older
+    % test acquisitions have final tiles that were not imaged. This has since been fixed
+    % so in live acquisitions all tiles have been imaged.
 
     for ii=length(stats):-1:1
         % If it's large, we skip analysing it

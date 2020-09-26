@@ -173,7 +173,7 @@ classdef AMS_SIN11 < linearcontroller
         ready=obj.isAxisReady;
 
         if ~ready
-          pos=[];          
+          pos=[];
           return
         end
 
@@ -382,7 +382,7 @@ classdef AMS_SIN11 < linearcontroller
         end
 
         obj.stageRefCompleted=true;
-
+        obj.axisPosition %Ensures the stage position property is up to date
       end %reference stage
 
       function motorHomed=isStageReferenced(obj)

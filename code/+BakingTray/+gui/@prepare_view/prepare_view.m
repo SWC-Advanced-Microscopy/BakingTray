@@ -21,8 +21,8 @@ classdef prepare_view < BakingTray.gui.child_view
     end
 
     properties (Hidden)
-        hBTview
-        %Panels
+        hBTview  % Handle to the main view class that spawns this GUI
+        % The following properties store GUI panel handles
         move_panel
         slice_panel
         absMove_panel
@@ -35,6 +35,10 @@ classdef prepare_view < BakingTray.gui.child_view
         jogSizeCoarseOrFine='fine' %can also be "coarse" TODO: add a radio button and callback to switch between coarse and fine 
         lastSliceThickness=0.1
         lastCuttingSpeed=0.5
+
+        %Timer-related properties. These are involved in keeping the GUI up to date
+        prepareViewUpdateTimer
+        prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
     end
 
     properties (Hidden,Access=protected)
@@ -50,9 +54,6 @@ classdef prepare_view < BakingTray.gui.child_view
         %Ready text color: the color of a text element when it's at the correct value to proceed
         readyTextColor=[0.25,1,0.25]
 
-        %Timer-related properties. These are involved in keeping the GUI up to date
-        prepareViewUpdateTimer
-        prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
         lastXpos=0
         lastYpos=0
         lastZpos=0
@@ -236,19 +237,19 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.editBox.xPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 55 absPosSize], ...
                 'TooltipString','Current X position and absolute move command', ...
-                'String', sprintf('%0.3f',obj.model.xAxis.axisPosition),...
+                'String', sprintf('%0.3f',obj.model.getXpos),...
                 'Tag','xAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
             obj.editBox.yPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 30 absPosSize], ...
                 'TooltipString','Current Y position and absolute move command', ...
-                'String', sprintf('%0.3f',obj.model.yAxis.axisPosition),...
+                'String', sprintf('%0.3f',obj.model.getYpos),...
                 'Tag','yAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
             obj.editBox.zPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 5 absPosSize], ...
                 'TooltipString','Current Z position and absolute move command', ...
-                'String', sprintf('%0.3f',obj.model.zAxis.axisPosition),...
+                'String', sprintf('%0.3f',obj.model.getYpos),...
                 'Tag','zAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
 
@@ -474,7 +475,7 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.prepareViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
             obj.prepareViewUpdateTimer.StopFcn = @(~,~) [];
             obj.prepareViewUpdateTimer.ExecutionMode = 'fixedDelay';
-            start(obj.prepareViewUpdateTimer);
+            %start(obj.prepareViewUpdateTimer);
 
         end %Constructor
 
@@ -501,46 +502,7 @@ classdef prepare_view < BakingTray.gui.child_view
         takeOneSlice(obj,~,~)
         takeNslices(obj,~,~)
         stopAllAxes(obj,~,~)
-
-        function toggleEnable(obj,toggleState)
-            % Enables/disables all UI elements. Used during scanning. 
-            % toggleState should be the string: 'on' or 'off'
-            if ~ischar(toggleState)
-                return
-            end
-
-            if ~strcmpi(toggleState,'on') && ~strcmpi(toggleState,'off')
-                return
-            end
-
-            obj.stopMotion_button.Enable=toggleState;
-            obj.takeSlice_button.Enable=toggleState;
-            obj.takeNSlices_button.Enable=toggleState;
-            obj.setCuttingPos_button.Enable=toggleState;
-            obj.setFrontLeft_button.Enable=toggleState;
-            obj.setVentralMidline_button.Enable=toggleState;
-            obj.moveToSample_button.Enable=toggleState;
-
-            jogButtons=fields(obj.largeStep);
-            for ii=1:length(jogButtons)
-                obj.largeStep.(jogButtons{ii}).Enable=toggleState;
-                obj.smallStep.(jogButtons{ii}).Enable=toggleState;
-            end
-
-            editBoxes=fields(obj.editBox);
-            for ii=1:length(editBoxes)
-                obj.editBox.(editBoxes{ii}).Enable=toggleState;
-            end
-            obj.editBox.cut_Y.Enable='Off'; % At least for now, this is always disabled
-            switch toggleState
-            case 'on'
-                start(obj.prepareViewUpdateTimer);
-            case 'off'
-                stop(obj.prepareViewUpdateTimer);
-            end
-
-        end %toggleEnable
-
+        toggleEnable(obj,toggleState)
     end %Methods
 
 
@@ -713,10 +675,11 @@ classdef prepare_view < BakingTray.gui.child_view
             %text label doesn't reflect this. 
             pause(0.1)
             pos=axisToMove.axisPosition;
-            if success==false %if there was no motion the box won't update so we have to force it                                
+            if success==false %if there was no motion the box won't update so we have to force it=
                 event.String=sprintf('%0.3f',round(pos,3));
                 event.ForegroundColor='k';
             end
+            start(obj.prepareViewUpdateTimer)
         end
 
         function setCuttingPos_callback(obj,~,~)
@@ -747,38 +710,52 @@ classdef prepare_view < BakingTray.gui.child_view
         %Update methods for motion axis boxes and the timer update method
         function regularGUIupdater(obj,~,~)
             %Timer callback function to update GUI components regularly
-            obj.updateXaxisEditBox;
-            obj.updateYaxisEditBox;
-            obj.updateZaxisEditBox;
+            xMoved = obj.updateXaxisEditBox;
+            yMoved = obj.updateYaxisEditBox;
+            zMoved = obj.updateZaxisEditBox;
+            % If no axes moved we stop the timer
+            if ~xMoved && ~yMoved && ~zMoved
+                stop(obj.prepareViewUpdateTimer)
+            end
         end %regularGUIupdater
 
-        function updateXaxisEditBox(obj,~,~)
-            pos=round(obj.model.xAxis.axisPosition,3);
+        function axisMoved = updateXaxisEditBox(obj,~,~)
+            pos=round(obj.model.getXpos,3);
             if obj.lastXpos ~= pos || obj.model.xAxis.isMoving
                 obj.lastXpos=pos;
                 if abs(pos)<0.005
                     pos=0;
                 end
                 obj.editBox.xPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
+
         end %updateXaxisEditBox
 
-        function updateYaxisEditBox(obj,~,~)
-            pos=round(obj.model.yAxis.axisPosition,3);
+        function axisMoved = updateYaxisEditBox(obj,~,~)
+            pos=round(obj.model.getYpos,3);
             if obj.lastYpos ~= pos || obj.model.yAxis.isMoving
                 obj.lastYpos=pos;
                 if abs(pos)<0.005
                     pos=0;
                 end
                 obj.editBox.yPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
         end %updateYaxisEditBox
 
-        function updateZaxisEditBox(obj,~,~)
-            pos=round(obj.model.zAxis.axisPosition,3);
+        function axisMoved = updateZaxisEditBox(obj,~,~)
+            pos=round(obj.model.getZpos,3);
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);
+                axisMoved = true;
+            else
+                axisMoved = false;
             end
         end %updateZaxisEditBox
 

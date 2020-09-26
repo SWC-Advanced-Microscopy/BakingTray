@@ -90,8 +90,6 @@ function varargout=autoROI(pStack, varargin)
     doBinaryExpansion = params.Results.doBinaryExpansion;
     settings = params.Results.settings;
 
-
-
     % Get defaults from settings file if needed
     if isempty(tThreshSD)
         fprintf('%s is using a default threshold of %0.2f\n',mfilename,tThreshSD)
@@ -105,7 +103,7 @@ function varargout=autoROI(pStack, varargin)
     % Extract settings from setting structure
     borderPixSize = settings.main.borderPixSize;
 
-    rescaleTo = settings.stackStr.rescaleTo;
+    rescaleTo = settings.main.rescaleTo;
 
 
 
@@ -120,17 +118,15 @@ function varargout=autoROI(pStack, varargin)
     end
 
 
-    % Remove sharp edges. This helps with artifacts associated with the 
-    % missing corner tile. TODO: could remove this step in the future. 
-    % However, since it will clean up local very large values it might not
-    % be a bad idea it to leave it in.
+    % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
+    % data. TODO: could remove this step in the future. However, since it will clean up local very large 
+    % values it might not be a bad idea it to leave it in.
     im = autoROI.removeCornerEdgeArtifacts(im);
 
 
     sizeIm=size(im);
     if rescaleTo>1
-        fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', ...
-            mfilename, rescaleTo, pixelSize);
+        %fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', mfilename, rescaleTo, pixelSize);
 
         sizeIm = round( sizeIm / (rescaleTo/pixelSize) );
         im = imresize(im, sizeIm,'nearest'); %Must use nearest-neighbour to avoid interpolation
@@ -211,7 +207,6 @@ function varargout=autoROI(pStack, varargin)
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
-            fprintf('* Analysing ROI %d/%d for sub-ROIs\n', ii, length(lastROI.BoundingBoxes))
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
             minIm = min(im(:));
             tIm = autoROI.getSubImageUsingBoundingBox(im,lastROI.BoundingBoxes{ii},true,minIm); % Pull out just this sub-region
@@ -246,7 +241,6 @@ function varargout=autoROI(pStack, varargin)
             % TODO -- possibly we can do only the final merge?
 
             if length(stats) < skipMergeNROIThresh
-                fprintf('* Doing final merge\n')
                 stats = autoROI.mergeOverlapping(stats,size(im));
             end
         else
@@ -275,7 +269,6 @@ function varargout=autoROI(pStack, varargin)
 
     % Merge ROIs that overlap too much
     if settings.main.doTiledMerge && length(stats) < skipMergeNROIThresh
-        fprintf('* Doing merge of tiled bounding boxes\n')
         [stats,delta_n_ROI] = ...
             autoROI.mergeOverlapping(stats, size(im), ...
             settings.main.tiledMergeThresh);
@@ -285,7 +278,6 @@ function varargout=autoROI(pStack, varargin)
 
 
     % We now expand the tight bounding boxes to larger ones that correspond to a tiled acquisition
-    fprintf('\n -> Creating tiled bounding boxes\n');
     %Convert to a tiled ROI size 
     for ii=1:length(stats)
         [stats(ii).BoundingBox, stats(ii).BoundingBoxDetails] = ...
@@ -317,7 +309,7 @@ function varargout=autoROI(pStack, varargin)
     BoundingBoxes = {stats.BoundingBox};
     for ii=1:length(BoundingBoxes)
         tIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBoxes{ii});
-        tBW = autoROI.getSubImageUsingBoundingBox(BW,BoundingBoxes{ii});
+        tBW = autoROI.getSubImageUsingBoundingBox(BW.afterExpansion,BoundingBoxes{ii});
         imStats(ii) = autoROI.getForegroundBackgroundPixels(tIm,pixelSize,borderPixSize,tThresh,tBW);
     end
 

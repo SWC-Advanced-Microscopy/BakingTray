@@ -54,9 +54,11 @@ classdef BT < loghandler
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
     end
 
+
     properties (SetObservable)
         lastPreviewImageStack = [] % The last preview image stack. It is a 4D matrix: [pixel rows, pixel columns, z depth, channel]
     end
+
 
     properties (SetAccess=immutable,Hidden)
         componentSettings
@@ -64,6 +66,8 @@ classdef BT < loghandler
         autoROIstats_fname='auto_ROI_stats.mat' % The statistics associated with auto-ROI acquisitions will be saved to this file name in rawDataSubDirName
     end
 
+
+    % Short flags or variables used during acquisition
     properties (SetObservable,AbortSet,Transient)
         sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         leaveLaserOn=false      % If true, the laser is not switched off when acquisition finishes.
@@ -71,6 +75,25 @@ classdef BT < loghandler
         importLastFrames=true   % If true, we keep a copy of the frames acquired at the last X/Y position in BT.downSampledTileBuffer
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
+
+
+    % Message structure. Messages to be displayed to the command line are written to these properies
+    % The BT.displayMessage method prints them to screen. The reason for this is that the view classes
+    % for the GUI also monitor this same structure and display a dialog box if appropriate. Furthermore,
+    % we can set up particular sorts of messages to be formatted differently depending on messageID.
+    %
+    % The messageString property contains the text to be displayed. 
+    % The mesageID property is for internal use only and could contain flags so that messages are, say,
+    % skipped by the GUI. 
+    % IMPORTANT: functions wishing to write a message MUST write to messageID first then messageString. 
+    % This is because BT.displayMessage listens to messageString and will read what is in messageID
+    % immediately after the messageString is changed.
+    % NOTE: only write messages to messageString that you would like to be displayed in the GUI too.
+    properties (SetObservable,Transient)
+        messageID = ''
+        messageString = ''
+    end
+
 
     %The following are counters and temporary variables used during acquistion
     properties (Hidden,SetObservable,AbortSet,Transient)
@@ -143,6 +166,8 @@ classdef BT < loghandler
         success = defineSavePath(obj) 
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
+        [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
+        finished = autoTrim(obj)
         success = resumeAcquisition(obj,recipeFname,varargin)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
@@ -159,6 +184,7 @@ classdef BT < loghandler
         slack(obj,message)
         n=tilesRemaining(obj)
 
+
         % auto-ROI related
         success=getNextROIs(obj)
         getThreshold(obj)
@@ -171,6 +197,7 @@ classdef BT < loghandler
 
         % Callbacks
         placeNewTilesInPreviewData(obj,~,~)
+        displayMessage(obj,~,~)
     end
 
 
@@ -263,7 +290,8 @@ classdef BT < loghandler
 
             % Add a listener on currentTilePosition, which updates the section preview
             obj.listeners{1}=addlistener(obj, 'currentTilePosition', 'PostSet', @obj.placeNewTilesInPreviewData);
-
+            % Listener to display messages to CLI
+            obj.listeners{end+1}=addlistener(obj, 'messageString', 'PostSet', @obj.displayMessage);
             obj.buildFailed=false;
 
         end %Constructor
@@ -304,14 +332,21 @@ classdef BT < loghandler
 
         function varargout=moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Absolute move position defined by xPos and yPos
-            % Wait for motion to complete before returning if blocking is true. 
-            % blocking is false by default.
-            % extraSettlingTime is an additional waiting period after the end of a blockin motion.
-            % This extra wait is used when tile scanning to ensure that vibration has ceased. zero by default.
-            % timeOut (inf by default) if true, we don't wait longer than
-            % this many seconds for motion to complete
             %
             % moveXYto(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
+            %
+            % Inputs [required]
+            % xPos - x stage target position in mm
+            % yPos - y stage target position in mm
+            %
+            % Inputs [optional]
+            % blocking - [false by default] Wait for motion to complete before returning
+            % extraSettlingTime is an additional waiting period after the end of a blockin motion.
+            %   This extra wait is used when tile scanning to ensure that vibration has ceased. zero by default.
+            % timeOut (inf by default) if true, we don't wait longer than
+            %  this many seconds for motion to complete
+            %
+
             if nargin<3
                 success=false;
                 fprintf('moveXYto expects two input arguments: xPos and yPos in mm -- NOT MOVING\n')
@@ -518,21 +553,17 @@ classdef BT < loghandler
             % Return the position of the X stage in mm
             pos=obj.xAxis.axisPosition;
         end
+
         function pos = getYpos(obj)
             % Return the position of the Y stage in mm
             pos=obj.yAxis.axisPosition;
         end
-        function varargout = getZpos(obj)
+
+        function pos = getZpos(obj)
             %print to screen if no outputs asked for
             pos=obj.zAxis.axisPosition;
-            if nargout<1
-                fprintf('Z=%0.2f\n',pos)
-                return
-            end
-            if nargout>0
-                varargout{1}=pos;
-            end
         end
+
         function varargout = getXYpos(obj)
             %print to screen if no outputs asked for
             X=obj.getXpos;

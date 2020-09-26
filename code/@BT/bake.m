@@ -24,10 +24,14 @@ function sectionInd = bake(obj,varargin)
 
     sectionInd = 0; 
     obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
+    
+    % If we are completely not ready to proceed, bail out right away
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
         return
     end
+    
+    
 
 
     %Parse the optional input arguments
@@ -46,8 +50,7 @@ function sectionInd = bake(obj,varargin)
     %Check whether the acquisition is likely to fail in some way
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
-        fprintf(msg)
-        warndlg(msg,'Acquisition failed to start');
+        obj.messageString = msg;
         return
     end
 
@@ -119,7 +122,7 @@ function sectionInd = bake(obj,varargin)
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
-        obj.populateCurrentTilePattern;  %this calls BT.populateCurrentTilePattern
+        obj.populateCurrentTilePattern;
         fprintf('Starting auto-ROI acquisition with a grid of %d tiles\n', ...
             length(obj.currentTilePattern))
         fprintf('\nDONE\n')

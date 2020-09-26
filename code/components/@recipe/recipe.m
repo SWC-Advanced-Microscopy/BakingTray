@@ -127,7 +127,8 @@ classdef recipe < handle
                     'numOpticalPlanes', 2, ...     % Integer defining the number of optical planes (layers) to image
                     'overlapProportion', 0.05, ... % Value from 0 to 0.5 defining how much overlap there should be between adjacent tiles
                     'sampleSize', struct('X',1, 'Y',1), ...  % The size of the sample in mm
-                    'scanmode', 'tile')            % String defining how the data are to be acquired. (e.g. "tile": tile acquisition). 
+                    'scanmode', 'tile', ... % String defining how the data are to be acquired.
+                    'tilesToRemove', -1) %vector defining which tile locations from the grid will be skipped. -1 means all are imaged
 
 
         % These properies are set via methods of BT, not directly by the user.
@@ -145,6 +146,11 @@ classdef recipe < handle
         %  - recipe.recordScannerSettings
         %  - recipe.tilePattern
         NumTiles % Number of tiles in the grid. Calculated with an external class of the same name
+
+        % The "Tile" structure defines the number of tile rows and columns in the final tile grid.
+        % This is used if the user has selected "tiled: Manual ROI". It's ignored in autoROI.
+        % If the vector "tilesToRemove" is supplied, then these tiles are removed from the grid and
+        % not imaged.
         Tile=struct('nRows',0, 'nColumns',0)
         TileStepSize  % How far the stage moves in mm between tiles to four decimal places. Calculated by an external class of the same name
         VoxelSize=struct('X',0, 'Y', 0, 'Z',0);
@@ -414,6 +420,16 @@ classdef recipe < handle
                                 cellfun(@(x) fprintf(' *  %s\n',x),obj.valid_scanMode_values)
                                 fprintf('\n')
                                 fieldValue=[]; % As above, will stop the assignment.
+                            end
+
+                        case 'tilesToRemove'
+                            if isnumeric(fieldValue) && isvector(fieldValue)
+                                %pass
+                            elseif isempty(fieldValue)
+                                fieldValue=-1;
+                            else
+                                fprintf('ERROR: mosaic.tilesToRemove must be empty or a numeric vector!\n')
+                                fieldValue=-1;
                             end
 
                         case 'sectionStartNum'

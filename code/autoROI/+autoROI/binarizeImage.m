@@ -23,7 +23,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     %
     %
     % Output
-    % BW - The binarised imaged.
+    % binIm - The binarised images at key steps in the process as a structure.
     % stats - An optional structure containing stats describing the number of ROIs, their sizes, etc
     %         this is only calculated if requested. 
     %
@@ -91,6 +91,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     end
 
     BW = medfilt2(BW,[settings.mainBin.medFiltBW,settings.mainBin.medFiltBW]);
+    binIm.initial = BW;
 
     if showImages
         subplot(2,2,2)
@@ -102,7 +103,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         fprintf('Binarized size before dilation: %d by %d\n',size(BW));
     end
     if nargout>1
-        stats.step_two = getStatsFromBW(BW);
+        binStats.step_two = getStatsFromBW(BW);
     end
 
 
@@ -121,6 +122,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         BW=bwpropfilt(BW,'MinorAxisLength',[2,inf]); %Get rid of things that are thin
     end
     BW = imdilate(BW,SE);
+    binIm.beforeExpansion = BW;
 
     if showImages
         subplot(2,2,3)
@@ -130,7 +132,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
        %hist([r.MinorAxisLength],100)
     end
     if nargout>1
-        stats.step_three = getStatsFromBW(BW);
+        binStats.step_three = getStatsFromBW(BW);
     end
 
 
@@ -140,12 +142,13 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
             round(settings.mainBin.expansionSize/pixelSize));
         BW = imdilate(BW,SE);
         if nargout>1
-            stats.step_four = getStatsFromBW(BW);
+            binStats.step_four = getStatsFromBW(BW);
         end
     elseif doBinaryExpansion==false && nargout>1
         % Just copy data from three as step four never happened
-        stats.step_four = stats.step_three;
+        binStats.step_four = binStats.step_three;
     end
+    binIm.afterExpansion = BW;
 
     if showImages
         subplot(2,2,4)
@@ -161,11 +164,11 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
 
 
     if nargout>0
-        varargout{1}=BW;
+        varargout{1}=binIm;
     end
 
     if nargout>1
-        varargout{2}=stats;
+        varargout{2}=binStats;
     end
 
 

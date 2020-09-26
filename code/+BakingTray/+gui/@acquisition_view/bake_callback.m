@@ -6,13 +6,13 @@ function bake_callback(obj,~,~)
     end
 
     obj.updateStatusText
+
+
     %Check whether it's safe to begin
-    [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible;
+    [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible(true);
     if ~acqPossible
-        if ~isempty(msg)
-            warndlg(msg,'');
-        end
-       return
+        obj.model.messageString = msg;
+        return
     end
 
     % Allow the user to confirm they want to bake
@@ -63,7 +63,7 @@ function bake_callback(obj,~,~)
 
     obj.button_BakeStop.Enable='on'; 
 
-    if obj.checkBoxLaserOff.Value && sectionInd>0
+    if obj.checkBoxLaserOff.Value==1 & sectionInd>0
         % If the laser was slated to turn off then we also close
         % the acquisition GUI. This is because a lot of silly bugs
         % seem to crop up after an acquisition but they go away if
