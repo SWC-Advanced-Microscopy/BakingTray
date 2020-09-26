@@ -475,7 +475,7 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.prepareViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
             obj.prepareViewUpdateTimer.StopFcn = @(~,~) [];
             obj.prepareViewUpdateTimer.ExecutionMode = 'fixedDelay';
-            %start(obj.prepareViewUpdateTimer);
+
 
         end %Constructor
 
@@ -679,7 +679,9 @@ classdef prepare_view < BakingTray.gui.child_view
                 event.String=sprintf('%0.3f',round(pos,3));
                 event.ForegroundColor='k';
             end
-            start(obj.prepareViewUpdateTimer)
+            if strcmp(obj.prepareViewUpdateTimer.Running, 'off')
+                start(obj.prepareViewUpdateTimer)
+            end
         end
 
         function setCuttingPos_callback(obj,~,~)
