@@ -16,15 +16,23 @@ function stats = getBoundingBoxes(BWims,im,pixelSize)
     if length(stats)==1 && settings.clipper.doExtension
 
         % First we extract only the area imaged so we can see if tissue is at the edge
-        % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
+
         TT=im>0;
         rawBB = regionprops(TT,'boundingbox');
-        BB = rawBB.BoundingBox;
-        BB(1:2) = ceil(BB(1:2));
-        BB(3:4) = ceil(BB(3:4))-1;
 
-        % Is there tissue at the border?
-        [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB});
+        if length(rawBB)==1
+            % Only proceed with finding edge tissue if there is one ROI only
+
+            % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
+            BB = rawBB.BoundingBox;
+            BB(1:2) = ceil(BB(1:2));
+            BB(3:4) = ceil(BB(3:4))-1;
+
+            % Is there tissue at the border?
+            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB});
+        else
+            changed = false;
+        end
 
         if changed
             fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
