@@ -73,7 +73,7 @@ function chan = determineChannelWithHighestSNR(im)
         tChan = im(:,:,ii);
 
         % Remove things that may be non-imaged pixels
-        tChan(tChan == -42) = nan;
+        tChan(tChan == -42) = nan;  %Test data are padded with -42
         tChan(tChan == 0) = nan;
 
         tChan = medfilt2(tChan,[3,3]);
