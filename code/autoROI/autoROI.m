@@ -30,6 +30,8 @@ function varargout=autoROI(pStack, varargin)
     % showBinaryImages - shows results from the binarization step
     % doBinaryExpansion - default from setings file. If true, run the expansion of 
     %                     binarized image routine. 
+    % isAutoThresh - false by default. If autoROI is being called from autoThresh.run, then
+    %                this should be true. If true, we don't expand ROIs with tissue clipping.
     % settings - the settings structure. If empty or missing, we read from the file itself
     %
     %
@@ -77,6 +79,7 @@ function varargout=autoROI(pStack, varargin)
     params.addParameter('skipMergeNROIThresh',inf, @(x) isnumeric(x) )
     params.addParameter('showBinaryImages', false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('doBinaryExpansion', [], @(x) islogical(x) || x==1 || x==0 || isempty(x))
+    params.addParameter('isAutoThresh',false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('settings',autoROI.readSettings, @(x) isstruct(x) )
 
 
@@ -88,6 +91,7 @@ function varargout=autoROI(pStack, varargin)
     skipMergeNROIThresh = params.Results.skipMergeNROIThresh;
     showBinaryImages = params.Results.showBinaryImages;
     doBinaryExpansion = params.Results.doBinaryExpansion;
+    isAutoThresh = params.Results.isAutoThresh;
     settings = params.Results.settings;
 
     % Get defaults from settings file if needed
@@ -186,7 +190,6 @@ function varargout=autoROI(pStack, varargin)
 
     if isempty(lastSectionStats)
         stats = autoROI.getBoundingBoxes(BW,im,pixelSize);  % Find bounding boxes
-        %stats = autoROI.growBoundingBoxIfSampleClipped(im,stats,pixelSize,tileSize); % TODO --delete?
         if length(stats) < skipMergeNROIThresh
             stats = autoROI.mergeOverlapping(stats,size(im)); % Merge partially overlapping ROIs
         end
@@ -209,11 +212,14 @@ function varargout=autoROI(pStack, varargin)
 
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
             minIm = min(im(:));
-            tIm = autoROI.getSubImageUsingBoundingBox(im,lastROI.BoundingBoxes{ii},true,minIm); % Pull out just this sub-region
+            tBoundingBox = lastROI.BoundingBoxes{ii};
+            tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
-            tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize);
-            %tStats{ii}}= autoROI.growBoundingBoxIfSampleClipped(im,tStats{ii},pixelSize,tileSize);
+            if isAutoThresh
+                tBoundingBox = [];
+            end
+            tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
 
             if ~isempty(tStats{ii})
                 tStats{nT} = autoROI.mergeOverlapping(tStats{ii},size(tIm));
