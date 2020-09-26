@@ -74,7 +74,7 @@ function settings = readSettings(readFromYaml)
         settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
 
         % The following settings are used for extending ROIs at edges where the sample seems to be clipped
-        settings.clipper.doExtension = false; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
+        settings.clipper.doExtension = true; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
         settings.clipper.edgeThreshMicrons = 250; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
         settings.clipper.growROIbyMicrons = 500; % Grow ROIs by this many microns in the direction of the clipped tissue
 

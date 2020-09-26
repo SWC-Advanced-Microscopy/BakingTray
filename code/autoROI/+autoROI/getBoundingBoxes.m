@@ -1,7 +1,7 @@
-function stats = getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
+function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     % Get bounding boxes in binarized image, BW. 
     %
-    % function stats = autoROI.getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
+    % function stats = autoROI.getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     %
     % Purpose
     % Return bounding boxes based on threshold image structire, BWims. This
@@ -14,11 +14,19 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
     % pixelSize - the number of microns per pixel of the above to
     %
     % Optional Inputs
-    % isAutoThresh - true if autoThresh.run called autoROI. (false by default)
+    % roiBoundingBox - A 1 by 4 array defining the bounding box for the ROI. 
+    %               Empty by default. If present, we analyse this to look for 
+    %               clipped sample edges.
 
     if nargin<4
-        isAutoThresh=false;
+        roiBoundingBox=[];
     end
+
+    if iscell(roiBoundingBox) || isstruct(roiBoundingBox) || ~isequal(size(roiBoundingBox),[1,4])
+        % Because the algorithm will not work with multiple boxes
+        roiBoundingBox=[];
+    end
+
 
     settings = autoROI.readSettings;
     verbose=false;
@@ -32,32 +40,20 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
     % If length stats is 1 then we likely are acquiring data and not doing
     % an auto-thresh. TODO -- perhaps we need to explicitly signal this 
     % since there will be cases where the auto-thresh produces one ROI.
-    if length(stats)==1 && settings.clipper.doExtension && ~isAutoThresh
+    if length(stats)==1 && settings.clipper.doExtension && ~isempty(roiBoundingBox)
 
-        % First we extract only the area imaged so we can see if tissue is at the edge
+        % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
+        roiBoundingBox(1:2) = ceil(roiBoundingBox(1:2));
+        roiBoundingBox(3:4) = ceil(roiBoundingBox(3:4))-1;
 
-        TT=im>0;
-        rawBB = regionprops(TT,'boundingbox');
-
-        if length(rawBB)==1
-            % Only proceed with finding edge tissue if there is one ROI only
-
-            % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
-            BB = rawBB.BoundingBox;
-            BB(1:2) = ceil(BB(1:2));
-            BB(3:4) = ceil(BB(3:4))-1;
-
-            % Is there tissue at the border?
-            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB});
-        else
-            changed = false;
-        end
+        % Is there tissue at the border?
+        [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox});
 
         if changed
             fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
 
-            [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{BB}, [], false);
-            ROIDELTA = newBB{1}-BB; % Difference between ROIs
+            [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox}, [], false);
+            ROIDELTA = newBB{1}-roiBoundingBox; % Difference between ROIs
 
             % Apply this difference to the bounding box calculated  based on the border-expanded tissue
             stats.BoundingBox = stats.BoundingBox + ROIDELTA;

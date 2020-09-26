@@ -189,7 +189,7 @@ function varargout=autoROI(pStack, varargin)
     end
 
     if isempty(lastSectionStats)
-        stats = autoROI.getBoundingBoxes(BW,im,pixelSize,isAutoThresh);  % Find bounding boxes
+        stats = autoROI.getBoundingBoxes(BW,im,pixelSize);  % Find bounding boxes
         if length(stats) < skipMergeNROIThresh
             stats = autoROI.mergeOverlapping(stats,size(im)); % Merge partially overlapping ROIs
         end
@@ -212,11 +212,14 @@ function varargout=autoROI(pStack, varargin)
 
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
             minIm = min(im(:));
-            tIm = autoROI.getSubImageUsingBoundingBox(im,lastROI.BoundingBoxes{ii},true,minIm); % Pull out just this sub-region
+            tBoundingBox = lastROI.BoundingBoxes{ii};
+            tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
-            tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,isAutoThresh);
-            %tStats{ii}}= autoROI.growBoundingBoxIfSampleClipped(im,tStats{ii},pixelSize,tileSize);
+            if isAutoThresh
+                tBoundingBox = [];
+            end
+            tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
 
             if ~isempty(tStats{ii})
                 tStats{nT} = autoROI.mergeOverlapping(tStats{ii},size(tIm));
