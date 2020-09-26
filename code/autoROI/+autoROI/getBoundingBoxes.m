@@ -1,5 +1,24 @@
-function stats = getBoundingBoxes(BWims,im,pixelSize)
+function stats = getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
     % Get bounding boxes in binarized image, BW. 
+    %
+    % function stats = autoROI.getBoundingBoxes(BWims,im,pixelSize,isAutoThresh)
+    %
+    % Purpose
+    % Return bounding boxes based on threshold image structire, BWims. This
+    % is the output of binarizedImage. This function is called by autoROI
+    %
+    %
+    % Inputs
+    % BWims - second output arg of binarizeImage
+    % im - the raw image. This is used only for optional plotting
+    % pixelSize - the number of microns per pixel of the above to
+    %
+    % Optional Inputs
+    % isAutoThresh - true if autoThresh.run called autoROI. (false by default)
+
+    if nargin<4
+        isAutoThresh=false;
+    end
 
     settings = autoROI.readSettings;
     verbose=false;
@@ -13,7 +32,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize)
     % If length stats is 1 then we likely are acquiring data and not doing
     % an auto-thresh. TODO -- perhaps we need to explicitly signal this 
     % since there will be cases where the auto-thresh produces one ROI.
-    if length(stats)==1 && settings.clipper.doExtension
+    if length(stats)==1 && settings.clipper.doExtension && ~isAutoThresh
 
         % First we extract only the area imaged so we can see if tissue is at the edge
 
