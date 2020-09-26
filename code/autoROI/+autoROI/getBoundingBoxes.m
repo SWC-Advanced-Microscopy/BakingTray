@@ -42,9 +42,12 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     % since there will be cases where the auto-thresh produces one ROI.
     if length(stats)==1 && settings.clipper.doExtension && ~isempty(roiBoundingBox)
 
-        % TODO -- we have to ceil and subtract 1. Maybe this shoud be in the validateBoundingBox function?
-        roiBoundingBox(1:2) = ceil(roiBoundingBox(1:2));
-        roiBoundingBox(3:4) = ceil(roiBoundingBox(3:4))-1;
+        % This code ensures the box lines up perfectly with the imaged area.
+        if mod(roiBoundingBox(1),1) ~= 0
+            % TODO - Maybe this shoud be in the validateBoundingBox function?
+            roiBoundingBox(1:2) = ceil(roiBoundingBox(1:2));
+            roiBoundingBox(3:4) = ceil(roiBoundingBox(3:4))-1;
+        end
 
         % Is there tissue at the border?
         [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox});
