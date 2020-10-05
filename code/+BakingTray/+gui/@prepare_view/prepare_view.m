@@ -41,8 +41,12 @@ classdef prepare_view < BakingTray.gui.child_view
         prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
     end
 
-    properties (Hidden,Access=protected)
+    % TODO -- temporary so the autoTrim works at CLI
+    properties (Hidden)
         editBox=struct %The edit boxes all go in here
+    end
+
+    properties (Hidden,Access=protected)
         xyJogSizes=struct
         zJogSizes=struct
 
