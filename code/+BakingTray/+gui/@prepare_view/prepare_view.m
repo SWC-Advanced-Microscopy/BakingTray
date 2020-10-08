@@ -481,6 +481,10 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.prepareViewUpdateTimer.ExecutionMode = 'fixedDelay';
 
 
+            % Read all stage positions to be extra sure the GUI is up to date
+            obj.model.getXpos;
+            obj.model.getYpos;
+            obj.model.getZpos;                        
         end %Constructor
 
         function delete(obj)
