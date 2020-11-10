@@ -329,6 +329,11 @@ function sectionInd = bake(obj,varargin)
                 obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
                 fprintf('\n*** %s ***\n\n',msg)
                 obj.slack(msg)
+
+                % Assume the acquisition is supposed to have finished this way
+                % TODO -- this could be a setting                
+                fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+                fclose(fid);
                 return
             end
 
