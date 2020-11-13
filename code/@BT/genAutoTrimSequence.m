@@ -30,8 +30,8 @@ function [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
 
     % To avoid cutting too much more tissue, we cap the size of the
     % the lastSliceThickness
-    if lastSliceThickness>0.35
-        lastSliceThickness=0.35;
+    if lastSliceThickness>0.5
+        lastSliceThickness=0.5;
     end
 
     targetThickness = obj.recipe.mosaic.sliceThickness;
