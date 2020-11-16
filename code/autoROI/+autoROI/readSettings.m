@@ -68,15 +68,15 @@ function settings = readSettings(readFromYaml)
         settings.mainBin.primaryFiltSize = 50; %in microns
         settings.mainBin.expansionShape = 'square';
         settings.mainBin.doExpansion = true; % Expand binarized image 
-        settings.mainBin.expansionSize = 700;  %in microns
+        settings.mainBin.expansionSize = 600;  %in microns
 
         % The following are used in autoROI > getBoundingBoxes
         settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
 
         % The following settings are used for extending ROIs at edges where the sample seems to be clipped
         settings.clipper.doExtension = true; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
-        settings.clipper.edgeThreshMicrons = 250; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
-        settings.clipper.growROIbyMicrons = 500; % Grow ROIs by this many microns in the direction of the clipped tissue
+        settings.clipper.edgeThreshMicrons = 350; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
+        settings.clipper.growROIbyMicrons = 450; % Grow ROIs by this many microns in the direction of the clipped tissue
 
         % The following are used in autoROI.mergeOverlapping
         settings.mergeO.mergeThresh=1.3; %This is the default value
