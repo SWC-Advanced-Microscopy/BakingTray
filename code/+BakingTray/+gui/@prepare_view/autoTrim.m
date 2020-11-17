@@ -10,7 +10,11 @@ function autoTrim(obj,~,~)
     %% TODO remove the TODO hack in prepare_view.m
 
     % Allow use the choice whether to proceed
-    cutSeq=obj.model.genAutoTrimSequence
+    cutSeq=obj.model.genAutoTrimSequence;
+    if isempty(cutSeq)
+        return
+    end
+
     str = sprintf('Cut down to %d \\mum sections over %d slices totalling %0.1f mm?\n', ...
         round(cutSeq(end)*1000), length(cutSeq), sum(cutSeq));
     OUT=questdlg(str,'','Yes','No',struct('Default','No','Interpreter','tex'));
@@ -19,9 +23,13 @@ function autoTrim(obj,~,~)
         return
     end
 
+    % Set the cutting speed
+    obj.editBox.cuttingSpeed.String = num2str(obj.model.recipe.mosaic.cuttingSpeed);
+    obj.lastCuttingSpeed = obj.model.recipe.mosaic.cuttingSpeed;
+    obj.checkCuttingSpeedEditBoxValue
 
     % Loop through all and cut
-    wF = waitbar(0,'Preparing to cut')
+    wF = waitbar(0,'Preparing to cut');
     for n = 1:length(cutSeq)
         tCut = cutSeq(n);
 
