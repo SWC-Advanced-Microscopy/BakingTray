@@ -250,7 +250,7 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.editBox.zPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 5 absPosSize], ...
                 'TooltipString','Current Z position and absolute move command', ...
-                'String', sprintf('%0.3f',obj.model.getYpos),...
+                'String', sprintf('%0.3f',obj.model.getZpos),...
                 'Tag','zAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
 
@@ -769,6 +769,10 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function axisMoved = updateZaxisEditBox(obj,~,~)
             pos=round(obj.model.getZpos,3);
+            if pos==0
+                pos = abs(pos);
+            end
+                
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);
