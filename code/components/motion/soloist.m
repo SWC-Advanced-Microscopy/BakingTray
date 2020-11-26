@@ -320,6 +320,8 @@ classdef soloist < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % get or set speed and acceleration settings
         function velocity = getMaxVelocity(obj)
+            % The velocity is read from the stage class and applied each 
+            % time a motion command is requested
             ready=obj.isAxisReady;
             if ~ready
               velocity=[];
