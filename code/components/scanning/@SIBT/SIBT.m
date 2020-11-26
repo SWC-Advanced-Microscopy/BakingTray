@@ -449,7 +449,7 @@ classdef SIBT < scanner
             end
 
             % Add '.0' if needed
-            if length(strfind(verToTest,'.'))==0;
+            if length(strfind(verToTest,'.'))==0
                 verToTest = [verToTest,'.0'];
             end
 
@@ -460,7 +460,7 @@ classdef SIBT < scanner
             curVersion = [obj.hC.VERSION_MAJOR,obj.hC.VERSION_MINOR];
             curVersionAsNum = str2num(strrep(curVersion,'.','')); 
 
-            isGreater = curVersion>verToTestAsNum;
+            isGreater = curVersionAsNum>verToTestAsNum;
         end % versionGreaterThan
 
 
