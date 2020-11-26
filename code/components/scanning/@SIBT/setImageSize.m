@@ -1,5 +1,7 @@
-function setImageSize(obj,pixelsPerLine,evnt)
+function setImageSize(obj,pixelsPerLine)
     % Set image size or apply frame size setting
+    %
+    % SIBT.setImageSize(obj,pixelsPerLine)
     %
     % Purpose
     % Change the number of pixels per line and ensure that the number of lines per frame changes 
