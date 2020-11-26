@@ -26,7 +26,7 @@ function applyZstackSettingsFromRecipe(obj)
         end
         % Confirm that worked
         if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
-        	fprintf('\n\n WARNING: fast z waveform type failed to set to "step". Is set to "%s"\n\n',...
+        	fprintf('\n\n WARNING: fast z waveform type failed to set to "step". Is set to "%s".\n\n',...
         		obj.hC.hFastZ.waveformType)
         end
 
@@ -48,8 +48,9 @@ function applyZstackSettingsFromRecipe(obj)
             obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes + thisRecipe.mosaic.numOverlapZPlanes;
         end
 
-        if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
-            obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
+        targetStepSize = round(sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes,1);
+        if obj.hC.hStackManager.stackZStepSize ~= targetStepSize;
+            obj.hC.hStackManager.stackZStepSize = targetStepSize;
         end
 
 
