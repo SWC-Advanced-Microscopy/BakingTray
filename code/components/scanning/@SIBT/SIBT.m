@@ -436,6 +436,34 @@ classdef SIBT < scanner
         end % getVersion
 
 
+        function isGreater = versionGreaterThan(obj,verToTest)
+            % Return true if the current ScanImage version is newer than that defined by string verToTest
+            % 
+            % SIBT.versionGreaterThan(obj,verToTest)
+            %
+            % Inputs
+            % verToTest - should be in the format '5.6' or '5.6.1'
+            isGreater = nan;
+            if ~ischar(verToTest)
+                return
+            end
+
+            % Add '.0' if needed
+            if length(strfind(verToTest,'.'))==0;
+                verToTest = [verToTest,'.0'];
+            end
+
+            % Turn string into a nunber
+            verToTestAsNum = str2num(strrep(verToTest,'.',''));
+
+            % Current version
+            curVersion = [obj.hC.VERSION_MAJOR,obj.hC.VERSION_MINOR];
+            curVersionAsNum = str2num(strrep(curVersion,'.','')); 
+
+            isGreater = curVersion>verToTestAsNum;
+        end % versionGreaterThan
+
+
         function sr = generateSettingsReport(obj)
 
             % Bidirectional scanning
