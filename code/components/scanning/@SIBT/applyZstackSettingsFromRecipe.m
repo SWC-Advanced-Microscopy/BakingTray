@@ -24,6 +24,12 @@ function applyZstackSettingsFromRecipe(obj)
         if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
             obj.hC.hFastZ.waveformType = 'step'; %Always
         end
+        % Confirm that worked
+        if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
+        	fprintf('\n\n WARNING: fast z waveform type failed to set to "step". Is set to "%s"\n\n',...
+        		obj.hC.hFastZ.waveformType)
+        end
+
         if obj.hC.(fastZsettingLocation).numVolumes ~= 1
             obj.hC.(fastZsettingLocation).numVolumes=1; %Always
         end
