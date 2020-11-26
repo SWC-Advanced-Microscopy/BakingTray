@@ -32,7 +32,7 @@ function success=attachRecipe(obj,fname,resume)
 
     %If recipe was not a valid recipe name just exit and indicate failure
     if isempty(fname)
-        obj.recipe=recipe(fname);
+        obj.recipe=recipe([]);
         obj.recipe.parent=obj;
         if ~isempty(obj.recipe)
             success=true;
@@ -56,6 +56,7 @@ function success=attachRecipe(obj,fname,resume)
     end
 
     if success
+        fprintf('Attaching recipe\n')
         %Return false if the attachment of the recipe failed
         obj.recipe=recipe(fname,'resume', resume);
 

@@ -12,6 +12,7 @@ classdef prepare_view < BakingTray.gui.child_view
         stopMotion_button
         takeSlice_button
         takeNSlices_button
+        autoTrim_button
 
         setCuttingPos_button
         setFrontLeft_button
@@ -27,7 +28,7 @@ classdef prepare_view < BakingTray.gui.child_view
         slice_panel
         absMove_panel
         plan_panel
-        sliceNtimes_panel
+        trim_panel
 
         suppressToolTips=false
         labels=struct
@@ -41,12 +42,8 @@ classdef prepare_view < BakingTray.gui.child_view
         prepareViewUpdateInterval=1 % Update select GUI elements every this many seconds (e.g. axis position)
     end
 
-    % TODO -- temporary so the autoTrim works at CLI
-    properties (Hidden)
-        editBox=struct %The edit boxes all go in here
-    end
-
     properties (Hidden,Access=protected)
+        editBox=struct %The edit boxes all go in here
         xyJogSizes=struct
         zJogSizes=struct
 
@@ -253,7 +250,7 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.editBox.zPos=uicontrol(commonEditBoxProps{:}, ...
                 'Position', [buttonRowPos 5 absPosSize], ...
                 'TooltipString','Current Z position and absolute move command', ...
-                'String', sprintf('%0.3f',obj.model.getYpos),...
+                'String', sprintf('%0.3f',obj.model.getZpos),...
                 'Tag','zAxis',...
                 'Callback', @obj.executeAbsoluteMotion);
 
@@ -354,26 +351,37 @@ classdef prepare_view < BakingTray.gui.child_view
 
 
             % ----------------------------
-            %The slice panel
+            %The slice panel contains all things cutting related. 
+            %The trim panel within it is for the buttons users press to take one or more slices
             obj.slice_panel = BakingTray.gui.newGenericGUIPanel([5,5,270,90], obj.hFig);
             sliceButtonCommon={'ForegroundColor','k','FontWeight', 'bold', ...
                             'FontSize', obj.fSize};
-            obj.takeSlice_button=uicontrol(sliceButtonCommon{:}, ...
+
+            obj.autoTrim_button=uicontrol(sliceButtonCommon{:}, ...
                 'Parent', obj.slice_panel, ...
-                'Position', [10, 40, 75, 40], ...
+                'Position', [169, 60, 90, 20], ...
+                'String', 'Auto-Trim', ...
+                'Callback', @obj.autoTrim);
+
+            obj.trim_panel = BakingTray.gui.newGenericGUIPanel([10,35,150,48], obj.slice_panel);
+
+            set(obj.trim_panel,'BorderType','line', ...
+                'BackgroundColor',[1,1,1]*0.11);
+
+            obj.takeSlice_button=uicontrol(sliceButtonCommon{:}, ...
+                'Parent', obj.trim_panel, ...
+                'Position', [10, 2, 90, 20], ...
                 'String', obj.takeSlice_buttonString, ...
                 'Callback', @obj.takeOneSlice);
 
-            obj.sliceNtimes_panel = BakingTray.gui.newGenericGUIPanel([100,35,163,48], obj.slice_panel);
-            set(obj.sliceNtimes_panel,'BorderType','line', ...
-                'BackgroundColor',[1,1,1]*0.11);
             obj.takeNSlices_button=uicontrol(sliceButtonCommon{:}, ...
-                'Parent', obj.sliceNtimes_panel, ...
-                'Position', [5, 4, 90, 40], ...
+                'Parent', obj.trim_panel, ...
+                'Position', [10, 25, 90, 20], ...
                 'String', 'Slice N times', ...
                 'Callback', @obj.takeNslices);
-            obj.editBox.takeNslices = uicontrol('Parent', obj.sliceNtimes_panel, ... 
-                'Position', [100, 15 25,20], ...
+
+            obj.editBox.takeNslices = uicontrol('Parent', obj.trim_panel, ... 
+                'Position', [110, 25 25,20], ...
                 'Style','edit', ...
                 'TooltipString','Number of slices to change in succession', ...
                 'Callback', @obj.checkNumSlices,...
@@ -481,6 +489,10 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.prepareViewUpdateTimer.ExecutionMode = 'fixedDelay';
 
 
+            % Read all stage positions to be extra sure the GUI is up to date
+            obj.model.getXpos;
+            obj.model.getYpos;
+            obj.model.getZpos;                        
         end %Constructor
 
         function delete(obj)
@@ -507,6 +519,7 @@ classdef prepare_view < BakingTray.gui.child_view
         takeNslices(obj,~,~)
         stopAllAxes(obj,~,~)
         toggleEnable(obj,toggleState)
+        autoTrim(obj,~,~)
     end %Methods
 
 
@@ -756,6 +769,10 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function axisMoved = updateZaxisEditBox(obj,~,~)
             pos=round(obj.model.getZpos,3);
+            if pos==0
+                pos = abs(pos);
+            end
+                
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);

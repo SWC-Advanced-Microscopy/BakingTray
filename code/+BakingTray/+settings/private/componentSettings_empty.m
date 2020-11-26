@@ -93,31 +93,22 @@ function settings=componentSettings
 
     nC=1;
     % The "type" refers to the motion controller being used for this axis. 
-    motionAxis(nC).type=''; % One of: 'C891', 'C863', 'C663','BSC201_APT', 'dummy_linearcontroller'
+    motionAxis(nC).type=''; % One of: 'C891', 'C863', 'C663','BSC201_APT','soloist', 'dummy_linearcontroller'
                             % There may be other available controllers. See
                             % the components/motion directory.
+    motionAxis(nC).settings.connectAt.interface='';
+    motionAxis(nC).settings.connectAt.ID='';
+    motionAxis(nC).settings.connectAt.controllerModel=''; % Used mainly for PI hardwar which have a generic controller e.g. C-891
+  
     % "connectAt" defines where to look for the connection. This could be a COM port (e.g. COM11) or, 
     % for some PI devices like the C891, this could be a string defining
     % the serial number. 
     motionAxis(nC).settings.connectAt=''; 
 
-    motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', or 'dummy_linearstage'
-    % The transformInputDistance and transformOutputDistance fields are anonymous functions. They
-    % convert user-supplied command positions (input) and controller-provided postions (output)
-    % in order to satisfy the following:
-    % - All units in mm (note some controllers can have the units changed: this is easier)
-    % - The X stage handles the motion along the axis between the objective and blade holder. Zero is 
-    %   middle of travel range and positive numbers move the stage to the right as you look at it. 
-    % - The Y stage moves the sample toward or away from you. Zero is middle of stage travel range
-    %   and positive is away from you. 
-    % - The Z stage moves up with more positive numbers. Zero is retracted.
-    %
-    % If the anonymous function fields are left empty, no transformation is applied. Examples:
-    % the function @(x) -1*x; will invert the position scale. 
-
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
-    motionAxis(nC).stage.settings.axisName=''; %One of: xAxis, yAxis, or zAxis
+    motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', 'AVS_100_25', 'haydon43K4U', or 'dummy_linearstage'
+    motionAxis(nC).stage.settings.invertDistance=[]; % True or false. Set so positive motions are away for Y, Right for X, and up for Z000
+    motionAxis(nC).stage.settings.positionOffset=0; % X and Y should be zero at motion midpoint. Z at bottom of range. Adjust this scalar to achieve this if needed.
+    motionAxis(nC).stage.settings.axisName=''; %One of: 'xAxis', 'yAxis', or 'zAxis'
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];
 
@@ -132,12 +123,14 @@ function settings=componentSettings
 
     % Remainng axes follow and are set up as above
     nC=2;
-    motionAxis(nC).type=''; 
-    motionAxis(nC).settings.connectAt=''; 
-
+    motionAxis(nC).type='';
+    motionAxis(nC).settings.connectAt.interface='';
+    motionAxis(nC).settings.connectAt.ID='';
+    motionAxis(nC).settings.connectAt.controllerModel='';
+  
     motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
+    motionAxis(nC).stage.settings.invertDistance=[];
+    motionAxis(nC).stage.settings.positionOffset=0;
     motionAxis(nC).stage.settings.axisName=''; 
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];
@@ -145,11 +138,13 @@ function settings=componentSettings
 
     nC=3;
     motionAxis(nC).type='';
-    motionAxis(nC).settings.connectAt=[];
+    motionAxis(nC).settings.connectAt.interface='';
+    motionAxis(nC).settings.connectAt.ID='';
+    motionAxis(nC).settings.connectAt.controllerModel='';
 
     motionAxis(nC).stage.type='';
-    motionAxis(nC).stage.settings.transformInputDistance=[];
-    motionAxis(nC).stage.settings.transformOutputDistance=[];
+    motionAxis(nC).stage.settings.invertDistance=[];
+    motionAxis(nC).stage.settings.positionOffset=0;
     motionAxis(nC).stage.settings.axisName='';
     motionAxis(nC).stage.settings.minPos=[];
     motionAxis(nC).stage.settings.maxPos=[];

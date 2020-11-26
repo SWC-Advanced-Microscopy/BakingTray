@@ -19,6 +19,13 @@ classdef soloist < linearcontroller
 % >> controllerID.interface='ethernet';
 % >> controllerID.ID= '613880-1-1'; %The controller name
 %
+% If you wish to connect to the Soloist directly from a spare ethernet port on the PC
+% then you need to ensure that the ethernet card and the Soloist are on the same sub-net. 
+% E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the 
+% IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the 
+% card could be 127.0.0.1. IP addresses can't be the same. You can manually set this stuff
+% under the network properties in Windows.  
+%
 % Now we are ready to communicate with the device and connect to it:
 %
 % >> SOLO.connect(controllerID)

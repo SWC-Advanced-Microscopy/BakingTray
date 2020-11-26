@@ -167,7 +167,6 @@ classdef BT < loghandler
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
-        finished = autoTrim(obj)
         success = resumeAcquisition(obj,recipeFname,varargin)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
