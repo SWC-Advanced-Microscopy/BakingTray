@@ -1,4 +1,4 @@
-classdef analog_controller < linearcontroller 
+classdef analog_controller < linearcontroller
 % analog_controller is a class that inherits linearcontroller and defines the interface between
 % Baking Tray and an NI device that controls a motion controller via an analog output.
 %
@@ -6,6 +6,8 @@ classdef analog_controller < linearcontroller
 %
 % Requires the data acquisition toolbox. 
 %
+
+
     properties 
       NIdevice = '' %String containing the NI device ID
       outputPort =  '' %Name of the analog output port (e.g. 'AO0')
@@ -15,8 +17,8 @@ classdef analog_controller < linearcontroller
       
       %We won't use the max and min properties in the stage object since the only analog controller I have 
       %access to (PIFOC) accepts a relative input only
-      minAO = []; %Minimum allowa1ble voltage
-      maxAO = []; %Maxumum allowa1ble voltage
+      minAO = []; %Minimum allowable voltage
+      maxAO = []; %Maximum allowable voltage
 
 
       lastCommandedValue=[];
@@ -47,7 +49,7 @@ classdef analog_controller < linearcontroller
       % Destructor
       function delete(obj)
         if ~isempty(obj.hC)
-          obj.logMessage(inputname(1),dbstack,3,'Closing connection to C891 controller')
+          obj.logMessage(inputname(1),dbstack,3,'Closing connection to analog_controller')
           obj.hC.CloseConnection
         end
       end % Destructor
@@ -105,7 +107,7 @@ classdef analog_controller < linearcontroller
           return
         end
 
-        if isa(obj.hC,'daq.ni.Session') %TODO: maybe should also check that there's an analog connection there?
+        if isa(obj.hC,'daq.ni.Session')
           success=true;
         else
           obj.logMessage(inputname(1),dbstack,7,'Failed to establish connection to NI device')
@@ -117,7 +119,7 @@ classdef analog_controller < linearcontroller
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function moving = isMoving(obj,~)
         % This isn't defined right now for this device
-        % We are writing this controller with the PIFOC in mind, so motion time is negligable 
+        % We are writing this controller with the PIFOC in mind, so motion time is negligible 
         moving=false;
       end %isMoving
 
@@ -134,8 +136,7 @@ classdef analog_controller < linearcontroller
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function success = relativeMove(obj, distanceToMove)
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-        st = obj.returnStageObject;
-        distanceToMove=st.transformInputDistance(distanceToMove);
+        distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
         obj.writeAbsPosAsVoltage(distanceToMove,true) %perform relative move
         success=true;
       end %relativeMove
@@ -147,7 +148,7 @@ classdef analog_controller < linearcontroller
         success = false;
         obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
         st = obj.returnStageObject;
-        targetPosition=st.transformInputDistance(targetPosition);
+        targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
         obj.writeAbsPosAsVoltage(targetPosition) %perform absolute move
         success=true;
       end %absoluteMove
@@ -252,14 +253,14 @@ classdef analog_controller < linearcontroller
           obj.logMessage(inputname(1),dbstack,6,msg)
           success=false;
           return
-        end      
+        end
 
         if voltageValue < obj.minAO
           msg = sprintf('Commanded voltage value (%0.2f) is smaller than the min allowed value (%0.2f)',voltageValue,obj.minAO);
           obj.logMessage(inputname(1),dbstack,6,msg)
           success=false;
           return
-        end      
+        end
 
         obj.lastCommandedValue = voltageValue;
         obj.hC.outputSingleScan(voltageValue)

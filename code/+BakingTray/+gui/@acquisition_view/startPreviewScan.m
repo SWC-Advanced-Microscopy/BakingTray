@@ -21,23 +21,32 @@ function startPreviewScan(obj,~,~)
 
     % Update the preview image in case the recipe has altered since the GUI was opened or
     % since the preview was last taken.
-    obj.initialisePreviewImageData;
     obj.setUpImageAxes;
 
-    if size(obj.previewImageData,3)>1
+    if size(obj.model.lastPreviewImageStack,3)>1
         %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)
-        obj.previewImageData(:,:,2:end,:)=[];
+        obj.model.lastPreviewImageStack(:,:,2:end,:)=[];
     end
 
     obj.updateImageLUT;
 
+    % Take the preview scan
+    obj.removeOverlays
     try
         obj.model.takeRapidPreview
     catch ME
         fprintf('BT.takeRapidPreview failed with error message:\n%s\n',ME.message)
+        obj.overlayThreshBorderOnImage
     end
 
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
     obj.button_BakeStop.Enable='on'; 
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
+
+
+    obj.overlayStageBoundariesOnImage
+    % Run auto-ROI stuff (the following only runs if the recipe says we are in auto-ROI mode)
+    obj.overlayThreshBorderOnImage
+
+
 end %startPreviewScan

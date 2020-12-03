@@ -53,16 +53,9 @@ classdef NumTiles < handle
                 Y=0;
                 return
             end
-            switch obj.recipe.mosaic.scanmode
-                case 'tile'
-                    obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
-                    fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-                    Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
-                case 'ribbon'
-                    Y=1; %We scan with the stage along this axis so always one tile
-                otherwise
-                    error('Unknown scan mode %s\n', obj.recipe.scanmode) %Really unlikely we'll ever land here
-            end
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
+            Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
         end %get.Y
 
         function N = get.tilesPerPlane(obj)
@@ -71,25 +64,14 @@ classdef NumTiles < handle
                 N=0;
                 return
             end
-            switch obj.recipe.mosaic.scanmode
-                case 'tile'
-                    obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
+            obj.recipe.recordScannerSettings; % Re-reads the scanner settings from SIBT and stores in the recipe file
 
-                    fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
-                    N.Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
+            fov_y_MM = obj.recipe.ScannerSettings.FOV_alongRowsinMicrons/1E3; % also appears in recipe.tilePattern
+            N.Y = obj.roundTiles(obj.recipe.mosaic.sampleSize.Y / ((1-obj.recipe.mosaic.overlapProportion) * fov_y_MM) );
 
-                    fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
-                    N.X = obj.roundTiles(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
-                    N.total = N.X * N.Y;
-
-                case 'ribbon'
-                    N.total = obj.X;
-                    N.X=obj.X;
-                    N.Y=1;
-                otherwise
-                    error('Unknown scan mode %s\n', obj.recipe.scanmode) %Really unlikely we'll ever land here
-            end
-
+            fov_x_MM = obj.recipe.ScannerSettings.FOV_alongColsinMicrons/1E3; % also appears in recipe.tilePattern
+            N.X = obj.roundTiles(obj.recipe.mosaic.sampleSize.X / ((1-obj.recipe.mosaic.overlapProportion) * fov_x_MM) );
+            N.total = N.X * N.Y;
         end %get.tilesPerPlane
 
     end % Methods

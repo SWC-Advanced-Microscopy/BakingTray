@@ -173,7 +173,7 @@ classdef AMS_SIN11 < linearcontroller
         ready=obj.isAxisReady;
 
         if ~ready
-          pos=[];          
+          pos=[];
           return
         end
 
@@ -373,15 +373,16 @@ classdef AMS_SIN11 < linearcontroller
         end
         fprintf('\n')
 
-        obj.relativeMove(1); %move up one mm to pre-load
+        % Set zero here to ensure subsequent relative move does not fail
+        obj.sendAndReceiveSerial([obj.axID,'O0']); %Set this as zero (home)
+
+        obj.relativeMove(1); %move up to pre-load
         while obj.isMoving
           pause(0.5)
         end
 
-        obj.sendAndReceiveSerial([obj.axID,'O0']); %Set this as zero (home)
-
         obj.stageRefCompleted=true;
-
+        obj.axisPosition %Ensures the stage position property is up to date
       end %reference stage
 
       function motorHomed=isStageReferenced(obj)

@@ -1,13 +1,27 @@
-function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOfBounds)
+function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOfBounds,ROIparams)
     % Calculate a tile grid for imaging. The imaging will proceed in an "S" over the sample.
     %
-    % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet)
+    % function [tilePosArray,tileIndexArray] = recipe.tilePattern(obj,quiet,returnEvenIfOutOfBounds)
     %
     %
     % Purpose
     % Calculate the position grid needed to tile a sample of a given size, with a given
     % field of view, and a given overlap between adjacent tiles. TileStepSize and 
     % NumTiles are dependent properties of recipe and are based on external helper classes.
+    %
+    %
+    % Inputs
+    % quiet - false by default
+    % returnEvenIfOutOfBounds - false by default
+    % ROIparams - empty by default. If present, it should be a structure defining the 
+    %             ROI front/left position and size in tiles. The structure can have a 
+    %             length of more than 1. example:
+    % ROIparams.numTiles.X - an integer number of tiles
+    % ROIparams.numTiles.Y - an integer number of tiles
+    % ROIparams.frontLeftPixel.X - location of the front/left corner pixel of this ROI along image rows
+    % ROIparams.frontLeftPixel.Y - location of the front/left corner pixel of this ROI along image columns
+    % ROIparams.frontLeftStageMM.X - location of the front/left-most corner stage position of all ROIs -- x stage position in mm
+    % ROIparams.frontLeftStageMM.Y - location of the front/left-most corner stage position of all ROIs -- y stage position in mm
     %
     %
     % Outputs
@@ -28,29 +42,34 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     if nargin<2
         quiet=false;
     end
+
     if nargin<3
         % This is set to true by recipe.setFrontLeftFromVentralMidLine
         % Nothing else should be setting this to true
         returnEvenIfOutOfBounds=false;
     end
 
+    if nargin<4
+        ROIparams=[];
+    end
+
+    % Declare empty output variables in case of error and to allow concatenation of multiple ROIs
+    tilePosArray=[];
+    tileIndexArray=[];
+
     % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
     % recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
     % to build up the tile scan pattern.
-    success=obj.recordScannerSettings;
+    success = obj.recordScannerSettings;
 
     if ~success
-        tilePosArray=[];
-        tileIndexArray=[];
         if ~quiet
             fprintf('ERROR in recipe.tilePattern: no scanner connected. Please connect a scanner to BakingTray\n')
         end
         return
     end
 
-    if isempty(obj.FrontLeft.X) ||isempty(obj.FrontLeft.Y)
-        tilePosArray=[];
-        tileIndexArray=[];
+    if isempty(ROIparams) && isempty(obj.FrontLeft.X) || isempty(obj.FrontLeft.Y)
         if ~quiet
             fprintf('ERROR in recipe.tilePattern: no front-left position defined. Can not calculate tile pattern.\n')
         end
@@ -58,21 +77,17 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     end
 
 
-    %Generate the appropriate style of tile array
-    switch obj.mosaic.scanmode
-        case 'tile'
-            [tilePosArray,tileIndexArray] = generateTileGrid(obj);
-        case 'ribbon'
-            [tilePosArray,tileIndexArray] = generateRibbonPattern(obj);
-        otherwise
-        tilePosArray=[];
-        tileIndexArray=[];
-        if ~quiet
-            fprintf('ERROR in recipe.tilePattern: unknown scan mode "%s"\n', obj.mosaic.scanmode)
+    %Generate the tile array
+    if isempty(ROIparams)
+        [tilePosArray,tileIndexArray] = generateTileGrid(obj);
+    else
+        % The loop allows for multiple bounding boxes
+        for ii = 1:length(ROIparams)
+            [t_tilePosArray,t_tileIndexArray] = generateTileGrid(obj,ROIparams(ii));
+            tilePosArray = [tilePosArray; t_tilePosArray];
+            tileIndexArray = [tileIndexArray; t_tileIndexArray];
         end
-        return
     end
-
 
     %Check that none of these will produce out of bounds motions
     msg='';
@@ -102,100 +117,97 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
 
 
     if ~isempty(msg)
-
         if ~quiet
             fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
             fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
                  min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
         end
+        % Make certain the outputs are empty
         if ~returnEvenIfOutOfBounds
             tilePosArray=[];
             tileIndexArray=[];
         end
     end
 
+end % tilePattern
 
 
-    function [tilePosArray,tileIndexArray] = generateTileGrid(obj)
+    %% LOCAL FUNCTIONS FOLLOW
+
+    function [tilePosArray,tileIndexArray] = generateTileGrid(obj,ROIparams)
         % Generate a grid of tiles in the correct order for sampling the specimen
-        % in an "S"
+        % in an "S". The tile grid is based on the following variables:
+        %   * The field of view of the microscope
+        %   * How much overlap we want between adjacent tiles
+        %   * The desired width and length of the bounding box in mm
+        %
 
+        verbose=true;
+
+        % Obtain the microscope FOV
         fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
         fov_y_MM = obj.ScannerSettings.FOV_alongRowsinMicrons/1E3;
 
-        % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
-        numY = obj.NumTiles.Y;
-        numX = obj.NumTiles.X;
+        if nargin<2 || isempty(ROIparams)
+            % Get the number of tiles in X and Y required to tile the grid. NumTiles is a class that can return this
+            ROIparams.numTiles.X = obj.NumTiles.X;
+            ROIparams.numTiles.Y = obj.NumTiles.Y;
+            ROIparams.frontLeftMM.X = obj.FrontLeft.X;
+            ROIparams.frontLeftMM.Y = obj.FrontLeft.Y;
+        else
+            ROI_FL = [ROIparams.frontLeftPixel.X,ROIparams.frontLeftPixel.Y];
+            ROI_frontLeft_in_MM = obj.parent.convertImageCoordsToStagePosition(ROI_FL,ROIparams.frontLeftStageMM);
+            ROIparams.frontLeftMM.X = ROI_frontLeft_in_MM(1);
+            ROIparams.frontLeftMM.Y = ROI_frontLeft_in_MM(2);
 
-        if obj.verbose
-            fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
-                numX, numY, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
+            if verbose
+                fprintf('recipe.tilePattern > generateTileGrid produces a ROI with a front/left stage coord: x=%0.2f, y=%0.2f\n', ...
+                    ROIparams.frontLeftMM.X, ROIparams.frontLeftMM.Y)
+            end
         end
 
 
-        tilePosArray = zeros(numY*numX, 2);
-        R=repmat(1:numY,numX,1);
-        tilePosArray(:,2)=R(:);
-        theseCols=1:numX;
+        if obj.verbose
+            fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
+                ROIparams.numTiles.X, ROIparams.numTiles.Y, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
+        end
 
-        for ii=1:numX:size(tilePosArray,1)
-            tilePosArray(ii:ii+numX-1,1)=theseCols;
-            theseCols=fliplr(theseCols);
+        % Pre-allocate the array of tile positions. Initially this will contain the index of each tile in the
+        % grid. i.e. how many tile positions away from the origin in X and Y each tile should be. Later this 
+        % will be converted to a location in mm. 
+        tilePosArray = zeros(ROIparams.numTiles.Y*ROIparams.numTiles.X, 2);
+
+        % Fill in column 2, which will be the locations for the Y stage
+        R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);
+        tilePosArray(:,2)=R(:);
+
+        theseCols=1:ROIparams.numTiles.X; % The tile index locations along the X axis
+
+        for ii=1:ROIparams.numTiles.X:size(tilePosArray,1)
+            tilePosArray(ii:ii+ROIparams.numTiles.X-1,1)=theseCols; %Insert X stage positions into the array
+            theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
         end
 
         % Subtract 1 because we want offsets from zero (i.e. how much to move)
         tileIndexArray = tilePosArray; %Store the tile indexes in the grid
-
         tilePosArray = tilePosArray-1;
 
-        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM)*(1-obj.mosaic.overlapProportion);
-        tilePosArray(:,2) = (tilePosArray(:,2)*fov_y_MM)*(1-obj.mosaic.overlapProportion);
+        % Convert tile index values into positions in mm based on the FOV
+        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM) * (1-obj.mosaic.overlapProportion);
+        tilePosArray(:,2) = (tilePosArray(:,2)*fov_y_MM) * (1-obj.mosaic.overlapProportion);
 
-        tilePosArray = tilePosArray*-1; %because left and forward are negative and we define first position as front left
-        tilePosArray(:,1) = tilePosArray(:,1)+obj.FrontLeft.X;
-        tilePosArray(:,2) = tilePosArray(:,2)+obj.FrontLeft.Y;
+        % Apply an offset to the pattern so that it's positioned correctly in X/Y
+        tilePosArray = tilePosArray * -1; %because left and forward are negative and we define first position as front left
+        tilePosArray(:,1) = tilePosArray(:,1) + ROIparams.frontLeftMM.X;
+        tilePosArray(:,2) = tilePosArray(:,2) + ROIparams.frontLeftMM.Y;
 
-
-
-    function [tilePosArray,tileIndexArray] = generateRibbonPattern(obj)
-        % Generate an array of ribbon coordinates to control the stage scanning
-
-        fov_x_MM = obj.ScannerSettings.FOV_alongColsinMicrons/1E3;
-        pixelSizeAlongScanLine = obj.ScannerSettings.micronsPerPixel_cols;
-
-        fov_y_MM = obj.mosaic.sampleSize.Y; %Maybe this a good starting point 
-
-        % First column is the image obj.NumTiles.X and second is the image obj.NumTiles.Y
-        numY = obj.NumTiles.Y;  %The NumTiles class knows to return 1 in event of ribbon scanning
-        numX = obj.NumTiles.X;
-
-        if obj.verbose
-            fprintf('recipe.tilePattern is making array of X=%d by Y=%d tiles. Tile FOV: %0.3f x %0.3f mm. Overlap: %0.1f%%.\n',...
-                numX, numY, fov_x_MM, fov_y_MM, round(obj.mosaic.overlapProportion*100,2));
+        % Optionally remove tile positions from the grid. The user will have specified this if they want it.
+        % This is won't normally be the case: usually a rectangular grid will be imaged.
+        tR = obj.mosaic.tilesToRemove;
+        tR(tR<0)=[];
+        tR(tR>size(tilePosArray,1))=[];
+        if ~isempty(tR)
+            tilePosArray(tR,:)=[];
+            tileIndexArray(tR,:)=[];
         end
-
-        tilePosArray = zeros(numY*numX, 2);
-        R=repmat(1:numY,numX,1);
-        tilePosArray(:,2)=R(:);
-        theseCols=1:numX;
-
-        for ii=1:numX:size(tilePosArray,1)
-            tilePosArray(ii:ii+numX-1,1)=theseCols;
-            theseCols=fliplr(theseCols);
-        end
-
-        % Subtract 1 because we want offsets from zero (i.e. how much to move)
-        tileIndexArray = tilePosArray; %Store the tile indexes in the grid
-
-        tilePosArray = tilePosArray-1;
-
-        tilePosArray(:,1) = (tilePosArray(:,1)*fov_x_MM)*(1-obj.mosaic.overlapProportion);
-
-        %For Y we alternate 0 and the opposite side of the sample
-        yPos = repmat([0;fov_y_MM], ceil(size(tilePosArray,1)/2), 1);
-        tilePosArray(:,2) = yPos(1:size(tilePosArray,1));
-
-        tilePosArray = tilePosArray*-1; %because left and forward are negative and we define first position as front left
-        tilePosArray(:,1) = tilePosArray(:,1)+obj.FrontLeft.X;
-        tilePosArray(:,2) = tilePosArray(:,2)+obj.FrontLeft.Y;
-
+    end

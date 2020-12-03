@@ -19,4 +19,5 @@ function dRecipe=defaultRecipe
     dRecipe.mosaic.overlapProportion=0.05;
     dRecipe.mosaic.sampleSize.X=2;
     dRecipe.mosaic.sampleSize.Y=2;
-    dRecipe.mosaic.scanmode='tile';
+    dRecipe.mosaic.scanmode='tiled: manual ROI';
+    dRecipe.mosaic.tilesToRemove=-1;

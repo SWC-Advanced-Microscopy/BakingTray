@@ -1,13 +1,20 @@
-function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
+function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % Check if acquisition is possible 
     %
-    % [acquisitionPossible,msg] = BT.checkIfAcquisitionIsPossible(obj)
+    % [acquisitionPossible,msg] = BT.checkIfAcquisitionIsPossible(obj,isBake)
     %
     % Purpose
     % This method determines whether it is possible to begin an acquisiton. 
     % e.g. does the cutting position seem plausible, is the scanner ready
     % and conncted, are the axes connected, is there a recipe, is there 
     % enough disk space, etc. 
+    %
+    % Inputs
+    % isBake - The method is run when the user initiates a bake or a previewScan.
+    %       The isBake input is false by default. If true, more extensive checks
+    %       are taken. 
+    % 
+    %
     % 
     % Behavior
     % The method returns true if acquisition is possible and false otherwise.
@@ -16,6 +23,9 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     % string can be sent to a warning dialog box, etc, if there is a GUI. 
 
 
+    if nargin<2
+        isBake = false;
+    end
 
     msg='';
     msgNumber=1;
@@ -31,6 +41,12 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     % We need a recipe connected and it must indicate that acquisition is possible
     if ~obj.isRecipeConnected
         msg=sprintf('%s%d) No recipe.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
+    end
+
+    % We need a recipe connected and it must indicate that acquisition is possible
+    if obj.isRecipeConnected && isempty(obj.recipe.tilePattern)
+        msg=sprintf('%s%d) Tile pattern is empty. Likely you asked for pattern that has out of bounds positions.\n', msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 
@@ -86,6 +102,16 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
     end
 
 
+    % If this is a bake in autoROI mode and no stats are available, then do not proceed
+    if isBake && strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        if isempty(obj.autoROI) || ~isfield(obj.autoROI,'stats')
+            msg=sprintf('%s%d) You must run Auto-Thresh before Baking.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+    % END HACK
+    
+
     % Ensure we have enough travel on the Z-stage to acquire all the sections
     % This is also checked in the recipe, so it's very unlikely we will fail at this point.
     % The only way this could happen is if:
@@ -114,7 +140,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
 
 
     % Check if we will end up writing into existing directories
-    if obj.isRecipeConnected
+    if obj.isRecipeConnected && isBake
         n=0;
         origCurrentSectionNum = obj.currentSectionNumber; % store the current section number because it's going to be modified here
         for ii=1:obj.recipe.mosaic.numSections
@@ -137,14 +163,31 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj)
         obj.currentSectionNumber = origCurrentSectionNum; % revert it
     end
 
+
+    % If we are in auto-ROI mode, there must be ROI stats before a bake can proceed
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && isempty(obj.autoROI)
+        msg=sprintf('%s%d) You are in auto-ROI mode but have not obtained initial ROIs via Auto-Thresh.\n', msg, msgNumber);
+        msgNumber=msgNumber+1;
+    end
+
+    % Stop the user baking an auto-ROI with different channels to those used for the preview
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
+        if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.stats.channelsToSave)
+            msg=sprintf(['%s%d) You are trying to bake an auto-ROI with different channels to those used for obtaining the threshold. ', ...
+                'To use these channels you must repeat preview scan and Auto-Thresh'], msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+
     % Is there a valid path to which we can save data?
     if isempty(obj.sampleSavePath)
-        msg=sprintf(['%s%d) No save path has been defined for this sample.\n'], msg, msgNumber);
+        msg=sprintf('%s%d) No save path has been defined for this sample.\n', msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 
     % If using ScanImage, did the user switch on all the PMTs for the channels being saved?
-    if isa(obj.scanner,'SIBT') && ~isempty(obj.scanner.hC.hPmts.gains) && ~isequal(obj.scanner.channelsToAcquire,obj.scanner.getEnabledPMTs)
+    if isa(obj.scanner,'SIBT') && ~isempty(obj.scanner.hC.hPmts.gains) && ...
+        ~isequal(obj.scanner.getChannelsToAcquire,obj.scanner.getEnabledPMTs)
         msg=sprintf('%s%d) Check you have enabled the correct PMTs and try again.\n', msg,msgNumber);
         msgNumber=msgNumber+1;
     end

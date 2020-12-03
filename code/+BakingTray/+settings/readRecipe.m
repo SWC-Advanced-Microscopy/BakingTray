@@ -79,6 +79,12 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         tRecipe.sample.ID='';
     end
 
+
+    if ~isfield(tRecipe.mosaic,'tilesToRemove')
+        fprintf('Adding missing field: recipe.mosaic.tilesToRemove and setting to an empty array')
+            tRecipe.mosaic.tilesToRemove=-1;
+   end
+
     for tF = theseFields'
         if ~isfield(tRecipe,tF{1})
             msg=sprintf('BakingTray.settings.readRecipe finds no field "%s" in %s. NOT A RECIPE FILE\n',tF{1},recipeFname);
@@ -179,9 +185,14 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     end
 
     %The following is hard-coded
-    if ~strcmp(thisRecipe.mosaic.scanmode,'tile') && ~strcmp(thisRecipe.mosaic.scanmode,'ribbon')
-        msg=sprintf('%smosaic.scanmode can only take on the value "tile" or "ribbon". Setting to "tile"', msg);
-        thisRecipe.mosaic.scanmode='tile';
+    if strcmp(thisRecipe.mosaic.scanmode,'tile')
+        % In case user has an old recipe file where the default scan mode is "tile"
+        thisRecipe.mosaic.scanmode = 'tiled: manual ROI';
+    end
+
+    if ~strcmp(thisRecipe.mosaic.scanmode,'tiled: manual ROI') && ~strcmp(thisRecipe.mosaic.scanmode,'tiled: auto-ROI')
+        msg=sprintf('%smosaic.scanmode can only take on the value "tiled: manual ROI" or "tiled: auto-ROI". Setting to "tiled: manual ROI"', msg);
+        thisRecipe.mosaic.scanmode='tiled: manual ROI';
     end
 
     if ~isempty(msg)

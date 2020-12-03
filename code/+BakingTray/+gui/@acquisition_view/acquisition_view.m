@@ -7,12 +7,26 @@ classdef acquisition_view < BakingTray.gui.child_view
         imageAxes %The preview image sits here
         compassAxes %This houses the compass-like indicator 
 
-        statusPanel %The buttons and panals at the top of the window are kept here
-        statusText  %The progress text
         sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
         updatePreviewEveryNTiles=10 % Update the preview image each time a multiple of updatePreviewEveryNTiles has been acquired
+
+        verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
+    end
+
+
+    properties (SetObservable,Transient)
+        plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
+    end %close hidden transient observable properties
+
+    properties (Hidden,SetAccess=private)
+        statusPanel %The buttons and panals at the top of the window are kept here
+        statusText  %The progress text
+
+        chanToShow=1
+        depthToShow=1
+        cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
 
         %This button initiate bake and then switches to being a stop button
         button_BakeStop
@@ -25,6 +39,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         depthSelectPopup
         channelSelectPopup
 
+        button_runAutoThresh
         button_previewScan
 
         button_zoomIn
@@ -35,26 +50,36 @@ classdef acquisition_view < BakingTray.gui.child_view
         checkBoxLaserOff
         checkBoxCutLast
 
-        verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
-    end
-
-    properties (SetObservable,Transient)
-        previewImageData=[]  %This 4D matrix holds the preview image (pixel rows, pixel columns, z depth, channel)
-        previewTilePositions %This is where the tiles will go (we take into account the overlap between tiles: see .initialisePreviewImageData)
-    end %close hidden transient observable properties
-
-    properties (Hidden,SetAccess=private)
-        chanToShow=1
-        depthToShow=1
-        cachedEndTimeStructure % Because the is slow to generate and we don't want to produce it on each tile (see updateStatusText)
-        rotateSectionImage90degrees=true; %Ensure the axis along which the blade cuts is is the image x axis. 
-
-        % Cached/stored settings
-        % Log front/left pos when preview is taken so we don't change coords if user updates front/left after imaging
-        frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
-
     end %close hidden private properties
 
+
+    % Declare hidden methods in separate files
+    methods (Hidden)
+        buildFigure(obj)    % Called once by the constructor
+        setupListeners(obj) % Called once by the constructor
+
+        % Callbacks
+        updateSectionImage(obj,~,~,forceUpdate)
+
+        % Callbacks in direct response to user actions
+        startPreviewScan(obj,~,~)
+        stop_callback(obj,~,~)
+        bake_callback(obj,~,~)
+        pause_callback(obj,~,~)
+        updateBakeButtonState(obj,~,~)
+
+        areaSelector(obj,~,~)
+        imageZoomHandler(obj,src,~)
+
+        setDepthToView(obj,~,~)
+        setChannelToView(obj,~,~)
+
+    end
+
+    methods
+        getThresholdAndOverlayGrid(obj,~,~)
+        spawnTilePickerWindow(obj)
+    end
 
 
     methods
@@ -73,10 +98,8 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.parentView=parentView;
             end
 
-
             obj.buildFigure
             obj.setupListeners
-
 
             % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
             % TODO: in future we might wish to make this more elegant, but for now it should work
@@ -98,43 +121,13 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
 
-    % Declare hiden methods in separate files
-    methods (Hidden)
-        buildFigure(obj)    % Called once by the constructor
-        setupListeners(obj) % Called once by the constructor
-
-        initialisePreviewImageData(obj, tp)
-        [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords)
-
-        % Callbacks
-        placeNewTilesInPreviewData(obj,~,~)
-        updateSectionImage(obj,~,~)
-
-        % Callbacks in direct response to user actions
-        startPreviewScan(obj,~,~)
-        stop_callback(obj,~,~)
-        bake_callback(obj,~,~)
-        pause_callback(obj,~,~)
-        updateBakeButtonState(obj,~,~)
-
-        areaSelector(obj,~,~)
-        imageZoomHandler(obj,src,~)
-
-        setDepthToView(obj,~,~)
-        setChannelToView(obj,~,~)
-
-    end
-
-
-
     % Short hidden methods 
     methods (Hidden)
         function setUpImageAxes(obj)
             % Add a blank images to the image axes
-            blankImage = squeeze(obj.previewImageData(:,:,obj.depthToShow,obj.chanToShow));
-            if obj.rotateSectionImage90degrees
-                blankImage = rot90(blankImage);
-            end
+            blankImage = squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow,obj.chanToShow));
+
+            blankImage(:) = 0;
 
             obj.sectionImage=imagesc(blankImage,'parent',obj.imageAxes);
 
@@ -148,14 +141,56 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'LineWidth',1,...
                 'XColor','w',...
                 'YColor','w')
+            set(obj.imageAxes.YAxis,'Direction','Reverse'); % TODO-- buildFigure also does this. But has to be here or work of buildfigure gets undone. Buildfigure should call this!
             set(obj.hFig,'Colormap', gray(256))
+            obj.overlayStageBoundariesOnImage
         end %setUpImageAxes
+
+        function populateDepthPopup(obj)
+            % BakingTray.gui.acquisition_view.populateDepthPopup
+            %
+            % This callback runs when the user changes the number of depths to be 
+            % acquired. It is called via recipeListener. 
+            % It is also called in obj.buildFigure and obj.bake_callback. It adds the correct 
+            % number of optical planes (depths) to the depths popup so the user 
+            % can select which plane they want to view.
+
+            opticalPlanes_str = {};
+            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
+                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
+            end
+            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.getChannelsToDisplay)
+                obj.depthSelectPopup.String = opticalPlanes_str;
+                obj.depthSelectPopup.Enable='on';
+            else
+                obj.depthSelectPopup.String = '1';
+                obj.depthSelectPopup.Enable='off';
+            end
+        end %populateDepthPopup
+
     end %close hidden methods
 
 
     % Short callbacks. Particularly those for updating the GUI
     methods(Hidden)
+
+        function recipeListener(obj,~,~)
+            % Runs when the recipe is updated
+            obj.populateDepthPopup
+
+            % Disable the auto-thresh button if we aren't in auto-thresh mode
+            if ~strcmp(obj.model.recipe.mosaic.scanmode,'tiled: auto-ROI')
+                obj.button_runAutoThresh.Enable='off';
+            else
+                obj.button_runAutoThresh.Enable='on';
+            end
+
+            obj.overlayThreshBorderOnImage %Handles removal and addition of the edge guide
+        end
+
         function updateGUIonResize(obj,~,~)
+            % Runs when the figure window is resized in order to keep the panels and so on
+            % in the required positions
             figPos=obj.hFig.Position;
 
             %Keep the status panel at the top of the screen and in the centre
@@ -176,12 +211,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function indicateCutting(obj,~,~)
             % Changes GUI elements accordingly during cutting
-            if obj.verbose, fprintf('In acquisition_view.indicateCutting callback\n'), end
+            if obj.verbose
+                fprintf('In acquisition_view.indicateCutting callback\n')
+            end
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
-
-                % Dump the current preview image to the model
-                obj.model.lastPreviewImageStack = obj.previewImageData;
 
                 % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
                 %obj.button_BakeStop.Enable='off';
@@ -195,7 +229,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function updateStatusText(obj,~,~)
-            % Update the text in the top left of the acquisition view
+            % Update the text in the top left of the acquisition view if we are in an acquisition
+            % This is called when currentSectionNumber updates
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
             % We only want to run this on the first tile of each section. Faster this way.
@@ -287,8 +322,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if obj.verbose, fprintf('In acquisition_view.chooseChanToDisplay callback\n'), end
 
-            channelsBeingAcquired = obj.model.scanner.channelsToAcquire;
-            channelsScannerDisplays = obj.model.scanner.channelsToDisplay;
+            channelsBeingAcquired = obj.model.scanner.getChannelsToAcquire;
+            channelsScannerDisplays = obj.model.scanner.getChannelsToDisplay;
 
             if isempty(channelsScannerDisplays)
                 % Then we can't display anything
@@ -305,7 +340,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % BakingTray.gui.acquisition_view.updateChannelsPopup
             %
             % This calback ensures the channels available in the popup are the same as those
-            % available in the scanning software. 
+            % available in the scanning software.
 
             if obj.verbose, fprintf('In acquisition_view.updateChannelsPopup callback\n'), end
 
@@ -314,7 +349,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 % if it's not displayed we have no access to the image data. This isn't
                 % the case with galvo/galvo, unfortunately, but we'll just proceed like this
                 % and hope galvo/galvo works OK.
-                activeChannels = obj.model.scanner.channelsToDisplay;
+                activeChannels = obj.model.scanner.getChannelsToDisplay;
                 activeChannels_str = {};
                 for ii=1:length(activeChannels)
                     activeChannels_str{end+1} = sprintf('Chan %d',activeChannels(ii));
@@ -336,34 +371,12 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateChannelsPopup
 
 
-        function populateDepthPopup(obj,~,~)
-            % BakingTray.gui.acquisition_view.populateDepthPopup
-            %
-            % This callback runs when the user changes the number of depths to be 
-            % acquired. It is also called in the constructor. It adds the correct 
-            % number of optical planes (depths) to the depths popup so the user 
-            % can select which plane they want to view. 
-
-            opticalPlanes_str = {};
-            for ii=1:obj.model.recipe.mosaic.numOpticalPlanes
-                opticalPlanes_str{end+1} = sprintf('Depth %d',ii);
-            end
-            if length(opticalPlanes_str)>1 && ~isempty(obj.model.scanner.channelsToDisplay)
-                obj.depthSelectPopup.String = opticalPlanes_str;
-                obj.depthSelectPopup.Enable='on';
-            else
-                obj.depthSelectPopup.String = 'NONE';
-                obj.depthSelectPopup.Enable='off';
-            end
-        end %populateDepthPopup
 
 
         function pointerReporter(obj,~,~)
             % Runs when the mouse is moved over the axis to report its position in stage coordinates. 
             % This is printed as text to the top left of the plot. The callback does not run if an
             % acquisition is in progress or if the plotted image contains only zeros.
-
-            if obj.verbose, fprintf('In acquisition_view.pointerReporter callback\n'), end
 
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
@@ -375,7 +388,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             xAxisCoord=pos(1,1);
             yAxisCoord=pos(1,2);
 
-            stagePos = obj.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
+            stagePos = obj.model.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
             obj.statusText.String = sprintf('Stage Coordinates:\nX=%0.2f mm Y=%0.2f mm', stagePos);
 
         end % pointerReporter

@@ -96,8 +96,6 @@ classdef genericPIcontroller < linearcontroller
 
 
           %Attempt to connect to the PI controller using the chosen interface
-          % TODO -- this is taken from the C891 class and hopefully it will work for others too, but not sure. 
-          % Seems to work for C-663. 
           try
             PI_Controller = PI_GCS_Controller;
             switch lower(connectionDetails.interface)
@@ -273,13 +271,12 @@ classdef genericPIcontroller < linearcontroller
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function pos = getPositionUnits(~,~)
-              pos='mm'; %The units of the C-891 are fixed at mm and can't be queried %TODO -- is this the case for all PI controllers?
+              pos='mm'; %The units are fixed in mm
         end %getPositionUnits
 
         function success=setPositionUnits(obj,controllerUnits,~)
-          %The units of the C-891 are fixed at mm and can't be queried %TODO -- is this the case for all PI controllers?
             if ~strcmp(controllerUnits,'mm')
-              obj.logMessage(inputname(1),dbstack,6,'C-891 units work only in mm') % TODO!
+              obj.logMessage(inputname(1),dbstack,6,'PI controllers work only in mm')
               success = false;
             end
             success=true;

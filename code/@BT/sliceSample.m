@@ -1,6 +1,8 @@
 function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Perform the cutting sequence
     % 
+    % function finished = BT.sliceSample(obj,sliceThickness,cuttingSpeed)
+    %
     % Purpose
     % This method moves to the cutting start point and initiates a cut. 
     % It uses the following parameters to know how to cut:
@@ -23,17 +25,12 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Outputs
     % finished : true/false depending on whether or not it ran to the end
 
-    % Don't waste time slicing if we have a dummy slicer
-    if isa(obj.cutter,'dummyCutter')
-        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
-        finished=true;
-        return
-    end
 
-    finished=false;
     obj.isSlicing=true;
+    finished=false;
     if isempty(obj.cutter)
         fprintf('Can not cut. No cutter connected\n')
+        obj.isSlicing=false;
         return
     end
 
@@ -50,6 +47,18 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     %Record in the recipe what are the values we are going to cut at. See the main recipe class help text. 
     obj.recipe.lastSliceThickness=sliceThickness;
     obj.recipe.lastCuttingSpeed=cuttingSpeed;
+
+
+
+    % Don't waste time slicing if we have a dummy slicer
+    if isa(obj.cutter,'dummyCutter')
+        fprintf(' Slicer is a dummyCutter. Not bothering with slicing.\n')
+        obj.logMessage(inputname(1),dbstack,5,'Waiting for slice to settle') %Used in acquisition resume
+        obj.moveZby(sliceThickness) % Move z up by one section thickness
+        finished=true;
+        obj.isSlicing=false;
+        return
+    end
 
 
     % Ensure that the abort flag is false. If this is is ever true, 
@@ -83,16 +92,12 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     if isempty(cuttingStartPoint.X) || isempty(cuttingStartPoint.Y)
         obj.logMessage(inputname(1),dbstack,6,'obj.recipe.cuttingStartPoint is empty. NOT CUTTING')
         obj.isSlicing=false;
-        return 
+        return
     end
 
     obj.logMessage(inputname(1),dbstack,5,'Start cutting cycle')
 
-    % Move Z stage up by the thickness of one slice
-    obj.moveZby(sliceThickness)
-    if obj.abortSlice
-        return
-    end
+
 
     obj.logMessage(inputname(1),dbstack,3,sprintf('Initial position - X:%0.3f Y:%0.3f',state.xInit,state.yInit))
 
@@ -101,12 +106,17 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.logMessage(inputname(1),dbstack,4,msg)
     obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
     obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
-    obj.moveXYto(cuttingStartPoint.X, cuttingStartPoint.Y,1);
+    obj.moveXYto(cuttingStartPoint.X, cuttingStartPoint.Y,true);
 
     if obj.abortSlice
         return
     end
 
+    % Move Z stage up by the thickness of one slice
+    obj.moveZby(sliceThickness,true)
+    if obj.abortSlice
+        return
+    end
 
     pause(1) % a second before carrying on
 
@@ -139,12 +149,12 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
            obj.xAxis.stopAxis;
            break
        end
-       
-       % To honour abort command 
+
+       % To honour abort command
        if obj.abortSlice
            return
        end
-       pause(0.025)
+       pause(0.05)
     end
 
     if obj.abortSlice
@@ -174,6 +184,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     if obj.abortSlice
         return
     end
+    obj.getXpos;
 
     for ii=1:2
         swipeSize = swipeSize*-1;
@@ -181,7 +192,9 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         if obj.abortSlice
             return
         end
+        obj.getXpos;
     end
+
 
     %Reset speeds of stages to what they were originally    
     obj.setYvelocity(moveStepSpeed);
@@ -220,13 +233,18 @@ function cleanupSlicer(obj,state)
     end
 
     % Return to initial speed
-    obj.setXvelocity(obj.recipe.SYSTEM.xySpeed);
-    obj.setYvelocity(obj.recipe.SYSTEM.xySpeed);
+    obj.setXvelocity(obj.recipe.SYSTEM.xySpeed);    obj.setYvelocity(obj.recipe.SYSTEM.xySpeed);
 
     %Reset flags
     obj.abortSlice=false;
     obj.isSlicing=false;
 
     obj.getXYpos; %Refreshes the currentPosition properties on the stages
-    obj.logMessage(inputname(1),dbstack,5,'Finish cutting cycle');
+    obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
+
+    % Read all axis positions. This is to force any GUI listeners on stage position properties to update. 
+    % This slightly breaks the model/view paradignm, but does so totally silentlt. 
+    obj.getXpos;
+    obj.getYpos;
+    obj.getZpos;
 end

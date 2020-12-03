@@ -1,9 +1,9 @@
 function moveToSample(obj,~,~)
-    % Move to the middle of the sample
+    % Callback funtion to the middle of the sample
     %
-    % function BT.moveToSample(obj,event,~)
+    % function prepare_view.moveToSample(obj,~,~)
 
-    
+
     [~,xMSG] = obj.isSafeToMove(obj.model.xAxis);
     [~,yMSG] = obj.isSafeToMove(obj.model.yAxis);
 
@@ -24,6 +24,11 @@ function moveToSample(obj,~,~)
     X = R.FrontLeft.X-R.mosaic.sampleSize.X/2;
     Y = R.FrontLeft.Y-R.mosaic.sampleSize.Y/2;
 
-    obj.model.moveXYto(X,Y);
+    obj.model.moveXYto(X,Y,true);
+
+    % These calls update the stage position in the linear_stage class and so
+    % trigger the GUI to update, as it listens to this property.
+    obj.model.getXpos;
+    obj.model.getYpos;
 
 end

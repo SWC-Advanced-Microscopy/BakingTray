@@ -52,21 +52,6 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
     end
 
 
-    %Check we are on the correct side of the cutter before begining to cut
-    sigFig=1;
-    xPos=round(obj.getXYpos,sigFig);
-    if obj.recipe.SYSTEM.cutterSide == 1
-        if xPos>round(obj.recipe.CuttingStartPoint.X,sigFig)
-            msg=sprintf('%sThe sample is already %0.2f microns beyond the blade. Move it away from the blade and try again.\n', ...
-                msg, abs(xPos-round(obj.recipe.CuttingStartPoint.X,sigFig)) );
-        end
-    elseif obj.recipe.SYSTEM.cutterSide == -1
-        if xPos<round(obj.recipe.CuttingStartPoint.X,sigFig)
-            msg=sprintf('%sThe sample is already %0.2f microns beyond the blade. Move it away from the blade and try again.\n', ...
-                msg, abs(xPos-round(obj.recipe.CuttingStartPoint.X,sigFig)));
-        end
-    end
-
     %Do we have enough travel to make the cut itself?
     if obj.recipe.SYSTEM.cutterSide == 1
         if (obj.recipe.CuttingStartPoint.X + obj.recipe.mosaic.cutSize) > obj.xAxis.attachedStage.maxPos

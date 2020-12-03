@@ -1,17 +1,24 @@
 classdef dummy_linearcontroller < linearcontroller 
 
-    properties (Hidden)
-        positionTimer %to simulate the non-instantaneous motion of the stage
+    properties
         instantMotions = true  %If true, the stages move instantly to target position. If false,
                                %the max speed and update interval are used by the positionTimer to execute
                                %a simple gradual motion. This is used for testing the GUI. 
         updateInterval = 0.05  %every 10 ms update the currentPosition property during a motion
+        verbose=false;
+    end
+
+
+    properties (Hidden)
+        positionTimer %to simulate the non-instantaneous motion of the stage
+
+
         isStageMoving = false 
         hiddenCurrentPosition % Used to implement a gradual motion with a timer: see obj.updatePosition
         targetPosition
         speed
-        verbose=false;
     end
+
 
     methods
 
@@ -110,11 +117,9 @@ classdef dummy_linearcontroller < linearcontroller
           return
         end
 
-        msg = sprintf('moving by %0.2f mm from %0.2f to %0.2f\n', ...
-          distanceToMove, obj.attachedStage.currentPosition, willMoveTo);
-        obj.logMessage(inputname(1),dbstack,1,msg);
-
         if obj.verbose
+          msg = sprintf('moving by %0.2f mm from %0.2f to %0.2f\n', ...
+            distanceToMove, obj.attachedStage.currentPosition, willMoveTo);
           fprintf(msg)
         end
 
@@ -143,10 +148,9 @@ classdef dummy_linearcontroller < linearcontroller
           return
         end
 
-        msg=sprintf('moving to %0.2f\n',targetPosition);
-        obj.logMessage(inputname(1),dbstack,1,msg);
 
         if obj.verbose
+          msg=sprintf('moving to %0.2f\n',targetPosition);
           fprintf(msg)
         end
 

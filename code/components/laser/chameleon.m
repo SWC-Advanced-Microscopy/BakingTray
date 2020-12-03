@@ -225,7 +225,7 @@ classdef chameleon < laser & loghandler
             [success,reply]=obj.sendAndReceiveSerial('?MDLK');
             if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
                 modelockState=false;
-                obj.isLaserModeLocked=modelock;
+                obj.isLaserModeLocked=modelockState;
                 return
             end
 

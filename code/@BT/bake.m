@@ -1,4 +1,4 @@
-function bake(obj,varargin)
+function sectionInd = bake(obj,varargin)
     % Runs an automated anatomy acquisition using the currently attached parameter file
     %
     % function BT.bake('Param1',val1,'Param2',val2,...)
@@ -14,23 +14,25 @@ function bake(obj,varargin)
     %                      BT.leaveLaserOn. If not supplied, this built-in value is used. 
     %
     %
-    %
+    % Outputs
+    % sectionInd - the index of the main bake loop. If the loop didn't start, this will be 0.
     %
     % Rob Campbell - Basel, Feb, 2017
     %
     % See also BT.runTileScan
 
 
+    sectionInd = 0; 
     obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
+    
+    % If we are completely not ready to proceed, bail out right away
     if ~obj.isScannerConnected 
         fprintf('No scanner connected.\n')
         return
     end
+    
+    
 
-    if ~isa(obj.scanner,'SIBT') && ~isa(obj.scanner,'dummyScanner')
-        fprintf('Only acquisition with ScanImage supported at the moment.\n')
-        return
-    end
 
     %Parse the optional input arguments
     params = inputParser;
@@ -46,44 +48,44 @@ function bake(obj,varargin)
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
-    [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
+    [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
-        fprintf(msg)
-        warndlg(msg,'Acquisition failed to start');
+        obj.messageString = msg;
         return
     end
-
-
-    % Report to screen and the log file how much disk space is currently available
-    acqInGB = obj.recipe.estimatedSizeOnDisk;
-    fprintf('Acquisition will take up %0.2g GB of disk space\n', acqInGB)
-    volumeToWrite = strsplit(obj.sampleSavePath,filesep);
-    volumeToWrite = volumeToWrite{1};
-    out = BakingTray.utils.returnDiskSpace(volumeToWrite);
-    msg = sprintf('Writing to volume %s which has %d/%d GB free\n', ...
-        volumeToWrite, round(out.freeGB), round(out.totalGB));
-    fprintf(msg)
-    obj.acqLogWriteLine(msg)
-
 
     %Define an anonymous function to nicely print the current time
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
 
-
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
 
 
-    %Remove any attached file logger objects. We will add one per physical section
+    % Remove any attached file logger objects. We will add one per physical section.
+    % Reset properties in preparation for acquisition
     obj.detachLogObject
+    obj.currentTileSavePath=[];
+    obj.sectionCompletionTimes=[];
+    obj.acquisitionInProgress=true;
+    obj.acquisitionState='bake';
+    obj.abortAcqNow=false; % This and the following property can't be on before we've even started
+    obj.abortAfterSectionComplete=false; 
 
+    % Assign cleanup function, which is in private directory
+    tidy = onCleanup(@() bakeCleanupFun(obj)); 
 
     %----------------------------------------------------------------------------------------
 
-    fprintf('Starting data acquisition\n')
-    obj.currentTileSavePath=[];
-    tidy = onCleanup(@() bakeCleanupFun(obj));
+
+    fprintf('\n\n\n ------>>  Starting To Bake  <<------ \n\n\n')
+
+
 
     obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) )
+
+    % Report to screen and the log file how much disk space is currently available
+    msg = obj.reportAcquisitionSize;
+    obj.acqLogWriteLine(msg)
+
     if ~isempty(obj.laser)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
@@ -91,28 +93,17 @@ function bake(obj,varargin)
     % Print the version number and name of the scanning software 
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
 
-
-    % Report to the acquisition log whether we will attempt to turn off the laser at the end
-    if obj.leaveLaserOn
-        obj.acqLogWriteLine('Laser set to stay on at the end of acquisition\n')
-    else
-        obj.acqLogWriteLine('Laser set to switch off at the end of acquisition\n')
-    end
-
-    % Report to the acquisition log whether we will attempt to slice the last section
-    if obj.sliceLastSection
-        obj.acqLogWriteLine('BakingTray will slice the final imaged section off the block\n')
-    else
-        obj.acqLogWriteLine('BakingTray will NOT slice the final imaged section off the block\n')
+    try
+        G=BakingTray.utils.getGitInfo;
+        obj.acqLogWriteLine(sprintf('Using BakingTray version %s from branch %s\n', G.hash, G.branch))
+    catch
+        obj.acqLogWriteLine('Failed to extract git commit info for logging\n')
     end
 
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake. 
     % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later. 
-    %
-    % TODO: for this to work, we must ensure that the return info method is doing something.
-    %       users need to be careful here if writing code for different lasers.
     if ~isempty(obj.laser)
         wDogSeconds = 40*60;
         obj.laser.setWatchDogTimer(wDogSeconds);
@@ -120,37 +111,41 @@ function bake(obj,varargin)
     end
 
 
-    %pre-allocate the tile buffer
-    obj.preAllocateTileBuffer
-    
-    obj.sectionCompletionTimes=[]; %Clear the array of completion times
-
     %Log the current time to the recipe
     obj.recipe.Acquisition.acqStartTime = currentTimeStr();
-    obj.acquisitionInProgress=true;
-    obj.abortAfterSectionComplete=false; %This can't be on before we've even started
 
-    %Do ribbon-specific stuff (e.g. work out where the z-planes should be)
-    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        obj.scanner.moveFastZTo(0)
-        nOptPlanes = obj.recipe.mosaic.numOpticalPlanes;
-        opticalRibbonPlanesToImage = (0:nOptPlanes-1) * round(obj.recipe.VoxelSize.Z,1);
-    else %We are not ribbon-scanning
-        opticalRibbonPlanesToImage=1; %This needs to be 1 if we are doing tile scanning
+
+
+    % auto-ROI stuff if the user has selected this. Note that after the following if statement
+    % we have populated obj.currentTilePattern. This myuste be done before arming the scanner, as scanner arming 
+    % requires us to know how many tiles will be imaged. 
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+        obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
+        fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
+        obj.populateCurrentTilePattern;
+        fprintf('Starting auto-ROI acquisition with a grid of %d tiles\n', ...
+            length(obj.currentTilePattern))
+        fprintf('\nDONE\n')
+        % Write the auto-ROI parameters as a yaml file in the sample directory
+        yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings)
+
+    elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
+        obj.populateCurrentTilePattern;
+
     end
 
-    % Store the current tile pattern, as it's generated on the fly and 
-    % and this is too time-consuming to put into the tile acq callback. 
-    obj.currentTilePattern=obj.recipe.tilePattern;
+
+    % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise). 
+    obj.completeAcquisitionOnBakeLoopExit=true;
 
 
-    %loop and tile scan
+    % LOOP THROUGH ALL SECTIONS AND TILE SCAN
     for sectionInd=1:obj.recipe.mosaic.numSections
-
-        % Ensure hBT exists in the base workspace
-        assignin('base','hBT',obj)
-
         obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
+
+        fprintf('\n\n%s\n * Section %d\n\n',repmat('-',1,70),obj.currentSectionNumber) % Print a line across the CLI
+
+
         if obj.currentSectionNumber<0
             fprintf('WARNING: BT.bake is setting the current section number to less than 0\n')
         end
@@ -176,95 +171,104 @@ function bake(obj,varargin)
         end
 
 
-        for tDepthInd = 1:length(opticalRibbonPlanesToImage) %One pass through this loop if tile scanning
-            obj.currentOpticalSectionNumber = tDepthInd; %Does nothing if we're not ribbon-scanning
+        if obj.saveToDisk
+            obj.scanner.setUpTileSaving;
 
-            if obj.saveToDisk
+            %Add logger object to the above directory
+            logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
+            obj.attachLogObject(bkFileLogger(logFilePath))
+        end % if obj.saveToDisk
 
-                obj.scanner.setUpTileSaving; % This method is aware of the requirements of ribbon vs tile scanning
+        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
+        if sectionInd==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+        end
 
-                %Add logger object to the above directory
-                logFilePath = fullfile(obj.currentTileSavePath,'acquisition_log.txt');
-                obj.attachLogObject(bkFileLogger(logFilePath))
-            end % if obj.saveToDisk
+        % For syncAndCrunch to be happy we need to write the currently
+        % displayed channels. A bit of hack, but it's easiest solution
+        % for now. Alternative would be to have S&C rip it out of the
+        % TIFF header. (TODO)
+        if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+            scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+            saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+            save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
+        end
 
-            % Move the PIFOC if needed
-            if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-                obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
+        % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
+        % This is also done in obj.getThreshold, but repeating it here ensures the user can't
+        % alter the channel during acquisition. 
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
+        end
+
+
+        %  ===> Now the scanning runs <===
+        if ~obj.scanner.armScanner
+            disp('FAILED TO START -- COULD NOT ARM SCANNER')
+            return
+        end
+
+        if ~obj.runTileScan
+            fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+            return
+        end
+        % We will use this later to decide whether to cut. This test asks if the positionArray is complete 
+        % so we don't cut if tiles are missing. We test here because the position array is modified before
+        % cutting can happen.
+        if obj.tilesRemaining==0
+            sectionCompleted=true;
+        else
+            sectionCompleted=false;
+        end
+        % ===> Tile scan finished <===
+
+
+        %If requested, save the current preview stack to disk
+        if exist(obj.logPreviewImageDataToDir,'dir')
+            try
+                fname=sprintf('%s_section_%d_%s.mat', ...
+                                obj.recipe.sample.ID, ...
+                                obj.currentSectionNumber, ...
+                                 datestr(now,'YYYY_MM_DD'));
+                fname = fullfile(obj.logPreviewImageDataToDir,fname);
+                fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
+                imData=obj.lastPreviewImageStack;
+                save(fname,'imData')
+            catch
+                fprintf('Failed to save preview stack to log dir\n')
             end
+        end
 
-            if ~obj.scanner.armScanner
-                disp('FAILED TO START -- COULD NOT ARM SCANNER')
-                return
-            end
+        % Save the downsampled tile cache to the rawData directory if this is appropriate
+        if obj.keepAllDownSampledTiles
+            fprintf('Saving the tile cache from the last section\n')
+            tileCache = obj.allDownsampledTilesOneSection;
+            cacheFname = fullfile(obj.currentTileSavePath,'tileCache.mat');
+            save(cacheFname,'tileCache')
+        end
+    
+        % Now we save to full scan settings by stripping data from a tiff file.
+        % If this is the first pass through the loop and we're using ScanImage, dump
+        % the settings to a file. TODO: eventually we need to decide what to do with other
+        % scan systems and abstract this code. 
 
-            % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-            if sectionInd==1
-                obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-            end
-            
-            % For syncAndCrunch to be happy we need to write the currently
-            % displayed channels. A bit of hack, but it's easiest solution
-            % for now. Alternative would be to have S&C rip it out of the
-            % TIFF header. 
-            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-                scanSettings.hChannels.channelDisplay = obj.scanner.hC.hChannels.channelDisplay;
+        if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
+            d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
+            if ~isempty(d)
+                tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
+                TMP=scanimage.util.opentif(tmp_fname);
+                scanSettings = TMP.SI;
                 saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
+                fprintf('Saving ScanImage settings file to %s\n', saveSettingsTo)
                 save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
             end
-
-
-            % ===> Now the scanning runs <===
-            if ~obj.runTileScan
-                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-                return
-            end
-
- 
-            %If requested, save the current preview stack to disk
-            if exist(obj.logPreviewImageDataToDir,'dir')
-                try
-                     fname=sprintf('%s_section_%d_%s.mat', ...
-                                     obj.recipe.sample.ID, ...
-                                     obj.currentSectionNumber, ...
-                                     datestr(now,'YYYY_MM_DD'));
-                     fname = fullfile(obj.logPreviewImageDataToDir,fname);
-                     fprintf('SAVING PREVIEW IMAGE TO: %s\n',fname)
-                     imData=obj.lastPreviewImageStack;
-                     save(fname,'imData')
-                 catch
-                    fprintf('Failed to save preview stack to log dir\n')
-                 end
-            end
-
-            % Now we save to full scan settings by stripping data from a
-            % tiff file.
-            % If this is the first pass through the loop and we're using ScanImage, dump
-            % the settings to a file. TODO: eventually we need to decide what to do with other
-            % scan systems and abstract this code. 
-            if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
-                d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
-                if ~isempty(d)
-                    tmp_fname = fullfile(obj.currentTileSavePath,d(end).name);
-                    TMP=scanimage.util.opentif(tmp_fname);
-                    scanSettings = TMP.SI;
-                    saveSettingsTo = fileparts(fileparts(obj.currentTileSavePath)); %Save to sample root directory
-                    save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
-                end
-            end
-
-            if obj.abortAcqNow
-                break
-            end
-
-        end % for tDepthInd ...
-
-
-        %Return the PIFOC to zero if needed
-        if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-            obj.currentOpticalSectionNumber=1;
-            obj.scanner.moveFastZTo(opticalRibbonPlanesToImage(obj.currentOpticalSectionNumber));
         end
+
+        if obj.abortAcqNow
+            fprintf('BT.bake: BT.abortAcq is true. Stopping acquisition.\n')
+            break
+        end
+
 
 
         % If the laser is off-line for some reason (e.g. lack of modelock, we quit
@@ -305,14 +309,53 @@ function bake(obj,varargin)
         end
 
         % If too many channels are being displayed, fix this before carrying on
-        chanDisp=obj.scanner.channelsToDisplay;
+        chanDisp=obj.scanner.getChannelsToDisplay;
         if length(chanDisp)>1 && isa(obj.scanner,'SIBT')
-            % A bit horrible, but it will work
-            obj.scanner.hC.hChannels.channelDisplay=chanDisp(end);
+            fprintf('Setting chan display to %d only in BT.bake\n', chanDisp(end))
+            obj.scanner.setChannelsToDisplay(chanDisp(end));
         end
 
+
+        % If the user is running auto-ROI, we now re-calculated the bounding boxes. The method call
+        % to getNextROIs does this and also updates currentTilePattern.
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            % Save the pStack file (TODO -- should we leave this here?)
+            pStack_fname = fullfile(obj.currentTileSavePath, 'sectionPreview.mat');
+            sectionPreview = obj.autoROI.previewImages;
+            sectionPreview = rmfield(sectionPreview,'recipe');
+            save(pStack_fname,'sectionPreview')
+            success = obj.getNextROIs;
+
+
+            if ~success
+                % Bail out gracefully if no tissue was found
+                msg = sprintf('Found no tissue in Section %d during Bake. Quitting acquisition.', ...
+                    obj.currentSectionNumber);
+                obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
+                fprintf('\n*** %s ***\n\n',msg)
+                obj.slack(msg)
+
+                % Assume the acquisition is supposed to have finished this way
+                % TODO -- this could be a setting                
+                fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+                fclose(fid);
+                return
+            end
+
+            % Save to disk the whole auto-ROI structure
+            autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
+            autoROI_stats = obj.autoROI;
+
+            save(autoROI_fname,'autoROI_stats')
+        else
+            % Wipe the last two columns of the position array. These save the actual stage 
+            % positions. This is necessary for the acquisition resume to work properly.
+            obj.positionArray(:,end-1:end)=nan;
+        end
+
+
         % Cut the sample if necessary
-        if obj.tilesRemaining==0 %This test asks if the positionArray is complete so we don't cut if tiles are missing
+        if sectionCompleted
             %Mark the section as complete
             fname=fullfile(obj.currentTileSavePath,'COMPLETED');
             fid=fopen(fname,'w+');
@@ -357,6 +400,9 @@ function bake(obj,varargin)
             break
         end
 
+
+        %%disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause
+
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
 
@@ -368,90 +414,16 @@ function bake(obj,varargin)
         obj.scanner.abortScanning;
     end
 
-    obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
+    % Create an empty "FINISHED" file, which will trigger stitching from syncAndCrunch. 
+    % It is the default to create the file. The only likely way it will not be created is if the user
+    % chooses not to when the stop the acquisition early.
+    if obj.completeAcquisitionOnBakeLoopExit
+        obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
 
-
-    %Create an empty finished file
-    fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
-    fclose(fid);
+        %Create an empty finished file
+        fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+        fclose(fid);
+    end
 
 end
 
-
-function bakeCleanupFun(obj)
-    %Perform clean up functions
-
-    %So we don't turn off laser if acqusition failed right away
-    if obj.currentTilePosition==1
-        fprintf(['Acquisition seems to have failed right away since BT.bake has finished with currentTilePosition==1.\n',...
-            'Not turning off laser.\n'])
-        obj.leaveLaserOn=true; 
-    end
-
-    %TODO: these three lines also appear in BakingTray.gui.acquisition_view
-    obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
-    obj.scanner.disarmScanner;
-    obj.scanner.averageSavedFrames=true; % Just in case a testing session was done before
-    obj.acquisitionInProgress=false;
-    obj.sectionCompletionTimes=[]; %clear the array of completion times. 
-
-    obj.lastTilePos.X=0;
-    obj.lastTilePos.Y=0;
-
-
-    if obj.isLaserConnected && ~obj.leaveLaserOn
-        % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
-        % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
-        % to indicate that acquisition is done.
-        minSections=25;
-        if obj.currentSectionNumber>minSections
-            obj.slack(sprintf('Acquisition of %s finished after %d sections.', ...
-                obj.recipe.sample.ID, obj.currentSectionNumber))
-        else
-            fprintf('Not sending Slack message because only %d sections completed, which is less than threshold of %d\n',...
-                obj.currentSectionNumber, minSections)
-        end
-
-        obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));
-        success=obj.laser.turnOff;
-        if ~success
-            obj.acqLogWriteLine(sprintf('Laser turn off command reports it did not work\n'));
-        else
-            if ~isa(obj.laser,'dummyLaser')
-                pause(10) %it takes a little while for the laser to turn off
-            end
-            msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
-            if obj.currentSectionNumber>minSections
-                obj.slack(msg)
-            end
-            obj.acqLogWriteLine(msg);
-        end
-    else 
-        % So we can report to screen if this is reset
-        % We do the reset otherwise a subsequent run will have the laser on when it completes 
-        % (but this means we have to set this each time)
-        fprintf(['Acquisition finished and Laser will NOT be turned off.\n',...
-            'BT.bake is setting the "leaveLaserOn" flag to false: laser will attempt to turn off next time.\n'])
-        obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));
-        obj.leaveLaserOn=false;
-    end
-
-    %Reset these flags or the acquisition will not complete next time
-    obj.abortAfterSectionComplete=false;
-    obj.abortAcqNow=false;
-
-    if strcmp(obj.recipe.mosaic.scanmode,'ribbon')
-        % Ensure we are back to square pixels (in case of prior riboon scan)
-        obj.scanner.hC.hRoiManager.forceSquarePixels=true;
-        obj.scanner.allowNonSquarePixels=false;
-        obj.scanner.hC.hRoiManager.scanAngleMultiplierFast=0.75; % TODO -- BAD HARD-CODED HACK!
-        obj.scanner.moveFastZTo(0)
-    end
-
-    % Must run this last since turning off the PMTs sometimes causes a crash
-    obj.scanner.tearDown
-
-    % Move the X/Y stage to a nice finish postion, ready for next sample
-    obj.moveXYto(obj.recipe.FrontLeft.X,0)
-
-end %bakeCleanupFun

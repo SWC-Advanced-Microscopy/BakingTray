@@ -10,9 +10,9 @@ function BakingTray(varargin)
     % Optional Input args (param/val pairs
     % 'useExisting' - [false by default] if true, any existing BT object in the 
     %                 base workspace is used to start BakingTray
-    % 'dummyMode' - [false by default] if true we run BakingTray in dummy mode, 
-    %               which simulates the hardware. If ScanImage is present on start
-    %               then we connect to it. 
+    % 'dummyMode' - [false by default on Windows, true otherwise] if true we run 
+    %               BakingTray in dummy mode, which simulates the hardware. If 
+    %               ScanImage is present on start then we connect to it. 
     %
     %
     % Rob Campbell - 2016
@@ -27,6 +27,11 @@ function BakingTray(varargin)
 
     useExisting=params.Results.useExisting;
     dummyMode=params.Results.dummyMode;
+
+    if ~ispc
+        dummyMode=true;
+    end
+
     % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
     % Build optional arguments to feed to BT during its construction

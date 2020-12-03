@@ -1,5 +1,5 @@
 function success=attachRecipe(obj,fname,resume)
-    % Attach recipe  BT
+    % Attach recipe a receipe to the BT class
     %
     % function success=attachRecipe(obj,fname,resume)
     %
@@ -14,8 +14,8 @@ function success=attachRecipe(obj,fname,resume)
     % Inputs
     % fname - The name of the recipe to load. If missing it loads the built-in default 
     %         recipe that is present in the SETTINGS folder.
-    % resume - False by default. If true we load the full settings of the resip to
-    %          to attempt to resume it. See help recipe.
+    % resume - False by default. If true we load the full settings (including cutting start 
+    %         point and front/left) of the recipe to attempt to resume it. See help recipe.
     %
     %
     % Outputs
@@ -32,7 +32,7 @@ function success=attachRecipe(obj,fname,resume)
 
     %If recipe was not a valid recipe name just exit and indicate failure
     if isempty(fname)
-        obj.recipe=recipe(fname);
+        obj.recipe=recipe([]);
         obj.recipe.parent=obj;
         if ~isempty(obj.recipe)
             success=true;
@@ -56,6 +56,7 @@ function success=attachRecipe(obj,fname,resume)
     end
 
     if success
+        fprintf('Attaching recipe\n')
         %Return false if the attachment of the recipe failed
         obj.recipe=recipe(fname,'resume', resume);
 
