@@ -9,7 +9,7 @@ function applyZstackSettingsFromRecipe(obj)
 
 
     % Some settings have moved between ScanImage versions. We take this into account here. 
-    if obj.versionGreaterThan('5.7')
+    if obj.versionGreaterThan('5.6.1')
 	    fastZsettingLocation = 'hStackManager';
 	else
 		fastZsettingLocation = 'hFastZ';
