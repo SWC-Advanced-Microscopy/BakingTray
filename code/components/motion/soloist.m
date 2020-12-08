@@ -21,7 +21,7 @@ classdef soloist < linearcontroller
 %
 % Examples
 % %% Make a stage and attach it to the controller object
-% >> STAGE =generic_AeroTechZJack;
+% >> STAGE = generic_AeroTechZJack;
 % >> STAGE.axisName='someName'; %Does not matter for this toy example
 % >> SOLO = soloist(STAGE); %Create  control class
 %
@@ -122,7 +122,7 @@ classdef soloist < linearcontroller
           end
 
           try
-                H = SoloistConnect;
+              H = SoloistConnect;
           catch ME
               H=[];
               fprintf('Failed to find a Soloist: %s\n', ME.message);
@@ -388,11 +388,11 @@ classdef soloist < linearcontroller
               fprintf('Unable to enable axis. It is reported as not being ready\n')
               return
             end
-
+            
+            SoloistAcknowledgeAll(obj.hC) % Wipe any errors
             SoloistMotionEnable(obj.hC)
             success = obj.readAxisBit(1);
 
-            success=true;
         end %enableAxis
 
 
@@ -474,12 +474,69 @@ classdef soloist < linearcontroller
 
 
         function tBit = readAxisBit(obj,bitToRead)
-            % Reads axis status bit and returns as a number (1 or 0)
+            % Read an axis status bit
+            %
+            %  tBit = readAxisBit(obj,bitToRead)
+            %
+            % Purpose
+            % The status of the axis is stored as a binary word. Each bit
+            % refers to a different thing. This function reads the binary 
+            % word and returns the value of the bit specified by the user 
+            % via the input argument "bitToRead". 
+            %
+            % Inputs
+            % bitToRead - a scalar defining which  bit to read. The values
+            %             of the identities of the bits are in
+            %             SoloistAxisStatus.
+            %
+            % Outputs
+            % tBit - the value of the desired bit (0 or 1)
+            
             bitToRead = bitToRead-1;
             binWord = dec2bin(SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisStatus')));
             tBit = str2num(binWord(end-bitToRead));
         end % readAxisBit
 
+        function faultString = readAxisFault(obj)
+            % Reads the identity of the axis fault condition and returns as a string
+            %
+            %  faultString = readAxisFault(obj)
+            %
+            % Purpose
+            % Return the fault state as a string. 
+            %
+            % Outputs
+            % faultString - the current fault state as a string. If there
+            % is no fault 'None' is returned.
+            
+            faultNumber = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisFault'));
+            faultEnum = SoloistAxisFault(faultNumber);
+            faultString = char(faultEnum);
+        end % readAxisFault
+
+
+        function temperature = returnAmplifierTemperature(obj)
+            % Return the temperature of the amplifier in degrees C
+            %
+            % temperature = returnAmplifierTemperature
+            %
+            % Inputs - none
+            % Outputs - a scalar. Temp in degrees C
+            temperature = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AmplifierTemperature'));
+        end %returnAmplifierTemperature
+
+
+        function posError = returnPositionError(obj)
+            % Return the position error: difference between actual and commanded position
+            %
+            % posError = returnPositionError
+            %
+            % Inputs - none
+            % Outputs - Position error (unknown unit)
+            posError = SoloistStatusGetItem(obj.hC, SoloistStatusItem('PositionError'));
+        end %returnPositionError
+        
+        
     end % Hidden methods
 
 
