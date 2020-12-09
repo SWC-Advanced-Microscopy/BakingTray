@@ -18,7 +18,7 @@ function settings=default_BT_Settings
 
 
     settings.SYSTEM.ID='SYSTEM_NAME';
-    settings.SYSTEM.xySpeed=100.0;
+    settings.SYSTEM.xySpeed=25.0;
     settings.SYSTEM.cutterSide=1;
     settings.SYSTEM.defaultFrontLeft=[0,0];
 
