@@ -286,6 +286,10 @@ classdef view < handle
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
 
+            if ~obj.model.isScannerConnected
+                return
+            end
+
             % Disable the listeners on the scanner temporarily otherwise 
             % we get things that look like error messages
             obj.scannerListeners{1}.Enabled=false; 
