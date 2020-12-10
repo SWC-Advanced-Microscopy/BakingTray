@@ -20,15 +20,19 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.Y=0;
 
 
+
     if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
         % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
-            obj.slack(sprintf('Acquisition of %s finished after %d sections.', ...
-                obj.recipe.sample.ID, obj.currentSectionNumber))
+            %The message we will build to send to Slack
+            slack_msg = sprintf('Acquisition of %s finished after %d sections.\n', ...
+                obj.recipe.sample.ID, obj.currentSectionNumber);
+
         else
+            slack_msg = '';
             fprintf('Not sending Slack message because only %d sections completed, which is less than threshold of %d\n',...
                 obj.currentSectionNumber, minSections)
         end
@@ -41,11 +45,11 @@ function bakeCleanupFun(obj)
             if ~isa(obj.laser,'dummyLaser')
                 pause(10) %it takes a little while for the laser to turn off
             end
-            msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
+            laser_msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             if obj.currentSectionNumber>minSections
-                obj.slack(msg)
+                slack_msg = [slack_msg, laser_msg];
             end
-            obj.acqLogWriteLine(msg);
+            obj.acqLogWriteLine(laser_msg);
         end
     else 
         % So we can report to screen if this is reset
@@ -56,6 +60,9 @@ function bakeCleanupFun(obj)
         obj.acqLogWriteLine(sprintf('Laser will not be turned off because the leaveLaserOn flag is set to true\n'));
         obj.leaveLaserOn=false;
     end
+
+    % Send the Slack message with optional laser message (see laser_msg above)
+    obj.slack(slack_msg)
 
     %Reset these flags or the acquisition will not complete next time
     obj.abortAfterSectionComplete=false;
