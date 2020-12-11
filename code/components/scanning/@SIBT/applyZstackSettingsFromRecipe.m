@@ -36,9 +36,19 @@ function applyZstackSettingsFromRecipe(obj)
         if obj.hC.(fastZsettingLocation).numVolumes ~= 1
             obj.hC.(fastZsettingLocation).numVolumes=1; %Always
         end
+
+        % TODO -- should the hFastZ enable only be for legacy SI?
+        % i.e. do we need the second if statement after this?
         if obj.hC.hFastZ.enable ~=1
             obj.hC.hFastZ.enable=1;
         end
+
+        if obj.versionGreaterThan('5.6.1')
+            if obj.hC.hStackManager.enable ~=1
+                obj.hC.hStackManager.enable=1;
+            end
+        end
+
         if obj.hC.hStackManager.stackReturnHome ~= 1
             obj.hC.hStackManager.stackReturnHome = 1;
         end
