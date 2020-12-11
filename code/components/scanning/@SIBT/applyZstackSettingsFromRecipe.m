@@ -11,8 +11,10 @@ function applyZstackSettingsFromRecipe(obj)
     % Some settings have moved between ScanImage versions. We take this into account here. 
     if obj.versionGreaterThan('5.6.1')
 	    fastZsettingLocation = 'hStackManager';
+        fastZwaveformLocation = 'stackFastWaveformType';
 	else
 		fastZsettingLocation = 'hFastZ';
+        fastZwaveformLocation = 'waveformType';
 	end
 
     thisRecipe = obj.parent.recipe;
@@ -21,13 +23,14 @@ function applyZstackSettingsFromRecipe(obj)
 
         % Only change settings that need changing, otherwise it's slow.
         % The following settings are fixed: they will never change
-        if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
-            obj.hC.hFastZ.waveformType = 'step'; %Always
+        if ~strcmp(obj.hC.(fastZsettingLocation).(fastZwaveformLocation),'step') 
+            obj.hC.(fastZsettingLocation).(fastZwaveformLocation) = 'step'; %Always
         end
+
         % Confirm that worked
-        if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
+        if ~strcmp(obj.hC.(fastZsettingLocation).(fastZwaveformLocation),'step') 
         	fprintf('\n\n WARNING: fast z waveform type failed to set to "step". Is set to "%s".\n\n',...
-        		obj.hC.hFastZ.waveformType)
+        		obj.hC.(fastZsettingLocation).(fastZwaveformLocation))
         end
 
         if obj.hC.(fastZsettingLocation).numVolumes ~= 1
