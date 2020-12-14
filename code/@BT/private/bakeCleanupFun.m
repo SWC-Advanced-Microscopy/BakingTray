@@ -19,7 +19,7 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.X=0;
     obj.lastTilePos.Y=0;
 
-    slack_msg = '';
+    slack_msg = ''; % So by default no Slack message is sent unless one is assigned, below.
 
     if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
