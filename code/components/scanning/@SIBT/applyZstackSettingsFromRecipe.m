@@ -8,33 +8,24 @@ function applyZstackSettingsFromRecipe(obj)
     % illumination correction with depth.
 
 
-    % Some settings have moved between ScanImage versions. We take this into account here. 
-    if obj.versionGreaterThan('5.6.1')
-	    fastZsettingLocation = 'hStackManager';
-        fastZwaveformLocation = 'stackFastWaveformType';
-	else
-		fastZsettingLocation = 'hFastZ';
-        fastZwaveformLocation = 'waveformType';
-	end
-
     thisRecipe = obj.parent.recipe;
     if thisRecipe.mosaic.numOpticalPlanes>1
         fprintf('Setting up z-scanning with "step" waveform\n')
 
         % Only change settings that need changing, otherwise it's slow.
         % The following settings are fixed: they will never change
-        if ~strcmp(obj.hC.(fastZsettingLocation).(fastZwaveformLocation),'step') 
-            obj.hC.(fastZsettingLocation).(fastZwaveformLocation) = 'step'; %Always
+        if ~strcmp(obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation),'step') 
+            obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation) = 'step'; %Always
         end
 
         % Confirm that worked
-        if ~strcmp(obj.hC.(fastZsettingLocation).(fastZwaveformLocation),'step') 
+        if ~strcmp(obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation),'step') 
         	fprintf('\n\n WARNING: fast z waveform type failed to set to "step". Is set to "%s".\n\n',...
-        		obj.hC.(fastZsettingLocation).(fastZwaveformLocation))
+        		obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation))
         end
 
-        if obj.hC.(fastZsettingLocation).numVolumes ~= 1
-            obj.hC.(fastZsettingLocation).numVolumes=1; %Always
+        if obj.hC.(obj.fastZsettingLocation).numVolumes ~= 1
+            obj.hC.(obj.fastZsettingLocation).numVolumes=1; %Always
         end
 
         % TODO -- should the hFastZ enable only be for legacy SI?

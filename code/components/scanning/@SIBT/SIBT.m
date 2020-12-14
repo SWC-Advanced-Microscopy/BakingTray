@@ -307,7 +307,7 @@ classdef SIBT < scanner
             chans(chans>obj.maxChannelsAvailable)=[];
 
             obj.hC.hChannels.channelDisplay = chans;
-        end %setChannelsToDisplay
+        end % setChannelsToDisplay
 
 
         function scannerType = scannerType(obj)
@@ -319,7 +319,7 @@ classdef SIBT < scanner
             elseif strcmpi('GG',scannerType)
                 scannerType='linear';
             end 
-        end %scannerType
+        end % scannerType
 
 
         function pix=getPixelsPerLine(obj)
@@ -329,17 +329,50 @@ classdef SIBT < scanner
 
         function LUT=getChannelLUT(obj,chanToReturn)
             LUT = obj.hC.hChannels.channelLUT{chanToReturn};
-        end %getChannelLUT
+        end % getChannelLUT
 
 
         function SR=getSampleRate(obj)
             SR=obj.hC.hScan2D.sampleRate;
-        end
+        end % getSampleRate
 
 
         function pixBin=getPixelBinFactor(obj)
             pixBin=obj.hC.hScan2D.pixelBinFactor;
-        end
+        end % getPixelBinFactor
+
+
+        % Some settings have moved between ScanImage versions. These methods
+        % help use to take this into account
+        function setLoc = fastZsettingLocation(obj)
+            % String defining where the fast z settings live in the API
+            % Used like this: obj.hC.(obj.fastZsettingLocation)
+            %
+            % See also: obj.getFastZWaveformtype and obj.applyZstackSettingsFromRecipe
+            if obj.versionGreaterThan('5.6.1')
+                setLoc = 'hStackManager';
+            else
+                setLoc = 'hFastZ';
+            end
+        end % fastZsettingLocation
+
+
+        function setLoc = fastZwaveformLocation(obj)
+            % String defining where the fast z waveform lives in the API
+            % Used like this: obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation)
+            %
+            % See also: obj.getFastZWaveformtype and obj.applyZstackSettingsFromRecipe
+            if obj.versionGreaterThan('5.6.1')
+                setLoc = 'stackFastWaveformType';
+            else
+                setLoc = 'waveformType';
+            end
+        end % fastZwaveformLocation
+
+
+        function waveformType = getFastZWaveformType(obj)
+            waveformType = obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation);
+        end % getFastZWaveformType
 
 
         function tearDown(obj)
