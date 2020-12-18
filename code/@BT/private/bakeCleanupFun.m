@@ -1,5 +1,6 @@
 function bakeCleanupFun(obj)
     %Perform clean-up operations once bake completes. 
+    fprintf('Entering bake cleanup function\n')
 
     %So we don't turn off laser if acqusition failed right away
     if obj.currentTilePosition==1
@@ -19,7 +20,7 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.X=0;
     obj.lastTilePos.Y=0;
 
-
+    slack_msg = '';
 
     if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
@@ -32,7 +33,6 @@ function bakeCleanupFun(obj)
                 obj.recipe.sample.ID, obj.currentSectionNumber);
 
         else
-            slack_msg = '';
             fprintf('Not sending Slack message because only %d sections completed, which is less than threshold of %d\n',...
                 obj.currentSectionNumber, minSections)
         end
@@ -63,13 +63,15 @@ function bakeCleanupFun(obj)
 
     % Send the Slack message with optional laser message (see laser_msg above)
     obj.slack(slack_msg)
-
+    
     %Reset these flags or the acquisition will not complete next time
+    fprintf('resetting abort flags\n')
     obj.abortAfterSectionComplete=false;
     obj.abortAcqNow=false;
 
 
     % Must run this last since turning off the PMTs sometimes causes a crash
+    fprintf('Tearing down scanner\n')
     obj.scanner.tearDown
 
     % Move the X/Y stage to a nice finish postion, ready for next sample
