@@ -1,6 +1,5 @@
 function bakeCleanupFun(obj)
     %Perform clean-up operations once bake completes. 
-    fprintf('Entering bake cleanup function\n')
 
     %So we don't turn off laser if acqusition failed right away
     if obj.currentTilePosition==1
