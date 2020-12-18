@@ -28,15 +28,14 @@ function applyZstackSettingsFromRecipe(obj)
             obj.hC.(obj.fastZsettingLocation).numVolumes=1; %Always
         end
 
-        % TODO -- should the hFastZ enable only be for legacy SI?
-        % i.e. do we need the second if statement after this?
-        if obj.hC.hFastZ.enable ~=1
-            obj.hC.hFastZ.enable=1;
-        end
-
         if obj.versionGreaterThan('5.6.1')
             if obj.hC.hStackManager.enable ~=1
                 obj.hC.hStackManager.enable=1;
+            end
+        else
+            %For Scanimage <= v 5.6.1 we just do this    
+            if obj.hC.hFastZ.enable ~=1
+                obj.hC.hFastZ.enable=1;
             end
         end
 
