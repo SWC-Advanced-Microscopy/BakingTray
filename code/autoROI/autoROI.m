@@ -163,12 +163,13 @@ function varargout=autoROI(pStack, varargin)
         borderPix(borderPix == -42) = [];
         borderPix(borderPix == 0) = [];
 
-        tThresh = median(borderPix) + std(borderPix)*tThreshSD;
+        SD_border = autoROI.obtainCleanBackgroundSD(borderPix);
+        tThresh = median(borderPix) + SD_border*tThreshSD;
         fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
             'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
          mfilename, tThresh, tThreshSD)
         fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median(borderPix), std(borderPix))
+            median(borderPix), SD_border)
     else
         fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
     end
@@ -367,7 +368,7 @@ function varargout=autoROI(pStack, varargin)
 
     % Get the foreground and background pixel stats from the ROIs (not the whole image)
     out.roiStats(n).medianBackground = median([imStats.backgroundPix]);
-    out.roiStats(n).stdBackground = std([imStats.backgroundPix]);
+    out.roiStats(n).stdBackground = autoROI.obtainCleanBackgroundSD([imStats.backgroundPix]);
 
     out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
     out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
