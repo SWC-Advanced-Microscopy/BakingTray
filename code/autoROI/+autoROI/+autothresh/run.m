@@ -205,31 +205,6 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
         [tThreshSD_vec,ind] = sort([stats.tThreshSD],'ascend');
         stats = stats(ind);
 
-        %[findsAgar,stats] = autoROI.autothresh.isThreshTreatingAgarAsSample(stats,tileSize,voxSize);
-        findsAgar=false;
-        if any(findsAgar)
-            tF = find(findsAgar);
-            fprintf(' ** DELETED FIRST %d entries up to tThreshSD = %0.2f because we see tiling artifacts there. **\n', ...
-             tF(end), stats(tF(end)).tThreshSD )
-
-            stats(1:tF(end))=[];
-
-            % TODO: this sort of thing needs to be more formally logged. To a file or something like that. 
-            if length(stats)==0
-                fprintf(' ** VERY BAD: after removing thresholds due to tiling artifacts there are no more threshold values.\n')
-            end
-
-            % If we have very few threshold values left, we choose a slightly larger range.
-            if length(stats)<5 && settings.autoThresh.allowMaxExtensionIfFewThreshLeft
-                newMaxThresh = maxThresh+5;
-                if maxThresh < settings.autoThresh.maxThreshold*4 % to avoid infinite recursion
-                    fprintf('TOO FEW THRESHOLDS: DOING ANOTHER RUN UP TO NEW MAXTHRESH OF %d\n',newMaxThresh)
-                    stats=calcStatsFromThreshold(minThresh);
-                    [~,stats]=getThreshAlg(stats,newMaxThresh);
-                end
-            end
-        end
-
 
         % If the median SNR is low, we get rid tThresh values above 8
         % This helps with certain low SNR samples
