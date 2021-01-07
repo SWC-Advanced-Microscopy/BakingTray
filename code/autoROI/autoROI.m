@@ -152,7 +152,7 @@ function varargout=autoROI(pStack, varargin)
 
     % If no threshold for segregating sample from background was supplied then calculate one
     % based on the pixels around the image border. This is only going to work for cases where
-    % there no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
+    % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
     if isempty(tThresh)
         %Find pixels within b pixels of the border
         b = borderPixSize;
@@ -210,7 +210,7 @@ function varargout=autoROI(pStack, varargin)
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
-            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
+            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
