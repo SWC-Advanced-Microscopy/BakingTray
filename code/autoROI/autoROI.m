@@ -144,36 +144,33 @@ function varargout=autoROI(pStack, varargin)
 
 
 
-    % Median filter the image first. This is necessary, otherwise downstream steps may not work.
-    im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
-    im = single(im);
 
-
+    %TODO -- maybe the following should not be run on median filtered data?
 
     % If no threshold for segregating sample from background was supplied then calculate one
     % based on the pixels around the image border. This is only going to work for cases where
     % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
-    if isempty(tThresh)
+    if isempty(tThresh) && ~isvector(im)
         %Find pixels within b pixels of the border
-        b = borderPixSize;
-        borderPix = [im(1:b,:), im(:,1:b)', im(end-b+1:end,:), im(:,end-b+1:end)'];
-        borderPix = borderPix(:);
 
-        % Remove any non-imaged pixels
-        borderPix(borderPix == -42) = [];
-        borderPix(borderPix == 0) = [];
-
-        SD_border = autoROI.obtainCleanBackgroundSD(borderPix);
-        tThresh = median(borderPix) + SD_border*tThreshSD;
+        [SD_bg,median_bg] = autoROI.obtainCleanBackgroundSD(im,settings);
+        tThresh = median_bg + SD_bg*tThreshSD;
         fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
             'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
          mfilename, tThresh, tThreshSD)
         fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median(borderPix), SD_border)
+            median_bg, SD_bg)
     else
+        [SD_bg,median_bg,minThresh] = autoROI.obtainCleanBackgroundSD(im,settings);
+        if ~isempty(minThresh) && tThresh<minThresh
+            tThresh=minThresh;
+            disp('FORCING THRESHOLD TO MINIMUM!!')
+        end
         fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
     end
-
+    % Median filter the image first. This is necessary, otherwise downstream steps may not work.
+    im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
+    im = single(im);
 
 
     % Binarize, clean, add a border around the sample
