@@ -1,4 +1,4 @@
-function [SD,medbg,minThresh] = obtainCleanBackgroundSD(im,settings)
+function [SD,medbg,minThresh,stats] = obtainCleanBackgroundSD(im,settings)
 %
 % Purpose
 % autoROI.getForegroundBackgroundPixels returns as background 
@@ -39,25 +39,26 @@ case 'whole_gmm'
     minThresh = medbg + SD*3;
 case 'brightest_gmm'
     % Ensure no background pixels play a role in the calculation
-    BG = removeBrightBlocks(im,settings);
+    [BG,statsBrightBlocks] = removeBrightBlocks(im,settings);
+
     BG = BG(:);
     BG(BG == -42) = [];
     BG(BG == 0) = [];
 
-    [SD,medbg] = gmmSD(BG);
+    [SD,medbg,statsGMM] = gmmSD(BG);
     minThresh = medbg + SD*3;
 end
 
 
-
-% TODO - we need to log what happened so we know which SD we are actually using. 
+if nargout>3
+    stats.statsBrightBlocks = statsBrightBlocks;
+    stats.statsGMM = statsGMM;
+end
 
 end
 
 
-
-
-function [SD,mu] =gmmSD(data)
+function [SD,mu,stats] =gmmSD(data)
 
     data = single(data(:));
 
@@ -76,13 +77,21 @@ function [SD,mu] =gmmSD(data)
     SD = gm_f.Sigma(sorted_ind(1))^0.5;
     mu = gm_f.mu(sorted_ind(1));
 
+    if nargout>2
+        stats.gm_f = gm_f;
+        x=linspace(-1000,2^15,2000);
+        [n,x]=hist(data,x);
+        stats.hist.x = x;
+        stats.hist.n = n;
+    end
 end
 
-function im = removeBrightBlocks(im,settings)
+function [im,stats] = removeBrightBlocks(im,settings)
     if isvector(im)
         % see same if statement below
         return
     end
+
     blockSize = 350;
     pixSize = settings.main.rescaleTo;
 
@@ -106,6 +115,11 @@ function im = removeBrightBlocks(im,settings)
     %imagesc(int16(maskMatrix).*im);
     maskMatrix = cast(maskMatrix,class(im));
     im = im .* maskMatrix;
+
+    if nargout>1
+        stats.keepProp = keepProp;
+        stats.imR = imR;
+    end
 end
 
 function BG = borderPixGetter(im,settings)
