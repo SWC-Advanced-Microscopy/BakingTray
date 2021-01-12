@@ -61,10 +61,11 @@ function [SD,mu] =gmmSD(data)
 
     data = single(data(:));
 
-    options = statset('MaxIter',500);
+    options = statset('MaxIter',250);
     try
         rng( sum(double('Uma wags on')) ); % For reproducibility
-        gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.2, 'Options',options);
+        gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.3, 'Options',options);
+
     catch ME
         size(data)
         gm_f = [];
