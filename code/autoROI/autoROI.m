@@ -153,29 +153,18 @@ function varargout=autoROI(pStack, varargin)
     %
     % tThreshSD will only be nan if the autoThresh failed
 
-    if isempty(tThresh) && ~isvector(im)
-        %Find pixels within b pixels of the border
-
-        [SD_bg,median_bg] = autoROI.obtainCleanBackgroundSD(im,settings);
-        tThresh = median_bg + SD_bg*tThreshSD;
-
-        fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
-            'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
-         mfilename, tThresh, tThreshSD)
-        fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median_bg, SD_bg)
-    else
-        [SD_bg,median_bg,minThresh] = autoROI.obtainCleanBackgroundSD(im,settings);
-        if ~isempty(minThresh) && tThresh<minThresh
-            tThresh=minThresh;
-            disp('FORCING THRESHOLD TO MINIMUM!!')
-        end
-        fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
-    end
     % Median filter the image first. This is necessary, otherwise downstream steps may not work.
+
+
     im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
     im = single(im);
 
+    if isempty(tThresh)
+        % This will only run on the first section
+        [SD_bg,median_bg,~,statsSD] = autoROI.obtainCleanBackgroundSD(im,settings);
+        tThresh = median_bg + SD_bg*tThreshSD;
+    end
+ 
 
     % Binarize, clean, add a border around the sample
     if nargout>1
@@ -197,6 +186,7 @@ function varargout=autoROI(pStack, varargin)
         end
 
     else
+        % The following does not run on the first section
         % We have provided bounding box history from previous sections and so we will pull out these sub-ROIs
         % and work on them alone
 
@@ -208,7 +198,9 @@ function varargout=autoROI(pStack, varargin)
 
         % Run within each ROI then afterwards consolidate results
         nT=1;
-
+        
+        imForThresh = zeros(size(im));
+        data_mask = zeros(size(im)); %Used to correct for pixels that overlap so they don't get inflatedin value
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
@@ -216,6 +208,8 @@ function varargout=autoROI(pStack, varargin)
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
+            imForThresh = imForThresh + tIm;
+            data_mask = data_mask + (tIm>0);
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
             if isAutoThresh
@@ -231,6 +225,19 @@ function varargout=autoROI(pStack, varargin)
             % Uncomment the following line for debug purposes
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
+
+        imForThresh = imForThresh ./ data_mask;
+        imForThresh(isnan(imForThresh))=0;
+        [SD_bg,median_bg,~,statsSD] = autoROI.obtainCleanBackgroundSD(imForThresh,settings);
+
+        %Find pixels within b pixels of the border
+        tThresh = median_bg + SD_bg*tThreshSD;
+
+        fprintf(['\n\nNo threshold provided to %s - \n  ', ...
+            'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
+         mfilename, tThresh, tThreshSD)
+        fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
+            median_bg, SD_bg)
 
         if ~isempty(tStats{1})
 
@@ -368,8 +375,8 @@ function varargout=autoROI(pStack, varargin)
     out.roiStats(n).tThreshSD = tThreshSD;
 
     % Get the foreground and background pixel stats from the ROIs (not the whole image)
-    out.roiStats(n).medianBackground = median([imStats.backgroundPix]);
-    out.roiStats(n).stdBackground = autoROI.obtainCleanBackgroundSD([imStats.backgroundPix]);
+    out.roiStats(n).medianBackground = median_bg;
+    out.roiStats(n).stdBackground = SD_bg;
 
     out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
     out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
@@ -390,6 +397,7 @@ function varargout=autoROI(pStack, varargin)
     % auto-finder we won't have this number. 
     out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeIm);
 
+    out.roiStats(n).statsSD = statsSD;
 
     % Finally: return bounding boxes to original size
     % If we re-scaled then we need to put the bounding box coords back into the original size
@@ -416,7 +424,7 @@ function varargout=autoROI(pStack, varargin)
     % or wavelength has happened. i.e. that SNR has gone up a lot. If this happens we need to *re-run* autoROI after
     % first re-calculating the tThreshSD.
     out.roiStats(n).tThreshSD_recalc=false;
-    if length(out.roiStats)>1
+    if length(out.roiStats)>1 && false
         FG_ratio_this_section = out.roiStats(end).foregroundSqMM/out.roiStats(end).backgroundSqMM;
         FG_ratio_previous_section = out.roiStats(end-1).foregroundSqMM/out.roiStats(end-1).backgroundSqMM;
 

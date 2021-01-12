@@ -64,7 +64,10 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     if isempty(tThreshSD)
         fprintf('\n ** GETTING A THRESHOLD\n')
         fprintf('%s is running auto-thresh\n', mfilename)
-        [tThreshSD,at_stats]=autoROI.autothresh.run(pStack, false, settings);
+        %[tThreshSD,at_stats]=autoROI.autothresh.run(pStack, false, settings);
+        tThreshSD=5;
+
+        at_stats=[]; % TODO - there is nothing here!
         fprintf('\nTHRESHOLD OBTAINED!\n')
         fprintf('%s\n\n',repmat('-',1,100))
     else
@@ -88,6 +91,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     end
 
 
+
     rollingThreshold=settings.stackStr.rollingThreshold; %If true we base the threshold on the last few slices
 
     % Enter main for loop in which we process each section one at a time using the ROIs from the previous section
@@ -100,17 +104,17 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         nImages=5;
         if rollingThreshold==false
             % Do not update the threshold at all: use only the values derived from the first section
-            thresh = stats.roiStats(1).medianBackground + stats.roiStats(1).stdBackground * stats.roiStats(end).tThreshSD;
+            thresh = stats.roiStats(1).medianBackground + stats.roiStats(1).stdBackground * tThreshSD;
         elseif nImages==0
             % Use the threshold from the last section: TODO shouldn't this be (ii) not (ii-1)?
-            thresh = stats.roiStats(ii-1).medianBackground + stats.roiStats(ii-1).stdBackground*stats.roiStats(ii-1).tThreshSD;
+            thresh = stats.roiStats(ii-1).medianBackground + stats.roiStats(ii-1).stdBackground*tThreshSD;
         elseif ii<=nImages
             % Attempt to take the median value from the last nImages: take as many as possible 
             % until we have nImages worth of sections 
-            thresh = median( [stats.roiStats.medianBackground] + [stats.roiStats.stdBackground]*stats.roiStats(end).tThreshSD);
+            thresh = median( [stats.roiStats.medianBackground] + [stats.roiStats.stdBackground]*tThreshSD);
         else
             % Take the median value from the last nImages 
-            thresh = median( [stats.roiStats(end-nImages+1:end).medianBackground] + [stats.roiStats(end-nImages+1:end).stdBackground]*stats.roiStats(end).tThreshSD);
+            thresh = median( [stats.roiStats(end-nImages+1:end).medianBackground] + [stats.roiStats(end-nImages+1:end).stdBackground]*tThreshSD);
         end
 
 
@@ -118,7 +122,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         % It runs the sample-detection code within these ROIs only and returns the results.
         tmp = autoROI(pStack, ...
             boundingBoxArgIn{:}, ...
-            'tThreshSD',stats.roiStats(end).tThreshSD, ...
+            'tThreshSD',tThreshSD, ...
             'tThresh',thresh,...
             'lastSectionStats',stats);
 

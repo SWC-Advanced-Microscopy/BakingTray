@@ -58,9 +58,9 @@ maxNonImagedSqMM = zeros(n,1);
 maxExtraSqMM = zeros(n,1);
 nPlanesWithMissingTissue = zeros(n,1);
 
-autothresh_notes = cell(n,1);
-autothresh_SNR = zeros(n,1);
-autothresh_tThreshSD = zeros(n,1);
+%autothresh_notes = cell(n,1);
+%autothresh_SNR = zeros(n,1);
+%autothresh_tThreshSD = zeros(n,1);
 
 
 % Loop through the testLog files. Load each in turn and 
@@ -89,9 +89,6 @@ for ii=1:n
     if ~isempty(strfind(pStackFname{ii},'problemCases'))
         isProblemCase(ii) = 1;
     end
-    [autothresh_notes{ii}, ...
-        autothresh_tThreshSD(ii), ...
-        autothresh_SNR(ii)] = returnAutoThreshSummaryStats(testLog);
 
     % Get more info from report structure
     totalNonImagedTiles(ii) = sum(testLog.report.nonImagedTiles);
@@ -111,8 +108,8 @@ fprintf('\nBuilding table\n')
 isProblemCase = logical(isProblemCase);
 summaryTable = table(fileName, tThreshSD, rollingThreshold, numSectionsWithHighCoverage, ...
     mean_tThresh, numSectionsWithOverFlowingCoverage, medPropPixelsInRoiThatAreTissue, totalImagedSqMM, ... 
-    propImagedArea, nSamples, isProblemCase, numUnprocessedSections, autothresh_notes, autothresh_tThreshSD, ...
-    autothresh_SNR, totalNonImagedTiles, totalNonImagedSqMM, totalExtraSqMM, ...
+    propImagedArea, nSamples, isProblemCase, numUnprocessedSections, ...
+    totalNonImagedTiles, totalNonImagedSqMM, totalExtraSqMM, ...
     maxNonImagedTiles, maxNonImagedSqMM, maxExtraSqMM,nPlanesWithMissingTissue, ...
     pStackFname);
 

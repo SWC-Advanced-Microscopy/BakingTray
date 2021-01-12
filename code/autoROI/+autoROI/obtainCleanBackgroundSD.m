@@ -94,7 +94,12 @@ function im = removeBrightBlocks(im,settings)
     %Get rid of the brightest patches
     t = sort(imR(:),'ascend');
 
-    thresh = t(round(length(t)*0.5));
+    % remove blocks that contain only non-imaged pixels
+    t(t==0)=[]; 
+    t(t==-42)=[]; 
+
+    keepProp=0.5;
+    thresh = t(round(length(t)*keepProp));
 
     maskMatrix = imresize(imR<=thresh,size(im),'nearest');
     %imagesc(int16(maskMatrix).*im);
