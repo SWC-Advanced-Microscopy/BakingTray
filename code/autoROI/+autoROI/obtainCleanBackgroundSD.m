@@ -108,7 +108,7 @@ function [im,stats] = removeBrightBlocks(im,settings)
     t(t==0)=[]; 
     t(t==-42)=[]; 
 
-    keepProp=0.5;
+    keepProp=0.33;
     thresh = t(round(length(t)*keepProp));
 
     maskMatrix = imresize(imR<=thresh,size(im),'nearest');
