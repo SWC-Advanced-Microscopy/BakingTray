@@ -10,6 +10,13 @@ function [SD,medbg,minThresh] = obtainCleanBackgroundSD(im,settings)
 % SD of the dominant component. 
 
 
+if isempty(im)
+    SD=[];
+    medbg=[];
+    minThresh=[];
+    return
+end
+
 if nargin<2
     settings = autoROI.readSettings;
 end
@@ -51,13 +58,23 @@ end
 
 
 function [SD,mu] =gmmSD(data)
+
     data = single(data(:));
-    options = statset('MaxIter',1000);
-    gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.1, 'Options',options);
+
+    options = statset('MaxIter',500);
+    try
+        rng( sum(double('Uma wags on')) ); % For reproducibility
+        gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.2, 'Options',options);
+    catch ME
+        size(data)
+        gm_f = [];
+        disp(ME.message)
+    end
 
     [~,sorted_ind] = sort(gm_f.mu,'ascend');
     SD = gm_f.Sigma(sorted_ind(1))^0.5;
     mu = gm_f.mu(sorted_ind(1));
+
 end
 
 function im = removeBrightBlocks(im,settings)
@@ -65,7 +82,7 @@ function im = removeBrightBlocks(im,settings)
         % see same if statement below
         return
     end
-    blockSize = 950;
+    blockSize = 350;
     pixSize = settings.main.rescaleTo;
 
     resizeBy = pixSize/blockSize;

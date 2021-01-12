@@ -150,11 +150,15 @@ function varargout=autoROI(pStack, varargin)
     % If no threshold for segregating sample from background was supplied then calculate one
     % based on the pixels around the image border. This is only going to work for cases where
     % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
+    %
+    % tThreshSD will only be nan if the autoThresh failed
+
     if isempty(tThresh) && ~isvector(im)
         %Find pixels within b pixels of the border
 
         [SD_bg,median_bg] = autoROI.obtainCleanBackgroundSD(im,settings);
         tThresh = median_bg + SD_bg*tThreshSD;
+
         fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
             'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
          mfilename, tThresh, tThreshSD)
