@@ -86,7 +86,6 @@ function varargout=autoROI(pStack, varargin)
     params.parse(varargin{:})
     doPlot = params.Results.doPlot;
     tThresh = params.Results.tThresh;
-    tThreshSD = params.Results.tThreshSD;
     lastSectionStats = params.Results.lastSectionStats;
     skipMergeNROIThresh = params.Results.skipMergeNROIThresh;
     showBinaryImages = params.Results.showBinaryImages;
@@ -95,11 +94,6 @@ function varargout=autoROI(pStack, varargin)
     settings = params.Results.settings;
 
     % Get defaults from settings file if needed
-    if isempty(tThreshSD)
-        fprintf('%s is using a default threshold of %0.2f\n',mfilename,tThreshSD)
-        tThreshSD = settings.main.defaultThreshSD;
-    end
-
     if isempty(doBinaryExpansion)
         doBinaryExpansion = settings.mainBin.doExpansion;
     end
@@ -142,29 +136,15 @@ function varargout=autoROI(pStack, varargin)
 
 
 
-
-
-
-    %TODO -- maybe the following should not be run on median filtered data?
-
-    % If no threshold for segregating sample from background was supplied then calculate one
-    % based on the pixels around the image border. This is only going to work for cases where
-    % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
-    %
-    % tThreshSD will only be nan if the autoThresh failed
-
     % Median filter the image first. This is necessary, otherwise downstream steps may not work.
-
-
     im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
     im = single(im);
 
     if isempty(tThresh)
         % This will only run on the first section
-        [SD_bg,median_bg,~,statsSD] = autoROI.obtainCleanBackgroundSD(im,settings);
-        tThresh = median_bg + SD_bg*tThreshSD;
+        [tThresh,statsSD] = autoROI.autoThresh(im,settings);
     end
- 
+
 
     % Binarize, clean, add a border around the sample
     if nargout>1
@@ -228,16 +208,7 @@ function varargout=autoROI(pStack, varargin)
 
         imForThresh = imForThresh ./ data_mask;
         imForThresh(isnan(imForThresh))=0;
-        [SD_bg,median_bg,~,statsSD] = autoROI.obtainCleanBackgroundSD(imForThresh,settings);
-
-        %Find pixels within b pixels of the border
-        tThresh = median_bg + SD_bg*tThreshSD;
-
-        fprintf(['\n\nNo threshold provided to %s - \n  ', ...
-            'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
-         mfilename, tThresh, tThreshSD)
-        fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median_bg, SD_bg)
+        [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
 
         if ~isempty(tStats{1})
 
@@ -325,7 +296,6 @@ function varargout=autoROI(pStack, varargin)
     for ii=1:length(BoundingBoxes)
         tIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBoxes{ii});
         tBW = autoROI.getSubImageUsingBoundingBox(BW.afterExpansion,BoundingBoxes{ii});
-        imStats(ii) = autoROI.getForegroundBackgroundPixels(tIm,pixelSize,borderPixSize,tThresh,tBW);
     end
 
     % Calculate the number of pixels in the bounding boxes
@@ -372,19 +342,11 @@ function varargout=autoROI(pStack, varargin)
     end
 
     out.roiStats(n).tThresh = tThresh;
-    out.roiStats(n).tThreshSD = tThreshSD;
 
     % Get the foreground and background pixel stats from the ROIs (not the whole image)
-    out.roiStats(n).medianBackground = median_bg;
-    out.roiStats(n).stdBackground = SD_bg;
-
-    out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
-    out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
-
-
-    % Calculate area of background and foreground in sq mm from the above ROIs
-    out.roiStats(n).backgroundSqMM = length([imStats.backgroundPix]) * (pixelSize*1E-3)^2;
-    out.roiStats(n).foregroundSqMM = length([imStats.foregroundPix]) * (pixelSize*1E-3)^2;
+    % TODO -- STORE THESE SOMEHOW AGAIN
+    %out.roiStats(n).medianBackground = median_bg;
+    %out.roiStats(n).stdBackground = SD_bg;
 
 
     % Convert bounding box sizes to meaningful units and return those.
@@ -416,41 +378,6 @@ function varargout=autoROI(pStack, varargin)
 
             end
         end % isfield
-    end
-
-
-    % Before finishing, check if there is a large and sudden decrease in the background pixels (or having none at all)
-    % compared to the section preceeding this one. If so, this indicates that something like a change in laser power 
-    % or wavelength has happened. i.e. that SNR has gone up a lot. If this happens we need to *re-run* autoROI after
-    % first re-calculating the tThreshSD.
-    out.roiStats(n).tThreshSD_recalc=false;
-    if length(out.roiStats)>1 && false
-        FG_ratio_this_section = out.roiStats(end).foregroundSqMM/out.roiStats(end).backgroundSqMM;
-        FG_ratio_previous_section = out.roiStats(end-1).foregroundSqMM/out.roiStats(end-1).backgroundSqMM;
-
-        if (FG_ratio_this_section / FG_ratio_previous_section)>settings.main.reCalcThreshSD_threshold
-            fprintf('\nTRIGGERING RE-CALC OF tThreshSD due to high F/B ratio.\n')
-            % Re-run autothresh on the current section with the current ROIs
-            [tThreshSD,~,thresh]=autoROI.autothresh.run(pStack,[],[],out);
-
-            % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
-            % This means we have to remove the roiStats data we just added, because it's 
-            % going to need to be replaced with new numbers
-            out.roiStats(end)=[];
-
-            out = autoROI(pStack, ...
-                    'doPlot', doPlot, ...
-                    'skipMergeNROIThresh', skipMergeNROIThresh, ...
-                    'showBinaryImages', showBinaryImages, ...
-                    'doBinaryExpansion', doBinaryExpansion, ...
-                    'settings', settings, ...
-                    'tThreshSD',tThreshSD, ...
-                    'tThresh',thresh,...
-                    'lastSectionStats',out);
-
-            % Log that we re-calculated on this section
-            out.roiStats(n).tThreshSD_recalc=true;
-        end
     end
 
 

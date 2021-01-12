@@ -56,8 +56,7 @@ function settings = readSettings(readFromYaml)
         settings.main.medFiltRawImage = 5; 
         settings.main.doTiledMerge=true; %Mainly for debugging
         settings.main.tiledMergeThresh=1.05;
-        settings.main.defaultThreshSD=7; %This appears both in autoROI and in runOnStackStruct
-        settings.main.reCalcThreshSD_threshold=10; %If foreground/background area ratio changes by more than this factor from one section to the next we re-calc tThreshSD
+        settings.main.defaultThreshSD=5; %This appears both in autoROI and in runOnStackStruct
         settings.main.rescaleTo=50; % Target microns per pixel to work at. autoROI uses this rescale images
 
 
