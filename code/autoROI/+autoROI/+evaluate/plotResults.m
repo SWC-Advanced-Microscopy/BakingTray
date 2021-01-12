@@ -234,18 +234,18 @@ grid on
 
 
 subplot(nRows,nCols,9)
-plot(summaryTable.totalNonImagedSqMM, summaryTable.autothresh_SNR,'ok')
-xlabel('Non-imaged SqMM')
-ylabel('SNR From auto-thresh')
-grid on
+%plot(summaryTable.totalNonImagedSqMM, summaryTable.autothresh_SNR,'ok')
+%xlabel('Non-imaged SqMM')
+%ylabel('SNR From auto-thresh')
+%grid on
 
 
 
 subplot(nRows,nCols,10)
-plot(summaryTable.autothresh_SNR, summaryTable.tThreshSD,'ok')
-xlabel('SNR From auto-thresh')
-ylabel('tThreshSD')
-grid on
+%plot(summaryTable.autothresh_SNR, summaryTable.tThreshSD,'ok')
+%xlabel('SNR From auto-thresh')
+%ylabel('tThreshSD')
+%grid on
 
 
 subplot(nRows,nCols,11)
