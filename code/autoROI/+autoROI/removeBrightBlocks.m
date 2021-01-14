@@ -47,8 +47,16 @@ function [im,stats] = removeBrightBlocks(im,settings)
 
     % keepProp defines the proportion of the lowest values to keep. If this is
     % 0.25, for instance, the dimmest 25% of blocks are kept. 
-    keepProp=0.33; % TODO -- incorporate into settings
-    thresh = t(round(length(t)*keepProp));
+
+    % If we have imaged more than 20 sqmm we get rid of the dimmest 10% of blocks
+    totalSqmm = length(t) * blockSize * 1E-3;
+
+    if totalSqmm>30
+        getRid = round(length(t)*0.1);
+        t(1:getRid)=[];
+    end
+
+    thresh = t(round(length(t)*settings.autoThresh.keepProp));
 
     % Make a matrix of zeros and ones defining which sqiares to keep and
     % then resize it to match the original image size.
@@ -60,7 +68,6 @@ function [im,stats] = removeBrightBlocks(im,settings)
     im = im .* maskMatrix;
 
     if nargout>1
-        stats.keepProp = keepProp;
         stats.imR = imR;
     end
 end
