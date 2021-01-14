@@ -178,9 +178,10 @@ function varargout=autoROI(pStack, varargin)
 
         % Run within each ROI then afterwards consolidate results
         nT=1;
-        
+
         imForThresh = zeros(size(im));
-        data_mask = zeros(size(im)); %Used to correct for pixels that overlap so they don't get inflatedin value
+        dataMask = zeros(size(im)); % Used to correct for pixels that overlap so they don't get inflatedin value
+        containsSampleMask = zeros(size(im)); % All regions of the imaged area that are above threshold
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
@@ -189,9 +190,10 @@ function varargout=autoROI(pStack, varargin)
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
             imForThresh = imForThresh + tIm;
-            data_mask = data_mask + (tIm>0);
+            dataMask = dataMask + (tIm>0);
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
+            containsSampleMask = containsSampleMask + tBW.afterExpansion;
             if isAutoThresh
                 tBoundingBox = [];
             end
@@ -206,9 +208,27 @@ function varargout=autoROI(pStack, varargin)
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
 
-        imForThresh = imForThresh ./ data_mask;
+        imForThresh = imForThresh ./ dataMask;
         imForThresh(isnan(imForThresh))=0;
-        [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
+
+        containsSampleMask = ~(containsSampleMask > 0); % In case of any double counting due to ROI overlap
+
+        % What proportion of the imaged area is background?
+        numPixelsInImage = sum(dataMask(:));
+        numPixelsInBackground = containsSampleMask .* dataMask;
+        numPixelsInBackground = sum(numPixelsInBackground(:));
+        propBackground = numPixelsInBackground / numPixelsInImage;
+
+        % If useBackgroundMask is true we use only the pixels identified as background to 
+        % calculate the SD of the background. Otherwise it uses the dimmest blocks of the 
+        % whole image. It turns out that the latter generally works better. 
+        if settings.autoThresh.useBackgroundMask && propBackground>0.1
+            settings.autoThresh.keepProp=1;
+            [tThresh,statsSD] = autoROI.autoThresh(imForThresh.*containsSampleMask,settings);
+        else
+            settings.autoThresh.keepProp=0.25;
+            [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
+        end
 
         if ~isempty(tStats{1})
 

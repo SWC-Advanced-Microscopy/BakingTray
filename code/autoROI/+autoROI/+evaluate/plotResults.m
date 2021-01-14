@@ -71,9 +71,8 @@ f=find(summaryTable.numUnprocessedSections>0);
 if ~isempty(f)
     fprintf('\n\n ** The following recordings have unprocessed sections that contained data:\n')
     for ii=1:length(f)
-            fprintf('%d/%d. %s -- %d unprocessed sections. tThresh SD=%0.2f\n', f(ii), size(summaryTable,1), ...
-        summaryTable.fileName{f(ii)}, summaryTable.numUnprocessedSections(f(ii)), ...
-        summaryTable.tThreshSD(f(ii))     );
+            fprintf('%d/%d. %s -- %d unprocessed sections. \n', f(ii), size(summaryTable,1), ...
+        summaryTable.fileName{f(ii)}, summaryTable.numUnprocessedSections(f(ii)));
     end
 end
 
@@ -219,11 +218,11 @@ xlim([1,size(summaryTable,1)])
 
 
 subplot(nRows,nCols,8)
-plot(summaryTable.medPropPixelsInRoiThatAreTissue, pS.basePlotStyle{:})
-mu = mean(summaryTable.medPropPixelsInRoiThatAreTissue);
-hold on
-plot([xlim],[mu,mu],'--b')
-hold off
+%plot(summaryTable.medPropPixelsInRoiThatAreTissue, pS.basePlotStyle{:})
+%mu = mean(summaryTable.medPropPixelsInRoiThatAreTissue);
+%hold on
+%plot([xlim],[mu,mu],'--b')
+%hold off
 xlim([1,size(summaryTable,1)])
 ylim([0,1])
 xlabel('Acquisition #')
@@ -246,13 +245,4 @@ subplot(nRows,nCols,10)
 %xlabel('SNR From auto-thresh')
 %ylabel('tThreshSD')
 %grid on
-
-
-subplot(nRows,nCols,11)
-plot(x,summaryTable.tThreshSD, pS.basePlotStyle{:})
-xlabel('Acquisition #')
-ylabel('tThreshSD')
-grid on
-xlim([1,size(summaryTable,1)])
-
 

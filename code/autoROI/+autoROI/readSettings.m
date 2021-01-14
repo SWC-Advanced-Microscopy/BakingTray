@@ -59,7 +59,6 @@ function settings = readSettings(readFromYaml)
         settings.main.defaultThreshSD=5; %This appears both in autoROI and in runOnStackStruct
         settings.main.rescaleTo=50; % Target microns per pixel to work at. autoROI uses this rescale images
 
-
         % The following are used in autoROI > binarizeImage
         settings.mainBin.removeNoise = true; % Noise removal: targets electrical noise
         settings.mainBin.medFiltBW = 5;
@@ -83,7 +82,8 @@ function settings = readSettings(readFromYaml)
         % The following are used in autoROI.runOnStackStruct
         settings.stackStr.rollingThreshold=true;
 
-
+        settings.autoThresh.keepProp=0.25; %Used in autoROI.removeBrightBlocks
+        settings.autoThresh.useBackgroundMask=false; %Used in autoROI.removeBrightBlocks
         settings.autoThresh.skipMergeNROIThresh=10;
         settings.autoThresh.doBinaryExpansion=false;
         settings.autoThresh.minThreshold=2;

@@ -149,8 +149,6 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
     % Add a text report to the first element
     stats.report = autoROI.test.evaluateROIs(stats,pStack);
-    stats.autothreshStats = at_stats;
-
 
 
     % Tidy

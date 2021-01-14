@@ -38,13 +38,12 @@ end
 n=length(tLogs);
 fileName = {tLogs.name}';
 pStackFname = cell(n,1);
-tThreshSD = zeros(n,1);
 mean_tThresh = zeros(n,1); %Mean over all elements of log structure
 rollingThreshold = zeros(n,1);
 numSectionsWithHighCoverage = zeros(n,1); %See evluateBoundingBoxes. Should be with coverage of over 0.99
 numSectionsWithOverFlowingCoverage = zeros(n,1); %See evluateBoundingBoxes. ROI coverage larger then FOV.
 numUnprocessedSections = zeros(n,1);
-medPropPixelsInRoiThatAreTissue = zeros(n,1);
+% zeros(n,1); %% TODO -- delete
 totalImagedSqMM = zeros(n,1);
 propImagedArea = zeros(n,1); %Proportion of the original FOV that was imaged
 nSamples = zeros(n,1);
@@ -73,14 +72,13 @@ for ii=1:n
 
     % Populate variables
     pStackFname{ii} = testLog.stackFname;
-    tThreshSD(ii) = testLog.roiStats(1).tThreshSD; % The first tThreshSD value
     mean_tThresh(ii) = mean([testLog.roiStats.tThresh]);
     rollingThreshold(ii) = testLog.settings.stackStr.rollingThreshold;
     numSectionsWithHighCoverage(ii) = testLog.report.numSectionsWithHighCoverage;
     numSectionsWithOverFlowingCoverage(ii) = testLog.report.numSectionsWithOverFlowingCoverage;
     numUnprocessedSections(ii) = testLog.numUnprocessedSections;
 
-    medPropPixelsInRoiThatAreTissue(ii) = testLog.report.medPropPixelsInRoiThatAreTissue;
+    %% medPropPixelsInRoiThatAreTissue(ii) = testLog.report.medPropPixelsInRoiThatAreTissue; %% TODO -- delete
     totalImagedSqMM(ii) = testLog.report.totalImagedSqMM;
     propImagedArea(ii) = testLog.report.propImagedArea;
     nSamples(ii) = testLog.nSamples;
@@ -106,8 +104,8 @@ end
 % Construct table
 fprintf('\nBuilding table\n')
 isProblemCase = logical(isProblemCase);
-summaryTable = table(fileName, tThreshSD, rollingThreshold, numSectionsWithHighCoverage, ...
-    mean_tThresh, numSectionsWithOverFlowingCoverage, medPropPixelsInRoiThatAreTissue, totalImagedSqMM, ... 
+summaryTable = table(fileName, rollingThreshold, numSectionsWithHighCoverage, ...
+    mean_tThresh, numSectionsWithOverFlowingCoverage, totalImagedSqMM, ... 
     propImagedArea, nSamples, isProblemCase, numUnprocessedSections, ...
     totalNonImagedTiles, totalNonImagedSqMM, totalExtraSqMM, ...
     maxNonImagedTiles, maxNonImagedSqMM, maxExtraSqMM,nPlanesWithMissingTissue, ...
