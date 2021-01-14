@@ -75,6 +75,10 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
 
         data = single(data(:));
 
+        thresh=max(data(:)) - (range(data(:))*0.05);
+        data(data>thresh)=[];
+        % Trim away the top 10% of data
+
         options = statset('MaxIter',250);
         try
             rng( sum(double('Uma wags on')) ); % For reproducibility
