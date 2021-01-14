@@ -86,7 +86,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
         % Use a rolling threshold based on the last nImages to drive sample/background
         % segmentation in the next image. If set to zero it uses the preceeding section.
-        nImages=1;
+        nImages=5;
         if rollingThreshold==false
             % Do not update the threshold at all: use only the values derived from the first section
             thresh = stats.roiStats(1).tThresh;
