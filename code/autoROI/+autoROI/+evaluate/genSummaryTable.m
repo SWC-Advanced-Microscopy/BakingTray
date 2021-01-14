@@ -43,7 +43,6 @@ rollingThreshold = zeros(n,1);
 numSectionsWithHighCoverage = zeros(n,1); %See evluateBoundingBoxes. Should be with coverage of over 0.99
 numSectionsWithOverFlowingCoverage = zeros(n,1); %See evluateBoundingBoxes. ROI coverage larger then FOV.
 numUnprocessedSections = zeros(n,1);
-% zeros(n,1); %% TODO -- delete
 totalImagedSqMM = zeros(n,1);
 propImagedArea = zeros(n,1); %Proportion of the original FOV that was imaged
 nSamples = zeros(n,1);
@@ -77,8 +76,6 @@ for ii=1:n
     numSectionsWithHighCoverage(ii) = testLog.report.numSectionsWithHighCoverage;
     numSectionsWithOverFlowingCoverage(ii) = testLog.report.numSectionsWithOverFlowingCoverage;
     numUnprocessedSections(ii) = testLog.numUnprocessedSections;
-
-    %% medPropPixelsInRoiThatAreTissue(ii) = testLog.report.medPropPixelsInRoiThatAreTissue; %% TODO -- delete
     totalImagedSqMM(ii) = testLog.report.totalImagedSqMM;
     propImagedArea(ii) = testLog.report.propImagedArea;
     nSamples(ii) = testLog.nSamples;

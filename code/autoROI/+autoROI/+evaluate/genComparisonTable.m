@@ -129,10 +129,6 @@ d_totalExtraSqMM = refTable.totalExtraSqMM - testTable.totalExtraSqMM;
 % difference in sq mm of of sample imaged more than once for the worst section
 d_maxExtraSqMM = refTable.maxExtraSqMM - testTable.maxExtraSqMM;
 
-% difference in the median proportion of pixels in the ROI that are tissue
-% TODO - is that over sections? DELETE
-%d_medPropPixelsInRoiThatAreTissue = refTable.medPropPixelsInRoiThatAreTissue - testTable.medPropPixelsInRoiThatAreTissue;
-
 % difference in the total imaged sq mm
 d_totalImagedSqMM = refTable.totalImagedSqMM - testTable.totalImagedSqMM;
 

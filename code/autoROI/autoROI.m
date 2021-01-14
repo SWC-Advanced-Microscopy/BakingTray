@@ -117,8 +117,8 @@ function varargout=autoROI(pStack, varargin)
 
 
     % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
-    % data. TODO: could remove this step in the future. However, since it will clean up local very large 
-    % values it might not be a bad idea it to leave it in.
+    % Future data do not have this problem, but we keep this correction here because the test data used to
+    % develop the autoROI all have this problem.
     im = autoROI.removeCornerEdgeArtifacts(im);
 
 
@@ -362,11 +362,6 @@ function varargout=autoROI(pStack, varargin)
     end
 
     out.roiStats(n).tThresh = tThresh;
-
-    % Get the foreground and background pixel stats from the ROIs (not the whole image)
-    % TODO -- STORE THESE SOMEHOW AGAIN
-    %out.roiStats(n).medianBackground = median_bg;
-    %out.roiStats(n).stdBackground = SD_bg;
 
 
     % Convert bounding box sizes to meaningful units and return those.

@@ -102,21 +102,7 @@ ylabel('ref minus test square mm extra')
 title('Largest square mm increase (lower better)')
 xlim([1,size(cTable,1)])
 
-
-% TODO -- delete
 subplot(3,2,5)
-%plot(cTable.d_medPropPixelsInRoiThatAreTissue, pS.basePlotStyle{:})
-%hold on 
-%plot(xlim,[0,0],'k:')
-%grid on
-%hold off
-%xlabel('Acquisition #')
-%ylabel('ref minus test ROI pixels that contain tissue')
-%title('Median square mm increase (higher better)')
-%xlim([1,size(cTable,1)])
-
-
-subplot(3,2,6)
 plot(cTable.d_totalImagedSqMM, pS.basePlotStyle{:})
 hold on 
 plot(xlim,[0,0],'k:')

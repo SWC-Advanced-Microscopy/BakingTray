@@ -69,16 +69,6 @@ if numSectionsWithOverFlowingCoverage>0
     txtReport = [txtReport,msg];
 end
 
-
-% TODO -- delete or modify
-%
-%Report the average proportion of pixels within a boundingbox that have tissue
-%medPropPixelsInRoiThatAreTissue=median(([stats.roiStats.foregroundSqMM]./[stats.roiStats.totalBoundingBoxSqMM]));
-%msg=sprintf('Median area of ROIs filled with tissue: %0.2f (run at %d micron border size).\n', ...
-%    medPropPixelsInRoiThatAreTissue, stats.settings.mainBin.expansionSize);
-%fprintf(msg)
-%txtReport = [txtReport,msg];
-
 %Report the total imaged area, summing over all ROIs
 totalImagedSqMM=sum([stats.roiStats.totalBoundingBoxSqMM]);
 msg=sprintf('Total imaged sq mm in this acquisition: %0.2f\n', ...
@@ -101,7 +91,6 @@ txtReport = [txtReport,msg];
 % Build an output structure
 report.numSectionsWithHighCoverage=numSectionsWithHighCoverage;
 report.numSectionsWithOverFlowingCoverage=numSectionsWithOverFlowingCoverage;
-%report.medPropPixelsInRoiThatAreTissue=medPropPixelsInRoiThatAreTissue; %%  TODO -- delete or modify
 report.totalImagedSqMM=totalImagedSqMM;
 report.propImagedArea=propImagedArea;
 report.txtReport=txtReport;
