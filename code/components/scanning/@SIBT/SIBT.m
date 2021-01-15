@@ -494,6 +494,24 @@ classdef SIBT < scanner
                     obj.frameSizeSettings(ii).sampRate = [];
                     obj.frameSizeSettings(ii).pixBin = [];
 
+                    if isfield(tSet,'shiftSlow')
+                        obj.frameSizeSettings(ii).shiftSlow = tSet.shiftSlow;
+                    else
+                        obj.frameSizeSettings(ii).shiftSlow = [];
+                    end
+
+                    if isfield(tSet,'shiftFast')
+                        obj.frameSizeSettings(ii).shiftFast = tSet.shiftFast;
+                    else
+                        obj.frameSizeSettings(ii).shiftFast = [];
+                    end
+
+                    if isfield(tSet,'spatialFillFrac')
+                        obj.frameSizeSettings(ii).spatialFillFrac = tSet.spatialFillFrac;
+                    else
+                        obj.frameSizeSettings(ii).spatialFillFrac = [];
+                    end
+
                     if isfield(tSet,'sampRate')
                         obj.frameSizeSettings(ii).sampRate = tSet.sampRate;
                     end

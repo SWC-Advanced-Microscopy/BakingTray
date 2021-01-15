@@ -28,5 +28,5 @@ function updateRecipePropertyInRecipeClass(obj,eventData,~)
         % If the number of planes were changed, we update the z-stack settings in the scanner software. 
         obj.model.scanner.applyZstackSettingsFromRecipe;
     end
-
+    obj.updateStatusText;
 end %updateRecipePropertyInRecipeClass
