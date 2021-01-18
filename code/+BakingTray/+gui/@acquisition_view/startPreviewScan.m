@@ -45,8 +45,5 @@ function startPreviewScan(obj,~,~)
 
 
     obj.overlayStageBoundariesOnImage
-    % Run auto-ROI stuff (the following only runs if the recipe says we are in auto-ROI mode)
-    obj.overlayThreshBorderOnImage
-
 
 end %startPreviewScan

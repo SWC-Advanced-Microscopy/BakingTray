@@ -29,7 +29,7 @@ function success=getThreshold(obj)
     end
 
     % Obtain the threshold
-    threshSD = autoROI.autothresh.run(obj.autoROI.previewImages);
+    threshSD = autoROI.autoThresh(obj.autoROI.previewImages.imStack);
 
     % Bail out if it failed
     if isnan(threshSD)
