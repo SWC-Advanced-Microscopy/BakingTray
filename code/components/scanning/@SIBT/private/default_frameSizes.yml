@@ -6,6 +6,9 @@ setA:
   nominalMicronsPerPixel: 1.2
   fastMult: 1
   slowMult: 1
+  shiftSlow: 0
+  shiftFast: 0
+  spatialFillFrac: 0.8
   objRes: 50
   lensDistort: {rows: 0, cols: 0.0}
   affineMat: 
@@ -21,6 +24,9 @@ setB:
   nominalMicronsPerPixel: 2.4
   fastMult: 1
   slowMult: 1
+  shiftSlow: 0
+  shiftFast: 0
+  spatialFillFrac: 0.8
   objRes: 50
   lensDistort: {rows: 0, cols: 0.0}
   affineMat: 
