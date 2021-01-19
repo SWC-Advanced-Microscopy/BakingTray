@@ -188,8 +188,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             else
                 obj.button_runAutoThresh.Enable='on';
             end
-
-            obj.overlayThreshBorderOnImage %Handles removal and addition of the edge guide
         end
 
         function updateGUIonResize(obj,~,~)

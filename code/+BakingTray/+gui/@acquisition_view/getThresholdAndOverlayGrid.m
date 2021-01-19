@@ -33,6 +33,19 @@ function getThresholdAndOverlayGrid(obj,~,~)
         return
     end
 
+    % Draw border around the brain
+    tBW=autoROI.binarizeImage(im, obj.model.downsampleMicronsPerPixel,obj.model.autoROI.stats.roiStats.tThresh);
+    B=bwboundaries(tBW.afterExpansion,'noholes');
+    hold(obj.imageAxes,'on')
+
+    for ii=1:length(B)
+        pixPos=obj.model.convertStagePositionToImageCoords((B{ii}));
+                pixPos=((B{ii}));
+
+        obj.plotOverlayHandles.brainBorder(ii) = plot(pixPos(:,2), pixPos(:,1),'g-','Parent',obj.imageAxes);
+    end
+    hold(obj.imageAxes,'off')
+
     % Use the data generated above to calculate a tile pattern for imaging
     % this sample
     z=obj.model.recipe.tilePattern(false,false,obj.model.autoROI.stats.roiStats.BoundingBoxDetails);
