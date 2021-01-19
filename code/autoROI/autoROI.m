@@ -376,6 +376,7 @@ function varargout=autoROI(pStack, varargin)
 
     out.roiStats(n).statsSD = statsSD;
     out.roiStats(n).containsSampleMask = containsSampleMask;
+    out.roiStats(n).previewImage = im;
 
     % Finally: return bounding boxes to original size
     % If we re-scaled then we need to put the bounding box coords back into the original size
