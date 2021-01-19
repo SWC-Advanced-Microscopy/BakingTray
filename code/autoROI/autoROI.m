@@ -158,7 +158,9 @@ function varargout=autoROI(pStack, varargin)
         disp('Press return')
         pause
     end
-
+    
+    containsSampleMask = []; % This is a binary image that will contain 1s in regions where there is tissue
+                             % It is logged but is not generated if there are no lastSectionStats so we declare it here.
     if isempty(lastSectionStats)
         stats = autoROI.getBoundingBoxes(BW,im,pixelSize);  % Find bounding boxes
         if length(stats) < skipMergeNROIThresh
@@ -203,19 +205,17 @@ function varargout=autoROI(pStack, varargin)
                 tStats{nT} = autoROI.mergeOverlapping(tStats{ii},size(tIm));
                 nT=nT+1;
             end
-
-            % Uncomment the following line for debug purposes
-            %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
 
         imForThresh = imForThresh ./ dataMask;
         imForThresh(isnan(imForThresh))=0;
 
-        containsSampleMask = ~(containsSampleMask > 0); % In case of any double counting due to ROI overlap
+        containsSampleMask = containsSampleMask > 0; % In case of any double counting due to ROI overlap
+        containsNoSampleMask = ~containsSampleMask;
 
         % What proportion of the imaged area is background?
         numPixelsInImage = sum(dataMask(:));
-        numPixelsInBackground = containsSampleMask .* dataMask;
+        numPixelsInBackground = containsNoSampleMask .* dataMask;
         numPixelsInBackground = sum(numPixelsInBackground(:));
         propBackground = numPixelsInBackground / numPixelsInImage;
 
@@ -224,7 +224,7 @@ function varargout=autoROI(pStack, varargin)
         % whole image. It turns out that the latter generally works better. 
         if settings.autoThresh.useBackgroundMask && propBackground>0.1
             settings.autoThresh.keepProp=1;
-            [tThresh,statsSD] = autoROI.autoThresh(imForThresh.*containsSampleMask,settings);
+            [tThresh,statsSD] = autoROI.autoThresh(imForThresh.*containsNoSampleMask,settings);
         else
             settings.autoThresh.keepProp=0.25;
             [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
@@ -375,6 +375,7 @@ function varargout=autoROI(pStack, varargin)
     out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeIm);
 
     out.roiStats(n).statsSD = statsSD;
+    out.roiStats(n).containsSampleMask = containsSampleMask;
 
     % Finally: return bounding boxes to original size
     % If we re-scaled then we need to put the bounding box coords back into the original size
