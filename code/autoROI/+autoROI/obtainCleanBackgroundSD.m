@@ -75,9 +75,15 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
 
         data = single(data(:));
 
-        thresh=max(data(:)) - (range(data(:))*0.05);
+        % Trim away the top few percent of data
+        thresh=max(data(:)) - range(data(:))*0.05;
         data(data>thresh)=[];
-        % Trim away the top 10% of data
+
+
+        % Now trim away the bottom fraction of 1% in case there are weird outlier pixels out there
+        thresh=min(data(:)) + range(data(:))*1E-5;
+        data(data<thresh)=[];
+
 
         options = statset('MaxIter',250);
         try
