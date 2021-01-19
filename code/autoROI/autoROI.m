@@ -1,4 +1,4 @@
-function varargout=autoROI(pStack, varargin)
+function varargout=autoROI(pStack,lastSectionStats,varargin)
     % autoROI
     %
     % function varargout=autoROI(pStack, 'param',val, ... )
@@ -13,17 +13,18 @@ function varargout=autoROI(pStack, varargin)
     %
     % Return results in a structure.
     %
-    % 
+    %
     % Inputs (Required)
     % pStack - The pStack structure. From this we extract key information such as pixel size.
+    % lastSectionStats - By default the whole image is used. If this argument is 
+    %               present it should be the output of autoROI from a
+    %               previous section. This is empty by default. Not in input parser
+    %               because adding there slows down the parser.
     %
     % Inputs (Optional param/val pairs)
     % tThresh - Threshold for tissue/no tissue. By default this is auto-calculated
     % tThreshSD - Used to do the auto-calculation of tThresh.
     % doPlot - if true, display image and overlay boxes. false by default
-    % lastSectionStats - By default the whole image is used. If this argument is 
-    %               present it should be the output of autoROI from a
-    %               previous section;
     % skipMergeNROIThresh - If more than this number of ROIs is found, do not attempt
     %                         to merge. Just return them. Used to speed up auto-finding.
     %                         By default this is infinity, so we always try to merge.
@@ -43,6 +44,9 @@ function varargout=autoROI(pStack, varargin)
     %
     % Rob Campbell - SWC, 2019
 
+    if nargin<2
+        lastSectionStats=[];
+    end
 
     if ~isstruct(pStack)
         fprintf('%s - First input argument must be a structure.\n',mfilename)
@@ -75,7 +79,6 @@ function varargout=autoROI(pStack, varargin)
     params.addParameter('doPlot', true, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('tThresh',[], @(x) isnumeric(x) && isscalar(x))
     params.addParameter('tThreshSD',[], @(x) isnumeric(x) && isscalar(x) || isempty(x))
-    params.addParameter('lastSectionStats',[], @(x) isstruct(x) || isempty(x))
     params.addParameter('skipMergeNROIThresh',inf, @(x) isnumeric(x) )
     params.addParameter('showBinaryImages', false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('doBinaryExpansion', [], @(x) islogical(x) || x==1 || x==0 || isempty(x))
@@ -86,7 +89,6 @@ function varargout=autoROI(pStack, varargin)
     params.parse(varargin{:})
     doPlot = params.Results.doPlot;
     tThresh = params.Results.tThresh;
-    lastSectionStats = params.Results.lastSectionStats;
     skipMergeNROIThresh = params.Results.skipMergeNROIThresh;
     showBinaryImages = params.Results.showBinaryImages;
     doBinaryExpansion = params.Results.doBinaryExpansion;
@@ -158,7 +160,7 @@ function varargout=autoROI(pStack, varargin)
         disp('Press return')
         pause
     end
-    
+
     containsSampleMask = []; % This is a binary image that will contain 1s in regions where there is tissue
                              % It is logged but is not generated if there are no lastSectionStats so we declare it here.
     if isempty(lastSectionStats)
