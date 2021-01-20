@@ -27,7 +27,7 @@ function pStack = returnPreviewStructure(obj)
     pStack.voxelSizeInMicrons = obj.downsampleMicronsPerPixel;
     pStack.tileSizeInMicrons = 1E3 * obj.recipe.TileStepSize.X * (1/(1-pStack.recipe.mosaic.overlapProportion)); % ASSUMES SQUARE TILES
     pStack.channel = chanToKeep;
-
+    pStack.tileOverlapProportion = obj.recipe.mosaic.overlapProportion;
     % Now only acquire this channel for the preview
     if isa(obj.scanner,'SIBT')
         % A bit horrible, but it will work

@@ -70,7 +70,7 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
     % Get size settings from pStack structure
     pixelSize = pStack.voxelSizeInMicrons;
     tileSize = pStack.tileSizeInMicrons;
-
+    tileOverlapProportion = pStack.tileOverlapProportion;
 
 
     params = inputParser;
@@ -290,7 +290,7 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
     for ii=1:length(stats)
         [stats(ii).BoundingBox, stats(ii).BoundingBoxDetails] = ...
         autoROI.boundingBoxToTiledBox(stats(ii).BoundingBox, ...
-            pixelSize, tileSize);
+            pixelSize, tileSize, tileOverlapProportion);
     end
 
     % Sort the bounding boxes along the image rows (microscope X axis).
