@@ -28,7 +28,6 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
     if isempty(im)
         SD=[];
         medbg=[];
-        minThresh=[];
         return
     end
 
@@ -43,15 +42,12 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         BG = borderPixGetter(im,settings);
         SD = std(BG);
         medbg = median(BG);
-        minThresh=[];
     case 'border_gmm'
         BG = borderPixGetter(im,settings);
         SD = gmmSD(BG);
         medbg = median(BG);
-        minThresh=[];
     case 'whole_gmm'
         [SD,medbg] = gmmSD(im);
-        minThresh = medbg + SD*3;
     case 'dimmest_gmm'
         % Ensure no background pixels play a role in the calculation
         [BG,statsBrightBlocks] = autoROI.removeBrightBlocks(im,settings);
