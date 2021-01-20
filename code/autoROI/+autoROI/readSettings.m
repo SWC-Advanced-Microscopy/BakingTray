@@ -82,7 +82,7 @@ function settings = readSettings(readFromYaml)
         % The following are used in autoROI.runOnStackStruct
         settings.stackStr.rollingThreshold=true;
 
-        settings.autoThresh.keepProp=0.25; %Used in autoROI.removeBrightBlocks
+        settings.autoThresh.keepProp=0.30; %Used in autoROI.removeBrightBlocks
         settings.autoThresh.useBackgroundMask=false; %Used in autoROI.removeBrightBlocks
         settings.autoThresh.skipMergeNROIThresh=10;
         settings.autoThresh.doBinaryExpansion=false;
