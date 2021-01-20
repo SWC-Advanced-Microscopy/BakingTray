@@ -6,6 +6,8 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+20th Jan 2020
+- User: fixed bug that caused autoROI tile pattern to only be correct for a tile overlap of 10%
 
 15th Jan 2020
 - User/super-user: scanner setting YAML can now set fast and slow offsets and also spatial fill fraction
