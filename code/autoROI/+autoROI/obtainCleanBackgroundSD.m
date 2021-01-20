@@ -58,6 +58,7 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         BG = BG(:);
         BG(BG == -42) = [];
         BG(BG == 0) = [];
+        BG(isinf(BG)) = [];
 
         [SD,medbg,statsGMM] = gmmSD(BG);
     end
@@ -77,17 +78,25 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
 
         % Trim away the top few percent of data
         thresh=max(data(:)) - range(data(:))*0.05;
-        data(data>thresh)=[];
+        if sum(data>thresh) < length(data)*0.05 
+            data(data>thresh)=[];
+        else
+            fprintf('gmmSD in obtainCleanBackgroundSD not trimming as too many data points will be removed.\n')
+        end
 
         options = statset('MaxIter',250);
-        try
-            rng( sum(double('Uma wags on')) ); % For reproducibility
-            gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.3, 'Options',options);
-
-        catch ME
-            size(data)
-            gm_f = [];
-            disp(ME.message)
+        attempts=5;
+        for ii=1:attempts
+            try
+                %rng( sum(double('Uma wags on')) ); % For reproducibility
+                gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.3, 'Options',options);
+                break % If we get here there was no error so we can carry on
+            catch ME
+                fprintf('*******************   fitgmdist failed ****************\n')
+                size(data)
+                gm_f = [];
+                disp(ME.message)
+            end
         end
 
         [~,sorted_ind] = sort(gm_f.mu,'ascend');
