@@ -79,12 +79,6 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         thresh=max(data(:)) - range(data(:))*0.05;
         data(data>thresh)=[];
 
-
-        % Now trim away the bottom fraction of 1% in case there are weird outlier pixels out there
-        thresh=min(data(:)) + range(data(:))*1E-5;
-        data(data<thresh)=[];
-
-
         options = statset('MaxIter',250);
         try
             rng( sum(double('Uma wags on')) ); % For reproducibility
