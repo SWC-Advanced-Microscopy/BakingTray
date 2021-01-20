@@ -228,7 +228,6 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
             settings.autoThresh.keepProp=1;
             [tThresh,statsSD] = autoROI.autoThresh(imForThresh.*containsNoSampleMask,settings);
         else
-            settings.autoThresh.keepProp=0.25;
             [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
         end
 
