@@ -2,14 +2,16 @@ function success=getThreshold(obj)
     % Get threshold from current preveiw image
     % 
     % Purpose
-    % Runs autoROI.autothresh.run to get a threshold based on obj.autoROI.previewImages
+    % Runs autoROI.autoThresh to get a threshold based on obj.autoROI.previewImages
     % Once done, populates  BT.autoROI.stats with the output of autoROI. This wipes
-    % whatever was there before. 
+    % whatever was there before. This method is run once by the user when they are 
+    % about to start the acquisition. See also BT.getNextROIs, which runs at the end
+    % of each section. The thresholds are calculated within autoROI.m once the
+    % acquisition has started. 
     %
-    % TODO -- tidy and doc it
     %
     % Rob Campbell - SWC, April 2020
-    %
+
     
     success=false;
     if isempty(obj.lastPreviewImageStack)
@@ -28,7 +30,7 @@ function success=getThreshold(obj)
         return
     end
 
-    % Obtain the threshold
+    % Obtain the threshold -- TODO the GMM alg returns a tThresh not a tThreshSD
     threshSD = autoROI.autoThresh(obj.autoROI.previewImages.imStack);
 
     % Bail out if it failed

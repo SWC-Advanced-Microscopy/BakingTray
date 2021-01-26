@@ -1,7 +1,7 @@
 function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
     % Calculate the SD and mean or median of the background
     %
-    % function [SD,medbg,stats] = autoROI.obtainCleanBackgroundSD(im,settings)
+    % function [SD,medbg,stats] = autoROI.autoThresh.wholeImageGMM.obtainCleanBackgroundSD(im,settings)
     %
     % Purpose
     % Takes as input a 2D image and returns the SD and median (or mean) of the 

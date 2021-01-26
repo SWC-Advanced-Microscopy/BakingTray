@@ -23,7 +23,7 @@ function [tThresh,stats] = autoThresh(im,settings)
         settings = autoROI.readSettings;
     end
 
-    [SD_bg,median_bg,stats] = autoROI.obtainCleanBackgroundSD(im,settings);
+    [SD_bg,median_bg,stats] = autoROI.autoThresh.wholeImageGMM.obtainCleanBackgroundSD(im,settings);
 
     %Find pixels within b pixels of the border
     tThreshSD = settings.main.defaultThreshSD;

@@ -82,9 +82,18 @@ function settings = readSettings(readFromYaml)
         % The following are used in autoROI.runOnStackStruct
         settings.stackStr.rollingThreshold=true;
 
-        settings.autoThresh.keepProp=0.30; %Used in autoROI.removeBrightBlocks
-        settings.autoThresh.useBackgroundMask=false; %Used in autoROI.removeBrightBlocks
+
+
+        % The following settings are for the autoROI. There is more than one 
+        % autoROI algorithm and not all settings apply to all algorithms
+        settings.autoThresh.alg = 'wholeImageGMM'; % Either 'wholeImageGMM' or 'borderNumROI'
+
+        % Settings for wholeImageGMM
+        settings.autoThresh.keepProp=0.30; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
+        settings.autoThresh.useBackgroundMask=false; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
         settings.autoThresh.skipMergeNROIThresh=10;
+
+        % Settings for borderNumROI 
         settings.autoThresh.doBinaryExpansion=false;
         settings.autoThresh.minThreshold=2;
         settings.autoThresh.maxThreshold=12; %Increasing this produces larger ROIs but at the risk of some ballooning and flowing outside of the FOV
