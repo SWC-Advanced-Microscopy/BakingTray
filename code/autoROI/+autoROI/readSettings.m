@@ -88,7 +88,7 @@ function settings = readSettings(readFromYaml)
 
         % The following settings are for the autoROI. There is more than one 
         % autoROI algorithm and not all settings apply to all algorithms
-        settings.autoThresh.alg = 'wholeImageGMM'; % Either 'wholeImageGMM' or 'borderNumROI'
+        settings.autoThresh.alg = 'wholeImageGMM'; % Either 'wholeImageGMM' or 'borderNumROI' DOES NOTH NOW
 
         % Settings for wholeImageGMM
         settings.autoThresh.keepProp=0.3; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
