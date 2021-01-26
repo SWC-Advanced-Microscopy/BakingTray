@@ -70,7 +70,12 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
     % Get size settings from pStack structure
     pixelSize = pStack.voxelSizeInMicrons;
     tileSize = pStack.tileSizeInMicrons;
-    tileOverlapProportion = pStack.tileOverlapProportion;
+    if isfield(pStack,'tileOverlapProportion')
+        tileOverlapProportion = pStack.tileOverlapProportion;
+    else
+        % If this field is missing, we likely have test data that were all acquired at 0.1
+        tileOverlapProportion = 0.1;
+    end
 
 
     params = inputParser;
