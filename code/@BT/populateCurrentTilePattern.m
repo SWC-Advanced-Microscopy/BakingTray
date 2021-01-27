@@ -1,4 +1,4 @@
-function pos=populateCurrentTilePattern(obj,varargin)
+function varargout=populateCurrentTilePattern(obj,varargin)
     % populate obj.currentTilePattern and obj.positionArray
     %
     % Purpose
@@ -81,6 +81,9 @@ function pos=populateCurrentTilePattern(obj,varargin)
 
     if isempty(pos)
         fprintf('No tile pattern was generated in BT.populateCurrentTilePattern\n');
+        if nargout>0
+            varargout=pos;
+        end
         return
     end
 
@@ -104,5 +107,7 @@ function pos=populateCurrentTilePattern(obj,varargin)
     fprintf('BT.%s populated BT.positionArray with a tile pattern of length %d\n', ...
      mfilename, size(obj.positionArray,1))
     
-    
+    if nargout>0
+        varargout=pos;
+    end
 end %populateCurrentTilePattern
