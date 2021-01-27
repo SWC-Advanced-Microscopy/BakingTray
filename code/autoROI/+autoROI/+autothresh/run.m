@@ -75,9 +75,18 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
 
         % Re-run autoROI to obtain a tThresh
         pStack.imStack=origIM;
-        out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',true);
 
-        tThresh = out.roiStats.tThresh;
+        % There is a small possibility that tThreshSD is Nan. This happened once
+        % when there was very little sample left and the acquisition should have
+        % just finished. We try to catch this here
+        if ~isnan(tThreshSD)
+            out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',true);
+            tThresh = out.roiStats.tThresh;
+        else
+            fprintf('autoThresh.run returned a Nan value for tThreshSD\n')
+            tThresh = nan;
+        end
+
         stats=[];
         fprintf('DID SUB-ROIS!\n')
         return
