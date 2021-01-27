@@ -16,7 +16,12 @@ function runSuccess = runTileScan(obj)
     assignin('base','hBT',obj)
 
     if isempty(obj.currentTilePattern)
-        obj.populateCurrentTilePattern;
+        % If it fails to generate a tile pattern then we quit runTileScan
+        % and return false,
+        pos=obj.populateCurrentTilePattern;
+        if isempty(pos)
+            return
+        end
     end
 
     obj.initialisePreviewImageData(obj.currentTilePattern);
