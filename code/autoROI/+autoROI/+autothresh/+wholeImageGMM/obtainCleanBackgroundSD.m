@@ -50,7 +50,7 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         [SD,medbg] = gmmSD(im);
     case 'dimmest_gmm'
         % Ensure no background pixels play a role in the calculation
-        [BG,statsBrightBlocks] = autoROI.removeBrightBlocks(im,settings);
+        [BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
         BG = BG(:);
         BG(BG == -42) = [];
         BG(BG == 0) = [];

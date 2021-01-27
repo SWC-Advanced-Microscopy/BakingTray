@@ -45,3 +45,4 @@ pStack.tileSizeInMicrons = tileSize;
 pStack.nSamples = nSamples;
 pStack.binarized = [];
 pStack.borders = {};
+pStack.tileOverlapProportion = recipe.mosaic.overlapProportion;
