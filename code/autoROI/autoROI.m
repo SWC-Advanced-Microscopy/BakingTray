@@ -198,10 +198,15 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
-            imForThresh = imForThresh + tIm;
-            dataMask = dataMask + (tIm>0);
-
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
+            imForThresh = imForThresh + tIm;
+
+            % Now we repeat the sub-image extraction but use a different marker value for no tissue
+            % in order to get the data mask from all images, even those with negative numbers
+            dmIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,-inf); % Pull out just this sub-region
+            dataMask = dataMask + (dmIm>-inf);
+
+
             containsSampleMask = containsSampleMask + tBW.afterExpansion;
             if isAutoThresh
                 tBoundingBox = [];
@@ -213,8 +218,9 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
                 nT=nT+1;
             end
         end
-
-        imForThresh = imForThresh ./ dataMask;
+        % dataMask is a binary mask that defines which regions of the image
+        % were within a ROI. 
+        imForThresh = imForThresh .* (dataMask>0);
         imForThresh(isnan(imForThresh))=0;
 
         containsSampleMask = containsSampleMask > 0; % In case of any double counting due to ROI overlap

@@ -1,6 +1,8 @@
 function success=getThreshold(obj)
     % Get threshold from current preveiw image
-    % 
+    %
+    % success = BT.getThreshold
+    %
     % Purpose
     % Runs autoROI.autoThresh to get a threshold based on obj.autoROI.previewImages
     % Once done, populates  BT.autoROI.stats with the output of autoROI. This wipes
@@ -12,12 +14,12 @@ function success=getThreshold(obj)
     %
     % Rob Campbell - SWC, April 2020
 
-    
+
     success=false;
     if isempty(obj.lastPreviewImageStack)
         return
     end
-    
+
     % First wipe the structure to completely ensure we don't end up with one 
     % that is a chimera of different preview stacks or threshold runs.
     obj.autoROI =[];

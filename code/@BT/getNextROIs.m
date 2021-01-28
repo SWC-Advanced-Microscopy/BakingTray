@@ -86,7 +86,7 @@ function success = getNextROIs(obj)
     end
     % it will now generate an error if the above failed then crashes.
 
-    thresh = autoROI.getThreshFromROIstats(stats);
+    thresh = autoROI.getThreshFromROIstats(obj.autoROI.stats);
 
 
     if verbose

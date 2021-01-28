@@ -50,7 +50,12 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         [SD,medbg] = gmmSD(im);
     case 'dimmest_gmm'
         % Ensure no background pixels play a role in the calculation
+        if any(isnan(im(:)))
+            fprintf('WARNING: obtainCleanBackgroundSD finds NaNs in image data.\n')
+        end
+
         [BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
+
         BG = BG(:);
         BG(BG == -42) = [];
         BG(BG == 0) = [];
@@ -71,7 +76,9 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
     function [SD,mu,stats] =gmmSD(data)
 
         data = single(data(:));
-
+        if any(isnan(data))
+            fprintf('WARNING: obtainCleanBackgroundSD.gmmSD finds NaNs in data.\n')
+        end
         % Trim away the top few percent of data
         thresh=max(data(:)) - range(data(:))*0.05;
         if sum(data>thresh) < length(data)*0.05 
