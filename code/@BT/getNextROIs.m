@@ -77,7 +77,6 @@ function success = getNextROIs(obj)
 
 
     settings = autoROI.readSettings;
-    rollingThreshold=settings.stackStr.rollingThreshold; %If true we base the threshold on the last few slices
 
     % The following should never evaluate to true in a real acquisition.
     if isempty(obj.autoROI)
@@ -85,29 +84,10 @@ function success = getNextROIs(obj)
     elseif isempty(obj.autoROI.stats)
         fprintf('\nBT.autoROI.stats is empty! Can not find next ROIs\n')
     end
-    % it will now generate an error if the above failed. Then crahes. 
-    
-   
-    % Use a rolling threshold based on the last nImages to drive sample/background
-    % segmentation in the next image. If set to zero it uses the preceeding section.
-    nImages=5;
-    stats = obj.autoROI.stats;
-    if rollingThreshold==false
-        % Do not update the threshold at all: use only the values derived from the first section
-        thresh = stats.roiStats(1).tThresh;
-    elseif nImages==0
-        % Use the threshold from the last section
-        thresh = stats.roiStats(end).tThresh;
-    elseif length(stats.roiStats) <= nImages
-        % Attempt to take the median value from the last nImages: take as many as possible 
-        % until we have nImages worth of sections 
-        thresh = median([stats.roiStats.tThresh]);
-    else
-        % Take the median value from the last nImages 
-        thresh = median([stats.roiStats(end-nImages+1:end).tThresh]);
-    end
+    % it will now generate an error if the above failed then crashes.
 
-        
+    thresh = autoROI.getThreshFromROIstats(stats);
+
 
     if verbose
         fprintf('%s is running autoROI\n',mfilename)

@@ -77,31 +77,13 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
 
 
-    rollingThreshold=settings.stackStr.rollingThreshold; %If true we base the threshold on the last few slices
-
     % Enter main for loop in which we process each section one at a time using the ROIs from the previous section
     for ii=2:size(pStack.imStack,3)
         fprintf('\nDoing section %d/%d\n', ii, size(pStack.imStack,3))
         pStack.sectionNumber=ii;
 
-        % Use a rolling threshold based on the last nImages to drive sample/background
-        % segmentation in the next image. If set to zero it uses the preceeding section.
-        nImages=5;
-        if rollingThreshold==false
-            % Do not update the threshold at all: use only the values derived from the first section
-            thresh = stats.roiStats(1).tThresh;
-        elseif nImages==0
-            % Use the threshold from the last section: TODO shouldn't this be (ii) not (ii-1)?
-            thresh = stats.roiStats(ii-1).tThresh;
-        elseif ii<=nImages
-            % Attempt to take the median value from the last nImages: take as many as possible 
-            % until we have nImages worth of sections 
-            thresh = median([stats.roiStats.tThresh]);
-        else
-            % Take the median value from the last nImages 
-            thresh = median([stats.roiStats(end-nImages+1:end).tThresh]);
-        end
 
+        thresh = autoROI.getThreshFromROIstats(stats);
 
         % autoROI is fed the ROI structure from the **previous section**
         % It runs the sample-detection code within these ROIs only and returns the results.
