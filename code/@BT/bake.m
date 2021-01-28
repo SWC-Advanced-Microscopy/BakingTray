@@ -135,7 +135,6 @@ function sectionInd = bake(obj,varargin)
     % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise). 
     obj.completeAcquisitionOnBakeLoopExit=true;
 
-
     % LOOP THROUGH ALL SECTIONS AND TILE SCAN
     for sectionInd=1:obj.recipe.mosaic.numSections
         obj.currentSectionNumber = sectionInd+obj.recipe.mosaic.sectionStartNum-1; % This is the current physical section
@@ -343,7 +342,11 @@ function sectionInd = bake(obj,varargin)
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
             autoROI_stats = obj.autoROI;
 
-            save(autoROI_fname,'autoROI_stats')
+            % If this is a live acquisition, we save the autoROI stats on each pass through the loop
+            % Otherwise we save only at the end
+            if ~isa(obj.scanner,'dummyScanner')
+                save(autoROI_fname,'autoROI_stats')
+            end
         else
             % Wipe the last two columns of the position array. These save the actual stage 
             % positions. This is necessary for the acquisition resume to work properly.
@@ -397,10 +400,12 @@ function sectionInd = bake(obj,varargin)
             break
         end
 
-
-        %%disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause
-
     end % for sectionInd=1:obj.recipe.mosaic.numSections
+
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isa(obj.scanner,'dummyScanner')
+        save(autoROI_fname,'autoROI_stats')
+    end
+
 
 
     fprintf('Finished data acquisition\n')
