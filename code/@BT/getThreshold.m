@@ -33,16 +33,20 @@ function success=getThreshold(obj)
     end
 
     % Obtain the threshold -- TODO the GMM alg returns a tThresh not a tThreshSD
-    threshSD = autoROI.autoThresh(obj.autoROI.previewImages.imStack);
+    %tThreshSD = autoROI.autoThresh(obj.autoROI.previewImages.imStack); %The old algorithm returned tThresh SD: TODO
+    tThresh = autoROI.autoThresh(obj.autoROI.previewImages.imStack); %The old algorithm returned tThresh SD: TODO
+    settings = autoROI.readSettings;
+
+    % TODO -- WHAT DOES THIS METHOD EVEN DO WITH THE NEW GMM???
 
     % Bail out if it failed
-    if isnan(threshSD)
+    if isnan(tThresh)
         obj.messageString = 'Auto-Thresh failed to find the sample';
         return
     end
 
     % Get stats
-    obj.autoROI.stats=autoROI(obj.autoROI.previewImages,[],'tThreshSD',threshSD,'doPlot',false);
+    obj.autoROI.stats=autoROI(obj.autoROI.previewImages,[],'doPlot',false);
     obj.autoROI.stats.roiStats.sectionNumber=0; %Indicates that this is the initial preview
 
     % Log which channels the user has chosen to acquire
