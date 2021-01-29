@@ -123,29 +123,11 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
     end
 
 
-    % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
-    % Future data do not have this problem, but we keep this correction here because the test data used to
-    % develop the autoROI all have this problem.
-    im = autoROI.removeCornerEdgeArtifacts(im);
 
 
-    sizeIm=size(im);
-    if rescaleTo>1
-        %fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', mfilename, rescaleTo, pixelSize);
+    sizeOrigIm=size(im); % The original image size
+    [im,pixelSize,origPixelSize] = autoROI.rescaleAndFilterImage(im,pixelSize);
 
-        sizeIm = round( sizeIm / (rescaleTo/pixelSize) );
-        im = imresize(im, sizeIm,'nearest'); %Must use nearest-neighbour to avoid interpolation
-        origPixelSize = pixelSize;
-        pixelSize = rescaleTo;
-    else
-        origPixelSize = pixelSize;
-    end
-
-
-
-    % Median filter the image first. This is necessary, otherwise downstream steps may not work.
-    im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
-    im = single(im);
 
     if isempty(tThresh)
         % This will only run on the first section
@@ -384,7 +366,7 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
     % What proportion of the whole FOV is covered by the bounding boxes?
     % This number is only available in test datasets. In real acquisitions with the 
     % auto-finder we won't have this number. 
-    out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeIm);
+    out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeOrigIm);
 
     out.roiStats(n).statsSD = statsSD;
     out.roiStats(n).containsSampleMask = containsSampleMask;

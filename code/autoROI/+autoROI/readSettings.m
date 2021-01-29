@@ -52,11 +52,11 @@ function settings = readSettings(readFromYaml)
 
     function settings = returnSettings
         % The following are used in autoROI
-        settings.main.borderPixSize = 4;  % How many pixels from the edge to use for background pixel estimation
+        settings.main.borderPixSize = 4;  % How many pixels from the edge to use for background pixel estimation with the original (not GMM) alg
         settings.main.medFiltRawImage = 5; 
         settings.main.doTiledMerge=true; %Mainly for debugging
         settings.main.tiledMergeThresh=1.05;
-        settings.main.defaultThreshSD=5; %This appears both in autoROI and in runOnStackStruct
+        settings.main.defaultThreshSD=5; %This appears both in autoROI and in runOnStackStruct. 
         settings.main.rescaleTo=50; % Target microns per pixel to work at. autoROI uses this rescale images
 
         % The following are used in autoROI > binarizeImage
@@ -91,9 +91,9 @@ function settings = readSettings(readFromYaml)
         settings.autoThresh.alg = 'wholeImageGMM'; % Either 'wholeImageGMM' or 'borderNumROI'
 
         % Settings for wholeImageGMM
-        settings.autoThresh.keepProp=0.30; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
+        settings.autoThresh.keepProp=0.3; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
         settings.autoThresh.useBackgroundMask=false; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
-        settings.autoThresh.skipMergeNROIThresh=10;
+        settings.autoThresh.skipMergeNROIThresh=5;
 
         % Settings for borderNumROI 
         settings.autoThresh.doBinaryExpansion=false;
