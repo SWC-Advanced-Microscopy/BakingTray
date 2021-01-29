@@ -40,13 +40,11 @@ function [im,stats] = removeBrightBlocks(im,settings)
 
     % Remove blocks that contain only non-imaged pixels. This can happen
     % because we will be feeding this function images where only some 
-    % regions have been imaged. Non-imaged regions will be zero. Regions
-    % outside of the intended FOV will be -42.
+    % regions have been imaged. Non-imaged regions will be exactly zero even if the image itself contains
+    % negative numbers. Regions outside of the intended FOV will be -42.
     t(t==0)=[]; 
     t(t==-42)=[]; 
 
-    % keepProp defines the proportion of the lowest values to keep. If this is
-    % 0.25, for instance, the dimmest 25% of blocks are kept. 
 
     % If we have imaged more than 20 sqmm we get rid of the dimmest 10% of blocks
     totalSqmm = length(t) * blockSize * 1E-3;
@@ -56,13 +54,14 @@ function [im,stats] = removeBrightBlocks(im,settings)
         t(1:getRid)=[];
     end
 
+    % keepProp defines the proportion of the lowest values to keep. If this is
+    % 0.25, for instance, the dimmest 25% of blocks are kept. 
     thresh = t(round(length(t)*settings.autoThresh.keepProp));
 
     % Make a matrix of zeros and ones defining which sqiares to keep and
     % then resize it to match the original image size.
     maskMatrix = imresize(imR<=thresh,size(im),'nearest');
     maskMatrix = cast(maskMatrix,class(im));
-
 
     % Mask out the bright pixels
     im = im .* maskMatrix;

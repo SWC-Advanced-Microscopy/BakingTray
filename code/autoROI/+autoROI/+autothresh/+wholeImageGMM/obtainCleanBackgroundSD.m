@@ -1,4 +1,4 @@
-function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
+function [SD,medbg,stats,origBGimage] = obtainCleanBackgroundSD(im,settings)
     % Calculate the SD and mean or median of the background
     %
     % function [SD,medbg,stats] = autoROI.autoThresh.wholeImageGMM.obtainCleanBackgroundSD(im,settings)
@@ -55,11 +55,14 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         end
 
         [BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
+        BG(isinf(BG))=0;
+
+        origBGimage = BG;
 
         BG = BG(:);
         BG(BG == -42) = [];
         BG(BG == 0) = [];
-        BG(isinf(BG)) = [];
+
 
         [SD,medbg,statsGMM] = gmmSD(BG);
     end
@@ -92,7 +95,7 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
         for ii=1:attempts
             try
                 %rng( sum(double('Uma wags on')) ); % For reproducibility
-                gm_f = fitgmdist(data,2,'Replicates',1,'Regularize', 0.3, 'Options',options);
+                gm_f = fitgmdist(data,1,'Replicates',1,'Regularize', 0.3, 'Options',options);
                 break % If we get here there was no error so we can carry on
             catch ME
                 fprintf('*******************   fitgmdist failed ****************\n')
@@ -108,7 +111,7 @@ function [SD,medbg,stats] = obtainCleanBackgroundSD(im,settings)
 
         if nargout>2
             stats.gm_f = gm_f;
-            x=linspace(-1000,2^15,2000);
+            x=linspace(-1000,2^13,2000);
             [n,x]=hist(data,x);
             stats.hist.x = x;
             stats.hist.n = n;
