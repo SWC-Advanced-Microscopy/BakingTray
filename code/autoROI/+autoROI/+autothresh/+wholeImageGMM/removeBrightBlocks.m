@@ -1,4 +1,4 @@
-function [im,stats] = removeBrightBlocks(im,settings)
+function [im,im_clean,stats] = removeBrightBlocks(im,settings)
     % Removes the brightest portions of an image
     %
     % function [im,stats] = autoROI.removeBrightBlocks(im,settings)
@@ -15,6 +15,7 @@ function [im,stats] = removeBrightBlocks(im,settings)
     %
     % Outputs
     % im - the image with bright pixels set to zero
+    % im_clean - the image as a vector that is cleaned and ready to be analysed
     % stats - more info to be used for debugging and logging
     %
     % Rob Campbell - SWC 2021
@@ -66,7 +67,14 @@ function [im,stats] = removeBrightBlocks(im,settings)
     % Mask out the bright pixels
     im = im .* maskMatrix;
 
-    if nargout>1
+    % Prepare the vector that we can work with for figuring out mean, SD, etc
+    im_clean = im(:);
+    im_clean(isinf(im_clean))=[];
+    im_clean(im_clean == -42)=[];
+    im_clean(im_clean == 0)=[];
+
+
+    if nargout>2
         stats.imR = imR;
     end
 end

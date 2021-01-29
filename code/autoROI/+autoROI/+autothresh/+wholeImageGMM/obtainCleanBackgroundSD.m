@@ -35,6 +35,13 @@ function [SD,medbg,stats,origBGimage] = obtainCleanBackgroundSD(im,settings)
         settings = autoROI.readSettings;
     end
 
+    stats = [] ;
+    origBGimage = [];
+
+    if any(isnan(im(:)))
+            fprintf('WARNING: obtainCleanBackgroundSD finds NaNs in image data.\n')
+        end
+
     method =  'dimmest_gmm'; %TODO -- add as an option or delete all other options and stick with just this (LATTER BETTER)
 
     switch method
@@ -50,31 +57,39 @@ function [SD,medbg,stats,origBGimage] = obtainCleanBackgroundSD(im,settings)
         [SD,medbg] = gmmSD(im);
     case 'dimmest_gmm'
         % Ensure no background pixels play a role in the calculation
-        if any(isnan(im(:)))
-            fprintf('WARNING: obtainCleanBackgroundSD finds NaNs in image data.\n')
-        end
-
-        [BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
-        BG(isinf(BG))=0;
-
-        origBGimage = BG;
-
-        BG = BG(:);
-        BG(BG == -42) = [];
-        BG(BG == 0) = [];
-
-
+        [origBGimage,BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
         [SD,medbg,statsGMM] = gmmSD(BG);
-    end
-
-
-    if nargout>2
         stats.statsBrightBlocks = statsBrightBlocks;
         stats.statsGMM = statsGMM;
+    case 'dimmest_simpleSD'
+        % Ensure no background pixels play a role in the calculation
+        [origBGimage,BG,statsBrightBlocks] = autoROI.autothresh.wholeImageGMM.removeBrightBlocks(im,settings);
+        stats.statsBrightBlocks = statsBrightBlocks;
+        [SD,medbg] = simpleSD(BG);
     end
+
+
 
     end
 
+    function [SD,medbg]= simpleSD(data)
+        data = single(data(:));
+
+        if any(isnan(data))
+            fprintf('WARNING: obtainCleanBackgroundSD.gmmSD finds NaNs in data.\n')
+        end
+
+        % Trim away the top few percent of data
+        thresh=max(data(:)) - range(data(:))*0.05;
+        if sum(data>thresh) < length(data)*0.05 
+            data(data>thresh)=[];
+        else
+            fprintf('simpleSD in obtainCleanBackgroundSD not trimming as too many data points will be removed.\n')
+        end
+
+        medbg = median(data);
+        SD = std(data);
+    end
 
     function [SD,mu,stats] =gmmSD(data)
 
