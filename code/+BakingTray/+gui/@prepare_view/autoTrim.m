@@ -40,7 +40,7 @@ function autoTrim(obj,~,~)
         obj.lastSliceThickness = tCut;
         obj.checkSliceThicknessEditBoxValue
 
-        success = obj.model.sliceSample(tCut);
+        success = obj.model.sliceSample(tCut,obj.lastCuttingSpeed);
         if ~success
             close(wF)
             return

@@ -6,11 +6,25 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+
+
+15th Jan 2020
+- User/super-user: scanner setting YAML can now set fast and slow offsets and also spatial fill fraction
+
+
+10th December 2020
+- User: On bake completion only a single Slack message is now sent.
+
+
 3rd December 2020
 - User MAJOR CHANGES: 
 BakingTray now has an "Auto-ROI" feature. This is documented at https://bakingtray.mouse.vision. 
 You will need to make changes to settings files for this to work! These are described here:
 - In MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
+
+
+** Install instructions for autoROI **
+- MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
 - In your default recipe which is to be loaded each time ensure you have "numOverlapZPlanes: 0.0" in the mosaic section 
 - You will likely to have to play with the fields in SIBT.setings.tileAcq until the preview image looks correct. 
   Make the changes permanent by editing the appropriate file in the SETTINGS directory. 

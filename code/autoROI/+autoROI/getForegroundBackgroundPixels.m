@@ -31,6 +31,8 @@ function imStats = getForegroundBackgroundPixels(im,pixelSize,borderPixSize,tThr
         BW = autoROI.binarizeImage(im,pixelSize,tThresh); 
     end
 
+    verbose=false;
+
     % Get foreground pixels and their stats
     foregroundPix = im(find(BW));
     imStats.foregroundPix = foregroundPix';
@@ -55,8 +57,10 @@ function imStats = getForegroundBackgroundPixels(im,pixelSize,borderPixSize,tThr
     fB=find(imStats.backgroundPix == -42);
     fF=find(imStats.foregroundPix == -42);
     if ~isempty(fB) || ~isempty(fF)
-        fprintf('autoROI.getForeGroundBackGroundPixels finds %d non-imaged test pixels from BakingTray dummyScanner. Removing them.\n', ...
-            sum(length(fB) + length(fF)) )
+        if verbose
+            fprintf('autoROI.getForeGroundBackGroundPixels finds %d non-imaged test pixels from BakingTray dummyScanner. Removing them.\n', ...
+                sum(length(fB) + length(fF)) )
+        end
 
         % Generate warning messages if there are no pixels left. 
         if length(fB) == length(imStats.backgroundPix)
@@ -74,8 +78,10 @@ function imStats = getForegroundBackgroundPixels(im,pixelSize,borderPixSize,tThr
     fB=find(imStats.backgroundPix == 0);
     fF=find(imStats.foregroundPix == 0);
     if ~isempty(fB) || ~isempty(fF)
-        fprintf('*** autoROI.getForeGroundBackGroundPixels finds %d pixels that did not have a tile placed in them. Removing them. ***\n', ...
-            sum(length(fB) + length(fF)) )
+        if verbose
+            fprintf('*** autoROI.getForeGroundBackGroundPixels finds %d pixels that did not have a tile placed in them. Removing them. ***\n', ...
+                sum(length(fB) + length(fF)) )
+        end
         % Generate warning messages if there are no pixels left. 
         if length(fB) == length(imStats.backgroundPix)
             fprintf('All background pixels are being removed. BAD!\n')

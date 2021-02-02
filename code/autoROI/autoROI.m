@@ -152,7 +152,7 @@ function varargout=autoROI(pStack, varargin)
 
     % If no threshold for segregating sample from background was supplied then calculate one
     % based on the pixels around the image border. This is only going to work for cases where
-    % there no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
+    % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
     if isempty(tThresh)
         %Find pixels within b pixels of the border
         b = borderPixSize;
@@ -163,12 +163,13 @@ function varargout=autoROI(pStack, varargin)
         borderPix(borderPix == -42) = [];
         borderPix(borderPix == 0) = [];
 
-        tThresh = median(borderPix) + std(borderPix)*tThreshSD;
+        SD_border = autoROI.obtainCleanBackgroundSD(borderPix);
+        tThresh = median(borderPix) + SD_border*tThreshSD;
         fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
             'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
          mfilename, tThresh, tThreshSD)
         fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median(borderPix), std(borderPix))
+            median(borderPix), SD_border)
     else
         fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
     end
@@ -210,7 +211,7 @@ function varargout=autoROI(pStack, varargin)
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
-            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
+            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
@@ -367,7 +368,7 @@ function varargout=autoROI(pStack, varargin)
 
     % Get the foreground and background pixel stats from the ROIs (not the whole image)
     out.roiStats(n).medianBackground = median([imStats.backgroundPix]);
-    out.roiStats(n).stdBackground = std([imStats.backgroundPix]);
+    out.roiStats(n).stdBackground = autoROI.obtainCleanBackgroundSD([imStats.backgroundPix]);
 
     out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
     out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
@@ -423,23 +424,29 @@ function varargout=autoROI(pStack, varargin)
             % Re-run autothresh on the current section with the current ROIs
             [tThreshSD,~,thresh]=autoROI.autothresh.run(pStack,[],[],out);
 
-            % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
-            % This means we have to remove the roiStats data we just added, because it's 
-            % going to need to be replaced with new numbers
-            out.roiStats(end)=[];
+            % Something went really wrong if there was a NaN happened
+            if ~isnan(tThreshSD)
+                % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
+                % This means we have to remove the roiStats data we just added, because it's 
+                % going to need to be replaced with new numbers
+                out.roiStats(end)=[];
 
-            out = autoROI(pStack, ...
-                    'doPlot', doPlot, ...
-                    'skipMergeNROIThresh', skipMergeNROIThresh, ...
-                    'showBinaryImages', showBinaryImages, ...
-                    'doBinaryExpansion', doBinaryExpansion, ...
-                    'settings', settings, ...
-                    'tThreshSD',tThreshSD, ...
-                    'tThresh',thresh,...
-                    'lastSectionStats',out);
+                out = autoROI(pStack, ...
+                        'doPlot', doPlot, ...
+                        'skipMergeNROIThresh', skipMergeNROIThresh, ...
+                        'showBinaryImages', showBinaryImages, ...
+                        'doBinaryExpansion', doBinaryExpansion, ...
+                        'settings', settings, ...
+                        'tThreshSD',tThreshSD, ...
+                        'tThresh',thresh,...
+                        'lastSectionStats',out);
 
-            % Log that we re-calculated on this section
-            out.roiStats(n).tThreshSD_recalc=true;
+                % Log that we re-calculated on this section
+                out.roiStats(n).tThreshSD_recalc=true;
+            else
+                fprintf('The recalc of tThreshSD failed. It returned Nan\n')                
+            end
+
         end
     end
 

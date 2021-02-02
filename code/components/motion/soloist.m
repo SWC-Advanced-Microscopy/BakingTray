@@ -4,14 +4,24 @@ classdef soloist < linearcontroller
 %
 % All abstract methods should (where possible) have doc text only in the abstract method class file.
 %
+% Purpose
+% Control Aerotech stages via the Soloist controller. This class has been
+% tested with the Soloist MP using Ethernet connection. It is suggested
+% you set up a second ethernet port on the PC and connect directly via
+% that. See below for details.
 %
-% To use soloist, install the Aerotech support files that came with your device. You should
-% ensure you ask Aerotech to supply the MATLAB libraries with the product. 
+%
+% SETUP
+% To use the soloist class, install the Aerotech support files from the install 
+% medium that came with your device. You should ensure you ask Aerotech to supply the 
+% MATLAB libraries with the product. 
+% In the Windows Defender firewall you will need to allow MATLAB to
+% communicate over both public and private networks. 
 %
 %
 % Examples
 % %% Make a stage and attach it to the controller object
-% >> STAGE = AVS_100_25;
+% >> STAGE = generic_AeroTechZJack;
 % >> STAGE.axisName='someName'; %Does not matter for this toy example
 % >> SOLO = soloist(STAGE); %Create  control class
 %
@@ -19,17 +29,21 @@ classdef soloist < linearcontroller
 % >> controllerID.interface='ethernet';
 % >> controllerID.ID= '613880-1-1'; %The controller name
 %
+% Now we are ready to communicate with the device and connect to it:
+%
+% >> SOLO.connect(controllerID)
+%
+%
+% Ethernet connection
 % If you wish to connect to the Soloist directly from a spare ethernet port on the PC
 % then you need to ensure that the ethernet card and the Soloist are on the same sub-net. 
 % E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the 
 % IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the 
 % card could be 127.0.0.1. IP addresses can't be the same. You can manually set this stuff
 % under the network properties in Windows.  
+% You can see the IP address of the card by running ipconfig in the Windows
+% command prompt.
 %
-% Now we are ready to communicate with the device and connect to it:
-%
-% >> SOLO.connect(controllerID)
-
 
     properties
       % The following are inherited properties from linearcontroller
@@ -107,12 +121,14 @@ classdef soloist < linearcontroller
             return
           end
 
-          H = SoloistConnect;
-
-          if isempty(H)
-            fprintf('Failed to find a Soloist\n');
-            success=false;
-            return
+          try
+              H = SoloistConnect;
+          catch ME
+              H=[];
+              fprintf('Failed to find a Soloist: %s\n', ME.message);
+              success=false;
+              
+             return
           end
 
           if length(H)>1
@@ -304,6 +320,8 @@ classdef soloist < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % get or set speed and acceleration settings
         function velocity = getMaxVelocity(obj)
+            % The velocity is read from the stage class and applied each 
+            % time a motion command is requested
             ready=obj.isAxisReady;
             if ~ready
               velocity=[];
@@ -330,11 +348,11 @@ classdef soloist < linearcontroller
             obj.attachedStage.maxVelocity = velocity;
         end
 
-        function velocity = getInitialVelocity(obj)
+        function velocity = getInitialVelocity(~)
             velocity=0;
         end
 
-        function success = setInitialVelocity(obj, velocity)
+        function success = setInitialVelocity(~, ~)
           %This can't be set
           success = false;
         end
@@ -370,11 +388,11 @@ classdef soloist < linearcontroller
               fprintf('Unable to enable axis. It is reported as not being ready\n')
               return
             end
-
+            
+            SoloistAcknowledgeAll(obj.hC) % Wipe any errors
             SoloistMotionEnable(obj.hC)
-            success = obj.readAxisBit(1)
+            success = obj.readAxisBit(1);
 
-            success=true;
         end %enableAxis
 
 
@@ -390,6 +408,9 @@ classdef soloist < linearcontroller
 
 
         function success = referenceStage(obj)
+          if obj.isStageReferenced
+              return
+          end
           SoloistMotionHome(obj.hC)
           success=obj.isStageReferenced;
         end
@@ -415,25 +436,31 @@ classdef soloist < linearcontroller
 
 
         function success = addAerotechLibsToPath(obj)
-            % Add the Aerotech MATLAB libraries to the path if needed
+            % This method adds the Aerotech MATLAB libraries to the path if needed
+            
+            % If the libraries are present we do nothing
             if obj.aerotechLibsPresent
-              success=true;
+                success=true;
                 return
             end
-
-            if exist(obj.aerotechLibPath,'dir')
-                fprintf('CAN NOT FIND AEROTECH MATLAB LIBRARIES AT: %s\n',obj.addAerotechLibsToPath)
+            
+            if ~exist(obj.aerotechLibPath,'dir')
+                % If the path is missing then we can't add it so bail out
+                fprintf('CAN NOT FIND AEROTECH MATLAB LIBRARIES AT PATH: %s\n',obj.aerotechLibPath)
                 success=false;
-                return
+            else
+                addpath(obj.aerotechLibPath)
             end
-  
-            if ~obj.aerotechLibsPresent
-                fprintf('AEROTECH LIBRAY PATH DOES NOT CONTAIN EXPECTED FUNCTIONS AT: %s\n',obj.addAerotechLibsToPath)
+            
+            % Confirm we have access to the libraries
+            if ~exist(obj.solistConnectFunctionName,'file')
+                % Otherwise the path exists but somehow the connect
+                % function is missing
+                fprintf('AEROTECH LIBRAY PATH DOES NOT CONTAIN EXPECTED FUNCTIONS AT: %s\n',obj.aerotechLibPath)
                 success=false;
-                return
+            else
+                success=true;
             end
-
-            success=true;
         end %addAerotechLibsToPath
 
 
@@ -450,12 +477,69 @@ classdef soloist < linearcontroller
 
 
         function tBit = readAxisBit(obj,bitToRead)
-            % Reads axis status bit and returns as a number (1 or 0)
+            % Read an axis status bit
+            %
+            %  tBit = readAxisBit(obj,bitToRead)
+            %
+            % Purpose
+            % The status of the axis is stored as a binary word. Each bit
+            % refers to a different thing. This function reads the binary 
+            % word and returns the value of the bit specified by the user 
+            % via the input argument "bitToRead". 
+            %
+            % Inputs
+            % bitToRead - a scalar defining which  bit to read. The values
+            %             of the identities of the bits are in
+            %             SoloistAxisStatus.
+            %
+            % Outputs
+            % tBit - the value of the desired bit (0 or 1)
+            
             bitToRead = bitToRead-1;
             binWord = dec2bin(SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisStatus')));
             tBit = str2num(binWord(end-bitToRead));
         end % readAxisBit
 
+        function faultString = readAxisFault(obj)
+            % Reads the identity of the axis fault condition and returns as a string
+            %
+            %  faultString = readAxisFault(obj)
+            %
+            % Purpose
+            % Return the fault state as a string. 
+            %
+            % Outputs
+            % faultString - the current fault state as a string. If there
+            % is no fault 'None' is returned.
+            
+            faultNumber = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisFault'));
+            faultEnum = SoloistAxisFault(faultNumber);
+            faultString = char(faultEnum);
+        end % readAxisFault
+
+
+        function temperature = returnAmplifierTemperature(obj)
+            % Return the temperature of the amplifier in degrees C
+            %
+            % temperature = returnAmplifierTemperature
+            %
+            % Inputs - none
+            % Outputs - a scalar. Temp in degrees C
+            temperature = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AmplifierTemperature'));
+        end %returnAmplifierTemperature
+
+
+        function posError = returnPositionError(obj)
+            % Return the position error: difference between actual and commanded position
+            %
+            % posError = returnPositionError
+            %
+            % Inputs - none
+            % Outputs - Position error (unknown unit)
+            posError = SoloistStatusGetItem(obj.hC, SoloistStatusItem('PositionError'));
+        end %returnPositionError
+        
+        
     end % Hidden methods
 
 

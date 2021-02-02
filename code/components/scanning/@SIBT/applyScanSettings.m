@@ -47,6 +47,7 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
 
 
+
     % Attempt to read the meta-data from the last saved directory to apply other settings not in the
     % recipe file. 
     rawDataDir=fullfile(obj.parent.sampleSavePath,obj.parent.rawDataSubDirName);

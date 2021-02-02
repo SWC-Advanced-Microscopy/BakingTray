@@ -19,6 +19,7 @@ function bakeCleanupFun(obj)
     obj.lastTilePos.X=0;
     obj.lastTilePos.Y=0;
 
+    slack_msg = ''; % So by default no Slack message is sent unless one is assigned, below.
 
     if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
@@ -26,8 +27,10 @@ function bakeCleanupFun(obj)
         % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
-            obj.slack(sprintf('Acquisition of %s finished after %d sections.', ...
-                obj.recipe.sample.ID, obj.currentSectionNumber))
+            %The message we will build to send to Slack
+            slack_msg = sprintf('Acquisition of %s finished after %d sections.\n', ...
+                obj.recipe.sample.ID, obj.currentSectionNumber);
+
         else
             fprintf('Not sending Slack message because only %d sections completed, which is less than threshold of %d\n',...
                 obj.currentSectionNumber, minSections)
@@ -41,11 +44,11 @@ function bakeCleanupFun(obj)
             if ~isa(obj.laser,'dummyLaser')
                 pause(10) %it takes a little while for the laser to turn off
             end
-            msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
+            laser_msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
             if obj.currentSectionNumber>minSections
-                obj.slack(msg)
+                slack_msg = [slack_msg, laser_msg];
             end
-            obj.acqLogWriteLine(msg);
+            obj.acqLogWriteLine(laser_msg);
         end
     else 
         % So we can report to screen if this is reset
@@ -57,12 +60,17 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=false;
     end
 
+    % Send the Slack message with optional laser message (see laser_msg above)
+    obj.slack(slack_msg)
+    
     %Reset these flags or the acquisition will not complete next time
+    fprintf('resetting abort flags\n')
     obj.abortAfterSectionComplete=false;
     obj.abortAcqNow=false;
 
 
     % Must run this last since turning off the PMTs sometimes causes a crash
+    fprintf('Tearing down scanner\n')
     obj.scanner.tearDown
 
     % Move the X/Y stage to a nice finish postion, ready for next sample
@@ -78,8 +86,6 @@ function bakeCleanupFun(obj)
     obj.currentSectionNumber=1;
     obj.autoROI=[]; % Ensure these stats are never applied to another session
 
-    % Return to manual ROI mode
-    obj.recipe.mosaic.scanmode = 'tiled: manual ROI';
 
     % Ensure all tiles will be imaged next time around:
     obj.recipe.mosaic.tilesToRemove=[];

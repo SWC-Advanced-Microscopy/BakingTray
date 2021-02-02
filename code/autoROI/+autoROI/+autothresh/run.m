@@ -75,9 +75,18 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
 
         % Re-run autoROI to obtain a tThresh
         pStack.imStack=origIM;
-        out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',true);
 
-        tThresh = out.roiStats.tThresh;
+        % There is a small possibility that tThreshSD is Nan. This happened once
+        % when there was very little sample left and the acquisition should have
+        % just finished. We try to catch this here
+        if ~isnan(tThreshSD)
+            out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',true);
+            tThresh = out.roiStats.tThresh;
+        else
+            fprintf('autoThresh.run returned a Nan value for tThreshSD\n')
+            tThresh = nan;
+        end
+
         stats=[];
         fprintf('DID SUB-ROIS!\n')
         return
@@ -204,31 +213,6 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
         %Now sort just to be sure
         [tThreshSD_vec,ind] = sort([stats.tThreshSD],'ascend');
         stats = stats(ind);
-
-        %[findsAgar,stats] = autoROI.autothresh.isThreshTreatingAgarAsSample(stats,tileSize,voxSize);
-        findsAgar=false;
-        if any(findsAgar)
-            tF = find(findsAgar);
-            fprintf(' ** DELETED FIRST %d entries up to tThreshSD = %0.2f because we see tiling artifacts there. **\n', ...
-             tF(end), stats(tF(end)).tThreshSD )
-
-            stats(1:tF(end))=[];
-
-            % TODO: this sort of thing needs to be more formally logged. To a file or something like that. 
-            if length(stats)==0
-                fprintf(' ** VERY BAD: after removing thresholds due to tiling artifacts there are no more threshold values.\n')
-            end
-
-            % If we have very few threshold values left, we choose a slightly larger range.
-            if length(stats)<5 && settings.autoThresh.allowMaxExtensionIfFewThreshLeft
-                newMaxThresh = maxThresh+5;
-                if maxThresh < settings.autoThresh.maxThreshold*4 % to avoid infinite recursion
-                    fprintf('TOO FEW THRESHOLDS: DOING ANOTHER RUN UP TO NEW MAXTHRESH OF %d\n',newMaxThresh)
-                    stats=calcStatsFromThreshold(minThresh);
-                    [~,stats]=getThreshAlg(stats,newMaxThresh);
-                end
-            end
-        end
 
 
         % If the median SNR is low, we get rid tThresh values above 8
