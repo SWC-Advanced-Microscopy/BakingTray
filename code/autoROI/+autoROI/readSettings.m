@@ -92,7 +92,7 @@ function settings = readSettings(readFromYaml)
 
         % Settings for wholeImageGMM
         settings.autoThresh.keepProp=0.3; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
-        settings.autoThresh.useBackgroundMask=false; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
+        settings.autoThresh.useBackgroundMask=true; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
         settings.autoThresh.skipMergeNROIThresh=5;
 
         % Settings for borderNumROI 

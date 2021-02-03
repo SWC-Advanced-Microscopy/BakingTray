@@ -217,9 +217,13 @@ function varargout=autoROI(pStack,lastSectionStats,varargin)
         % If useBackgroundMask is true we use only the pixels identified as background to 
         % calculate the SD of the background. Otherwise it uses the dimmest blocks of the 
         % whole image. It turns out that the latter generally works better. 
-        if settings.autoThresh.useBackgroundMask && propBackground>0.1
+        bgThresh=0.05;
+        if settings.autoThresh.useBackgroundMask && propBackground>=bgThresh
             settings.autoThresh.keepProp=1;
             [tThresh,statsSD] = autoROI.autoThresh(imForThresh.*containsNoSampleMask,settings);
+        elseif settings.autoThresh.useBackgroundMask && propBackground<bgThresh
+            fprintf('\n--> ASKED FOR BACKGROUND MASK BUT BACKGROUND TOO SMALL!\n')
+            [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings); % TODO: temp solution
         else
             [tThresh,statsSD] = autoROI.autoThresh(imForThresh,settings);
         end
