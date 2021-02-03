@@ -94,7 +94,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     for ii=length(stats):-1:1
         stats(ii).BoundingBox(1:2) = round(stats(ii).BoundingBox(1:2));
         stats(ii).BoundingBox(stats(ii).BoundingBox==0)=1;
-        if stats(ii).Area < sizeThresh;
+        if stats(ii).Area < sizeThresh
             %%fprintf('Removing small ROI of size %d\n', stats(ii).Area)
             stats(ii)=[];
         end
