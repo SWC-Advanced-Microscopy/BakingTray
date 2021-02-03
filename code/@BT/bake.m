@@ -125,15 +125,12 @@ function sectionInd = bake(obj,varargin)
         obj.populateCurrentTilePattern;
         fprintf('Starting auto-ROI acquisition with a grid of %d tiles\n', ...
             length(obj.currentTilePattern))
-        fprintf('\nDONE\n')
         % Write the auto-ROI parameters as a yaml file in the sample directory
-        yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings)
+        BakingTray.yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings);
 
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         obj.populateCurrentTilePattern;
-
     end
-
 
     % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise). 
     obj.completeAcquisitionOnBakeLoopExit=true;
