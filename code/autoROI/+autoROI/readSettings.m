@@ -92,10 +92,10 @@ function settings = readSettings(readFromYaml)
 
         % Settings for wholeImageGMM
         settings.autoThresh.keepProp=0.3; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
-        settings.autoThresh.useBackgroundMask=true; %Used in autoROI.autoThresh.wholeImageGMM.removeBrightBlocks
-        settings.autoThresh.skipMergeNROIThresh=5;
+        settings.autoThresh.useBackgroundMask=false; %Used in autoROI.m
 
         % Settings for borderNumROI 
+        settings.autoThresh.skipMergeNROIThresh=5;
         settings.autoThresh.doBinaryExpansion=false;
         settings.autoThresh.minThreshold=2;
         settings.autoThresh.maxThreshold=12; %Increasing this produces larger ROIs but at the risk of some ballooning and flowing outside of the FOV
