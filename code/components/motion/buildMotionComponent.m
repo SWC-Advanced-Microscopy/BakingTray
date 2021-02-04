@@ -103,7 +103,13 @@ switch controllerName
         end
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
-
+    case 'ensemble'
+        stage=generic_AeroTechZJack;
+        stage.axisName = varargin{1,2}.axisName;
+        component = ensemble(stage);
+%         component = eval([controllerName,'(stageComponents)']);
+        controllerID = controllerParams.connectAt;
+        component.connect(controllerID);
     case 'soloist'
         stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
