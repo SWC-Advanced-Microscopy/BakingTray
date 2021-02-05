@@ -7,6 +7,7 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+
 4th Feb 2021
 - DEVELOPER - saved autoROI stats for logging now contain the image and binary mask used for each section
 
@@ -23,6 +24,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - User: On bake completion only a single Slack message is now sent.
 
 
+3rd December 2020
+- User MAJOR CHANGES: 
+BakingTray now has an "Auto-ROI" feature. This is documented at https://bakingtray.mouse.vision. 
+You will need to make changes to settings files for this to work! These are described here:
+- In MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
+
+
 ** Install instructions for autoROI **
 - MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
 - In your default recipe which is to be loaded each time ensure you have "numOverlapZPlanes: 0.0" in the mosaic section 
@@ -30,7 +38,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
   Make the changes permanent by editing the appropriate file in the SETTINGS directory. 
 - Update stitchit ini file. IMPORTANT: this includes the stitched image UD and LR flips. Ensure the final stitched images
   aren't flipped compared to BakingTray! 
-- The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
+- In StitchIt the TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file in StitchIt for an example. 
+https://github.com/SainsburyWellcomeCentre/StitchIt/blob/master/code/INI/stitchitConf_DEFAULT.ini
+
+- Other changes: Numerous bugfixes and small improvements. 
+The changes in this merge commit encompass all the following starting from about Nov 2019. 
+
+
 
 22nd September 2020
 - dev - stage boundaries overlaid on preview image
