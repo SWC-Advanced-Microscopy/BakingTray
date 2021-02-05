@@ -127,7 +127,7 @@ function sectionInd = bake(obj,varargin)
             length(obj.currentTilePattern))
         fprintf('\nDONE\n')
         % Write the auto-ROI parameters as a yaml file in the sample directory
-        yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings)
+        BakingTray.yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings)
 
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         obj.populateCurrentTilePattern;

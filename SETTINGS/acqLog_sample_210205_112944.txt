@@ -1,0 +1,7 @@
+2021/02/05 15:54:47 -- STARTING NEW ACQUISITION
+Writing to volume C: which has 1749/1862 GB free
+Using laser: dummy_laser
+Acquiring with: ScanImage v5.6.1 on MATLAB 9.6.0.1072779 (R2019a)
+Using BakingTray version 724c6066f0cf0e9878adfa8dd1e46cb6195b9365 from branch prerelease
+Setting laser watchdog timer to 2400 seconds
+Laser will not be turned off because the leaveLaserOn flag is set to true
