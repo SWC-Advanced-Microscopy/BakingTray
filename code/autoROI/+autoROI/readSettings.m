@@ -33,7 +33,7 @@ function settings = readSettings(readFromYaml)
         settingsFname = fullfile( fileparts(mfilename('fullpath')), 'settings.yml');
 
         if exist(settingsFname,'file')
-            settings = yaml.ReadYaml(settingsFname);
+            settings = BakingTray.yaml.ReadYaml(settingsFname);
         end
 
         if ~isempty(settings)
@@ -41,7 +41,7 @@ function settings = readSettings(readFromYaml)
         else
             % read defaults and write to file
             settings = returnSettings;
-            yaml.WriteYaml(settingsFname,settings);
+            BakingTray.yaml.WriteYaml(settingsFname,settings);
         end
     else
         settings = returnSettings;
