@@ -51,7 +51,6 @@ function loadRecipe(obj,~,~)
         thisRecipe=BakingTray.settings.readRecipe(fullPath);
 
         tileOptions = obj.recipeEntryBoxes.other{1}.UserData;
-        currentTileSize = obj.model.recipe.Tile;
         pixLin = [tileOptions.pixelsPerLine];
         linFrm = [tileOptions.linesPerFrame];
         zmFact = [tileOptions.zoomFactor];
