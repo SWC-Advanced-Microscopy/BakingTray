@@ -21,6 +21,7 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.micronsBetweenOpticalPlanes = obj.hC.hStackManager.stackZStepSize;
     scanSettings.numOpticalSlices = obj.hC.hStackManager.numSlices;
     scanSettings.zoomFactor = obj.hC.hRoiManager.scanZoomFactor;
+    scanSettings.objectiveResolution = obj.hC.objectiveResolution;
 
     % Detailed scan settings
     scanSettings.scannerType = obj.hC.hScan2D.scannerType;

@@ -55,7 +55,7 @@ function applyScanSettings(obj,scanSettings)
     % The fill fraction affects scan angle size so we must set it before altering the 
     % scanner multipliers and offsets
     obj.hC.hScan2D.fillFractionSpatial = scanSettings.fillFractionSpatial;
-
+    obj.hC.objectiveResolution = scanSettings.objectiveResolution;
 
     % Set the scan angle multipliers. This is likely only critical if 
     % acquiring rectangular scans.
