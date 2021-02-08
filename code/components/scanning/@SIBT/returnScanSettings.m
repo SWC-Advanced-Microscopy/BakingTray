@@ -7,6 +7,13 @@ function scanSettings = returnScanSettings(obj)
     % Read scanner settings from ScanImage and returns as a structure.
     % This needs to be sufficiently detailed to allow acquisitions to be 
     % resumed. 
+    %
+    % See also: SIBT.doScanSettingsMatchRecipe
+    %
+    % NOTE: changes to this file may require changes to --
+    %    SIBT.doScanSettingsMatchRecipe
+    %    SIBT.applyScanSettings
+    %    recipe.recordScannerSettings (possibly)
 
     % Tile size, zoom, and the number of optical planes
     scanSettings.pixelsPerLine = obj.hC.hRoiManager.pixelsPerLine;
