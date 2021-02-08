@@ -426,8 +426,9 @@ classdef SIBT < scanner
         end % versionGreaterThan
 
 
-        function sr = generateSettingsReport(obj)
-
+        function st = generateSettingsReport(obj)
+            % TODO -- this method is not used by anything and seems 
+            % unfinished. Delete?
             % Bidirectional scanning
             n=1;
             st(n).friendlyName = 'Bidirectional scanning';
@@ -446,7 +447,7 @@ classdef SIBT < scanner
                 % distract the user with stuff that doesn't matter;
                 suggested = obj.hC.hBeams.pzAdjust;
             end
-            st(n).suggestedVal = suggested
+            st(n).suggestedVal = suggested;
 
         end % generateSettingsReport
 
@@ -477,7 +478,6 @@ classdef SIBT < scanner
             if exist(frameSizeFname, 'file')
                 tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
                 tFields = fields(tYML);
-                popUpText={};
                 for ii=1:length(tFields)
                     tSet = tYML.(tFields{ii});
 
@@ -549,7 +549,7 @@ classdef SIBT < scanner
         end % readFrameSizeSettings
 
 
-        function nFrames = getNumAverageFrames(obj);
+        function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
         end % getNumAverageFrames
 
