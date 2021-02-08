@@ -28,6 +28,11 @@ function loadRecipe(obj,~,~)
         end
     end
 
+    % Do nothing if the user presses cancel or closes the window
+    if strcmpi(reply,'cancel') || isempty(reply)
+        return
+    end
+
     % NOTE - if the recipe is attached using the API (the model) then it will not trigger
     % detach and attach of the listeners and so the GUI will stop updating:
     % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
