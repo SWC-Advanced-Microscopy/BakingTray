@@ -275,6 +275,11 @@ classdef SIBT < scanner
         end %maxChannelsAvailable
 
 
+        function chanNames = getChannelNames(obj,~,~)
+            chanNames = obj.hC.hPmts.names;
+        end % getChannelNames
+
+
         function theseChans = getChannelsToAcquire(obj,~,~)
             % This is also a listener callback function
             if obj.verbose

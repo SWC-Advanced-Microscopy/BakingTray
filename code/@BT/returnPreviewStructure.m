@@ -16,8 +16,16 @@ function pStack = returnPreviewStructure(obj)
 
     im = squeeze(mean(obj.lastPreviewImageStack,3)); % Average depths
 
-    % Get the channel with the highest median if no channel was requested
-    chanToKeep = determineChannelWithHighestSNR(im);
+    % We need to choose which channel to keep and use for the autoROI. 
+    % We ideally want the channel acquiring the longest wavelenth data. 
+    % This is because agar autofluoresces a lot in blue at 2p excitation
+    % wavelengths shorter than about 840 nm. To choose the right channel 
+    % we need the channels named in ScanImage. If that is not the case, 
+    % then we get the channel with the highest median.
+    chanToKeep = getLongestWavelength(obj.scanner.getChannelNames,obj.scanner.getChannelsToAcquire);
+    if isempty(chanToKeep)
+        chanToKeep = determineChannelWithHighestSNR(im);
+    end
 
     im = im(:,:,chanToKeep);
 
@@ -56,7 +64,7 @@ end
 
 
 
-% Non-nested internal functions folloe
+% Non-nested internal functions follow
 function chan = determineChannelWithHighestSNR(im)
     % Determine the plane with the largest range, which we treat as being that with the highest SNR. 
     %
@@ -89,3 +97,43 @@ function chan = determineChannelWithHighestSNR(im)
     [~,chan] = max(chanRange);
 
 end
+
+function chan = getLongestWavelength(chanNames,chansToAcquire)
+    % Use a cell array of channel names being acquirred to figure out which
+    % channel is the longest wavelength. Returns empty if the
+    % channel names are not informative enough for this.
+    % Do not return the far red channel as this has very little
+    % sample autofluorescence. 
+    % This method expects channels to be named: "Far Red", "Red", "Green", and "Blue"
+    % Not all are needed but only those strings are expected. Case insensitive.
+    %
+    % Inputs
+    % chanNames - the names of the channels that are available
+    % chansToAcquire - vector indicating which indexes in chanNames are being e.g. [3,4]
+    %
+    % Outputs
+    % chan - the channel in that list which is the lowest wavelength
+
+    chan = [];
+    chanNames = lower(chanNames);
+    chanNamesAcq = chanNames(chansToAcquire);
+
+    preferredChanOrder = {'red','green','blue'};
+
+    for ii=1:length(preferredChanOrder)
+        tChan = preferredChanOrder{ii};
+        ind = strmatch(tChan,chanNamesAcq);
+        if ~isempty(ind)
+            chan = chansToAcquire(ind);
+            fprintf('Choosing channel %d (%s) for autoROI\n', chan, tChan)
+            break
+        end
+    end
+
+    if isempty(chan)
+        fprintf('\nBT.returnPreviewStructre Failed to base channel to keep on wavelength\n')
+    end
+
+end
+
+
