@@ -45,7 +45,9 @@ function loadRecipe(obj,~,~)
         % Resumption is slow at first so indicate to the user that stuff is happening
 
         % Attempt to resume the acquisition 
-        % First we set the tile size in the GUI to what is in the recipe
+        % First we set the tile size in the GUI to what is in the recipe. The following is 
+        % rather a hack. It would be better that each set of scan settings has a label
+        % and then we set it to that label or index.
         thisRecipe=BakingTray.settings.readRecipe(fullPath);
 
         tileOptions = obj.recipeEntryBoxes.other{1}.UserData;

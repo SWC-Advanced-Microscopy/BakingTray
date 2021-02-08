@@ -8,7 +8,6 @@ function scanSettings = returnScanSettings(obj)
     % This needs to be sufficiently detailed to allow acquisitions to be 
     % resumed. 
 
-    
     % Tile size, zoom, and the number of optical planes
     scanSettings.pixelsPerLine = obj.hC.hRoiManager.pixelsPerLine;
     scanSettings.linesPerFrame = obj.hC.hRoiManager.linesPerFrame;
@@ -27,7 +26,7 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.pixelBinFactor = obj.hC.hScan2D.pixelBinFactor;
     scanSettings.sampleRate = obj.hC.hScan2D.sampleRate;
     scanSettings.fillFractionSpatial = obj.hC.hScan2D.fillFractionSpatial;
-    
+
     % FOV in microns
     imagingFovUm = obj.hC.hRoiManager.imagingFovUm;
     scanSettings.FOV_alongColsinMicrons = round(range(imagingFovUm(:,1)),3);
@@ -53,5 +52,3 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.scanMode = obj.scannerType; %resonant or linear
     scanSettings.scannerID = obj.scannerID;
     scanSettings.version = obj.getVersion;
-
-
