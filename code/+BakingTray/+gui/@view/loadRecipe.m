@@ -12,7 +12,14 @@ function loadRecipe(obj,~,~)
     fullPath = fullfile(absPath,fname);
 
     %Does this path already contain an acquisition?
+    obj.button_recipe.String='LOADING';
+    obj.button_recipe.ForegroundColor='r';
+    drawnow 
+    disp('Looking for acquisition')
     details = BakingTray.utils.doesPathContainAnAcquisition(absPath);
+    obj.button_recipe.String='Recipe';
+    obj.button_recipe.ForegroundColor='k';
+    
     doResume=false;
     if isstruct(details)
         reply=questdlg(sprintf('Resume acquisition in %s?',absPath),'');
@@ -25,15 +32,13 @@ function loadRecipe(obj,~,~)
     % detach and attach of the listeners and so the GUI will stop updating:
     % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
     % This is never going to happen in normal use. 
-
+    reply
     obj.detachRecipeListeners;
     if ~doResume
         % Just load as normal
         success = obj.model.attachRecipe(fullPath);
     else
         % Resumption is slow at first so indicate to the user that stuff is happening
-        obj.button_recipe.String='LOADING';
-        obj.button_recipe.ForegroundColor='r';
 
         % Attempt to resume the acquisition 
         % First we set the tile size in the GUI to what is in the recipe
@@ -61,9 +66,6 @@ function loadRecipe(obj,~,~)
 
         % Now we do the resumption
         success = obj.model.resumeAcquisition(fullPath);
-
-        obj.button_recipe.String='Recipe';
-        obj.button_recipe.ForegroundColor='k';
     end
 
     if success
