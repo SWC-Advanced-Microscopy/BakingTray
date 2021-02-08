@@ -51,10 +51,17 @@ function loadRecipe(obj,~,~)
         obj.updateStatusText
         
         % Now we do the resumption
-        success = obj.model.resumeAcquisition(fullPath);
+        [success,msg] = obj.model.resumeAcquisition(fullPath);
+        if ~isempty(msg)
+            msg = [sprintf('Scan settings not set correctly!\n'), msg];
+            msg = [msg, sprintf('\nCORRECT THESE MANUALLY BEFORE CARRYING ON!')];
+            warndlg(msg)
+        end
     end
 
     if success
+        % The following will run even if the scanner settings did not
+        % set correctly. 
         obj.connectRecipeListeners
         obj.updateAllRecipeEditBoxesAndStatusText
         obj.updateRecipeFname

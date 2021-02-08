@@ -5,9 +5,12 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     %
     % Purpose
     % Check all scan settings in the supplied recipe and confirm whether the scanner matches them.
+    % IMPORTANT -- you can not feed in hBT.recipe, as this reads the
+    % scanner settings from ScanImage each time these are accessed and
+    % so this method always returns true. 
     %
     % Inputs
-    % thisRecipe - a recipe object
+    % thisRecipe - path to a recipe file or a structure containing a recipe.a recipe object
     %
     % Outputs
     % success - true if everything matches. false otherwise
@@ -16,9 +19,23 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     %
     % See also: SIBT.applyScanSettings, recipe.recordScannerSettings
 
-
-    success = true;
     msg = '';
+    success=false;
+
+    if isa(thisRecipe,'recipe')
+        fprintf('thisRecipe must be a structure or a path to a recipe file\n')
+        return
+    end
+    
+    if isstr(thisRecipe)
+        fname = thisRecipe;
+        if exist(fname,'file')
+            thisRecipe = BakingTray.yaml.ReadYaml(fname);
+        else
+            fprintf('Can not read recipe %s\n', fname)
+            return
+        end
+    end
 
     sSet = thisRecipe.ScannerSettings;
 
@@ -41,6 +58,7 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     msg = [msg, checkSetting(sSet.pixelBinFactor, obj.hC.hScan2D.pixelBinFactor, 'Pixel bin factor')];
     msg = [msg, checkSetting(sSet.sampleRate, obj.hC.hScan2D.sampleRate, 'Sample rate')];
     msg = [msg, checkSetting(sSet.fillFractionSpatial, obj.hC.hScan2D.fillFractionSpatial, 'Spatial fill fraction')];
+    msg = [msg, checkSetting(sSet.objectiveResolution, obj.hC.objectiveResolution, 'Objective resolution')];
 
     % FOV in microns
     %imagingFovUm = obj.hC.hRoiManager.imagingFovUm;
@@ -53,8 +71,7 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     % Useful to know but we don't use this for applying settings
     %sSet.framePeriodInSeconds = round(1/obj.hC.hRoiManager.scanFrameRate,3);
 
-    % Which channels to save and whether to average
-    msg = [msg, checkSetting(sSet.activeChannels, obj.hC.hChannels.channelSave, ' ')];
+    % Whether to average
     msg = [msg, checkSetting(sSet.averageEveryNframes, obj.hC.hDisplay.displayRollingAverageFactor, ' ')];
 
     % Beam power
@@ -63,8 +80,10 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     msg = [msg, checkSetting(sSet.beamPowerLengthConstant, obj.hC.hBeams.lengthConstants, 'Length constant')]; % The length constant used for ramping power
 
 
-    if isempty(msg)
+    if ~isempty(msg)
         success=false;
+    else
+        success = true;
     end
 
 
@@ -76,7 +95,9 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
 function msg = checkSetting(inRecipe,inScanner,settingsName)
     % Check if settings match and if not write a message string
     % msg is empty if there is a match
-    if inRecipe == inScanner
+    
+
+    if isequal(inRecipe,inScanner)
         msg = '';
         return
     end
@@ -87,12 +108,12 @@ function msg = checkSetting(inRecipe,inScanner,settingsName)
     if mod(inRecipe,1)==0
         msg = sprintf('%s Recipe=%d',msg,inRecipe);
     else
-        msg = sprintf('%s Recipe=%0.3f',msg,inRecipe);
+        msg = sprintf('%s Recipe=%0.4f',msg,inRecipe);
     end
 
     if mod(inScanner,1)==0
-        msg = sprintf('%s Recipe=%d\n',msg,inScanner);
+        msg = sprintf('%s Scanner=%d\n',msg,inScanner);
     else
-        msg = sprintf('%s Recipe=%0.3f\n',msg,inScanner);
+        msg = sprintf('%s Scanner=%0.4f\n',msg,inScanner);
     end
 

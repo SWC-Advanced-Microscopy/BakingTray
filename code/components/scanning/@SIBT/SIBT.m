@@ -573,6 +573,7 @@ classdef SIBT < scanner
         setImageSize(obj,pixelsPerLine,evnt)
         moveFastZTo(obj,targetPositionInMicrons)
         applyZstackSettingsFromRecipe(obj)
+        [success,msg] = doScanSettingsMatchRecipe(obj,tRecipe)
     end %Close SIBT methods in external files
 
 
