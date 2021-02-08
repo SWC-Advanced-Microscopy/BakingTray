@@ -124,8 +124,7 @@ function success = getNextROIs(obj)
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
-    doPlot=false; % If true we plot the output of autoROI and pause after the plot. This is for
-                  % debugging purposes only. 
+    doPlot=false; % If true we plot the output of autoROI and pause. This is for debugging purposes only so set to false
     if doPlot
         figure(999)
     end
