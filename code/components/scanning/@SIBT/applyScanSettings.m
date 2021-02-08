@@ -98,7 +98,7 @@ function applyScanSettings(obj,scanSettings)
     TMP=scanimage.util.opentif(fullfile(lastSectionDir,tiffs(1).name));
     hSI_Settings = TMP.SI;
 
-    % TODO -- Setting the following from settings stored in a recent TIFF is important
+    % Set the following from a recent TIFF. This is important
     % since the user might have tweaked these things during acquisition.
     % i.e. the following is not redundant code.
     obj.hC.hPmts.gains = hSI_Settings.hPmts.gains;
@@ -107,3 +107,5 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
     obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
     obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
+    obj.hC.hScan2D.linePhase = hSI_Settings.hScan2D.linePhase;
+
