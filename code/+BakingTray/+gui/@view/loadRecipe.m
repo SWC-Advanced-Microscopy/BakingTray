@@ -21,14 +21,20 @@ function loadRecipe(obj,~,~)
         end
     end
 
-    % NOTE - if the recipe is attached in the API (the model) then it will not trigger
+    % NOTE - if the recipe is attached using the API (the model) then it will not trigger
     % detach and attach of the listeners and so the GUI will stop updating:
     % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
+    % This is never going to happen in normal use. 
+
     obj.detachRecipeListeners;
     if ~doResume
         % Just load as normal
         success = obj.model.attachRecipe(fullPath);
     else
+        % Resumption is slow at first so indicate to the user that stuff is happening
+        obj.button_recipe.String='LOADING';
+        obj.button_recipe.ForegroundColor='r';
+
         % Attempt to resume the acquisition 
         % First we set the tile size in the GUI to what is in the recipe
         thisRecipe=BakingTray.settings.readRecipe(fullPath);
@@ -55,6 +61,9 @@ function loadRecipe(obj,~,~)
 
         % Now we do the resumption
         success = obj.model.resumeAcquisition(fullPath);
+
+        obj.button_recipe.String='Recipe';
+        obj.button_recipe.ForegroundColor='k';
     end
 
     if success
