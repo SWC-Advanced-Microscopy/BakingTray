@@ -3,10 +3,17 @@ function applyScanSettings(obj,scanSettings)
     %
     % Applies a saved set of scanSettings in order to return ScanImage to a 
     % a previous state. e.g. used to manually resume an acquisition that was 
-    % terminated for some reason. 
+    % terminated for some reason. Also looks for completed sections and uses
+    % the last available one to set the laser power and PMT gains to whatever
+    % they were last set to. 
     %
     % Inputs
     % scanSettings - the ScanImage scanSettings field from the recipe file 
+    %
+    % Outputs 
+    % none
+    %
+    %
 
     if ~isstruct(scanSettings)
         return
@@ -99,6 +106,4 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;
     obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
     obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
-
-    obj.hC.hFastZ.enable = hSI_Settings.hFastZ.enable;
     obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
