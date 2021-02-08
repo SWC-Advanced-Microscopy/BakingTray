@@ -37,7 +37,6 @@ function loadRecipe(obj,~,~)
     % detach and attach of the listeners and so the GUI will stop updating:
     % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
     % This is never going to happen in normal use. 
-    reply
     obj.detachRecipeListeners;
     if ~doResume
         % Just load as normal
