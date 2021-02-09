@@ -62,14 +62,13 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
     obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
     obj.hC.hRoiManager.scanAngleShiftSlow = scanSettings.scanAngleShiftSlow;
-    if scanSettings.scanMode == 'linear'
+
+    if strcmpi(scanSettings.scanMode,'linear')
         obj.hC.hRoiManager.scanAngleShiftFast = scanSettings.scanAngleShiftFast;
-    end
 
-    % These settings will affect dwell time but not the waveform shape
-    obj.hC.hScan2D.sampleRate = scanSettings.sampleRate;
+        % These settings will affect dwell time but not the waveform shape
+        obj.hC.hScan2D.sampleRate = scanSettings.sampleRate;
 
-    if scanSettings.scanMode == 'linear'
         obj.hC.hScan2D.pixelBinFactor = scanSettings.pixelBinFactor;
     end
 
