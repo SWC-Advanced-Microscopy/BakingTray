@@ -48,20 +48,6 @@ switch componentName
             fprintf('Connecting to scanner\n')
             component=SIBT;
 
-            %add settings
-            if ~isempty(scannerSettings) && isstruct(scannerSettings)
-                f=fields(scannerSettings);
-                for ii=1:length(f)
-                    if isfield(component.settings,f{ii})
-                        component.settings.(f{ii}) = scannerSettings.(f{ii}); %TODO: add more error checking
-                    else
-                        % TODO -- remove this incorrect warning
-                        %fprintf('Skipping unknown scanner setting field %s\n', f{ii});
-                    end
-                end
-
-            end
-
         else
             fprintf('No instance of ScanImage started. SKIPPING CONSTRUCTION OF SCANNER COMPONENT.\n')
             fprintf('To attach ScanImage to BakingTray you should:\n')

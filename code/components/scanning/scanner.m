@@ -179,14 +179,12 @@ classdef (Abstract) scanner < handle & loghandler
         % Other fields may be returned too if desired. But the above are the only critical ones.
         % See also the fields in the dummyScanner class just in case there's something missing from the above list.
 
-
         pauseAcquisition(obj)
         % pauseAcquisition
         %
         % Behavior
         % When run, performs whatever operations may be necessary to pause the acquisition
         % then sets the observable property scanner.acquisitionPaused to true.
-
 
         resumeAcquisition(obj)
         % resumeAcquisition
@@ -195,7 +193,6 @@ classdef (Abstract) scanner < handle & loghandler
         % When run, performs whatever operations may be necessary to resume the acquisition
         % then sets the observable property scanner.acquisitionPaused to false.
 
-
         maxChannelsAvailable(obj)
         % maxChannelsAvailable
         %
@@ -203,6 +200,13 @@ classdef (Abstract) scanner < handle & loghandler
         % Returns an integer that defines the maximum number of channels the scanner can handle. 
         % So even if only one channel is being used, if the scanner can handle 4 channels then
         % the output of maxChannelsAvailable will be 4. 
+
+        getChannelNames(obj)
+        % getChannelNames(obj)
+        %
+        % Behavior
+        % Return a cell array of channel names. e.g. returns {'Red','Green'} to indicat
+        % that channel 1 is red and channel 2 is green.
 
         getChannelsToAcquire(obj)
         % getChannelsToAcquire

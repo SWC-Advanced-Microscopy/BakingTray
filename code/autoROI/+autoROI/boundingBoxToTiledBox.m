@@ -29,7 +29,7 @@ function [tiledBox,boxDetails] = boundingBoxToTiledBox(BoundingBox,pixelSizeInMi
     verbose=false;
 
     if nargin<4
-        tileOverlapProportion=0.1;
+        tileOverlapProportion=0.05;
     end
 
 

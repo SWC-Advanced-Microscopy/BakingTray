@@ -80,7 +80,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
         % when there was very little sample left and the acquisition should have
         % just finished. We try to catch this here
         if ~isnan(tThreshSD)
-            out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',true);
+            out=autoROI(pStack,[],BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',false);
             tThresh = out.roiStats.tThresh;
         else
             fprintf('autoThresh.run returned a Nan value for tThreshSD\n')
@@ -128,7 +128,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     [tThreshSD,stats] = getThreshAlg(stats,maxThresh);
 
 
-    out=autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',false);
+    out=autoROI(pStack,[],BB_argIn{:},'tThreshSD',tThreshSD,'doPlot',false);
     
     % If the roiStats field does not exist then a threshold was not found
     % and likely the sample is empty.
@@ -142,7 +142,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     % Nested functions follow
     function stats = calcStatsFromThreshold(tThreshSD)
         % Calculate a bunch of stats from a threshold
-        [OUT,bwStats] = autoROI(pStack, BB_argIn{:},'tThreshSD',tThreshSD);
+        [OUT,bwStats] = autoROI(pStack,[],BB_argIn{:},'tThreshSD',tThreshSD);
         n=pStack.sectionNumber;
         if isempty(OUT)
             stats.nRois=nan;

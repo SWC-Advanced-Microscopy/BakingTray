@@ -8,7 +8,15 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 
 
-15th Jan 2020
+4th Feb 2021
+- DEVELOPER - saved autoROI stats for logging now contain the image and binary mask used for each section
+
+
+20th Jan 2021
+- User: fixed bug that caused autoROI tile pattern to only be correct for a tile overlap of 10%
+
+
+15th Jan 2021
 - User/super-user: scanner setting YAML can now set fast and slow offsets and also spatial fill fraction
 
 

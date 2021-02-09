@@ -211,6 +211,12 @@ classdef dummyScanner < scanner
         end
 
 
+        function chanNames = getChannelNames(obj)
+            chn = {'Far Red', 'Red', 'Green', 'Blue'};
+            chanNames = chn(obj.getChannelsToAcquire);
+        end
+
+
         function chans = getChannelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
