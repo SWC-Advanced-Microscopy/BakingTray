@@ -11,15 +11,25 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - USER (dev): fix bug related to numOverlapZPlanes recipe setting being stuck at >0 once it's been changed.
 - USER (dev): do not start auto-trim if user simply closes the auto-trim dialog.
 
+
 9th Feb 2021
 - USER (dev/prerelease): fix bug relate to acquisition resume on reso scanner systems. 
 
+
 8th Feb 2021
 - USER (dev/prerelease): acquisition resume now applies more scanner settings than before. e.g. spatial fill fraction, pixel integration values (galvo), and scanner offsets. 
+- USER: various bug-fixes to acquisition resume.
+- USER: "Recipe" button displays "LOADING" during acquisition resumes that are slow.
+
+
+6th Feb 2021
+- USER: Add Ensemble class for AeroTech controllers. (NOTE: in future we want to merge this somehow with Soloist)
+
 
 
 4th Feb 2021
-- DEVELOPER - saved autoROI stats for logging now contain the image and binary mask used for each section
+- DEVELOPER - saved autoROI stats for logging now contain the image and binary mask used for each section. 
+- DEVELOPER - refactor of some autoROI code
 
 
 20th Jan 2021
