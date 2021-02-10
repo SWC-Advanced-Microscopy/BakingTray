@@ -48,17 +48,12 @@ function settings=componentSettings
     % Currently only ScanImage is supported, although in principle you could write your own
     % scanning code. ScanImage can be freely downloaded here:
     % http://scanimage.vidriotechnologies.com/display/SIH/ScanImage+Home
-    scanner.type=''; % One of: 'SIBT', 'dummyScanner'
+    scanner.type='SIBT'; % One of: 'SIBT', 'dummyScanner'
 
-    % This optionally rotates tiles the preview tiles to ensure that the live preview image looks
-    % correct. 0 means no rotation. Rotates by -90 degrees: -1 or +90 degrees: +1; 180 deg: +/-2
-    % Conventional closed-coupled systems likely need thiss set to -1
-    scanner.settings.tileRotate=-1;
-
-    % Set this to 1 if you are using PMT2100 series PMTs from ThorLabs and want the trip state of the 
-    % units to be reset after each X/Y position for units that tripped and are disabled. If you 
-    % don't have these PMTs, leave this setting at 0 (false).
-    scanner.settings.doResetTrippedPMT=0;
+    % The following is empty for SIBT. The first time the software is run there are additional
+    % settings files made in the SETTINGS directory. These influence how the scanner behaves
+    % and also set the frame sizes (microns per pixel, etc). Please edit those. 
+    scanner.settings = [];
 
 
 
