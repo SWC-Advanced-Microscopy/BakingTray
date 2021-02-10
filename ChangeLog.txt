@@ -8,6 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 
 10th Feb 2021
+- USER (dev): support report can now be generated from the Tools menu.
 - USER (dev): fix bug related to numOverlapZPlanes recipe setting being stuck at >0 once it's been changed.
 - USER (dev): do not start auto-trim if user simply closes the auto-trim dialog.
 - USER (dev): SIBT settings removed from componentSettings.m
