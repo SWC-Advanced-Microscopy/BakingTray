@@ -461,7 +461,7 @@ classdef recipe < handle
                         case 'sliceThickness'
                             fieldValue = obj.checkFloat(fieldValue,0.01,1); %Allow slices up to 1 mm thick
                         case 'numOverlapZPlanes'
-                            fieldValue = obj.checkInteger(fieldValue);
+                            fieldValue = obj.checkInteger(fieldValue,true);
                         case 'numOpticalPlanes'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'overlapProportion'
