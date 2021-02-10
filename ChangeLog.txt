@@ -10,10 +10,12 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 10th Feb 2021
 - USER (dev): fix bug related to numOverlapZPlanes recipe setting being stuck at >0 once it's been changed.
 - USER (dev): do not start auto-trim if user simply closes the auto-trim dialog.
+- USER (dev): SIBT settings removed from componentSettings.m
 
 
 9th Feb 2021
 - USER (dev/prerelease): fix bug relate to acquisition resume on reso scanner systems. 
+- USER (dev/prerelease): autoROI uses the lowest wavelength channel. NOTE: requires channels to be named in ScanImage: "Red", "Green", "Blue"
 
 
 8th Feb 2021
