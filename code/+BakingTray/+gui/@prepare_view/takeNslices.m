@@ -25,9 +25,16 @@ function takeNslices(obj,~,~)
         end
         fprintf('\nCutting slice %d/%d\n',ii,slicesToTake);
         obj.takeNSlices_button.String=sprintf('Slicing %d/%d',ii,slicesToTake);
-        obj.model.sliceSample(obj.lastSliceThickness, obj.lastCuttingSpeed);
+        success = obj.model.sliceSample(obj.lastSliceThickness, obj.lastCuttingSpeed);
+
+        % Bail out of the loop if the user has stopped the cutting sequence
+        if ~success
+            break
+        end
+
         pause(2) %so the bath does not swill around too much
-    end
+    end % for 
+
     obj.takeNSlices_button.String=origString;
     obj.takeNSlices_button.ForegroundColor='k';
 end

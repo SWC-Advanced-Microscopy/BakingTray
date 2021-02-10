@@ -104,6 +104,16 @@ switch controllerName
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
 
+    case {'soloist','ensemble'}
+        stageComponents = BUILD_GENERIC_STAGE(stages);
+        if isempty(stageComponents)
+            return
+        end
+        
+        component = eval([controllerName,'(stageComponents)']);
+        controllerID = controllerParams.connectAt;
+        component.connect(controllerID)
+
     case 'dummy_linearcontroller'
         stageComponents = BUILD_GENERIC_STAGE(stages);
         component = dummy_linearcontroller(stageComponents);

@@ -19,7 +19,7 @@ function autoTrim(obj,~,~)
         round(cutSeq(end)*1000), length(cutSeq), sum(cutSeq));
     OUT=questdlg(str,'','Yes','No',struct('Default','No','Interpreter','tex'));
 
-    if strcmpi(OUT,'no')
+    if strcmpi(OUT,'no') || isempty(OUT)
         return
     end
 
@@ -40,7 +40,7 @@ function autoTrim(obj,~,~)
         obj.lastSliceThickness = tCut;
         obj.checkSliceThicknessEditBoxValue
 
-        success = obj.model.sliceSample(tCut);
+        success = obj.model.sliceSample(tCut,obj.lastCuttingSpeed);
         if ~success
             close(wF)
             return

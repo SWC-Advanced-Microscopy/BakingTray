@@ -106,7 +106,7 @@ classdef recipe < handle
     % VoxelSize.[XY] (The nominal voxel size returned by the scanner)
     %
     % The following are records of various parameters used for the acquisition. 
-    % ScannerSettings (A structure that stores a variety of information about how the scanner is configured)
+    % ScannerSettings (A structure that stores a variety of information about how the scanner is configured. see recipe.recordScannerSettings)
     % SYSTEM and SLICER (Two structures contain the information found in the systemSettings.yml)
 
 
@@ -461,7 +461,7 @@ classdef recipe < handle
                         case 'sliceThickness'
                             fieldValue = obj.checkFloat(fieldValue,0.01,1); %Allow slices up to 1 mm thick
                         case 'numOverlapZPlanes'
-                            fieldValue = obj.checkInteger(fieldValue);
+                            fieldValue = obj.checkInteger(fieldValue,true);
                         case 'numOpticalPlanes'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'overlapProportion'

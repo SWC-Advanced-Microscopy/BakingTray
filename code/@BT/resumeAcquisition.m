@@ -1,4 +1,4 @@
-function success=resumeAcquisition(obj,recipeFname,varargin)
+function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % Resume a previously terminated acquisition by loading its recipe
     %
     % function success=resumeAcquisition(obj,recipeFname,simulate)
@@ -39,11 +39,16 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     %
     % Outputs
     % success - Returns true if the resumption process succeeded and
-    %           the system is ready to start.
+    %           the system is ready to start. If the recipe loaded
+    %           correctly but the scanner settings were not fully applied,
+    %           the method still returns true but msg is a non-empty
+    %           string describing what went wrong.
+    % msg - a message string that can be displayed by GUIs if needed.
     %
 
 
     success=false;
+    msg = '';
 
     params = inputParser;
     params.CaseSensitive = false;
@@ -287,6 +292,15 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     else
         if ~simulate
             obj.scanner.applyScanSettings(tmp.ScannerSettings)
+            % Check that all were applied correctly
+            [setsuccess,msg] = obj.scanner.doScanSettingsMatchRecipe(recipeFname);
+            if setsuccess
+                fprintf('Settings correctly applied\n\n')
+            end
+            if nargout<2
+                % Never the case in live acquisitions
+                fprintf(msg)
+            end
         else
             fprintf('Applying scan settings\n')
         end

@@ -80,7 +80,7 @@ function buildWindow(obj)
         'String', 'Recipe', ...
         'Callback', @obj.loadRecipe);
     if ~obj.suppressToolTips
-        obj.button_recipe.TooltipString='Load recipe';
+        obj.button_recipe.TooltipString='Load recipe or resume an acquisition';
     end
 
 

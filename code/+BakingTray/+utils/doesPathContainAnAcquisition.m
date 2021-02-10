@@ -108,12 +108,20 @@ function out = scrapeRawDataDir(tDir)
     end
 
     % Load the matrix describing the number of 
-    load(fullfile(tDir,'tilePositions.mat'),'positionArray')
-    out.numTilePositions = size(positionArray,1);
+    tilePosFname = fullfile(tDir,'tilePositions.mat');
+    if exist(tilePosFname,'file')
+        load(tilePosFname,'positionArray')
+        out.numTilePositions = size(positionArray,1);
+        %Get the last imaged tile position from the array
+        f=find(~isnan(positionArray(:,end)));
+        out.lastImagedPosition = f(end);
 
-    %Get the last imaged tile position from the array
-    f=find(~isnan(positionArray(:,end)));
-    out.lastImagedPosition = f(end);
+    else
+        fprintf('Failed to find file %s\n',tilePosFname)
+        out.numTilePositions = nan;
+        out.lastImagedPosition = 0;
+    end
+
 
     if out.numTilePositions == out.lastImagedPosition
         out.allPositionsImaged=true;

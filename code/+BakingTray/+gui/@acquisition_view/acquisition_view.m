@@ -101,6 +101,10 @@ classdef acquisition_view < BakingTray.gui.child_view
             obj.buildFigure
             obj.setupListeners
 
+            if obj.model.isScannerConnected && obj.model.scanner.isAcquiring
+                obj.model.scanner.abortScanning
+            end
+
             % Set Z-settings so if user wishes to press Grab in ScanImage to check their settings, this is easy
             % TODO: in future we might wish to make this more elegant, but for now it should work
             obj.statusText.String = '** Applying settings to scanner **';

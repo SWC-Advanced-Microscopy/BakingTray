@@ -5,7 +5,8 @@ classdef chameleon < laser & loghandler
 % Example
 % C = chameleon('COM1');
 %
-% Laser control component for Chameleon lasers from Coherent. 
+% Laser control component for Chameleon lasers from Coherent.
+% Tested with Chameleon Vision S
 %
 % For docs, please see the laser abstract class. 
 %

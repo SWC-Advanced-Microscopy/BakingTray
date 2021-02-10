@@ -50,9 +50,10 @@ function takeRapidPreview(obj)
         obj.autoROI.channelsToSave = obj.scanner.getChannelsToAcquire;
     end
 
-
+    
+    
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
-    %TODO: All this ought to be in SIBT
+    %TODO: Much of this can be in SIBT but not all. 
     scanPixPerLine = obj.scanner.getPixelsPerLine;
     frameAve = obj.scanner.getNumAverageFrames;
 
@@ -61,7 +62,7 @@ function takeRapidPreview(obj)
         sampleRate = obj.scanner.hC.hScan2D.sampleRate;
     end
     numZ = obj.recipe.mosaic.numOpticalPlanes;
-
+    numOverlapZ = obj.recipe.mosaic.numOverlapZPlanes;
     if strcmp(obj.scanner.scannerType,'linear')
         obj.scanner.setImageSize(128); %Set pixels per line, the method takes care of the rest
     else
@@ -76,6 +77,7 @@ function takeRapidPreview(obj)
 
     %Image just one plane without averaging
     obj.recipe.mosaic.numOpticalPlanes=1;
+    obj.recipe.mosaic.numOverlapZPlanes=0;
     obj.scanner.setNumAverageFrames(1);
 
     %Remove any attached file logger objects (we won't need them)
@@ -122,6 +124,7 @@ function takeRapidPreview(obj)
         end
 
         obj.recipe.mosaic.numOpticalPlanes = numZ;
+        obj.recipe.mosaic.numOverlapZPlanes = numOverlapZ;
         obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
 
         obj.scanner.setNumAverageFrames(frameAve);

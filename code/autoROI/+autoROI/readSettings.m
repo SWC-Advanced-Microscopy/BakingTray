@@ -33,7 +33,7 @@ function settings = readSettings(readFromYaml)
         settingsFname = fullfile( fileparts(mfilename('fullpath')), 'settings.yml');
 
         if exist(settingsFname,'file')
-            settings = yaml.ReadYaml(settingsFname);
+            settings = BakingTray.yaml.ReadYaml(settingsFname);
         end
 
         if ~isempty(settings)
@@ -41,7 +41,7 @@ function settings = readSettings(readFromYaml)
         else
             % read defaults and write to file
             settings = returnSettings;
-            yaml.WriteYaml(settingsFname,settings);
+            BakingTray.yaml.WriteYaml(settingsFname,settings);
         end
     else
         settings = returnSettings;
@@ -81,8 +81,10 @@ function settings = readSettings(readFromYaml)
         % The following are used in autoROI.mergeOverlapping
         settings.mergeO.mergeThresh=1.3; %This is the default value
 
-        % The following are used in autoROI.runOnStackStruct
-        settings.stackStr.rollingThreshold=true;
+        % The following are used by autoROI.runOnStackStruct and BT.getNextROIs
+        settings.stackStr.rollingThreshold=true; % if false we use threshold of first image for the whole acquisition
+        % if rolling threshold is true, the next setting is used
+        settings.stackStr.nImages=5; %If zero we use the previous image. If a positive integer, we take median of this many most recent images
 
 
         settings.autoThresh.skipMergeNROIThresh=10;

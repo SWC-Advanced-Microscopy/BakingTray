@@ -76,7 +76,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     % and has a generous border area. We therefore extract the ROIs from the whole of the first section.
     fprintf('\nDoing section %d/%d\n', 1, size(pStack.imStack,3))
     fprintf('Finding bounding box in first section\n')
-    stats = autoROI(pStack, boundingBoxArgIn{:},'tThreshSD',tThreshSD);
+    stats = autoROI(pStack, [], boundingBoxArgIn{:},'tThreshSD',tThreshSD);
     stats.roiStats.tThreshSD_recalc=false; %Flag to signal if we had to re-calc the threshold due to increase in laser power
     stats.roiStats.sectionNumber=1; % This is needed because it's provided in live acquisitions
     drawnow
@@ -116,11 +116,10 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
         % autoROI is fed the ROI structure from the **previous section**
         % It runs the sample-detection code within these ROIs only and returns the results.
-        tmp = autoROI(pStack, ...
+        tmp = autoROI(pStack, stats, ...
             boundingBoxArgIn{:}, ...
             'tThreshSD',stats.roiStats(end).tThreshSD, ...
-            'tThresh',thresh,...
-            'lastSectionStats',stats);
+            'tThresh',thresh);
 
         if ~isempty(tmp)
             stats=tmp;

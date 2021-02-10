@@ -3,6 +3,11 @@ function slack(obj,message)
     %
     % BT.slack(message)
     %
+    % If the message string is empty, nothing is sent.
+
+    if isempty(message)
+        return
+    end
 
     SLACK = obj.recipe.SLACK;
     if isempty(SLACK) || isempty(SLACK.hook)
