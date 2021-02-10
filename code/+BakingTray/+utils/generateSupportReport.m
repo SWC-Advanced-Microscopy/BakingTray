@@ -94,7 +94,7 @@ try
     end
 
     % Re-attempt to load hBT
-    if siAccessible && evalin('base','exist(''hBT'')')
+    if evalin('base','exist(''hBT'')')
         hBTlocal = evalin('base','hBT');
     end
 
@@ -137,9 +137,11 @@ try
     if siAccessible
         try
             % Save currently loaded MDF file
-            mdf = most.MachineDataFile.getInstance;
-            if mdf.isLoaded && ~isempty(mdf.fileName)
-                filesToZip{end+1} = mdf.fileName;
+            if ~isempty(which('most.MachineDataFile.getInstance'))
+                mdf = most.MachineDataFile.getInstance;
+                if mdf.isLoaded && ~isempty(mdf.fileName)
+                    filesToZip{end+1} = mdf.fileName;
+                end
             end
 
             % Save current usr and cfg files
@@ -198,8 +200,10 @@ try
     tempFilesToDelete{end+1} = tmpTxtFileName;
 
     % Record CPU info
-    cpuInfo = most.idioms.cpuinfo;
-    dumpToTXT(tmpTxtFileName, cpuInfo);
+    if ~isempty(which('most.idioms.cpuinfo'))
+        cpuInfo = most.idioms.cpuinfo;
+        dumpToTXT(tmpTxtFileName, cpuInfo);
+    end
 
 
     % Record current path
@@ -214,10 +218,12 @@ try
     dumpToTXT(tmpTxtFileName, struct('WindowsVersion', winVer) );
 
     % Get memory info
-    [~,sysMem] = memory;
-    mem.TotalRAMinGB = sysMem.PhysicalMemory.Total / 1024^3;
-    mem.AvailableRAMinGB = sysMem.PhysicalMemory.Available / 1024^3;
-    dumpToTXT(tmpTxtFileName,mem)
+    if ispc
+        [~,sysMem] = memory;
+        mem.TotalRAMinGB = sysMem.PhysicalMemory.Total / 1024^3;
+        mem.AvailableRAMinGB = sysMem.PhysicalMemory.Available / 1024^3;
+        dumpToTXT(tmpTxtFileName,mem)
+    end
 
     % Get OpenGL information
     openGLInfo = opengl('data');
