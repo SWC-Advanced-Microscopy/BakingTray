@@ -48,12 +48,7 @@ function imStats = getForegroundBackgroundPixels(im,pixelSize,borderPixSize,tThr
     inverseBW(b+1:end-b,b+1:end-b)=0;
     backgroundPix = im(find(inverseBW));
 
-    % If no more than 25% of of the pixels in the border are above the threshold, we delete them. 
-    % This is an unvalidated attempt to remove tissue that was not picked up by the binarization.
-    f=find(backgroundPix>=tThresh);
-    if length(f)<length(backgroundPix)*0.25
-        backgroundPix(f)=[]; %Also get rid of any pixels that happen to be above threshold
-    end
+
     imStats.backgroundPix = backgroundPix';
 
 
