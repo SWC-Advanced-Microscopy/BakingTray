@@ -8,6 +8,12 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 17th Feb 2021
 - USER (dev): Software version number in recipe is now the Git branch and commit hash
+- USER (dev): PMT auto-on is disabled each time the scanner is armed. i.e. each time a tile scan is done.
+- USER (dev): Z-stage homes automatically when user goes to 0 mm from a position greater than 20 mm. 
+             NOTE: the above can be disabled by a new setting. Information on this is presented when
+             the software starts. You will need to add SYSTEM.homeZjackOnZeroMove=0 to systemSettings.yml
+             to disable the behavior or SYSTEM.homeZjackOnZeroMove=1 to disable warning message but retain
+             the new behavior.
 
 10th Feb 2021
 - USER (dev): support report can now be generated from the Tools menu.

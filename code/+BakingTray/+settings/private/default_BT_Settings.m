@@ -6,6 +6,7 @@ function settings=default_BT_Settings
     % settings.SYSTEM.objectiveZSettlingDelay=0.05; %Number of seconds to wait before imaging the next optical plane
     % settings.SYSTEM.cutterSide=1; %if 1 the cutter is to the right of the objective. If -1 it's to the left.
     % settings.SYSTEM.defaultFrontLeft=[0,0]; %Use any reasonable value for the front left position. This is basically just a user courtesy issue.
+    % settings.SYSTEM.homeZjackOnZeroMove=1; %If true, BakingTray homes the Z jack if the user moves to zero (lowered) from a large distance away. THE HOME POSITION MUST BE THE LOWERED POSITION!
     %
     % settings.SLACK.user='@SYSTEM'; % This is the username that appears with a Slack message
     % settings.SLACK.hook=[]; % This is the hook for sending messages
@@ -21,6 +22,7 @@ function settings=default_BT_Settings
     settings.SYSTEM.xySpeed=25.0;
     settings.SYSTEM.cutterSide=1;
     settings.SYSTEM.defaultFrontLeft=[0,0];
+    settings.SYSTEM.homeZjackOnZeroMove=1;
 
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
