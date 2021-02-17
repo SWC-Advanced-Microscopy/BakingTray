@@ -189,9 +189,12 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     if slicenow==false && strcmp(existing,'nothing')
         targetPosition = targetPosition + details.sliceThickness;
     end
+
+    msg = sprintf('Moving Z stage to %0.3f\n', targetPosition);
     if simulate
-        fprintf('Move Z stage to %0.3f\n', targetPosition)
+        fprintf(msg)
     else
+        mWin = BakingTray.utils.messageWindow(msg);
         obj.moveZto(targetPosition, true); % execute blocking motion to last stage position
     end
 
@@ -199,9 +202,11 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % Slicing and then re-imaging makes no sense, but we have checked at the top for this and 
     % so everything that follows is safe.
     if slicenow
+        msg = sprintf('Slicing sample\n');
         if simulate
-            fprintf('Slicing sample\n')
+            fprintf(msg)
         else
+            mWin.writeMessage(msg);
             obj.sliceSample
         end
     end
@@ -238,6 +243,8 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
             originalNumberOfRequestedSections, newSectionStartNumber)
         fprintf('** Resuming acquisition asking for just one section. You may modify this value as appropriate.\n\n')
         newNumberOfRequestedSections=1;
+        mWin.writeMessage('*** WARNING SEE MESSAGES AT COMMAND LINE ***');
+        pause(2)
     end
 
 
@@ -253,7 +260,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     end
 
 
-    % %TODO -- this code is dead right now as we don't give the user the option to continue. 
+    % %TODO -- this code is dead right now as we don't give the user the option to continue.
     if strcmp(existing,'complete')
         if simulate
             fprintf('Resuming acquisition at tile position %d section %d\n', ...
@@ -280,7 +287,9 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
         end
     end
 
-
+    if ~simulate
+        delete(mWin)
+    end
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten
