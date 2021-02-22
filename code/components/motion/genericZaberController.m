@@ -17,6 +17,12 @@ classdef genericZaberController < linearcontroller
 % NOTE:
 % This class currently connects to a single X-MX[ABC] device and assumes control of 
 % the first axis. The class does not handle multiple axes. 
+%
+% IMPORTANT: if using native units, you must set controllerUnitsInMM to the correct 
+%            value. If you are not using native units, this property must be 1. If
+%            controllerUnitsInMM are set to a value other than 1 when the stage
+%            connects, then the units of the stage are set to native automatically. 
+%            Otherwise they are se to mm.
 
     properties
       % The following are inherited properties from linearcontroller
@@ -27,6 +33,7 @@ classdef genericZaberController < linearcontroller
       velocityUnits % We store here how speeds are defined (mm/s or um/s)
       accelerationUnits % We store here how accelerations are defined (mm/s^2 or um/s^2)
     end % close public properties
+
 
 
     methods
@@ -135,7 +142,11 @@ classdef genericZaberController < linearcontroller
               return
             end
 
-            obj.setPositionUnits('mm')
+            if obj.attachedStage.controllerUnitsInMM~=1
+              obj.setPositionUnits('native')
+            else
+             obj.setPositionUnits('mm')
+           end
 
             % Reference stage if it is not currently referenced
             if ~obj.isStageReferenced
@@ -183,6 +194,7 @@ classdef genericZaberController < linearcontroller
             end
 
             pos = obj.hC.getPosition(obj.attachedStage.positionUnits);
+            pos = pos*obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -271,6 +283,10 @@ classdef genericZaberController < linearcontroller
               obj.attachedStage.positionUnits = Units.LENGTH_MICROMETRES;
               obj.velocityUnits = Units.VELOCITY_MICROMETRES_PER_SECOND;
               obj.accelerationUnits = Units.ACCELERATION_MICROMETRES_PER_SECOND_SQUARED;
+            elseif strcmp(controllerUnits,'native')
+              obj.attachedStage.positionUnits = Units.NATIVE;
+              obj.velocityUnits = Units.NATIVE;
+              obj.accelerationUnits = Units.NATIVE;
             else
               fprintf('Unknown position units "%s"\n', controllerUnits)
               success = false;

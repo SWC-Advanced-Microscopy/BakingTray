@@ -3,6 +3,10 @@ classdef DRV014 < linearstage
 % DRV014 (all models) stage class
 %
 % All abstract methods should have doc text only in the abstract method class file.
+% 
+% This stage has a lead screw that gives 1 mm per rotation.
+% The stepp motor is 1.8 degrees per full step so 200 full steps per mm. 
+% If we have microsteps of, say, 64. Then that's 12800 microsteps per mm.
 
 properties
     positionUnits
