@@ -250,7 +250,7 @@ The changes in this merge commit encompass all the following starting from about
 
 
 20th July 2018
-- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
+- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Achieving-high-stitching-accuracy
 
 
 5th July 2018
