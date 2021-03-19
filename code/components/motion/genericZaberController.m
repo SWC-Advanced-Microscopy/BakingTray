@@ -143,9 +143,9 @@ classdef genericZaberController < linearcontroller
             end
 
             if obj.attachedStage.controllerUnitsInMM~=1
-              obj.setPositionUnits('native')
+              obj.setPositionUnits('native');
             else
-             obj.setPositionUnits('mm')
+             obj.setPositionUnits('mm');
            end
 
             % Reference stage if it is not currently referenced
