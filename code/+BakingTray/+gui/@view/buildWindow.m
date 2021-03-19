@@ -16,11 +16,16 @@ function buildWindow(obj)
 
     %----------------------------------------------------------------------------------------
     %Menu
-    obj.menu.main = uimenu(obj.hFig,'Label','Tools');
+    obj.menu.sample = uimenu(obj.hFig,'Label','Sample');
     obj.menu.scanner = uimenu(obj.hFig,'Label','Scanner');
-    obj.menu.api = uimenu(obj.menu.main,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
-    obj.menu.api = uimenu(obj.menu.main,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
-    obj.menu.api = uimenu(obj.menu.main,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
+    obj.menu.tools = uimenu(obj.hFig,'Label','Tools');
+
+
+    obj.menu.api = uimenu(obj.menu.sample,'Label','New','Callback',@obj.newSample);
+    obj.menu.api = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
+    obj.menu.api = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
+    obj.menu.api = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
+
 
     %If the user runs ScanImage, prompt to connect to ScanImage
     %TODO: these menu items should react to whether or not the scanner is connected
@@ -40,8 +45,8 @@ function buildWindow(obj)
     obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
 
 
-    obj.menu.about = uimenu(obj.menu.main,'Label','About','Callback',@obj.about);
-    obj.menu.quit = uimenu(obj.menu.main,'Label','Quit','Callback',@obj.closeBakingTray);
+    obj.menu.about = uimenu(obj.menu.tools,'Label','About','Callback',@obj.about);
+    obj.menu.quit = uimenu(obj.menu.tools,'Label','Quit','Callback',@obj.closeBakingTray);
 
 
     %----------------------------------------------------------------------------------------
