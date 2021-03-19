@@ -343,7 +343,9 @@ function sectionInd = bake(obj,varargin)
             autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
             autoROI_stats = obj.autoROI;
 
-            save(autoROI_fname,'autoROI_stats')
+            if ~isa(obj.scanner,'dummyScanner')
+                save(autoROI_fname,'autoROI_stats')
+            end
         else
             % Wipe the last two columns of the position array. These save the actual stage 
             % positions. This is necessary for the acquisition resume to work properly.
@@ -402,6 +404,10 @@ function sectionInd = bake(obj,varargin)
 
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
+
+    if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isa(obj.scanner,'dummyScanner')
+        save(autoROI_fname,'autoROI_stats')
+    end
 
     fprintf('Finished data acquisition\n')
     if obj.scanner.isAcquiring

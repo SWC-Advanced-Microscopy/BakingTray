@@ -48,6 +48,7 @@ function imStats = getForegroundBackgroundPixels(im,pixelSize,borderPixSize,tThr
     inverseBW(b+1:end-b,b+1:end-b)=0;
     backgroundPix = im(find(inverseBW));
 
+
     imStats.backgroundPix = backgroundPix';
 
 

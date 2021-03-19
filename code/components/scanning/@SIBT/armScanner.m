@@ -72,4 +72,8 @@ function [success,msg] = armScanner(obj)
     end
 
     fprintf('Armed scanner: %s\n', datestr(now))
+
+    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only 
+    % happens with USB DAQs, but we want to avoid any possibility that it happens at all. 
+    obj.hC.hPmts.autoPower(:) = 0;
 end %armScanner

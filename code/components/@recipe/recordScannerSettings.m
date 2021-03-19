@@ -36,10 +36,6 @@ function success=recordScannerSettings(obj)
             return
         end
 
-        pixLin = [tileOptions.pixelsPerLine];
-        linFrm = [tileOptions.linesPerFrame];
-        zmFact = [tileOptions.zoomFactor];
-
         ind = ([tileOptions.pixelsPerLine]==obj.Tile.nColumns) .* ...
             ([tileOptions.linesPerFrame]==obj.Tile.nRows) .* ...
             ([tileOptions.zoomFactor]==obj.ScannerSettings.zoomFactor); 
@@ -56,7 +52,6 @@ function success=recordScannerSettings(obj)
 
         if isstruct(FrameData) && ...
             (~isfield(FrameData,'stitchingVoxelSize') || isempty(FrameData.stitchingVoxelSize))
-            scnSet = obj.parent.scanner.returnScanSettings;
             % Just take nominal values. It doesn't matter too much. 
             mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
             obj.StitchingParameters.VoxelSize.X=mu;
@@ -81,6 +76,7 @@ function success=recordScannerSettings(obj)
             else
                 obj.StitchingParameters.affineMat = eye(3);
             end
+            obj.StitchingParameters.scannerSettingsIndex = ind;
         end
 
         success=true;

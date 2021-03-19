@@ -6,12 +6,60 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+17th Feb 2021
+- USER (dev): Software version number in recipe is now the Git branch and commit hash
+- USER (dev): PMT auto-on is disabled each time the scanner is armed. i.e. each time a tile scan is done.
+- USER (dev): Z-stage homes automatically when user goes to 0 mm from a position greater than 20 mm. 
+             NOTE: the above can be disabled by a new setting. Information on this is presented when
+             the software starts. You will need to add SYSTEM.homeZjackOnZeroMove=0 to systemSettings.yml
+             to disable the behavior or SYSTEM.homeZjackOnZeroMove=1 to disable warning message but retain
+             the new behavior.
 
-15th Jan 2020
+10th Feb 2021
+- USER (dev): support report can now be generated from the Tools menu.
+- USER (dev): fix bug related to numOverlapZPlanes recipe setting being stuck at >0 once it's been changed.
+- USER (dev): do not start auto-trim if user simply closes the auto-trim dialog.
+- USER (dev): SIBT settings removed from componentSettings.m
+
+
+9th Feb 2021
+- USER (dev/prerelease): fix bug relate to acquisition resume on reso scanner systems. 
+- USER (dev/prerelease): autoROI uses the lowest wavelength channel. NOTE: requires channels to be named in ScanImage: "Red", "Green", "Blue"
+
+
+8th Feb 2021
+- USER (dev/prerelease): acquisition resume now applies more scanner settings than before. e.g. spatial fill fraction, pixel integration values (galvo), and scanner offsets. 
+- USER: various bug-fixes to acquisition resume.
+- USER: "Recipe" button displays "LOADING" during acquisition resumes that are slow.
+
+
+6th Feb 2021
+- USER: Add Ensemble class for AeroTech controllers. (NOTE: in future we want to merge this somehow with Soloist)
+
+
+
+4th Feb 2021
+- DEVELOPER - saved autoROI stats for logging now contain the image and binary mask used for each section. 
+- DEVELOPER - refactor of some autoROI code
+
+
+20th Jan 2021
+- User: fixed bug that caused autoROI tile pattern to only be correct for a tile overlap of 10%
+
+
+15th Jan 2021
 - User/super-user: scanner setting YAML can now set fast and slow offsets and also spatial fill fraction
+
 
 10th December 2020
 - User: On bake completion only a single Slack message is now sent.
+
+
+3rd December 2020
+- User MAJOR CHANGES: 
+BakingTray now has an "Auto-ROI" feature. This is documented at https://bakingtray.mouse.vision. 
+You will need to make changes to settings files for this to work! These are described here:
+- In MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
 
 
 ** Install instructions for autoROI **
@@ -21,7 +69,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
   Make the changes permanent by editing the appropriate file in the SETTINGS directory. 
 - Update stitchit ini file. IMPORTANT: this includes the stitched image UD and LR flips. Ensure the final stitched images
   aren't flipped compared to BakingTray! 
-- The TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file for an example. 
+- In StitchIt the TissueCyte settings are now gone from the StitchIt ini files. You should remove the [experiment], [micsPerPixel], and "Objectives" sections. See the stitchitConf_DEFAULT.ini file in StitchIt for an example. 
+https://github.com/SainsburyWellcomeCentre/StitchIt/blob/master/code/INI/stitchitConf_DEFAULT.ini
+
+- Other changes: Numerous bugfixes and small improvements. 
+The changes in this merge commit encompass all the following starting from about Nov 2019. 
+
+
 
 22nd September 2020
 - dev - stage boundaries overlaid on preview image
@@ -196,7 +250,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 
 20th July 2018
-- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
+- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Achieving-high-stitching-accuracy
 
 
 5th July 2018

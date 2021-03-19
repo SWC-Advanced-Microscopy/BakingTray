@@ -211,6 +211,12 @@ classdef dummyScanner < scanner
         end
 
 
+        function chanNames = getChannelNames(obj)
+            chn = {'Far Red', 'Red', 'Green', 'Blue'};
+            chanNames = chn(obj.getChannelsToAcquire);
+        end
+
+
         function chans = getChannelsToAcquire(obj)
             chans=1:obj.maxChans;
         end
@@ -266,8 +272,20 @@ classdef dummyScanner < scanner
 
 
         function applyScanSettings(~,~)
+            % Have a little pause here to simulate what happens when we resume an acquisitin
+            fprintf('Applying scan settings')
+            for ii=1:10
+                fprintf('.')
+                pause(0.1)
+            end
+            fprintf('\n')
         end
 
+        function [success,msg] = doScanSettingsMatchRecipe(~,~)
+            % For now do nothing.
+            success = true;
+            msg='';
+        end
 
         function nFrames = getNumAverageFrames(obj);
             nFrames=obj.averageEveryNframes;

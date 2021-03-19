@@ -18,6 +18,7 @@ function buildWindow(obj)
     %Menu
     obj.menu.main = uimenu(obj.hFig,'Label','Tools');
     obj.menu.scanner = uimenu(obj.hFig,'Label','Scanner');
+    obj.menu.api = uimenu(obj.menu.main,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
     obj.menu.api = uimenu(obj.menu.main,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
     obj.menu.api = uimenu(obj.menu.main,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
 
@@ -80,7 +81,7 @@ function buildWindow(obj)
         'String', 'Recipe', ...
         'Callback', @obj.loadRecipe);
     if ~obj.suppressToolTips
-        obj.button_recipe.TooltipString='Load recipe';
+        obj.button_recipe.TooltipString='Load recipe or resume an acquisition';
     end
 
 

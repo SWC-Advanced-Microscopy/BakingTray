@@ -124,18 +124,17 @@ function success = getNextROIs(obj)
 
     % TODO -- Is is correct the way we feed in stats.roiStats(end).tThreshSD? 
     %         We need to handle cases where the threshold is re-run as well. 
-    doPlot=false; % If true we plot the output of autoROI and pause after the plot. This is for
-                  % debugging purposes only. 
+    doPlot=false; % If true we plot the output of autoROI and pause. This is for debugging purposes only so set to false
     if doPlot
         figure(999)
     end
 
     tStats = autoROI(pStack, ...
+        obj.autoROI.stats, ...
         'doPlot', doPlot, ...
         'settings', settings, ...
         'tThreshSD',obj.autoROI.stats.roiStats(end).tThreshSD, ...
-        'tThresh',thresh,...
-        'lastSectionStats',obj.autoROI.stats);
+        'tThresh',thresh);
 
     % If tStats is empty, this means autoROI failed to find any ROIs, we want bake to 
     % gracefully bail out if this happens.
