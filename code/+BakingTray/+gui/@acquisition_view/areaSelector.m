@@ -5,8 +5,7 @@ function areaSelector(obj,~,~)
 
 
     % Draw box and get coords
-    imSize = size(obj.model.lastPreviewImageStack);
-    imSize = imSize(1:2);
+    imSize = size(obj.model.lastPreviewImageStack, [1,2]);
     defaultPos = [1,1,imSize(2), imSize(1)];
     roi = images.roi.Rectangle(obj.imageAxes,'Position',defaultPos);
     roi.Label='Adjust then double-click';
