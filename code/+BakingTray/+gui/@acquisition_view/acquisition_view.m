@@ -6,8 +6,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     properties
         imageAxes %The preview image sits here
         compassAxes %This houses the compass-like indicator 
-        prepareViewHandle % Handle to prepare view window
-
+        
         sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
@@ -424,17 +423,10 @@ classdef acquisition_view < BakingTray.gui.child_view
                 stagePos(1) = stagePos(1)+obj.model.recipe.ScannerSettings.FOV_alongColsinMicrons/2/1000;
                 stagePos(2) = stagePos(2)+obj.model.recipe.ScannerSettings.FOV_alongRowsinMicrons/2/1000;
                 % Move stage
-                obj.model.xAxis.absoluteMove(stagePos(1));
-                % absoluteMove function does not appear to update the
-                % position value in the main GUI, so we call relativeMove
-                % with 0 value to update the value
-                obj.model.xAxis.relativeMove(0);
-                
-                obj.model.yAxis.absoluteMove(stagePos(2));
-                % absoluteMove function does not appear to update the
-                % position value in the main GUI, so we call relativeMove
-                % with 0 value to update the value
-                obj.model.yAxis.relativeMove(0);
+                obj.model.moveXYto(stagePos(1), stagePos(2));
+                % Refresh GUI
+                obj.model.xAxis.axisPosition();
+                obj.model.yAxis.axisPosition();
             end
         end   % previewMoveToPosition
         
