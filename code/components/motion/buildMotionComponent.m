@@ -104,10 +104,9 @@ switch controllerName
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
  case 'ensemble'
-        stage=generic_AeroTechZJack;
-        stage.axisName = varargin{1,2}.axisName;
-        component = ensemble(stage);
-        %         component = eval([controllerName,'(stageComponents)']);
+        stageComponents=generic_AeroTechZJack;
+        stageComponents.axisName = varargin{1,2}.axisName;
+        component = ensemble(stageComponents);
         controllerID = controllerParams.connectAt;
         component.connect(controllerID);
         
