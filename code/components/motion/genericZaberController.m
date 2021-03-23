@@ -148,6 +148,8 @@ classdef genericZaberController < linearcontroller
              obj.setPositionUnits('mm');
            end
 
+
+
             % Reference stage if it is not currently referenced
             if ~obj.isStageReferenced
                obj.referenceStage;
@@ -194,7 +196,6 @@ classdef genericZaberController < linearcontroller
             end
 
             pos = obj.hC.getPosition(obj.attachedStage.positionUnits);
-            pos = pos*obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -283,10 +284,6 @@ classdef genericZaberController < linearcontroller
               obj.attachedStage.positionUnits = Units.LENGTH_MICROMETRES;
               obj.velocityUnits = Units.VELOCITY_MICROMETRES_PER_SECOND;
               obj.accelerationUnits = Units.ACCELERATION_MICROMETRES_PER_SECOND_SQUARED;
-            elseif strcmp(controllerUnits,'native')
-              obj.attachedStage.positionUnits = Units.NATIVE;
-              obj.velocityUnits = Units.NATIVE;
-              obj.accelerationUnits = Units.NATIVE;
             else
               fprintf('Unknown position units "%s"\n', controllerUnits)
               success = false;

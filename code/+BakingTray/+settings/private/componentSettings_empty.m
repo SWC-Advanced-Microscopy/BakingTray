@@ -110,7 +110,7 @@ function settings=componentSettings
     % Note that this settings file assumes that the X and Y axes are handled by separate
     % controller units. In principle it's possible to add two axis to a single controller 
     % unit and have BakingTray handle this situation. If you require this, please file a
-    % support issue at: https://github.com/SainsburyWellcomeCentre/bakingtray
+    % support issue at: https://github.com/BaselLaserMouse/bakingtray
     % Once this is working, you will add the second axis like this:
     % xaxis.stage(2).type='';
     % zaxis.stage(2).settings=[];

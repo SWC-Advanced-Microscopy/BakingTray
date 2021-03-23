@@ -6,6 +6,12 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way. 
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
+
+23rd March 2021
+- USER (Dev) - vollrathf adds middle-click to move in preview GUI/
+- USER (Dev) - A little while ago we add Zaber devices. 
+
+
 17th Feb 2021
 - USER (dev): Software version number in recipe is now the Git branch and commit hash
 - USER (dev): PMT auto-on is disabled each time the scanner is armed. i.e. each time a tile scan is done.
@@ -250,7 +256,7 @@ The changes in this merge commit encompass all the following starting from about
 
 
 20th July 2018
-- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Achieving-high-stitching-accuracy
+- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
 
 
 5th July 2018
