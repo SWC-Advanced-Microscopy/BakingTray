@@ -103,12 +103,6 @@ switch controllerName
         end
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
-%  case 'ensemble'
-%         stageComponents=generic_AeroTechZJack;
-%         stageComponents.axisName = varargin{1,2}.axisName;
-%         component = ensemble(stageComponents);
-%         controllerID = controllerParams.connectAt;
-%         component.connect(controllerID);
         
     % TODO -- ideally all should look like this
     case {'ensemble', 'soloist','genericZaberController'}
