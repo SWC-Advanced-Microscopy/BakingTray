@@ -6,7 +6,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     properties
         imageAxes %The preview image sits here
         compassAxes %This houses the compass-like indicator 
-
+        
         sectionImage %Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true %if false we don't update the image
@@ -397,7 +397,39 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         end % pointerReporter
 
-
+        function previewMoveToPosition(obj,~,sourceHandle)
+            % To do: Stage is currently moved so that the clicked position is in
+            % the upper corner of the new FOV. Change to center clicked
+            % position.
+            
+            
+            % Initiates movement to clicked position in image preview (middle mouse button). 
+            % The callback does not run if an
+            % acquisition is in progress or if the plotted image contains only zeros.
+            
+            if obj.model.acquisitionInProgress || all(obj.sectionImage.CData(:)==0)
+                return
+            end
+            
+            % Check for click-type, execute only on middle click
+            if strcmp(get(sourceHandle.Source.Number,'SelectionType'),'extend')
+                % Get current position
+                pos=get(obj.imageAxes, 'CurrentPoint');
+                xAxisCoord=pos(1,1);
+                yAxisCoord=pos(1,2);
+                
+                stagePos = obj.model.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
+                %Get current FOV and move FOV in middle of mouse click
+                stagePos(1) = stagePos(1)+obj.model.recipe.ScannerSettings.FOV_alongColsinMicrons/2/1000;
+                stagePos(2) = stagePos(2)+obj.model.recipe.ScannerSettings.FOV_alongRowsinMicrons/2/1000;
+                % Move stage
+                obj.model.moveXYto(stagePos(1), stagePos(2));
+                % Refresh GUI
+                obj.model.xAxis.axisPosition();
+                obj.model.yAxis.axisPosition();
+            end
+        end   % previewMoveToPosition
+        
         function updateLeaveLaserOn(obj,~,~)
             % Set the leave laser on flag in the model.
             % Responds to checkbox
