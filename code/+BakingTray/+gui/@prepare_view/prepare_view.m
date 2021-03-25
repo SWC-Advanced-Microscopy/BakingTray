@@ -665,7 +665,7 @@ classdef prepare_view < BakingTray.gui.child_view
         end %updateCuttingConfigurationText
 
         function executeAbsoluteMotion(obj,event,~)
-            % Execute motion on the axis object that we determine from the tac of the absolute motion edit box
+            % Execute motion on the axis object that we determine from the tag of the absolute motion edit box
             motionAxisString=event.Tag;
             axisToMove=obj.model.(motionAxisString);
             if ~obj.isSafeToMove(axisToMove)
@@ -676,12 +676,16 @@ classdef prepare_view < BakingTray.gui.child_view
             moveString=event.String;
             moveString=regexprep(moveString,'-+','-'); %Don't allow multiple minus signs
             event.String=moveString;
-            moveBy=str2double(moveString);
+            moveTo=str2double(moveString);
             %if it's not a number, then do nothing
-            if isnan(moveBy)
+            if isnan(moveTo)
                 success=false;
             else
-                success=axisToMove.absoluteMove(moveBy); %returns false if an out of range motion was requested
+                if strcmp('zAxis',motionAxisString) && moveTo==0
+                    success = obj.model.lowerZstage;
+                else
+                    success=axisToMove.absoluteMove(moveTo); %returns false if an out of range motion was requested
+                end
             end
 
             if success==false

@@ -78,7 +78,8 @@ classdef view < handle
 
         % Button callback functions
         startPreviewSampleGUI(obj,evt,src)
-        loadRecipe(obj,evt,src)
+        newSample(obj,evt,src)
+        loadRecipe(obj,evt,src,pathToRecipe)
         startPrepareGUI(obj,evt,src)
         startLaserGUI(obj,evt,src)
 
@@ -209,6 +210,9 @@ classdef view < handle
         function saveRecipeToDisk(obj,~,~)
             %Save recipe to disk. Open the default settings directory.
             [fname,pathToRecipe] = uiputfile('*.yml',BakingTray.settings.settingsLocation);
+            if fname==0
+                return
+            end
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 

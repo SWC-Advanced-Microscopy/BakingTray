@@ -19,7 +19,11 @@ function settings = readSystemSettings
 
     settings=[];
     systemType='bakingtray'; %This isn't in the YAML because the user should not change it
-    systemVersion=0.55; %This isn't in the YAML because the user should not change it
+
+
+    % Git info will make up the version information
+    g=BakingTray.utils.getGitInfo;
+    systemVersion = sprintf('branch=%s  commit=%s', g.branch, g.hash);
 
     settingsDir = BakingTray.settings.settingsLocation;
 
@@ -49,6 +53,28 @@ function settings = readSystemSettings
         return
     end
 
+
+    % Pull in values from the default settings that are missing in the user settings file.
+    f0 = fields(DEFAULT_SETTINGS);
+    for ii = 1:length(f0);
+        f1 = fields(DEFAULT_SETTINGS.(f0{ii}));
+
+        % Create missing structure if necessary (unlikely to ever be the case)
+        if ~isfield(settings,f0{ii});
+            settings.(f0{ii}) = [];
+        end
+
+        for jj = 1:length(f1)
+            if ~isfield(settings.(f0{ii}), f1{jj})
+                fprintf('\n\n Adding missing default setting "%s.%s" from default_BT_Settings.m\n', ...
+                    (f0{ii}), f1{jj})
+                fprintf(' You may incorporate this setting into your systemSettings.yml to modify it or supress this message.\n\n')
+                settings.(f0{ii}).(f1{jj}) = DEFAULT_SETTINGS.(f0{ii}).(f1{jj});
+                fprintf('settings.%s = \n', f0{ii})
+                disp(settings.(f0{ii}))
+            end
+        end
+    end
 
 
 

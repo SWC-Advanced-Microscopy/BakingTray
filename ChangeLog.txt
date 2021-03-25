@@ -7,6 +7,21 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+23rd March 2021
+- USER (Dev) - Middle-click to move in preview GUI! Thanks to Florian Vollrath for this. 
+- USER (Dev) - A little while ago we add Zaber devices. 
+- USER (Dev) - New sample menu item that also turns on reso scanner
+
+
+17th Feb 2021
+- USER (dev): Software version number in recipe is now the Git branch and commit hash
+- USER (dev): PMT auto-on is disabled each time the scanner is armed. i.e. each time a tile scan is done.
+- USER (dev): Z-stage homes automatically when user goes to 0 mm from a position greater than 20 mm. 
+             NOTE: the above can be disabled by a new setting. Information on this is presented when
+             the software starts. You will need to add SYSTEM.homeZjackOnZeroMove=0 to systemSettings.yml
+             to disable the behavior or SYSTEM.homeZjackOnZeroMove=1 to disable warning message but retain
+             the new behavior.
+
 10th Feb 2021
 - USER (dev): support report can now be generated from the Tools menu.
 - USER (dev): fix bug related to numOverlapZPlanes recipe setting being stuck at >0 once it's been changed.
@@ -242,7 +257,7 @@ The changes in this merge commit encompass all the following starting from about
 
 
 20th July 2018
-- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/BaselLaserMouse/BakingTray/wiki/Achieving-high-stitching-accuracy
+- USER: NEW FEATURE New parameters for optimising stitching accuracy: https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Achieving-high-stitching-accuracy
 
 
 5th July 2018
