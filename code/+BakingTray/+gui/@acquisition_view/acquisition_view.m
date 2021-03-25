@@ -398,16 +398,11 @@ classdef acquisition_view < BakingTray.gui.child_view
         end % pointerReporter
 
         function previewMoveToPosition(obj,~,sourceHandle)
-            % To do: Stage is currently moved so that the clicked position is in
-            % the upper corner of the new FOV. Change to center clicked
-            % position.
-            
-            
             % Initiates movement to clicked position in image preview (middle mouse button). 
             % The callback does not run if an
             % acquisition is in progress or if the plotted image contains only zeros.
             
-            if obj.model.acquisitionInProgress || all(obj.sectionImage.CData(:)==0)
+            if obj.model.acquisitionInProgress || obj.model.isSlicing || all(obj.sectionImage.CData(:)==0)
                 return
             end
             
