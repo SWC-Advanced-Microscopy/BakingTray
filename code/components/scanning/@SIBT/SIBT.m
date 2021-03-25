@@ -185,6 +185,15 @@ classdef SIBT < scanner
         % Perhaps some of the following should be part of scanner, we need to decide
         % Larger methods are in their own files and declared after this block
 
+        function leaveResonantScannerOn(obj)
+            % If this is a resonant system, turn on the scanner for the rest of the acqiosotion.
+            % This method is called by armScanner and possibly outside of the SIBT class also
+            if strcmpi(obj.scannerType, 'resonant')
+                % This will only be turned off again when the teardown method is run
+                obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
+            end
+        end %leaveResonantScannerOn
+
         function resetTrippedPMTs(obj,resetAll)
             % function resetTrippedPMTs(resetAll)
             %
@@ -583,13 +592,14 @@ classdef SIBT < scanner
 
 
     methods (Hidden) %The following are hidden methods specific to SIBT
+
         function lastFrameNumber = getLastFrameNumber(obj)
             % Returns the number of frames acquired by the scanner.
             % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI. 
             lastFrameNumber = obj.hC.hDisplay.lastFrameNumber;
             %TODO: does it return zero if there are no data yet?
             %TODO: turn into a listener that watches lastFrameNumber
-        end
+        end %getLastFrameNumber
 
 
         function enableArmedListeners(obj)

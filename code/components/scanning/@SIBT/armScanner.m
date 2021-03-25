@@ -66,10 +66,7 @@ function [success,msg] = armScanner(obj)
     end
     success=true;
 
-    if strcmpi(obj.scannerType, 'resonant')
-        % This will only be turned off again when the teardown method is run
-        obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
-    end
+    obj.leaveResonantScannerOn
 
     fprintf('Armed scanner: %s\n', datestr(now))
 
