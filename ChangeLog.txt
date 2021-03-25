@@ -8,7 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 
 23rd March 2021
-- USER (Dev) - vollrathf adds middle-click to move in preview GUI
+- USER (Dev) - Middle-click to move in preview GUI! Thanks to Florian Vollrath for this. 
 - USER (Dev) - A little while ago we add Zaber devices. 
 - USER (Dev) - New sample menu item that also turns on reso scanner
 
