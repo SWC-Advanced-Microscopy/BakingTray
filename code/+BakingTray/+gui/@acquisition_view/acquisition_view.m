@@ -417,9 +417,11 @@ classdef acquisition_view < BakingTray.gui.child_view
                 %Get current FOV and move FOV in middle of mouse click
                 stagePos(1) = stagePos(1)+obj.model.recipe.ScannerSettings.FOV_alongColsinMicrons/2/1000;
                 stagePos(2) = stagePos(2)+obj.model.recipe.ScannerSettings.FOV_alongRowsinMicrons/2/1000;
-                % Move stage
-                obj.model.moveXYto(stagePos(1), stagePos(2));
-                % Refresh GUI
+
+                % Move stage and wait until it gets there
+                obj.model.moveXYto(stagePos(1), stagePos(2), true);
+
+                % Then refresh GUI
                 obj.model.xAxis.axisPosition();
                 obj.model.yAxis.axisPosition();
             end
