@@ -103,8 +103,9 @@ switch controllerName
         end
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
-
-    case {'soloist','ensemble'}
+        
+    % TODO -- ideally all should look like this
+    case {'ensemble', 'soloist','genericZaberController'}
         stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return

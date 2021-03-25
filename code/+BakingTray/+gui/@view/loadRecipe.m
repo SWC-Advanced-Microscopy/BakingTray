@@ -1,15 +1,25 @@
-function loadRecipe(obj,~,~)
+function loadRecipe(obj,~,~,fullPath)
     % Loads a new recipe and initiates resumption of a previous acquisition if necessary
+    %
+    % If a fourth argument is provided, this is the recipe that is loaded. 
 
     % Load recipe button callback -- loads a new recipe from disk
-    [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
+    if nargin<4
+        [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
 
-    if fname==0
-        % if the user hits cancel
-        return
+        if fname==0
+            % if the user hits cancel
+            return
+        end
+
+        fullPath = fullfile(absPath,fname);
+    else
+        absPath = fileparts(fullPath);
     end
 
-    fullPath = fullfile(absPath,fname);
+    if ~exist(fullPath,'file')
+        return
+    end
 
     %Does this path already contain an acquisition?
     obj.button_recipe.String='LOADING';

@@ -163,6 +163,9 @@ function buildFigure(obj)
 
     % Report the cursor position with a callback function
     set(obj.hFig, 'WindowButtonMotionFcn', @obj.pointerReporter)
+    
+    % Enable "click to move to position" (double click)
+    set(obj.hFig, 'WindowButtonDownFcn', @obj.previewMoveToPosition)
 
 
     obj.button_previewScan=uicontrol(...

@@ -71,7 +71,6 @@ function BakingTray(varargin)
             delete(hBT) %Avoids blocked hardware controllers
             evalin('base','clear ans') %Because it sometimes makes a copy of BT in ans when it fails
             rethrow(ME)
-            return
         end
 
     else

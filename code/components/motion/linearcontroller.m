@@ -300,7 +300,8 @@ classdef (Abstract) linearcontroller < handle & loghandler
                 error('linearstage object not provided')
             end
             if isempty(linearStageObject.axisName) || ~ischar(linearStageObject.axisName)
-                error('axisName property needs to be supplied and should be a string')
+                error(sprintf(['axisName property needs to be supplied and should be a string\n', ...
+                      '   attachLinearStage(obj,linearStageObject)\n']))
             end
             if ~regexp(linearStageObject.axisName,'^[xyz]Axis$')
                 error('Field stage.settings.axisName is incorrect. It should be one of: xAxis, yAxis, or zAxis. You supplied %s',linearStageObject.axisName)
