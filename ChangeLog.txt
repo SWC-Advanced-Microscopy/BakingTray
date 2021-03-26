@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
+26th March 2021
+- USER (Dev) - Bugfix: Section start number is correctly displayed in Acq view immediately when resuming.
+
+
 23rd March 2021
 - USER (Dev) - Middle-click to move in preview GUI! Thanks to Florian Vollrath for this. 
 - USER (Dev) - A little while ago we add Zaber devices. 

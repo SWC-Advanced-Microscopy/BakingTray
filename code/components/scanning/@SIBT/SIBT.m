@@ -176,14 +176,6 @@ classdef SIBT < scanner
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
 
-    end %Close of main methods block
-
-
-
-    %---------------------------------------------------------------
-    methods % This methods block contains additional methods unique to SIBT
-        % Perhaps some of the following should be part of scanner, we need to decide
-        % Larger methods are in their own files and declared after this block
 
         function leaveResonantScannerOn(obj)
             % If this is a resonant system, turn on the scanner for the rest of the acqiosotion.
@@ -193,6 +185,16 @@ classdef SIBT < scanner
                 obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
             end
         end %leaveResonantScannerOn
+
+
+    end %Close of main methods block
+
+
+
+    %---------------------------------------------------------------
+    methods % This methods block contains additional methods unique to SIBT
+        % Perhaps some of the following should be part of scanner, we need to decide
+        % Larger methods are in their own files and declared after this block
 
         function resetTrippedPMTs(obj,resetAll)
             % function resetTrippedPMTs(resetAll)
