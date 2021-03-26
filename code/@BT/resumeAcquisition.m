@@ -237,6 +237,9 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
         newSectionStartNumber = lastImagedSectionNumber+1;
     end
 
+    % Update current section number property in BT to ensure GUI is reflecting what will happen
+    obj.currentSectionNumber = newSectionStartNumber;
+
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
     if newNumberOfRequestedSections<1
         fprintf('\n** Original number of requested sections was %d but since section start number is now %d this is not possible.\n', ...

@@ -166,6 +166,8 @@ classdef dummyScanner < scanner
         function abortScanning(obj)
         end
 
+        function leaveResonantScannerOn(obj)
+        end
 
         function showFastZCalib(~,~,~)
             % SIBT does this and so we also do here

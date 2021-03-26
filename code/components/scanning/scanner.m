@@ -359,7 +359,15 @@ classdef (Abstract) scanner < handle & loghandler
         % nFramesToAverage - must be a >0 scalar
         %
 
-        
+        leaveResonantScannerOn(obj)
+        % leaveResonantScannerOn
+        %
+        % If a resonant scanner is present it is turned on 
+        %
+        % Inputs
+        % None
+
+
      end % close abstract methods
 
      % The following concrete methods are shared by all scanner classes
