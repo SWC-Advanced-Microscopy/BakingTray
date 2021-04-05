@@ -81,9 +81,6 @@ classdef SIBT < scanner
 
             fprintf('\n\nStarting SIBT interface for ScanImage\n')
 
-            %Log default state of settings so we return to these when disarming, as we will assume control over the shutter
-            obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
-
 
             % Add ScanImage-specific listeners
 
@@ -148,7 +145,6 @@ classdef SIBT < scanner
             end
 
             obj.hC.extTrigEnable=0;
-            obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
             obj.disableTileSaving
 

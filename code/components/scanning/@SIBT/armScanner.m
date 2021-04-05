@@ -50,7 +50,6 @@ function [success,msg] = armScanner(obj)
             obj.hC.hDisplay.selectedZs=0;
     end
 
-    % obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters %TODO -- assume control over shutter
     %If any of these fail, we leave the function gracefully
 
     try
