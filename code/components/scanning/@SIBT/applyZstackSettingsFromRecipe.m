@@ -32,6 +32,9 @@ function applyZstackSettingsFromRecipe(obj)
             if obj.hC.hStackManager.enable ~=1
                 obj.hC.hStackManager.enable=1;
             end
+            if ~strcmp(obj.hC.hStackManager.stackMode,'fast')
+                obj.hC.hStackManager.stackMode='fast';
+            end
         else
             %For Scanimage <= v 5.6.1 we just do this    
             if obj.hC.hFastZ.enable ~=1
@@ -52,7 +55,7 @@ function applyZstackSettingsFromRecipe(obj)
         end
 
         targetStepSize = round(sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes,1);
-        if obj.hC.hStackManager.stackZStepSize ~= targetStepSize;
+        if obj.hC.hStackManager.stackZStepSize ~= targetStepSize
             obj.hC.hStackManager.stackZStepSize = targetStepSize;
         end
 
@@ -67,8 +70,19 @@ function applyZstackSettingsFromRecipe(obj)
         %Ensure we disable z-scanning if this is not being used
         obj.hC.hStackManager.numSlices = 1;
         obj.hC.hStackManager.stackZStepSize = 0;
-        obj.hC.hFastZ.enable=false;
-
+        
+        
+        if obj.versionGreaterThan('5.6.1')
+            if obj.hC.hStackManager.enable ~= 0
+                obj.hC.hStackManager.enable=0;
+            end
+        else
+            %For Scanimage <= v 5.6.1 we just do this    
+            if obj.hC.hFastZ.enable ~=0
+                obj.hC.hFastZ.enable=0;
+            end
+        end
+        
     end
 
 
