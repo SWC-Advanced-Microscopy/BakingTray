@@ -50,16 +50,20 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
         end
 
         % Is there tissue at the border?
-        [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox});
+        if isfield(BWims,'beforeExpansion')
+            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox});
 
-        if changed
-            fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
+            if changed
+                fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
 
-            [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox}, [], false);
-            ROIDELTA = newBB{1}-roiBoundingBox; % Difference between ROIs
+                [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox}, [], false);
+                ROIDELTA = newBB{1}-roiBoundingBox; % Difference between ROIs
 
-            % Apply this difference to the bounding box calculated  based on the border-expanded tissue
-            stats.BoundingBox = stats.BoundingBox + ROIDELTA;
+                % Apply this difference to the bounding box calculated  based on the border-expanded tissue
+                stats.BoundingBox = stats.BoundingBox + ROIDELTA;
+            end
+        else
+            fprintf('%s -- BWims does not contain field "beforeExpansion". Skipping edge expansion\n',mfilename)
         end
 
     end

@@ -30,7 +30,7 @@ function settings = readSettings(readFromYaml)
 
     if readFromYaml
         % Look for file
-        settingsFname = fullfile( fileparts(mfilename('fullpath')), 'settings.yml');
+        settingsFname = fullfile( fileparts(mfilename('fullpath')), 'dynamic_thresh_settings.yml');
 
         if exist(settingsFname,'file')
             settings = BakingTray.yaml.ReadYaml(settingsFname);
@@ -70,22 +70,10 @@ function settings = readSettings(readFromYaml)
         settings.mainBin.doExpansion = true; % Expand binarized image 
         settings.mainBin.expansionSize = 600;  %in microns
 
-        % The following are used in autoROI > getBoundingBoxes
-        settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
-
         % The following settings are used for extending ROIs at edges where the sample seems to be clipped
         settings.clipper.doExtension = true; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
         settings.clipper.edgeThreshMicrons = 350; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
         settings.clipper.growROIbyMicrons = 450; % Grow ROIs by this many microns in the direction of the clipped tissue
-
-        % The following are used in autoROI.mergeOverlapping
-        settings.mergeO.mergeThresh=1.3; %This is the default value
-
-        % The following are used by autoROI.runOnStackStruct and BT.getNextROIs
-        settings.stackStr.rollingThreshold=true; % if false we use threshold of first image for the whole acquisition
-        % if rolling threshold is true, the next setting is used
-        settings.stackStr.nImages=5; %If zero we use the previous image. If a positive integer, we take median of this many most recent images
-
 
         settings.autoThresh.skipMergeNROIThresh=10;
         settings.autoThresh.doBinaryExpansion=false;
