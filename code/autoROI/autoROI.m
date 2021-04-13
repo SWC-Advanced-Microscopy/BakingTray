@@ -44,6 +44,18 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
     %
     % Rob Campbell - SWC, 2019
 
+    settings = autoROI.readSettings;
 
-    stats=dynamicThresh_Alg.run(pStack,lastSectionStats,varargin{:});;
+    switch settings.alg
+        case 'dynamicThresh_Alg'
+            stats=dynamicThresh_Alg.run(pStack,lastSectionStats,varargin{:});
+        otherwise
+            stats= [];
+            fprintf('Algorithm %s is unkown. QUITTING\n',settings.alg)
+    end
 
+
+
+    if nargout>0
+        varargout{1} = stats;
+    end

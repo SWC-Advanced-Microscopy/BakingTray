@@ -51,6 +51,11 @@ function settings = readSettings(readFromYaml)
 
 
     function settings = returnSettings
+        % This selects the algorithm to use. It should be the name of a module directory under
+        % the autoROI directory. To keep things consistent, these directories should end with the
+        % string '_Alg'
+        settings.alg = 'dynamicThresh_Alg';
+
         % The following are used in autoROI > getBoundingBoxes
         settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this
 
