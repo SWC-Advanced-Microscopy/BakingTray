@@ -2,7 +2,7 @@ function success=getThreshold(obj)
     % Get threshold from current preveiw image
     % 
     % Purpose
-    % Runs autoROI.autothresh.run to get a threshold based on obj.autoROI.previewImages
+    % Runs autoROI.autothresh to get a threshold based on obj.autoROI.previewImages
     % Once done, populates  BT.autoROI.stats with the output of autoROI. This wipes
     % whatever was there before. 
     %
@@ -29,7 +29,7 @@ function success=getThreshold(obj)
     end
 
     % Obtain the threshold
-    threshSD = autoROI.autothresh.run(obj.autoROI.previewImages);
+    threshSD = autoROI.autothresh(obj.autoROI.previewImages);
 
     % Bail out if it failed
     if isnan(threshSD)

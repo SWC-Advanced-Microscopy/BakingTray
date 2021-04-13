@@ -64,7 +64,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     if isempty(tThreshSD)
         fprintf('\n ** GETTING A THRESHOLD\n')
         fprintf('%s is running auto-thresh\n', mfilename)
-        [tThreshSD,at_stats]=autoROI.autothresh.run(pStack, false, settings);
+        [tThreshSD,at_stats]=autoROI.autothresh(pStack, false, settings);
         fprintf('\nTHRESHOLD OBTAINED!\n')
         fprintf('%s\n\n',repmat('-',1,100))
     else

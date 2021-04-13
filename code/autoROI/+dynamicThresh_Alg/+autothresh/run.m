@@ -1,7 +1,7 @@
 function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     % Search a range of thresholds and find the best one. 
     %
-    % function [tThreshSD,stats,tThresh] = autoROI.autoThresh.run(pStack, runSeries, settings, BBstats)
+    % function [tThreshSD,stats,tThresh] = dynamicThresh_Alg.autothresh.run(pStack, runSeries, settings, BBstats)
     %
     % Purpose
     % Choose threshold based on the number of ROIs it produces. 
@@ -51,7 +51,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
         % The following is a somewhat hacky bug-fix for handling the 
         % situation where a live acquisition requests a re-run of the threshold
         if size(pStack.imStack,3)==1 && pStack.sectionNumber>1
-            fprintf('\n\n\nIn autoThresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d\n', ...
+            fprintf('\n\n\nIn dynamicThresh_Alg.autothresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d\n', ...
                 size(pStack.imStack,3), pStack.sectionNumber)
             fprintf('Likely re-calculating thresh in live acq. Forcing sectionNumber to equal stack length\n')
             origIM = pStack.imStack(:,:, 1); % Make a backup of the original image
@@ -68,7 +68,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
             tmpIm=autoROI.getSubImageUsingBoundingBox(origIM,BB{ii});
             pStack.imStack = tmpIm;
             % Run the autothresh with this sub-image
-            [tThreshSD(ii),stats{ii}] = autoROI.autothresh.run(pStack,false,settings);
+            [tThreshSD(ii),stats{ii}] = dynamicThresh_Alg.autothresh.run(pStack,false,settings);
         end
         % Get the thrshold
         tThreshSD = mean(tThreshSD);
@@ -115,7 +115,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
             stats(end+1)=calcStatsFromThreshold(x);
             x=x*1.1;
         end
-        autoROI.autothresh.plot(stats)
+        dynamicThresh_Alg.autothresh.plot(stats)
         tThreshSD = nan;
         fprintf('Finished!\n')
         toc(t)

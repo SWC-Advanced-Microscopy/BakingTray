@@ -408,7 +408,7 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
         if (FG_ratio_this_section / FG_ratio_previous_section)>settings.main.reCalcThreshSD_threshold
             fprintf('\nTRIGGERING RE-CALC OF tThreshSD due to high F/B ratio.\n')
             % Re-run autothresh on the current section with the current ROIs
-            [tThreshSD,~,thresh]=autoROI.autothresh.run(pStack,[],[],out);
+            [tThreshSD,~,thresh]=dynamicThresh_Alg.autothresh.run(pStack,[],[],out);
 
             % Something went really wrong if there was a NaN happened
             if ~isnan(tThreshSD)

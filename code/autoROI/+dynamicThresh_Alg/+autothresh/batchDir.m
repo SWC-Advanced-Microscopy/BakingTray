@@ -1,9 +1,7 @@
 function out = batchDir(runDir)
-    % function [tThresh,stats] = autoROI.autoThresh.batchDir(runDir)
+    % function [tThresh,stats] = dynamicThresh_Alg.autoThresh.batchDir(runDir)
     %
     % Run on all in directory and retun a structure with the results
-
-
 
 
 
@@ -20,7 +18,7 @@ function out = batchDir(runDir)
         pStack = pstack_loader(tFile);
         [~,nameWithoutExtension] = fileparts(pStack_list(ii).name);
 
-        [out(ii).thresh,out(ii).stats]=autoROI.autothresh.run(pStack,false);
+        [out(ii).thresh,out(ii).stats]=dynamicThresh_Alg.autothresh.run(pStack,false);
 
         out(ii).nameWithoutExtension=nameWithoutExtension;
         out(ii).fullPath=tFile;
