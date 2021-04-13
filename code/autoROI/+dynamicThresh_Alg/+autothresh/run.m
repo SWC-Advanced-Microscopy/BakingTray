@@ -30,10 +30,8 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     end
 
     if nargin<3 || isempty(settings)
-        settings = autoROI.readSettings;
+        settings = dynamicThresh_Alg.readSettings;
     end
-
-
 
     if ~isfield(pStack,'sectionNumber')
         pStack.sectionNumber=1;
