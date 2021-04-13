@@ -57,14 +57,13 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
 
     % These are in the input arguments for autoROI
-    boundingBoxArgIn = {'doPlot', ~noPlot, ...
-                    'settings', settings};
+    boundingBoxArgIn = {'doPlot', ~noPlot};
 
 
     if isempty(tThreshSD)
         fprintf('\n ** GETTING A THRESHOLD\n')
         fprintf('%s is running auto-thresh\n', mfilename)
-        [tThreshSD,at_stats]=autoROI.autothresh(pStack, false, settings);
+        [tThreshSD,at_stats]=autoROI.autothresh(pStack);
         fprintf('\nTHRESHOLD OBTAINED!\n')
         fprintf('%s\n\n',repmat('-',1,100))
     else

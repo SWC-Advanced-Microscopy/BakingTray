@@ -1,7 +1,7 @@
-function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,settings,makePlots)
+function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,micsPix,settings,makePlots)
     % Expands ROIs that contain tissue at the edges
     %
-    % function [out,roiChanged] = findTissueAtROIedges(BW,BBstats,settings)
+    % function [out,roiChanged] = findTissueAtROIedges(BW,BBstats,micsPix,settings)
     %
     %
     % Purpose
@@ -12,7 +12,8 @@ function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,settings,ma
     % Inputs [required]
     % BW - the binarized images where 1s are areas with tissue and 0s are areas without
     % BBstats - the first output argument of regionprops (or a cell array of boundingboxes)
-    % 
+    % micsPix - the number of microns per pixel of the images
+    %
     % Inputs [optional]
     % settings - the outpit of autoROI.readSettings
     %
@@ -24,11 +25,11 @@ function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,settings,ma
     % Rob Campbell - SWC 2020
 
 
-    if nargin<3 || isempty(settings)
+    if nargin<4 || isempty(settings)
         settings = autoROI.readSettings;
     end
 
-    if nargin<4
+    if nargin<5
         makePlots = false;
     end
 
@@ -47,7 +48,7 @@ function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,settings,ma
 
     for ii=1:length(BBstats)
         tBW=autoROI.getSubImageUsingBoundingBox(BW,BBstats{ii});
-        edgeData = lookForTissueAtEdges(tBW,BBstats{ii},settings);
+        edgeData = lookForTissueAtEdges(tBW,BBstats{ii},micsPix,settings);
         BBstats{ii} = edgeData.ROI;
     end
 
@@ -75,9 +76,8 @@ function [out,roiChanged,edgeData] = findTissueAtROIedges(BW,BBstats,settings,ma
     end
 
 
-function out = lookForTissueAtEdges(BW,ROI,settings)
+function out = lookForTissueAtEdges(BW,ROI,micsPix,settings)
     % this function is called by getBoundingBoxes, which works with downsampled images defined thus:
-    micsPix = settings.main.rescaleTo; 
 
     eThresh = settings.clipper.edgeThreshMicrons / micsPix;
     growByPix = settings.clipper.growROIbyMicrons / micsPix;

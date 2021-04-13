@@ -51,12 +51,12 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
 
         % Is there tissue at the border?
         if isfield(BWims,'beforeExpansion')
-            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox});
+            [newBB, changed, edgeData] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox},pixelSize);
 
             if changed
                 fprintf('Expanding ROI due to sample clipping!\n') % TODO - this should go in a log file
 
-                [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox}, [], false);
+                [newBB, changed] = autoROI.findTissueAtROIedges(BWims.beforeExpansion,{roiBoundingBox}, pixelSize, [], false);
                 ROIDELTA = newBB{1}-roiBoundingBox; % Difference between ROIs
 
                 % Apply this difference to the bounding box calculated  based on the border-expanded tissue

@@ -132,7 +132,7 @@ function varargout=run(pStack, lastSectionStats, varargin)
 
 
     sizeOrigIm=size(im); % The original image size
-    [im,pixelSize,origPixelSize] = autoROI.dynamicThresh_Alg.rescaleAndFilterImage(im,pixelSize);
+    [im,pixelSize,origPixelSize] = dynamicThresh_Alg.rescaleAndFilterImage(im,pixelSize);
 
 
     % If no threshold for segregating sample from background was supplied then calculate one
@@ -163,9 +163,9 @@ function varargout=run(pStack, lastSectionStats, varargin)
 
     % Binarize, clean, add a border around the sample
     if nargout>1
-       [BW,binStats] = autoROI.binarizeImage(im,pixelSize,tThresh,binArgs{:});
+       [BW,binStats] = dynamicThresh_Alg.binarizeImage(im,pixelSize,tThresh,binArgs{:});
     else
-        BW = autoROI.binarizeImage(im,pixelSize,tThresh,binArgs{:});
+        BW = dynamicThresh_Alg.binarizeImage(im,pixelSize,tThresh,binArgs{:});
     end
 
     % We run on the whole image
@@ -201,7 +201,7 @@ function varargout=run(pStack, lastSectionStats, varargin)
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
-            tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
+            tBW = dynamicThresh_Alg.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
             containsSampleMask = containsSampleMask + tBW.FINAL;
             if isAutoThresh
                 tBoundingBox = [];
