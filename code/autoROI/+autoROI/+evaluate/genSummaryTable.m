@@ -40,7 +40,6 @@ fileName = {tLogs.name}';
 pStackFname = cell(n,1);
 tThreshSD = zeros(n,1);
 mean_tThresh = zeros(n,1); %Mean over all elements of log structure
-rollingThreshold = zeros(n,1);
 numSectionsWithHighCoverage = zeros(n,1); %See evluateBoundingBoxes. Should be with coverage of over 0.99
 numSectionsWithOverFlowingCoverage = zeros(n,1); %See evluateBoundingBoxes. ROI coverage larger then FOV.
 numUnprocessedSections = zeros(n,1);
@@ -75,7 +74,6 @@ for ii=1:n
     pStackFname{ii} = testLog.stackFname;
     tThreshSD(ii) = testLog.roiStats(1).tThreshSD; % The first tThreshSD value
     mean_tThresh(ii) = mean([testLog.roiStats.tThresh]);
-    rollingThreshold(ii) = testLog.settings.stackStr.rollingThreshold;
     numSectionsWithHighCoverage(ii) = testLog.report.numSectionsWithHighCoverage;
     numSectionsWithOverFlowingCoverage(ii) = testLog.report.numSectionsWithOverFlowingCoverage;
     numUnprocessedSections(ii) = testLog.numUnprocessedSections;
@@ -109,7 +107,7 @@ end
 % Construct table
 fprintf('\nBuilding table\n')
 isProblemCase = logical(isProblemCase);
-summaryTable = table(fileName, tThreshSD, rollingThreshold, numSectionsWithHighCoverage, ...
+summaryTable = table(fileName, tThreshSD, numSectionsWithHighCoverage, ...
     mean_tThresh, numSectionsWithOverFlowingCoverage, medPropPixelsInRoiThatAreTissue, totalImagedSqMM, ... 
     propImagedArea, nSamples, isProblemCase, numUnprocessedSections, autothresh_notes, autothresh_tThreshSD, ...
     autothresh_SNR, totalNonImagedTiles, totalNonImagedSqMM, totalExtraSqMM, ...

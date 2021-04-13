@@ -48,6 +48,25 @@ function settings = readSettings(readFromYaml)
     end
 
 
+    % Merge in algorithm-specific settings
+    switch settings.alg
+        case 'dynamicThresh_Alg'
+            algSet = dynamicThresh_Alg.readSettings;
+        otherwise
+            fprintf('autoROI.readSettings can not find algorithm module %s\n', settings.alg)
+            algSet = [];
+    end
+
+    if ~isempty(algSet)
+        tFields = fields(algSet);
+        for ii=1:length(tFields)
+            if isfield(settings, tFields{ii})
+                fprintf('autoROI.readSettings -- WARNING -- SKIPPING DUPLICATE SETTING FIELD NAME %s\n', tFields{ii})
+                continue
+            end
+            settings.(tFields{ii}) = algSet.(tFields{ii});
+        end
+    end
 
 
     function settings = returnSettings

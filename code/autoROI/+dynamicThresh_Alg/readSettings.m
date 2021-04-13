@@ -70,11 +70,6 @@ function settings = readSettings(readFromYaml)
         settings.mainBin.doExpansion = true; % Expand binarized image 
         settings.mainBin.expansionSize = 600;  %in microns
 
-        % The following settings are used for extending ROIs at edges where the sample seems to be clipped
-        settings.clipper.doExtension = true; % If true we attempt to expand ROIs in getBoundingBoxes. If false we do not
-        settings.clipper.edgeThreshMicrons = 350; % More than this many microns need to appear clipped at the ROI edge for it to count as clipping
-        settings.clipper.growROIbyMicrons = 450; % Grow ROIs by this many microns in the direction of the clipped tissue
-
         settings.autoThresh.skipMergeNROIThresh=10;
         settings.autoThresh.doBinaryExpansion=false;
         settings.autoThresh.minThreshold=2;
