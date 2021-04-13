@@ -1,7 +1,7 @@
 function SD = obtainCleanBackgroundSD(data,bypassGMM)
 % Optionally remove potential bright (tissue) pixels using a GMM
 %
-% function SD = obtainCleanBackgroundSD(data,bypassGMM)
+% function SD = dynamicThresh_Alg.obtainCleanBackgroundSD(data,bypassGMM)
 % 
 % 
 % Purpose
