@@ -6,7 +6,7 @@ autoROI.m will handle which algorithms are run. It should be transparent to the 
 
 
 Common entry functions that will divert to the correct algorithm sub-dir:
-autoROI
-autoROI.autothresh
+autoROI -- executes the run.m function of the appropriate algorithm. 
+autoROI.autothresh -- currently executes autothresh.run of the dynamic threshold alg. 
 
-autoROI.readSettings <- NOTE alg-specific functions should probably reading from their own settings file. Need to think about this
+autoROI.readSettings
