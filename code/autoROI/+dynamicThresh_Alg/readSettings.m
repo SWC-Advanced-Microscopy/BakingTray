@@ -1,7 +1,7 @@
 function settings = readSettings(readFromYaml)
     % Read settings (from a yaml file if desired)
     % 
-    % function settings = readSettings(readFromYaml)
+    % function settings = dynamicThresh_Alg.readSettings(readFromYaml)
     %
     % Purpose
     % Returns settings that are used by other functions. Some settings
@@ -91,5 +91,5 @@ function settings = readSettings(readFromYaml)
         settings.autoThresh.doBinaryExpansion=false;
         settings.autoThresh.minThreshold=2;
         settings.autoThresh.maxThreshold=12; %Increasing this produces larger ROIs but at the risk of some ballooning and flowing outside of the FOV
-        settings.autoThresh.allowMaxExtensionIfFewThreshLeft=true; %see autothresh.run > getThreshAlg
+        settings.autoThresh.allowMaxExtensionIfFewThreshLeft=true; %see dynamicThresh_Alg.autothresh.run > getThreshAlg
         settings.autoThresh.decreaseThresholdBy=0.9; % Dangerous to go above this. Likely should leave as is. 
