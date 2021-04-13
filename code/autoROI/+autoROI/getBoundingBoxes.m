@@ -4,7 +4,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     % function stats = autoROI.getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     %
     % Purpose
-    % Return bounding boxes based on threshold image structire, BWims. This
+    % Return bounding boxes based on threshold image structure, BWims. This
     % is the output of binarizedImage. This function is called by autoROI
     %
     %
@@ -32,7 +32,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
     verbose=false;
     diagnosticPlots = false;
 
-    BW = BWims.afterExpansion; 
+    BW = BWims.FINAL; 
     % Find bounding boxes, removing very small ones and 
     stats = regionprops(BW,'boundingbox', 'area');
 
@@ -76,7 +76,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
         autoROI.overlayBoundingBox(stats.BoundingBox)
 
         subplot(2,2,3)
-        imagesc(BWims.afterExpansion)
+        imagesc(BWims.FINAL)
         autoROI.overlayBoundingBox(stats.BoundingBox)
         drawnow
         pause

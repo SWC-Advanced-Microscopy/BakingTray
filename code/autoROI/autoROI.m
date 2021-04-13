@@ -200,7 +200,7 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
-            containsSampleMask = containsSampleMask + tBW.afterExpansion;
+            containsSampleMask = containsSampleMask + tBW.FINAL;
             if isAutoThresh
                 tBoundingBox = [];
             end
@@ -301,7 +301,7 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
     BoundingBoxes = {stats.BoundingBox};
     for ii=1:length(BoundingBoxes)
         tIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBoxes{ii});
-        tBW = autoROI.getSubImageUsingBoundingBox(BW.afterExpansion,BoundingBoxes{ii});
+        tBW = autoROI.getSubImageUsingBoundingBox(BW.FINAL,BoundingBoxes{ii});
         imStats(ii) = autoROI.getForegroundBackgroundPixels(tIm,pixelSize,borderPixSize,tThresh,tBW);
     end
 

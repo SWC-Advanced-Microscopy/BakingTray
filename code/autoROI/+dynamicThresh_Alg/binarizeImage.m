@@ -23,7 +23,9 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
     %
     %
     % Output
-    % binIm - The binarised images at key steps in the process as a structure.
+    % binIm - The binarised images at key steps in the process as a structure. NOTE that the 
+    %         images intended for downstream use are in a field called "FINAL". This is the 
+    %         expected format for other functions doing an equivalent job to this one. 
     % stats - An optional structure containing stats describing the number of ROIs, their sizes, etc
     %         this is only calculated if requested. 
     %
@@ -148,7 +150,7 @@ function varargout = binarizeImage(im,pixelSize,tThresh,varargin)
         % Just copy data from three as step four never happened
         binStats.step_four = binStats.step_three;
     end
-    binIm.afterExpansion = BW;
+    binIm.FINAL = BW; 
 
     if showImages
         subplot(2,2,4)
