@@ -48,7 +48,9 @@ function settings = readSettings(readFromYaml)
     end
 
 
-    % Merge in algorithm-specific settings
+    % Merge in algorithm-specific settings:
+
+    % First load alg-specific settings
     switch settings.alg
         case 'dynamicThresh_Alg'
             algSet = dynamicThresh_Alg.readSettings;
@@ -57,6 +59,7 @@ function settings = readSettings(readFromYaml)
             algSet = [];
     end
 
+    % Second merge the two structures, skipping duplicate fields
     if ~isempty(algSet)
         tFields = fields(algSet);
         for ii=1:length(tFields)
@@ -69,6 +72,7 @@ function settings = readSettings(readFromYaml)
     end
 
 
+    % Local functions follow
     function settings = returnSettings
         % This selects the algorithm to use. It should be the name of a module directory under
         % the autoROI directory. To keep things consistent, these directories should end with the
