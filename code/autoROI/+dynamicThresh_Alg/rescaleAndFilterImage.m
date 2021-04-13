@@ -1,7 +1,7 @@
 function [im,pixelSize,origPixelSize] = rescaleAndFilterImage(im,pixelSize)
     % Used to filter and rescale the images. 
     %
-    % function [im,pixelSize,origPixelSize] = rescaleAndFilterImage(im,pixelSize)
+    % function [im,pixelSize,origPixelSize] = dynamicThresh_Alg.rescaleAndFilterImage(im,pixelSize)
     %
     % Purpose
     %  Used by autoROI to filter the image. 

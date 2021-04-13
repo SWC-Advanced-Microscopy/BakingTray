@@ -130,7 +130,7 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
 
 
     sizeOrigIm=size(im); % The original image size
-    [im,pixelSize,origPixelSize] = autoROI.rescaleAndFilterImage(im,pixelSize);
+    [im,pixelSize,origPixelSize] = autoROI.dynamicThresh_Alg.rescaleAndFilterImage(im,pixelSize);
 
 
     % If no threshold for segregating sample from background was supplied then calculate one
