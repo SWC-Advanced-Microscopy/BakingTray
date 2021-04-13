@@ -64,8 +64,10 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         fprintf('\n ** GETTING A THRESHOLD\n')
         fprintf('%s is running auto-thresh\n', mfilename)
         [tThreshSD,at_stats]=autoROI.autothresh(pStack);
-        fprintf('\nTHRESHOLD OBTAINED!\n')
-        fprintf('%s\n\n',repmat('-',1,100))
+        if ~isempty(tThreshSD)
+            fprintf('\nTHRESHOLD OBTAINED!\n')
+            fprintf('%s\n\n',repmat('-',1,100))
+        end
     else
         at_stats=[];
     end
@@ -75,8 +77,15 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     % and has a generous border area. We therefore extract the ROIs from the whole of the first section.
     fprintf('\nDoing section %d/%d\n', 1, size(pStack.imStack,3))
     fprintf('Finding bounding box in first section\n')
-    stats = autoROI(pStack, [], boundingBoxArgIn{:},'tThreshSD',tThreshSD);
-    stats.roiStats.tThreshSD_recalc=false; %Flag to signal if we had to re-calc the threshold due to increase in laser power
+
+    switch settings.alg
+        case 'dynamicThresh_Alg'
+            stats = autoROI(pStack, [], boundingBoxArgIn{:},'tThreshSD',tThreshSD);
+        case 'chunkedCNN_Alg'
+            stats = autoROI(pStack, [], boundingBoxArgIn{:},'tNet',tThreshSD); %HACK TO GET NETWORK IN
+    end
+
+    stats.roiStats.tThreshSD_recalc=false; %Flag to signal if we had to re-calc the threshold due to increase in laser power (dynamic threshold alg only)
     stats.roiStats.sectionNumber=1; % This is needed because it's provided in live acquisitions
     drawnow
 
@@ -96,29 +105,37 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
         % Use a rolling threshold based on the last nImages to drive sample/background
         % segmentation in the next image. If set to zero it uses the preceeding section.
-        nImages=5;
-        if rollingThreshold==false
-            % Do not update the threshold at all: use only the values derived from the first section
-            thresh = stats.roiStats(1).medianBackground + stats.roiStats(1).stdBackground * stats.roiStats(end).tThreshSD;
-        elseif nImages==0
-            % Use the threshold from the last section: TODO shouldn't this be (ii) not (ii-1)?
-            thresh = stats.roiStats(ii-1).medianBackground + stats.roiStats(ii-1).stdBackground*stats.roiStats(ii-1).tThreshSD;
-        elseif ii<=nImages
-            % Attempt to take the median value from the last nImages: take as many as possible 
-            % until we have nImages worth of sections 
-            thresh = median( [stats.roiStats.medianBackground] + [stats.roiStats.stdBackground]*stats.roiStats(end).tThreshSD);
-        else
-            % Take the median value from the last nImages 
-            thresh = median( [stats.roiStats(end-nImages+1:end).medianBackground] + [stats.roiStats(end-nImages+1:end).stdBackground]*stats.roiStats(end).tThreshSD);
+        if strcmp(settings.alg,'dynamicThresh_Alg') % TODO -- HACK -- THIS SHOULD BE FARMED OUT SOMEHOW ELSEWHERE
+            nImages=5;
+            if rollingThreshold==false
+                % Do not update the threshold at all: use only the values derived from the first section
+                thresh = stats.roiStats(1).medianBackground + stats.roiStats(1).stdBackground * stats.roiStats(end).tThreshSD;
+            elseif nImages==0
+                % Use the threshold from the last section: TODO shouldn't this be (ii) not (ii-1)?
+                thresh = stats.roiStats(ii-1).medianBackground + stats.roiStats(ii-1).stdBackground*stats.roiStats(ii-1).tThreshSD;
+            elseif ii<=nImages
+                % Attempt to take the median value from the last nImages: take as many as possible 
+                % until we have nImages worth of sections 
+                thresh = median( [stats.roiStats.medianBackground] + [stats.roiStats.stdBackground]*stats.roiStats(end).tThreshSD);
+            else
+                % Take the median value from the last nImages 
+                thresh = median( [stats.roiStats(end-nImages+1:end).medianBackground] + [stats.roiStats(end-nImages+1:end).stdBackground]*stats.roiStats(end).tThreshSD);
+            end
         end
-
 
         % autoROI is fed the ROI structure from the **previous section**
         % It runs the sample-detection code within these ROIs only and returns the results.
-        tmp = autoROI(pStack, stats, ...
-            boundingBoxArgIn{:}, ...
-            'tThreshSD',stats.roiStats(end).tThreshSD, ...
-            'tThresh',thresh);
+        if strcmp(settings.alg,'dynamicThresh_Alg') % TODO -- HACK -- THIS SHOULD BE FARMED OUT SOMEHOW ELSEWHERE
+            tmp = autoROI(pStack, stats, ...
+                boundingBoxArgIn{:}, ...
+                'tThreshSD',stats.roiStats(end).tThreshSD, ...
+                'tThresh',thresh);
+        else % HACK
+            tmp = autoROI(pStack, stats, ...
+                boundingBoxArgIn{:}, ...
+                'tNet',tThreshSD);
+        end
+            
 
         if ~isempty(tmp)
             stats=tmp;

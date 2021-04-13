@@ -7,8 +7,11 @@ function [thresh,stats] = autothresh(pStack)
     switch settings.alg
         case 'dynamicThresh_Alg'
             [thresh,stats] = dynamicThresh_Alg.autothresh.run(pStack,[],settings);
+        case 'chunkedCNN_Alg'
+            thresh = [];
+            stats = [];
         otherwise
             thresh = [];
             stats = [];
-            fprintf('Algorithm %s is unkown. QUITTING\n',settings.alg)
+            fprintf('Autothresh -- Algorithm %s is unkown. QUITTING\n',settings.alg)
     end

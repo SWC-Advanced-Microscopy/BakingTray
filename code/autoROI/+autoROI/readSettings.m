@@ -54,6 +54,9 @@ function settings = readSettings(readFromYaml)
     switch settings.alg
         case 'dynamicThresh_Alg'
             algSet = dynamicThresh_Alg.readSettings;
+        case 'chunkedCNN_Alg'
+            % pass -- no settings right now
+            algSet = dynamicThresh_Alg.readSettings; %HACK -- TODO. For now read these
         otherwise
             fprintf('autoROI.readSettings can not find algorithm module %s\n', settings.alg)
             algSet = [];
@@ -78,6 +81,7 @@ function settings = readSettings(readFromYaml)
         % the autoROI directory. To keep things consistent, these directories should end with the
         % string '_Alg'
         settings.alg = 'dynamicThresh_Alg';
+        settings.alg = 'chunkedCNN_Alg';
 
         % The following are used in autoROI > getBoundingBoxes
         settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this

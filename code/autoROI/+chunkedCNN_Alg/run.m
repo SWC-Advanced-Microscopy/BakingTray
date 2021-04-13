@@ -1,13 +1,13 @@
-function varargout=run(pStack, lastSectionStats, varargin)
+function varargout=run(pStack, lastSectionStats, tNet, varargin)
     % autoROI
     %
-    % function varargout=dynamicThresh_Alg.run(pStack, lastSectionStats, 'param',val, ... )
+    % function varargout=chunkedCNN_Alg.run(pStack, lastSectionStats, 'param',val, ... )
     % 
     % Purpose
     % Automatically detect regions in the current section where there is
     % sample and find a tile-based bounding box that surrounds it. This function
     % can also be fed a bounding box list in order to use these ROIs as a guide
-    % for finding the next set of boxes in the next xection. This mimics the 
+    % for finding the next set of boxes in the next section. This mimics the 
     % behavior under the microscope. 
     % This function is called by autoROI.m It shouldn't normally need to be called 
     % directly
@@ -22,10 +22,9 @@ function varargout=run(pStack, lastSectionStats, varargin)
     %               present it should be the output of autoROI from a
     %               previous section. This is empty by default. Not in input parser
     %               because adding there slows down the parser.
+    % tNet - the CNN (TODO: this will be loaded in future and cached)
     %
     % Inputs (Optional param/val pairs)
-    % tThresh - Threshold for tissue/no tissue. By default this is auto-calculated
-    % tThreshSD - Used to do the auto-calculation of tThresh.
     % doPlot - if true, display image and overlay boxes. false by default
     % skipMergeNROIThresh - If more than this number of ROIs is found, do not attempt
     %                         to merge. Just return them. Used to speed up auto-finding.
@@ -33,8 +32,6 @@ function varargout=run(pStack, lastSectionStats, varargin)
     % showBinaryImages - shows results from the binarization step
     % doBinaryExpansion - default from setings file. If true, run the expansion of 
     %                     binarized image routine. 
-    % isAutoThresh - false by default. If autoROI is being called from autoThresh.run, then
-    %                this should be true. If true, we don't expand ROIs with tissue clipping.
     % settings - the settings structure. If empty or missing, we read from the file itself
     %
     %
@@ -71,6 +68,7 @@ function varargout=run(pStack, lastSectionStats, varargin)
     else
         im = pStack.imStack;
     end
+    im = double(im);
 
     % Get size settings from pStack structure
     pixelSize = pStack.voxelSizeInMicrons;
@@ -86,40 +84,24 @@ function varargout=run(pStack, lastSectionStats, varargin)
     params.CaseSensitive = false;
 
     params.addParameter('doPlot', true, @(x) islogical(x) || x==1 || x==0)
-    params.addParameter('tThresh',[], @(x) isnumeric(x) && isscalar(x))
-    params.addParameter('tThreshSD',[], @(x) isnumeric(x) && isscalar(x) || isempty(x))
     params.addParameter('skipMergeNROIThresh',inf, @(x) isnumeric(x) )
     params.addParameter('showBinaryImages', false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('doBinaryExpansion', [], @(x) islogical(x) || x==1 || x==0 || isempty(x))
-    params.addParameter('isAutoThresh',false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('settings',autoROI.readSettings, @(x) isstruct(x) )
 
 
     params.parse(varargin{:})
     doPlot = params.Results.doPlot;
-    tThresh = params.Results.tThresh;
-    tThreshSD = params.Results.tThreshSD;
     skipMergeNROIThresh = params.Results.skipMergeNROIThresh;
     showBinaryImages = params.Results.showBinaryImages;
     doBinaryExpansion = params.Results.doBinaryExpansion;
-    isAutoThresh = params.Results.isAutoThresh;
     settings = params.Results.settings;
 
     % Get defaults from settings file if needed
-    if isempty(tThreshSD)
-        fprintf('%s is using a default threshold of %0.2f\n',mfilename,tThreshSD)
-        tThreshSD = settings.main.defaultThreshSD;
-    end
 
     if isempty(doBinaryExpansion)
         doBinaryExpansion = settings.mainBin.doExpansion;
     end
-
-    % Extract settings from setting structure
-    borderPixSize = settings.main.borderPixSize;
-
-    rescaleTo = settings.main.rescaleTo;
-
 
 
     % These are the arguments we feed into the binarization function
@@ -134,41 +116,11 @@ function varargout=run(pStack, lastSectionStats, varargin)
 
 
     sizeOrigIm=size(im); % The original image size
-    [im,pixelSize,origPixelSize] = dynamicThresh_Alg.rescaleAndFilterImage(im,pixelSize);
 
 
-    % If no threshold for segregating sample from background was supplied then calculate one
-    % based on the pixels around the image border. This is only going to work for cases where
-    % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
-    if isempty(tThresh)
-        %Find pixels within b pixels of the border
-        b = borderPixSize;
-        borderPix = [im(1:b,:), im(:,1:b)', im(end-b+1:end,:), im(:,end-b+1:end)'];
-        borderPix = borderPix(:);
+    % Get binarized image using CNN
+    BW = chunkedCNN_Alg.applyCNN(im,tNet,pixelSize);
 
-        % Remove any non-imaged pixels
-        borderPix(borderPix == -42) = [];
-        borderPix(borderPix == 0) = [];
-
-        SD_border = dynamicThresh_Alg.obtainCleanBackgroundSD(borderPix);
-        tThresh = median(borderPix) + SD_border*tThreshSD;
-        fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
-            'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
-         mfilename, tThresh, tThreshSD)
-        fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median(borderPix), SD_border)
-    else
-        fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
-    end
-
-
-
-    % Binarize, clean, add a border around the sample
-    if nargout>1
-       [BW,binStats] = dynamicThresh_Alg.binarizeImage(im,pixelSize,tThresh,binArgs{:});
-    else
-        BW = dynamicThresh_Alg.binarizeImage(im,pixelSize,tThresh,binArgs{:});
-    end
 
     % We run on the whole image
     if showBinaryImages
@@ -187,10 +139,6 @@ function varargout=run(pStack, lastSectionStats, varargin)
         % and work on them alone
 
         lastROI = lastSectionStats.roiStats(end);
-        if rescaleTo>1
-            lastROI.BoundingBoxes = ...
-                cellfun(@(x) round(x/(rescaleTo/origPixelSize)), lastROI.BoundingBoxes,'UniformOutput',false);
-        end
 
         % Run within each ROI then afterwards consolidate results
         nT=1;
@@ -203,11 +151,9 @@ function varargout=run(pStack, lastSectionStats, varargin)
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
-            tBW = dynamicThresh_Alg.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
+            tBW = chunkedCNN_Alg.applyCNN(tIm,tNet,pixelSize);
             containsSampleMask = containsSampleMask + tBW.FINAL;
-            if isAutoThresh
-                tBoundingBox = [];
-            end
+
             tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
 
             if ~isempty(tStats{ii})
@@ -294,20 +240,13 @@ function varargout=run(pStack, lastSectionStats, varargin)
         clf
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
+        caxis([0,100])
     else
         H=[];
     end
-
-
-
-    % Get the forground and background pixels within each ROI. We will later
-    % use this to calculate stats on all of those pixels. 
     BoundingBoxes = {stats.BoundingBox};
-    for ii=1:length(BoundingBoxes)
-        tIm = autoROI.getSubImageUsingBoundingBox(im,BoundingBoxes{ii});
-        tBW = autoROI.getSubImageUsingBoundingBox(BW.FINAL,BoundingBoxes{ii});
-        imStats(ii) = autoROI.getForegroundBackgroundPixels(tIm,pixelSize,borderPixSize,tThresh,tBW);
-    end
+
+
 
     % Calculate the number of pixels in the bounding boxes
     nBoundingBoxPixels = zeros(1,length(BoundingBoxes));
@@ -320,8 +259,8 @@ function varargout=run(pStack, lastSectionStats, varargin)
     % provided as an input argument
 
     if isempty(lastSectionStats)
-        out.origPixelSize = origPixelSize;
-        out.rescaledPixelSize = rescaleTo;
+        out.origPixelSize = pixelSize;    % DELETE?
+        out.rescaledPixelSize = pixelSize; % DELETE?
         out.nSamples = pStack.nSamples;
         out.settings = settings;
     else
@@ -352,20 +291,12 @@ function varargout=run(pStack, lastSectionStats, varargin)
         end
     end
 
-    out.roiStats(n).tThresh = tThresh;
-    out.roiStats(n).tThreshSD = tThreshSD;
-
-    % Get the foreground and background pixel stats from the ROIs (not the whole image)
-    out.roiStats(n).medianBackground = median([imStats.backgroundPix]);
-    out.roiStats(n).stdBackground = dynamicThresh_Alg.obtainCleanBackgroundSD([imStats.backgroundPix]);
-
-    out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
-    out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
 
 
     % Calculate area of background and foreground in sq mm from the above ROIs
-    out.roiStats(n).backgroundSqMM = length([imStats.backgroundPix]) * (pixelSize*1E-3)^2;
-    out.roiStats(n).foregroundSqMM = length([imStats.foregroundPix]) * (pixelSize*1E-3)^2;
+    % TODO -- calculate from the binary mask
+    %out.roiStats(n).backgroundSqMM = length([imStats.backgroundPix]) * (pixelSize*1E-3)^2;
+    %out.roiStats(n).foregroundSqMM = length([imStats.foregroundPix]) * (pixelSize*1E-3)^2;
 
 
     % Convert bounding box sizes to meaningful units and return those.
@@ -380,64 +311,6 @@ function varargout=run(pStack, lastSectionStats, varargin)
     out.roiStats(n).containsSampleMask = containsSampleMask;
     out.roiStats(n).previewImage = im;
 
-    % Finally: return bounding boxes to original size
-    % If we re-scaled then we need to put the bounding box coords back into the original size
-    if rescaleTo>1
-        rescaleRatio = rescaleTo/origPixelSize;
-        out.roiStats(n).BoundingBoxes = ...
-             cellfun(@(x) round(x*rescaleRatio), out.roiStats(n).BoundingBoxes,'UniformOutput',false);
-        % TODO --- the following is for testing with BT! MAYBE WRONG!
-        if isfield(pStack,'frontLeftStageMM')
-            for ii=1:length(out.roiStats(n).BoundingBoxDetails)
-
-                out.roiStats(n).BoundingBoxDetails(ii).frontLeftPixel.X = ...
-                        out.roiStats(n).BoundingBoxDetails(ii).frontLeftPixel.X * rescaleRatio;
-                out.roiStats(n).BoundingBoxDetails(ii).frontLeftPixel.Y = ...
-                        out.roiStats(n).BoundingBoxDetails(ii).frontLeftPixel.Y * rescaleRatio;
-
-            end
-        end % isfield
-    end
-
-
-    % Before finishing, check if there is a large and sudden decrease in the background pixels (or having none at all)
-    % compared to the section preceeding this one. If so, this indicates that something like a change in laser power 
-    % or wavelength has happened. i.e. that SNR has gone up a lot. If this happens we need to *re-run* autoROI after
-    % first re-calculating the tThreshSD.
-    out.roiStats(n).tThreshSD_recalc=false;
-    if length(out.roiStats)>1
-        FG_ratio_this_section = out.roiStats(end).foregroundSqMM/out.roiStats(end).backgroundSqMM;
-        FG_ratio_previous_section = out.roiStats(end-1).foregroundSqMM/out.roiStats(end-1).backgroundSqMM;
-
-        if (FG_ratio_this_section / FG_ratio_previous_section)>settings.main.reCalcThreshSD_threshold
-            fprintf('\nTRIGGERING RE-CALC OF tThreshSD due to high F/B ratio.\n')
-            % Re-run autothresh on the current section with the current ROIs
-            [tThreshSD,~,thresh]=dynamicThresh_Alg.autothresh.run(pStack,[],[],out);
-
-            % Something went really wrong if there was a NaN happened
-            if ~isnan(tThreshSD)
-                % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
-                % This means we have to remove the roiStats data we just added, because it's 
-                % going to need to be replaced with new numbers
-                out.roiStats(end)=[];
-
-                out = autoROI(pStack, out, ...
-                        'doPlot', doPlot, ...
-                        'skipMergeNROIThresh', skipMergeNROIThresh, ...
-                        'showBinaryImages', showBinaryImages, ...
-                        'doBinaryExpansion', doBinaryExpansion, ...
-                        'settings', settings, ...
-                        'tThreshSD',tThreshSD, ...
-                        'tThresh',thresh);
-
-                % Log that we re-calculated on this section
-                out.roiStats(n).tThreshSD_recalc=true;
-            else
-                fprintf('The recalc of tThreshSD failed. It returned Nan\n')
-            end
-
-        end
-    end
 
 
     % Optionally return coords of each box
