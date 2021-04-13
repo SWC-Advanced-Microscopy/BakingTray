@@ -90,7 +90,7 @@ function varargout=run(pStack, lastSectionStats, varargin)
     params.addParameter('showBinaryImages', false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('doBinaryExpansion', [], @(x) islogical(x) || x==1 || x==0 || isempty(x))
     params.addParameter('isAutoThresh',false, @(x) islogical(x) || x==1 || x==0)
-    params.addParameter('settings',dynamicThresh_Alg.readSettings, @(x) isstruct(x) )
+    params.addParameter('settings',autoROI.readSettings, @(x) isstruct(x) )
 
 
     params.parse(varargin{:})

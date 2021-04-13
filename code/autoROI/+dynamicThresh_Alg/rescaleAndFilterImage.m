@@ -9,7 +9,7 @@ function [im,pixelSize,origPixelSize] = rescaleAndFilterImage(im,pixelSize)
     % TODO -- this should be used when thresholding the first image!
 
 
-    settings = dynamicThresh_Alg.readSettings;
+    settings = autoROI.readSettings;
     rescaleTo = settings.main.rescaleTo;
 
     % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
