@@ -5,6 +5,10 @@ function OUT = applyCNN(im,tNet,pixSize)
     % im - preview image. one plane
     % tNet - structure containing CNN network and some settings
     % pixSize - number of microns per pixel of im
+    %
+    % Outputs
+    %
+
 
     if tNet.settings.doNorm
         im = im-mean(im(:));
@@ -61,7 +65,6 @@ function OUT = applyCNN(im,tNet,pixSize)
 
     containsTissue=classify(tNet.net,permute(chunks,[1,2,4,3]));
 
-    
     % Build a binary mask showing where there is tissue. 
     binGrid = zeros(max(chunkPosInGrid));
     ind = find(containsTissue == 'true');

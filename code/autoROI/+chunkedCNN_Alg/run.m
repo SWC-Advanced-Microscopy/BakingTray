@@ -118,8 +118,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
     sizeOrigIm=size(im); % The original image size
 
 
-    % Get binarized image using CNN
-    BW = chunkedCNN_Alg.applyCNN(im,tNet,pixelSize);
 
 
     % We run on the whole image
@@ -129,7 +127,11 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
     end
 
     if isempty(lastSectionStats)
-        stats = autoROI.getBoundingBoxes(BW,im,pixelSize);  % Find bounding boxes
+        % Get binarized image using CNN
+
+        tBW = chunkedCNN_Alg.applyCNN(im,tNet,pixelSize);
+
+        stats = autoROI.getBoundingBoxes(tBW,im,pixelSize);  % Find bounding boxes
         if length(stats) < skipMergeNROIThresh
             stats = autoROI.mergeOverlapping(stats,size(im)); % Merge partially overlapping ROIs
         end
@@ -143,15 +145,15 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
         % Run within each ROI then afterwards consolidate results
         nT=1;
         containsSampleMask = zeros(size(im)); % All regions of the imaged area that are above threshold. Used for logging
-        for ii = 1:length(lastROI.BoundingBoxes)
-            % Scale down the bounding boxes
+        for ii = 1:1%length(lastROI.BoundingBoxes)
 
+            % TODO: looks like we may not need to run this each time for each bounding box
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
-            tBW = chunkedCNN_Alg.applyCNN(tIm,tNet,pixelSize);
+            tBW = chunkedCNN_Alg.applyCNN(im,tNet,pixelSize);
             containsSampleMask = containsSampleMask + tBW.FINAL;
 
             tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
@@ -240,6 +242,16 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
         clf
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
+
+        %overlay the border found by the CNN (works only on the last ROI)
+        if ~isempty(tBW)
+            B=bwboundaries(tBW.FINAL);
+            hold on
+            for ii = 1:length(B)
+                plot(B{ii}(:,2),B{ii}(:,1),'-g')
+            end
+            hold off
+        end
         caxis([0,100])
     else
         H=[];

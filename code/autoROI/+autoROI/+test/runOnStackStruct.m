@@ -26,6 +26,9 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     % stats structure
     %
     %
+    % Examples TODO-- remove soon
+    % TEMP  -- run CNN version: autoROI.test.runOnStackStruct(pStack,[],[],N750)
+    %
     %
     % Rob Campbell - 2020 SWC
 
