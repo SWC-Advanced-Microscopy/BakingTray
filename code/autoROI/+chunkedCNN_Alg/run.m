@@ -118,8 +118,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
     sizeOrigIm=size(im); % The original image size
 
 
-
-
     % We run on the whole image
     if showBinaryImages
         disp('Press return')
@@ -239,7 +237,7 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
 
 
     if doPlot
-        clf
+        cla
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
 

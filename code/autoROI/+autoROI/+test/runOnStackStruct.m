@@ -62,6 +62,10 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     % These are in the input arguments for autoROI
     boundingBoxArgIn = {'doPlot', ~noPlot};
 
+    if ~noPlot
+        clf
+    end
+
 
     if isempty(tThreshSD)
         fprintf('\n ** GETTING A THRESHOLD\n')
@@ -90,7 +94,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
 
     stats.roiStats.tThreshSD_recalc=false; %Flag to signal if we had to re-calc the threshold due to increase in laser power (dynamic threshold alg only)
     stats.roiStats.sectionNumber=1; % This is needed because it's provided in live acquisitions
-    drawnow
+
 
     if pauseBetweenSections
         set(gcf,'Name',sprintf('%d/%d',1,size(pStack.imStack,3)))

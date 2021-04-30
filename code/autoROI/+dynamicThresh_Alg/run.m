@@ -291,7 +291,7 @@ function varargout=run(pStack, lastSectionStats, varargin)
 
 
     if doPlot
-        clf
+        cla
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
     else
