@@ -134,6 +134,7 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             stats = autoROI.mergeOverlapping(stats,size(im)); % Merge partially overlapping ROIs
         end
         containsSampleMask = []; % Must at least define this as empty if we don't make the mask
+        sliceStats = [];
     else
         % We have provided bounding box history from previous sections and so we will pull out these sub-ROIs
         % and work on them alone
@@ -143,7 +144,15 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
         % Run within each ROI then afterwards consolidate results
         nT=1;
         containsSampleMask = zeros(size(im)); % All regions of the imaged area that are above threshold. Used for logging
-        for ii = 1:1%length(lastROI.BoundingBoxes)
+
+        % We log paramaters related to the image stats as we need these to evaluate normalisation of the ROIs for the CNN
+        sliceStats.wholeImMean = zeros(1,length(lastROI.BoundingBoxes));
+        sliceStats.imagedImMean = zeros(1,length(lastROI.BoundingBoxes));
+        sliceStats.wholeImMedian = zeros(1,length(lastROI.BoundingBoxes));
+        sliceStats.imagedImMedian = zeros(1,length(lastROI.BoundingBoxes));
+
+
+        for ii = 1:length(lastROI.BoundingBoxes)
 
             % TODO: looks like we may not need to run this each time for each bounding box
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
@@ -151,10 +160,34 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
-            tBW = chunkedCNN_Alg.applyCNN(im,tNet,pixelSize);
+
+            if false
+                clf
+                subplot(1,2,1)
+                imagesc(im)
+
+                subplot(1,2,2)
+                imagesc(tIm)
+                drawnow
+                pause
+            end
+
+            % **BUG** I am feeding the CNN the whole image! So not only the bounding box region. 
+            % I know this because  lowSNR_deemed_fixed\Rat13_bulb_first_previewStack.mat is finding
+            % regions outside of the imaged area (bounding box) and deeming them to be signal. 
+            tBW = chunkedCNN_Alg.applyCNN(tIm,tNet,pixelSize,minIm);
             containsSampleMask = containsSampleMask + tBW.FINAL;
 
             tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
+
+
+            % Log image stats for CNN debugging
+            tmpIm = tIm(:);
+            tmpIm(tmpIm==minIm)=[];
+            sliceStats.wholeImMean(ii) = mean(im(:));
+            sliceStats.imagedImMean(ii) = mean(tmpIm(:));
+            sliceStats.wholeImMedian(ii) = median(im(:));
+            sliceStats.imagedImMedian(ii) = median(tmpIm(:));
 
             if ~isempty(tStats{ii})
                 tStats{nT} = autoROI.mergeOverlapping(tStats{ii},size(tIm));
@@ -165,6 +198,13 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
         containsSampleMask = logical(containsSampleMask > 0); % In case of any double counting due to ROI overlap
+
+        % get a single number for the whole slice in case there were multiple ROIs
+        sliceStats.wholeImMean = mean(sliceStats.wholeImMean);
+        sliceStats.imagedImMean = mean(sliceStats.imagedImMean);
+        sliceStats.wholeImMedian = mean(sliceStats.wholeImMedian);
+        sliceStats.imagedImMedian = mean(sliceStats.imagedImMedian);
+
 
         if ~isempty(tStats{1})
 
@@ -241,9 +281,9 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
 
-        %overlay the border found by the CNN (works only on the last ROI)
+        %overlay the border found by the CNN
         if ~isempty(tBW)
-            B=bwboundaries(tBW.FINAL);
+            B=bwboundaries(containsSampleMask);
             hold on
             for ii = 1:length(B)
                 plot(B{ii}(:,2),B{ii}(:,1),'-g')
@@ -321,6 +361,13 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
     out.roiStats(n).containsSampleMask = containsSampleMask;
     out.roiStats(n).previewImage = im;
 
+    % log stats that could be useful for diagnosing the CNN
+    if ~isempty(sliceStats)
+        tFields = fields(sliceStats);
+        for ii=1:length(tFields)
+            out.roiStats(n).(tFields{ii}) = sliceStats.(tFields{ii});
+        end
+    end
 
 
     % Optionally return coords of each box
