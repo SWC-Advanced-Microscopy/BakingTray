@@ -102,7 +102,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.logMessage(inputname(1),dbstack,3,sprintf('Initial position - X:%0.3f Y:%0.3f',state.xInit,state.yInit))
 
     % Move to the cutting start point at obj.recipe.SLICER.approachSpeed
-    msg=sprintf('moving to cut start point - X:%0.3f Y:%0.3f', cuttingStartPoint.X, cuttingStartPoint.Y);
+    msg=sprintf('Moving to cut start point - X:%0.3f Y:%0.3f', cuttingStartPoint.X, cuttingStartPoint.Y);
     obj.logMessage(inputname(1),dbstack,4,msg)
     obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
     obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
@@ -121,7 +121,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     pause(1) % a second before carrying on
 
     % start cutter and verify that it started
-    obj.logMessage(inputname(1),dbstack,4,'Starting to cut')
+    obj.logMessage(inputname(1),dbstack,4,sprintf('Starting to cut at depth %0.3 mmf',  obj.getZpos))
 
     obj.cutter.startVibrate(obj.recipe.SLICER.vibrateRate);
 
