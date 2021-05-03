@@ -25,7 +25,6 @@ function newSample(obj,~,~)
     obj.model.currentSectionNumber = 1;
     
     % Set default jog sizes
-    obj.view_prepare
     if ~isempty(obj.view_prepare) && isvalid(obj.view_prepare)
         obj.view_prepare.resetStepSizesToDefaults;
     end
