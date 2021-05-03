@@ -24,7 +24,12 @@ function runSuccess = runTileScan(obj)
         end
     end
 
-    obj.initialisePreviewImageData(obj.currentTilePattern);
+    % Bail out if the preview image data could not be made. When this happens
+    % it generally indicates that the auto-ROI has reached the end of the sample.
+    initSuccess = obj.initialisePreviewImageData(obj.currentTilePattern);
+    if ~initSuccess
+        return
+    end
 
     % Wipe the property which optionaly stores all downsample tiles for debugging
     obj.allDownsampledTilesOneSection = {};
