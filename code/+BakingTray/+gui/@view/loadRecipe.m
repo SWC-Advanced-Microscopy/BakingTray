@@ -78,7 +78,7 @@ function loadRecipe(obj,~,~,fullPath)
         obj.updateRecipeFname
 
         %If the prepare GUI is open, we force an update
-        if isvalid(obj.view_prepare)
+        if ~isempty(obj.view_prepare) && isvalid(obj.view_prepare)
             obj.view_prepare.updateCuttingConfigurationText
         end
 
