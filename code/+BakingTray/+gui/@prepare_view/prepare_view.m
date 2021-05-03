@@ -57,6 +57,10 @@ classdef prepare_view < BakingTray.gui.child_view
         lastXpos=0
         lastYpos=0
         lastZpos=0
+
+        % Default small and large step sizes for the jogs
+        defaultSmallStep = 0.1;
+        defaultLargeStep = 0.5;
     end
 
     methods
@@ -94,10 +98,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
             %Set up default jog sizes for x/y and z 
             %These are kept up to date with the updateJogProperies callback function
-            obj.xyJogSizes.small=0.1;
-            obj.xyJogSizes.large=0.5;
-            obj.zJogSizes.small=0.05;
-            obj.zJogSizes.large=0.5;
+            obj.resetStepSizesToDefaults
 
 
             %Load icons
@@ -519,6 +520,21 @@ classdef prepare_view < BakingTray.gui.child_view
 
 
     methods (Hidden)
+
+        function resetStepSizesToDefaults(obj)
+            % this is not a callback function, it simply sets the steps sizes to default values
+            obj.xyJogSizes.small = obj.defaultSmallStep;
+            obj.xyJogSizes.large = obj.defaultLargeStep;
+            obj.zJogSizes.small = obj.defaultSmallStep;
+            obj.zJogSizes.large = obj.defaultLargeStep;
+
+            obj.editBox.largeStepSizeXY.String = obj.xyJogSizes.large;
+            obj.editBox.smallStepSizeXY.String = obj.xyJogSizes.small;
+            obj.editBox.largeStepSizeZ.String = obj.zJogSizes.large;
+            obj.editBox.smallStepSizeZ.String = obj.zJogSizes.small;
+
+
+        end %resetStepSizesToDefaults
 
         function updateJogProperties(obj,event,~)
             %This callback function ensures that the jog properties are kept up to date when the user

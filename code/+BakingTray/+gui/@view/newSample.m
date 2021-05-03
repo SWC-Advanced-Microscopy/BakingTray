@@ -9,5 +9,11 @@ function newSample(obj,~,~)
 
     % Set to default values other properties of BakingTray
     obj.model.currentSectionNumber = 1;
-
+    
+    % Set default jog sizes
+    obj.view_prepare
+    if isvalid(obj.view_prepare)
+        obj.view_prepare.resetStepSizesToDefaults;
+    end
+    
 end %newSample
