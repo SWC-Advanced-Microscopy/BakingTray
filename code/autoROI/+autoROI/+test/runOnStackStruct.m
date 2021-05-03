@@ -48,7 +48,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         tThreshSD=[];
     end
 
-    pauseBetweenSections=false;
+    pauseBetweenSections=true;
 
     % Ensure we start at section 1
     pStack.sectionNumber = 1;

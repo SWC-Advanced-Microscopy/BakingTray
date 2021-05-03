@@ -1,4 +1,4 @@
-function OUT = applyCNN(im,tNet,pixSize,nonImagedPixVal)
+function [OUT,stats] = applyCNN(im,tNet,pixSize,nonImagedPixVal)
     % Apply CNN to image to find sample
     %
     % Inputs
@@ -111,9 +111,11 @@ function OUT = applyCNN(im,tNet,pixSize,nonImagedPixVal)
     OUT.FINAL = imclose( imopen(OUT.rawBW,se), se);
 
 
+    % Further optional information
     stats.chunks = chunks;
     stats.chunkWidth = tNet.settings.chunkWidth;
     stats.pixWidth = pixWidth;
     stats.voxelSizeInMicrons = pixSize;
+    stats.im = im;
 
 
