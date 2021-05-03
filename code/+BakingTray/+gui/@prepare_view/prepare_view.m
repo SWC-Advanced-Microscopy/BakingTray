@@ -33,7 +33,6 @@ classdef prepare_view < BakingTray.gui.child_view
         suppressToolTips=false
         labels=struct
 
-        jogSizeCoarseOrFine='fine' %can also be "coarse" TODO: add a radio button and callback to switch between coarse and fine 
         lastSliceThickness=0.1
         lastCuttingSpeed=0.5
 
@@ -95,15 +94,11 @@ classdef prepare_view < BakingTray.gui.child_view
 
             %Set up default jog sizes for x/y and z 
             %These are kept up to date with the updateJogProperies callback function
-            obj.xyJogSizes.fine.small=0.1;
-            obj.xyJogSizes.fine.large=0.5;
-            obj.zJogSizes.coarse.small=0.5;
-            obj.zJogSizes.coarse.large=2;
+            obj.xyJogSizes.small=0.1;
+            obj.xyJogSizes.large=0.5;
+            obj.zJogSizes.small=0.05;
+            obj.zJogSizes.large=0.5;
 
-            obj.zJogSizes.fine.small=0.05;
-            obj.zJogSizes.fine.large=0.5;
-            obj.zJogSizes.coarse.small=0.5;
-            obj.zJogSizes.coarse.large=2;
 
             %Load icons
             iconPath = fileparts(which('BakingTray.gui.prepare_view'));
@@ -174,7 +169,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Style','edit', ...
                 'Tag','XY||small', ...
                 'TooltipString','Size of small X/Y jog motions in mm', ...
-                'String',obj.xyJogSizes.fine.small, ...
+                'String',obj.xyJogSizes.small, ...
                 'Callback',@obj.updateJogProperties);
 
             obj.editBox.largeStepSizeXY=uicontrol('Parent', obj.move_panel, ... 
@@ -182,7 +177,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Style','edit', ...
                 'Tag','XY||large', ...
                 'TooltipString','Size of large X/Y jog motions in mm', ...
-                'String',obj.xyJogSizes.fine.large, ...
+                'String',obj.xyJogSizes.large, ...
                 'Callback',@obj.updateJogProperties);
 
 
@@ -214,7 +209,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Style','edit', ...
                 'Tag','Z||small', ...
                 'TooltipString','Size of small Z jog motions in mm', ...
-                'String',obj.zJogSizes.fine.small, ...
+                'String',obj.zJogSizes.small, ...
                 'Callback',@obj.updateJogProperties);
 
             obj.editBox.largeStepSizeZ=uicontrol('Parent', obj.move_panel, ... 
@@ -222,11 +217,9 @@ classdef prepare_view < BakingTray.gui.child_view
                 'Style','edit', ...
                 'Tag','Z||large', ...
                 'TooltipString','Size of large Z jog motions in mm', ...
-                'String',obj.zJogSizes.fine.large, ...
+                'String',obj.zJogSizes.large, ...
                 'Callback',@obj.updateJogProperties);
 
-
-            %TODO: Add coarse/fine checkbox
 
             %Add text entry boxes for absolute moves
             obj.absMove_panel = BakingTray.gui.newGenericGUIPanel([130,14,80,83], obj.move_panel);
@@ -533,8 +526,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
             thisValue=str2double(event.String);
 
-            % Find which axis (XY or Z) and jog type (coarse or fine) and step size (small or large)
-            % TODO: The coarse/fine option does not work right now: July 2017
+            % Find which axis (XY or Z) and step size (small or large)
             jogType = strsplit(event.Tag,'||');
             jogAxis = jogType{1};
             jogSmallOrLarge = jogType{2};
@@ -544,16 +536,16 @@ classdef prepare_view < BakingTray.gui.child_view
                     % Check the value we have extracted is numeric (since this the box itself accepts strings)
                     % Reset the value if it was not a number
                     if isnan(thisValue) || thisValue==0
-                        set(event, 'String', obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) );
+                        set(event, 'String', obj.xyJogSizes.(jogSmallOrLarge) );
                     else
-                        obj.xyJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                        obj.xyJogSizes.(jogSmallOrLarge)=thisValue;
                     end
                 case 'Z'
                     % Reset the value if it was not a number
                     if isnan(thisValue) || thisValue==0
-                        set(event, 'String', obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge) )
+                        set(event, 'String', obj.zJogSizes.(jogSmallOrLarge) )
                     else
-                        obj.zJogSizes.(obj.jogSizeCoarseOrFine).(jogSmallOrLarge)=thisValue;
+                        obj.zJogSizes.(jogSmallOrLarge)=thisValue;
                     end
                 otherwise
                     %This can only happen if the user edits the tag properties in the source code.
@@ -566,16 +558,16 @@ classdef prepare_view < BakingTray.gui.child_view
                 S = obj.editBox.smallStepSizeXY.String;
                 obj.editBox.smallStepSizeXY.String = L;
                 obj.editBox.largeStepSizeXY.String = S;
-                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
-                obj.xyJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+                obj.xyJogSizes.small = str2num(L);
+                obj.xyJogSizes.large = str2num(S);
             end
             if str2num(obj.editBox.smallStepSizeZ.String) > str2num(obj.editBox.largeStepSizeZ.String)
                 L = obj.editBox.largeStepSizeZ.String;
                 S = obj.editBox.smallStepSizeZ.String;
                 obj.editBox.smallStepSizeZ.String = L;
                 obj.editBox.largeStepSizeZ.String = S;
-                obj.zJogSizes.(obj.jogSizeCoarseOrFine).small = str2num(L);
-                obj.zJogSizes.(obj.jogSizeCoarseOrFine).large = str2num(S);
+                obj.zJogSizes.small = str2num(L);
+                obj.zJogSizes.large = str2num(S);
             end
 
         end %updateJogProperties

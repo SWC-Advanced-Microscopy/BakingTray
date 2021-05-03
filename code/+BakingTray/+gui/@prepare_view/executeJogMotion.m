@@ -41,9 +41,9 @@ function executeJogMotion(obj,event,~)
         return
     end
 
-    stepSize = thisJogSize.(obj.jogSizeCoarseOrFine).(motionSize); %Step size in mm
+    stepSize = thisJogSize.(motionSize); %Step size in mm
 
-    if ~jogAxis.relativeMove(stepSize*motionDirection);
+    if ~jogAxis.relativeMove(stepSize*motionDirection)
         fprintf('Jog reports that it failed\n')
     end
 
