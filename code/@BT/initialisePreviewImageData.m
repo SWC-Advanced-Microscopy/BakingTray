@@ -1,4 +1,4 @@
-function initialisePreviewImageData(obj,tp,frontLeft)
+function success = initialisePreviewImageData(obj,tp,frontLeft)
     % Generate empty preview stack and tile position coordinates.
     %
     % Purpose
@@ -8,10 +8,19 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % The preview image is stored in obj.lastPreviewImageStack. Anything in there
     % before running this method is wiped out.
     %
-    % TODO -- doc fully as frontLeft is new argument (assuming we need it!)
+    % Inputs 
+    % tp - the tile pattern
+    % frontLeft - the front/left position (empty be default) if supplied the tile
+    %             pattern is positioned in the specified location. Otherwise the
+    %             position of the pattern is determined by the function. 
+    %
+    % Outputs
+    % success - if true the preview stack was initialised. false otherwise.
+    %
+    %
 
     verbose=true;
-
+    success = false;
     if nargin<2
         tp=obj.recipe.tilePattern; %Stage positions in mm (x,y)
     end
@@ -55,7 +64,8 @@ function initialisePreviewImageData(obj,tp,frontLeft)
         disp(imCols)
         disp('tp:')
         disp(tp)
-        rethrow(ME)
+        disp(ME.message)
+        return
     end
 
 
@@ -107,6 +117,8 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % Wipe any data in the down-sampled tile buffer
     obj.downSampledTileBuffer(:)=0;
 
+
+    success = true;
 
     if nargin<2
         fprintf('Initialised a preview image of %d columns by %d rows using BT.recipe.tilePattern.\n', imCols, imRows)
