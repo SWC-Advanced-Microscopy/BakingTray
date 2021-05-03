@@ -8,7 +8,7 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % The preview image is stored in obj.lastPreviewImageStack. Anything in there
     % before running this method is wiped out.
     %
-    % TODO -- doc fully as frontLeft is new argument (assuming we need it!)
+    % TODO -- doc fully as frontLeft is new argument
 
     verbose=true;
 
