@@ -112,29 +112,19 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % END HACK
     
 
-    % Ensure we have enough travel on the Z-stage to acquire all the sections
-    % This is also checked in the recipe, so it's very unlikely we will fail at this point.
-    % The only way this could happen is if:
+    % Ensure we have enough travel on the Z-stage to acquire all the sections. If not, just set to the maximum possible
+    % This is also checked in the recipe. The only way this could happen is if:
     % 1) The user entrered the number of sections required whilst the z-stage was lowered then raised the z-stage.
     %    This could well happen.
     % 2 The z-stage was not connected when the recipe value was set, because then the distance available would not 
     %   have been checked in the recipe. This is wildly improbable, however. 
-
+    % So the following will not stop anything from proceeding
     if obj.isRecipeConnected && obj.isZaxisConnected
         distanceAvailable = obj.zAxis.getMaxPos - obj.zAxis.axisPosition;  %more positive is a more raised Z platform
         distanceRequested = obj.recipe.mosaic.numSections * obj.recipe.mosaic.sliceThickness;
 
         if distanceRequested>distanceAvailable
-            numSlicesPossible = floor(distanceAvailable/obj.recipe.mosaic.sliceThickness)-1;
-            msg = sprintf(['%s%d) Requested %d slices: this is %0.2f mm thick but only %0.2f mm is possible. ',...
-                'You can cut a maximum of %d slices.\n'], ...
-             msg,...
-             msgNumber, ...
-             obj.recipe.mosaic.numSections,...
-             distanceRequested, ...
-             distanceAvailable,...
-             numSlicesPossible);
-            msgNumber=msgNumber+1;
+            obj.recipe.mosaic.numSections = obj.recipe.mosaic.numSections+1;
         end
     end
 
