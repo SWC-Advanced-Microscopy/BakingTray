@@ -50,7 +50,6 @@ function [success,msg] = armScanner(obj)
             obj.hC.hDisplay.selectedZs=0;
     end
 
-    % obj.hC.hScan2D.mdfData.shutterIDs=[]; %Disable shutters %TODO -- assume control over shutter
     %If any of these fail, we leave the function gracefully
 
     try
@@ -66,10 +65,11 @@ function [success,msg] = armScanner(obj)
     end
     success=true;
 
-    if strcmpi(obj.scannerType, 'resonant')
-        % This will only be turned off again when the teardown method is run
-        obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
-    end
+    obj.leaveResonantScannerOn
 
     fprintf('Armed scanner: %s\n', datestr(now))
+
+    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only 
+    % happens with USB DAQs, but we want to avoid any possibility that it happens at all. 
+    obj.hC.hPmts.autoPower(:) = 0;
 end %armScanner

@@ -1,18 +1,18 @@
-classdef soloist < linearcontroller
-% soloist is a class that inherits linearcontroller and defines the interface between
+classdef ensemble < linearcontroller
+% Ensemble is a class that inherits linearcontroller and defines the interface between
 % BakingTray and Aerotech's MATLAB library. In effect, this is a glue class.
 %
 % All abstract methods should (where possible) have doc text only in the abstract method class file.
 %
 % Purpose
-% Control Aerotech stages via the Soloist controller. This class has been
-% tested with the Soloist MP using Ethernet connection. It is suggested
+% Control Aerotech stages via the Ensemble controller. This class has been
+% tested with the Ensemble MP using Ethernet connection. It is suggested
 % you set up a second ethernet port on the PC and connect directly via
 % that. See below for details.
 %
 %
 % SETUP
-% To use the soloist class, install the Aerotech support files from the install 
+% To use the Ensemble class, install the Aerotech support files from the install 
 % medium that came with your device. You should ensure you ask Aerotech to supply the 
 % MATLAB libraries with the product. 
 % In the Windows Defender firewall you will need to allow MATLAB to
@@ -23,7 +23,7 @@ classdef soloist < linearcontroller
 % %% Make a stage and attach it to the controller object
 % >> STAGE = generic_AeroTechZJack;
 % >> STAGE.axisName='someName'; %Does not matter for this toy example
-% >> SOLO = soloist(STAGE); %Create  control class
+% >> SOLO = Ensemble(STAGE); %Create  control class
 %
 % %% Connect to the controller over ethernet
 % >> controllerID.interface='ethernet';
@@ -35,10 +35,10 @@ classdef soloist < linearcontroller
 %
 %
 % Ethernet connection
-% If you wish to connect to the Soloist directly from a spare ethernet port on the PC
-% then you need to ensure that the ethernet card and the Soloist are on the same sub-net. 
+% If you wish to connect to the Ensemble directly from a spare ethernet port on the PC
+% then you need to ensure that the ethernet card and the Ensemble are on the same sub-net. 
 % E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the 
-% IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the 
+% IP address of the card and Ensemble must match. The Ensemble could be 127.0.1.10 and the 
 % card could be 127.0.0.1. IP addresses can't be the same. You can manually set this stuff
 % under the network properties in Windows.  
 % You can see the IP address of the card by running ipconfig in the Windows
@@ -62,15 +62,16 @@ classdef soloist < linearcontroller
       %
 
 
-      aerotechLibPath = 'C:\Program Files (x86)\Aerotech\Soloist\Matlab\x64'
-      solistConnectFunctionName = 'SoloistConnect'
+
+      aerotechLibPath = 'C:\Program Files (x86)\Aerotech\Ensemble\Matlab\x64'
+      solistConnectFunctionName = 'EnsembleConnect'
     end % close public properties
 
 
     methods
 
         % Constructor
-        function obj=soloist(stageObject,logObject)
+        function obj=ensemble(stageObject,logObject)
 
             if nargin<1
               stageObject=[];
@@ -84,7 +85,7 @@ classdef soloist < linearcontroller
             % Try to add Aerotech MATLAB library to path and bail out if this fails. 
             success = obj.addAerotechLibsToPath;
             if success==false
-              delete(soloist)
+              delete(Ensemble)
               return
             end
 
@@ -100,9 +101,9 @@ classdef soloist < linearcontroller
         % Destructor
         function delete(obj)
             if ~isempty(obj.hC)
-              fprintf('Closing connection to %s controller\n', 'Soloist')
+              fprintf('Closing connection to %s controller\n', 'Ensemble')
               obj.disableAxis;
-              SoloistDisconnect(obj.hC);
+              EnsembleDisconnect(obj.hC);
             end
         end % Destructor
 
@@ -122,24 +123,24 @@ classdef soloist < linearcontroller
           end
 
           try
-              H = SoloistConnect;
+              H = EnsembleConnect;
           catch ME
               H=[];
-              fprintf('Failed to find a Soloist: %s\n', ME.message);
+              fprintf('Failed to find a Ensemble: %s\n', ME.message);
               success=false;
               
              return
           end
 
           if length(H)>1
-            fprintf('Found more than one Soloist device. This situation is not catered for.\n')
+            fprintf('Found more than one Ensemble device. This situation is not catered for.\n')
             success=false;
             return
           end
 
-          obj.hC = H; % This is the handle that needs to fed into all the Soloist commands.
+          obj.hC = H; % This is the handle that needs to fed into all the Ensemble commands.
 
-          tName = SoloistInformationGetName(obj.hC);
+          tName = EnsembleInformationGetName(obj.hC);
           if ~strcmp(tName,connectionDetails.ID)
             fprintf('You requested to connect to device %s but device %s was found.\nQUITTING\n', ...
             tName, connectionDetails.ID);
@@ -174,6 +175,7 @@ classdef soloist < linearcontroller
           % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
           obj.referenceStage;
 
+
         end %connect
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -187,9 +189,9 @@ classdef soloist < linearcontroller
 
             try 
                 %Contains a string bearing the name of the controller
-                reply = SoloistInformationGetName(obj.hC);
+                reply = EnsembleInformationGetName(obj.hC);
                 if isempty(reply)
-                    fprintf('No reply from soloist controller\n')
+                    fprintf('No reply from ensemble controller\n')
                 else
                     success=true;
                 end
@@ -220,7 +222,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            pos = SoloistStatusGetItem(obj.hC, SoloistStatusItem(1));
+            pos = EnsembleStatusGetItem(obj.hC,0, EnsembleStatusItem(1));
             pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
@@ -230,9 +232,9 @@ classdef soloist < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = relativeMove(obj, distanceToMove, ~)
           %TODO: abstract redundant code into linearcontroller.relativeMove
-          %      soloist.relative move will then call the abstract function that
+          %      Ensemble.relative move will then call the abstract function that
           %      returns the transformed move distance (or the anon function to calculate this)
-          %      soloist just needs to pass these to the API
+          %      Ensemble just needs to pass these to the API
 
           % <redundant>
             success=obj.isAxisReady;
@@ -255,7 +257,7 @@ classdef soloist < linearcontroller
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
             distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
-            SoloistMotionMoveInc(obj.hC,distanceToMove,obj.attachedStage.maxMoveVelocity)
+            EnsembleMotionMoveInc(obj.hC, 0, distanceToMove,obj.attachedStage.maxMoveVelocity)
 
         end %relativeMove
 
@@ -275,7 +277,7 @@ classdef soloist < linearcontroller
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
             targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-            SoloistMotionMoveAbs(obj.hC,targetPosition,obj.attachedStage.maxMoveVelocity)
+            EnsembleMotionMoveAbs(obj.hC,0, targetPosition,obj.attachedStage.maxMoveVelocity);
         end %absoluteMove
 
 
@@ -286,7 +288,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            SoloistMotionAbort(obj.hC)
+            EnsembleMotionAbort(obj.hC, 0)
         end %stopAxis
 
 
@@ -296,9 +298,9 @@ classdef soloist < linearcontroller
         end %getPositionUnits
 
         function success=setPositionUnits(obj,controllerUnits,~)
-          % I think the Soloist works only in mm
+          % I think the Ensemble works only in mm
             if ~strcmp(controllerUnits,'mm')
-              obj.logMessage(inputname(1),dbstack,6,'Soloist works only in mm') % (probably)
+              obj.logMessage(inputname(1),dbstack,6,'Ensemble works only in mm') % (probably)
               success = false;
             end
             success=true;
@@ -361,7 +363,7 @@ classdef soloist < linearcontroller
               accel=[];
               return
             end
-            fprintf('ACCELERATION FROM SOLOIST NOT READ BACK\n');
+            fprintf('ACCELERATION FROM Ensemble NOT READ BACK\n');
             accel=1;
         end
 
@@ -375,7 +377,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            SoloistMotionSetupRampRateAccel(obj.hC,acceleration)
+            EnsembleMotionSetupRampRateCoordinatedAccel(obj.hC, acceleration)
             success=true;
         end
 
@@ -386,9 +388,8 @@ classdef soloist < linearcontroller
               fprintf('Unable to enable axis. It is reported as not being ready\n')
               return
             end
-            
-            SoloistAcknowledgeAll(obj.hC) % Wipe any errors
-            SoloistMotionEnable(obj.hC)
+            EnsembleAcknowledgeAll(obj.hC); % Wipe any errors
+            EnsembleMotionEnable(obj.hC, 0);
             success = obj.readAxisBit(1);
 
         end %enableAxis
@@ -401,7 +402,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            SoloistMotionDisable(obj.hC)
+            EnsembleMotionDisable(obj.hC, 0)
         end %disableAxis
 
 
@@ -409,7 +410,7 @@ classdef soloist < linearcontroller
           if obj.isStageReferenced
               return
           end
-          SoloistMotionHome(obj.hC)
+          EnsembleMotionHome(obj.hC, 0);
           success=obj.isStageReferenced;
         end
 
@@ -464,13 +465,13 @@ classdef soloist < linearcontroller
 
         function setToNonBlocking(obj)
             % Conduct motions in background (non-blocking)
-            SoloistMotionWaitMode(obj.hC,0)
+            EnsembleMotionWaitMode(obj.hC,0)
         end %setToNonBlocking
 
 
         function setToBlocking(obj)
             % Conduct motions in the foreground (blocking)
-            SoloistMotionWaitMode(obj.hC,1)
+            EnsembleMotionWaitMode(obj.hC, 1)
         end %setToBlocking
 
 
@@ -488,13 +489,13 @@ classdef soloist < linearcontroller
             % Inputs
             % bitToRead - a scalar defining which  bit to read. The values
             %             of the identities of the bits are in
-            %             SoloistAxisStatus.
+            %             EnsembleAxisStatus.
             %
             % Outputs
             % tBit - the value of the desired bit (0 or 1)
             
             bitToRead = bitToRead-1;
-            binWord = dec2bin(SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisStatus')));
+            binWord = dec2bin(EnsembleStatusGetItem(obj.hC, 0, EnsembleStatusItem('AxisStatus')));
             tBit = str2num(binWord(end-bitToRead));
         end % readAxisBit
 
@@ -510,8 +511,8 @@ classdef soloist < linearcontroller
             % faultString - the current fault state as a string. If there
             % is no fault 'None' is returned.
             
-            faultNumber = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisFault'));
-            faultEnum = SoloistAxisFault(faultNumber);
+            faultNumber = EnsembleStatusGetItem(obj.hC, 0, EnsembleStatusItem('AxisFault'));
+            faultEnum = EnsembleAxisFault(faultNumber);
             faultString = char(faultEnum);
         end % readAxisFault
 
@@ -523,7 +524,7 @@ classdef soloist < linearcontroller
             %
             % Inputs - none
             % Outputs - a scalar. Temp in degrees C
-            temperature = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AmplifierTemperature'));
+            temperature = EnsembleStatusGetItem(obj.hC, 0, EnsembleStatusItem('AmplifierTemperature'));
         end %returnAmplifierTemperature
 
 
@@ -534,7 +535,7 @@ classdef soloist < linearcontroller
             %
             % Inputs - none
             % Outputs - Position error (unknown unit)
-            posError = SoloistStatusGetItem(obj.hC, SoloistStatusItem('PositionError'));
+            posError = EnsembleStatusGetItem(obj.hC, 0, EnsembleStatusItem('PositionError'));
         end %returnPositionError
         
         

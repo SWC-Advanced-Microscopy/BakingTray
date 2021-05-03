@@ -3,32 +3,43 @@ function applyScanSettings(obj,scanSettings)
     %
     % Applies a saved set of scanSettings in order to return ScanImage to a 
     % a previous state. e.g. used to manually resume an acquisition that was 
-    % terminated for some reason. 
+    % terminated for some reason. Also looks for completed sections and uses
+    % the last available one to set the laser power and PMT gains to whatever
+    % they were last set to. 
     %
     % Inputs
     % scanSettings - the ScanImage scanSettings field from the recipe file 
+    %
+    % Outputs 
+    % none
+    %
+    %
 
     if ~isstruct(scanSettings)
         return
     end
 
-    % The following z-stack-related settings don't strictly need to be set, 
-    % since they are applied when the scanner is armed.
-    obj.hC.hStackManager.stackZStepSize = scanSettings.micronsBetweenOpticalPlanes;
-    obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
-
-    % Set the laser power and changing power with depth
-    % (below we attempt to set some of these values to those used in the last acquired directory)
-    obj.hC.hBeams.powers = scanSettings.beamPower;
-    obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
-    obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
-    obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
 
     % Which channels to acquire
     if iscell(scanSettings.activeChannels)
         scanSettings.activeChannels = cell2mat(scanSettings.activeChannels);
     end
     obj.hC.hChannels.channelSave = scanSettings.activeChannels;
+
+
+    % The following z-stack-related settings don't strictly need to be set, 
+    % since they are applied when the scanner is armed.
+    obj.hC.hStackManager.stackZStepSize = scanSettings.micronsBetweenOpticalPlanes;
+    obj.hC.hStackManager.numSlices = scanSettings.numOpticalSlices;
+
+    % Set the laser power and changing power with depth. These settings may be changed again
+    % right at the end, but we have this code here to ensure we have reasonable values to 
+    % begin with. This is in case the code at the end of the method (which attempts to use
+    % values from the most recent section) fails for some reason. 
+    obj.hC.hBeams.powers = scanSettings.beamPower;
+    obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
+    obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
+    obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
 
 
     % We set the scan parameters. The order in which these are set matters
@@ -41,11 +52,25 @@ function applyScanSettings(obj,scanSettings)
         obj.hC.hRoiManager.linesPerFrame = scanSettings.linesPerFrame;
     end
 
+    % The fill fraction affects scan angle size so we must set it before altering the 
+    % scanner multipliers and offsets
+    obj.hC.hScan2D.fillFractionSpatial = scanSettings.fillFractionSpatial;
+    obj.hC.objectiveResolution = scanSettings.objectiveResolution;
+
     % Set the scan angle multipliers. This is likely only critical if 
     % acquiring rectangular scans.
     obj.hC.hRoiManager.scanAngleMultiplierSlow = scanSettings.slowMult;
     obj.hC.hRoiManager.scanAngleMultiplierFast = scanSettings.fastMult;
+    obj.hC.hRoiManager.scanAngleShiftSlow = scanSettings.scanAngleShiftSlow;
 
+    if strcmpi(scanSettings.scanMode,'linear')
+        obj.hC.hRoiManager.scanAngleShiftFast = scanSettings.scanAngleShiftFast;
+
+        % These settings will affect dwell time but not the waveform shape
+        obj.hC.hScan2D.sampleRate = scanSettings.sampleRate;
+
+        obj.hC.hScan2D.pixelBinFactor = scanSettings.pixelBinFactor;
+    end
 
     % Attempt to read the meta-data from the last saved directory to apply other settings not in the
     % recipe file. 
@@ -72,14 +97,14 @@ function applyScanSettings(obj,scanSettings)
     TMP=scanimage.util.opentif(fullfile(lastSectionDir,tiffs(1).name));
     hSI_Settings = TMP.SI;
 
-    % Apply the important settings to the running instance of ScanImage
-
+    % Set the following from a recent TIFF. This is important
+    % since the user might have tweaked these things during acquisition.
+    % i.e. the following is not redundant code.
     obj.hC.hPmts.gains = hSI_Settings.hPmts.gains;
-
     obj.hC.hBeams.powers = hSI_Settings.hBeams.powers;
     obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;
     obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
     obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
-
-    obj.hC.hFastZ.enable = hSI_Settings.hFastZ.enable;
     obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
+    obj.hC.hScan2D.linePhase = hSI_Settings.hScan2D.linePhase;
+

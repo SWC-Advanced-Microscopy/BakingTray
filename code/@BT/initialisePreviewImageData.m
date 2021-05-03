@@ -8,7 +8,7 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     % The preview image is stored in obj.lastPreviewImageStack. Anything in there
     % before running this method is wiped out.
     %
-    % TODO -- doc fully as frontLeft is new argument (assuming we need it!)
+    % TODO -- doc fully as frontLeft is new argument
 
     verbose=true;
 
@@ -41,10 +41,22 @@ function initialisePreviewImageData(obj,tp,frontLeft)
     rangeAlongRowsInMM = range(tp(:,1)) + (stepSizesMM(2)/ovLap);
     imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
-
-    obj.lastPreviewImageStack = zeros([imRows,imCols, ...
-        obj.recipe.mosaic.numOpticalPlanes, ...
-        obj.scanner.maxChannelsAvailable],'int16');
+    % We are getting crashes here when, I think, the autoROI finds no
+    % tissue. To help diagnose we add a try/catch for now (18/02/2021)
+    try
+        obj.lastPreviewImageStack = zeros([imRows,imCols, ...
+            obj.recipe.mosaic.numOpticalPlanes + obj.recipe.mosaic.numOverlapZPlanes, ...
+            obj.scanner.maxChannelsAvailable],'int16');
+    catch ME
+        fprintf('Failed to make preview image stack!\n')
+        disp('imRows:')
+        disp(imRows)
+        disp('imCols:')
+        disp(imCols)
+        disp('tp:')
+        disp(tp)
+        rethrow(ME)
+    end
 
 
     % Log the current front/left position from the recipe. This must be done at this point

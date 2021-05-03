@@ -24,7 +24,6 @@ classdef SIBT < scanner
     end
 
     properties (Hidden)
-        defaultShutterIDs %The default shutter IDs used by the scanner
         maxStripe=1; %Number of channel window updates per second
         listeners={}
         armedListeners={} %These listeners are enabled only when the scanner is "armed" for acquisition
@@ -80,9 +79,6 @@ classdef SIBT < scanner
             obj.hC=API;
 
             fprintf('\n\nStarting SIBT interface for ScanImage\n')
-
-            %Log default state of settings so we return to these when disarming, as we will assume control over the shutter
-            obj.defaultShutterIDs = obj.hC.hScan2D.mdfData.shutterIDs;
 
 
             % Add ScanImage-specific listeners
@@ -140,77 +136,6 @@ classdef SIBT < scanner
         end %isReady
 
 
-        function applyZstackSettingsFromRecipe(obj)
-            % applyZstackSettingsFromRecipe
-            % This method is (at least for now) specific to ScanImage. 
-            % Its main purpose is to set the number of planes and distance between planes.
-            % It also sets the the view style to tiled. This method is called by armScanner
-            % but also by external classes at certain times in order to set up the correct 
-            % Z settings in ScanImage so the user can do a quick Grab and check the
-            % illumination correction with depth.
-
-            thisRecipe = obj.parent.recipe;
-            if thisRecipe.mosaic.numOpticalPlanes>1
-                fprintf('Setting up z-scanning with "step" waveform\n')
-
-                % Only change settings that need changing, otherwise it's slow.
-                % The following settings are fixed: they will never change
-                if ~strcmp(obj.hC.hFastZ.waveformType,'step') 
-                    obj.hC.hFastZ.waveformType = 'step'; %Always
-                end
-                if obj.hC.hFastZ.numVolumes ~= 1
-                    obj.hC.hFastZ.numVolumes=1; %Always
-                end
-                if obj.hC.hFastZ.enable ~=1
-                    obj.hC.hFastZ.enable=1;
-                end
-                if obj.hC.hStackManager.stackReturnHome ~= 1
-                    obj.hC.hStackManager.stackReturnHome = 1;
-                end
-
-                % Now set the number of slices and the distance in z over which to image
-                sliceThicknessInUM = thisRecipe.mosaic.sliceThickness*1E3;
-
-
-                if obj.hC.hStackManager.numSlices ~= thisRecipe.mosaic.numOpticalPlanes
-                    obj.hC.hStackManager.numSlices = thisRecipe.mosaic.numOpticalPlanes + thisRecipe.mosaic.numOverlapZPlanes;
-                end
-
-                if obj.hC.hStackManager.stackZStepSize ~= sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
-                    obj.hC.hStackManager.stackZStepSize = sliceThicknessInUM/thisRecipe.mosaic.numOpticalPlanes;
-                end
-
-
-                if strcmp(obj.hC.hDisplay.volumeDisplayStyle,'3D')
-                    fprintf('Setting volume display style from 3D to Tiled\n')
-                    obj.hC.hDisplay.volumeDisplayStyle='Tiled';
-                end
-
-            else % There is no z-stack being performed
-
-                %Ensure we disable z-scanning if this is not being used
-                obj.hC.hStackManager.numSlices = 1;
-                obj.hC.hStackManager.stackZStepSize = 0;
-                obj.hC.hFastZ.enable=false;
-
-            end
-
-
-            % Apply averaging as needed
-            aveFrames = obj.hC.hDisplay.displayRollingAverageFactor;  
-            if aveFrames>1
-                fprintf('Setting up averaging of %d frames\n', aveFrames)
-            end
-            obj.hC.hScan2D.logAverageFactor = 1; % To avoid warning
-            obj.hC.hStackManager.framesPerSlice = aveFrames;
-            if obj.averageSavedFrames
-                obj.hC.hScan2D.logAverageFactor = aveFrames;
-            else
-                obj.hC.hScan2D.logAverageFactor = 1;
-            end
-
-        end % applyZstackSettingsFromRecipe
-
         function success = disarmScanner(obj)
             if obj.hC.active
                 obj.logMessage(inputname(1),dbstack,7,'Scanner still in acquisition mode. Can not disarm.')
@@ -219,7 +144,6 @@ classdef SIBT < scanner
             end
 
             obj.hC.extTrigEnable=0;
-            obj.hC.hScan2D.mdfData.shutterIDs=obj.defaultShutterIDs; %re-enable shutters
             obj.disableArmedListeners;
             obj.disableTileSaving
 
@@ -246,6 +170,17 @@ classdef SIBT < scanner
             acquiring = ~strcmp(obj.hC.acqState,'idle');
             obj.isScannerAcquiring=acquiring;
         end %isAcquiring
+
+
+        function leaveResonantScannerOn(obj)
+            % If this is a resonant system, turn on the scanner for the rest of the acqiosotion.
+            % This method is called by armScanner and possibly outside of the SIBT class also
+            if strcmpi(obj.scannerType, 'resonant')
+                % This will only be turned off again when the teardown method is run
+                obj.hC.hScan2D.keepResonantScannerOn=obj.leaveResonantScannerOnWhenArmed;
+            end
+        end %leaveResonantScannerOn
+
 
     end %Close of main methods block
 
@@ -346,12 +281,17 @@ classdef SIBT < scanner
         end %maxChannelsAvailable
 
 
+        function chanNames = getChannelNames(obj,~,~)
+            chanNames = obj.hC.hPmts.names;
+        end % getChannelNames
+
+
         function theseChans = getChannelsToAcquire(obj,~,~)
             % This is also a listener callback function
             if obj.verbose
                 fprintf('Hit SIBT.getChannelsToAcquire\n')
             end
-            theseChans = obj.hC.hChannels.channelSave;
+            theseChans = obj.hC.hChannels.channelSave(:);
 
             if ~isequal(obj.channelsToSave,theseChans)
                 if obj.verbose
@@ -359,15 +299,14 @@ classdef SIBT < scanner
                 end
                 %Then something has changed
                 obj.flipScanSettingsChanged
-                obj.channelsToSave = theseChans(:); %store the currently selected channels to save
+                obj.channelsToSave = theseChans; %store the currently selected channels to save
             end
 
         end %getChannelsToAcquire
 
 
         function theseChans = getChannelsToDisplay(obj)
-            theseChans = obj.hC.hChannels.channelDisplay;
-            theseChans = theseChans(:);
+            theseChans = obj.hC.hChannels.channelDisplay(:);
         end %getChannelsToDisplay
 
 
@@ -378,7 +317,7 @@ classdef SIBT < scanner
             chans(chans>obj.maxChannelsAvailable)=[];
 
             obj.hC.hChannels.channelDisplay = chans;
-        end %setChannelsToDisplay
+        end % setChannelsToDisplay
 
 
         function scannerType = scannerType(obj)
@@ -390,7 +329,7 @@ classdef SIBT < scanner
             elseif strcmpi('GG',scannerType)
                 scannerType='linear';
             end 
-        end %scannerType
+        end % scannerType
 
 
         function pix=getPixelsPerLine(obj)
@@ -400,17 +339,50 @@ classdef SIBT < scanner
 
         function LUT=getChannelLUT(obj,chanToReturn)
             LUT = obj.hC.hChannels.channelLUT{chanToReturn};
-        end %getChannelLUT
+        end % getChannelLUT
 
 
         function SR=getSampleRate(obj)
             SR=obj.hC.hScan2D.sampleRate;
-        end
+        end % getSampleRate
 
 
         function pixBin=getPixelBinFactor(obj)
             pixBin=obj.hC.hScan2D.pixelBinFactor;
-        end
+        end % getPixelBinFactor
+
+
+        % Some settings have moved between ScanImage versions. These methods
+        % help use to take this into account
+        function setLoc = fastZsettingLocation(obj)
+            % String defining where the fast z settings live in the API
+            % Used like this: obj.hC.(obj.fastZsettingLocation)
+            %
+            % See also: obj.getFastZWaveformtype and obj.applyZstackSettingsFromRecipe
+            if obj.versionGreaterThan('5.6.1')
+                setLoc = 'hStackManager';
+            else
+                setLoc = 'hFastZ';
+            end
+        end % fastZsettingLocation
+
+
+        function setLoc = fastZwaveformLocation(obj)
+            % String defining where the fast z waveform lives in the API
+            % Used like this: obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation)
+            %
+            % See also: obj.getFastZWaveformtype and obj.applyZstackSettingsFromRecipe
+            if obj.versionGreaterThan('5.6.1')
+                setLoc = 'stackFastWaveformType';
+            else
+                setLoc = 'waveformType';
+            end
+        end % fastZwaveformLocation
+
+
+        function waveformType = getFastZWaveformType(obj)
+            waveformType = obj.hC.(obj.fastZsettingLocation).(obj.fastZwaveformLocation);
+        end % getFastZWaveformType
 
 
         function tearDown(obj)
@@ -429,15 +401,53 @@ classdef SIBT < scanner
 
         function verStr = getVersion(obj)
             % Return a string listing the current version of ScanImage and current version of MATLAB
-            verStr=sprintf('ScanImage v%s.%s on MATLAB %s', ...
-                obj.hC.VERSION_MAJOR, ...
-                obj.hC.VERSION_MINOR, ...
-                version);
+            verStr=sprintf('%s on MATLAB %s', obj.hC.version, version);
         end % getVersion
 
 
-        function sr = generateSettingsReport(obj)
+        function isGreater = versionGreaterThan(obj,verToTest)
+            % Return true if the current ScanImage version is newer than that defined by string verToTest
+            % 
+            % SIBT.versionGreaterThan(obj,verToTest)
+            %
+            % Inputs
+            % verToTest - should be in the format '5.6' or '5.6.1' or
+            % '2020.0'
+            %
+            % Note: this method does not know what to do with the update
+            % mumber from SI Basic. So 2020.1 is OK but 2020.1.4 won't 
+            % produce correct results
+ 
+            isGreater = nan;
+            if ~ischar(verToTest)
+                return
+            end
 
+            % Add '.0' if needed
+            if length(strfind(verToTest,'.'))==0
+                verToTest = [verToTest,'.0'];
+            end
+
+            % Turn string into a number
+            verToTestAsNum = str2num(strrep(verToTest,'.',''));
+
+            % Current version
+            curVersion = [obj.hC.VERSION_MAJOR,obj.hC.VERSION_MINOR];
+            if ischar(curVersion(1))
+                % Likely this a free release
+                curVersionAsNum = str2num(strrep(curVersion,'.',''));
+            else
+                % Likely this is Basic or Premium
+                curVersionAsNum = curVersion(1)*10 + curVersion(2);
+            end
+
+            isGreater = curVersionAsNum>verToTestAsNum;
+        end % versionGreaterThan
+
+
+        function st = generateSettingsReport(obj)
+            % TODO -- this method is not used by anything and seems 
+            % unfinished. Delete?
             % Bidirectional scanning
             n=1;
             st(n).friendlyName = 'Bidirectional scanning';
@@ -456,7 +466,7 @@ classdef SIBT < scanner
                 % distract the user with stuff that doesn't matter;
                 suggested = obj.hC.hBeams.pzAdjust;
             end
-            st(n).suggestedVal = suggested
+            st(n).suggestedVal = suggested;
 
         end % generateSettingsReport
 
@@ -487,7 +497,6 @@ classdef SIBT < scanner
             if exist(frameSizeFname, 'file')
                 tYML=BakingTray.yaml.ReadYaml(frameSizeFname);
                 tFields = fields(tYML);
-                popUpText={};
                 for ii=1:length(tFields)
                     tSet = tYML.(tFields{ii});
 
@@ -503,6 +512,24 @@ classdef SIBT < scanner
                     obj.frameSizeSettings(ii).objRes = tSet.objRes;
                     obj.frameSizeSettings(ii).sampRate = [];
                     obj.frameSizeSettings(ii).pixBin = [];
+
+                    if isfield(tSet,'shiftSlow')
+                        obj.frameSizeSettings(ii).shiftSlow = tSet.shiftSlow;
+                    else
+                        obj.frameSizeSettings(ii).shiftSlow = [];
+                    end
+
+                    if isfield(tSet,'shiftFast')
+                        obj.frameSizeSettings(ii).shiftFast = tSet.shiftFast;
+                    else
+                        obj.frameSizeSettings(ii).shiftFast = [];
+                    end
+
+                    if isfield(tSet,'spatialFillFrac')
+                        obj.frameSizeSettings(ii).spatialFillFrac = tSet.spatialFillFrac;
+                    else
+                        obj.frameSizeSettings(ii).spatialFillFrac = [];
+                    end
 
                     if isfield(tSet,'sampRate')
                         obj.frameSizeSettings(ii).sampRate = tSet.sampRate;
@@ -541,7 +568,7 @@ classdef SIBT < scanner
         end % readFrameSizeSettings
 
 
-        function nFrames = getNumAverageFrames(obj);
+        function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
         end % getNumAverageFrames
 
@@ -564,17 +591,20 @@ classdef SIBT < scanner
         scanSettings=returnScanSettings(obj)
         setImageSize(obj,pixelsPerLine,evnt)
         moveFastZTo(obj,targetPositionInMicrons)
+        applyZstackSettingsFromRecipe(obj)
+        [success,msg] = doScanSettingsMatchRecipe(obj,tRecipe)
     end %Close SIBT methods in external files
 
 
     methods (Hidden) %The following are hidden methods specific to SIBT
+
         function lastFrameNumber = getLastFrameNumber(obj)
             % Returns the number of frames acquired by the scanner.
             % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI. 
             lastFrameNumber = obj.hC.hDisplay.lastFrameNumber;
             %TODO: does it return zero if there are no data yet?
             %TODO: turn into a listener that watches lastFrameNumber
-        end
+        end %getLastFrameNumber
 
 
         function enableArmedListeners(obj)

@@ -167,7 +167,7 @@ classdef BT < loghandler
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
-        success = resumeAcquisition(obj,recipeFname,varargin)
+        [success,msg] = resumeAcquisition(obj,recipeFname,varargin)
         abortSlicing(obj)
         finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         [stagePos,mmPerPixelDownSampled] = convertImageCoordsToStagePosition(obj, coords, imageFrontLeft)
@@ -486,17 +486,31 @@ classdef BT < loghandler
                 return
             end
             success=obj.moveXYto(obj.positionArray(1,3),obj.positionArray(1,4),true); %blocking motion
-        end
+        end % toFirstTilePosition
 
 
         % ----------------------------------------------------------------------
         % Public methods for moving the Z stage
         function success =  lowerZstage(obj)
-            %Lowers the Z stage to the bottom. First moves XY stage to zero for safety
-            obj.moveZby(-2.5,1)
-            obj.moveXYto(0,0,1)
-            obj.moveZto(0,1)
-        end
+            %Lowers the Z stage to the bottom (zero mm) and performs a homing operation if 
+            % necessary. The z-jack lowered position MUST also be the home position.
+            % The homing motion is only performed if the recipe SYSTEM.homeZjackOnZeroMove
+            % setting is true and we are approaching zero from a position greater than
+            % 20 mm away (indicating a sample was likely imaged). Otherwise we simply lower
+            % the z-stage as normal to zero, 
+
+            if obj.recipe.SYSTEM.homeZjackOnZeroMove && obj.zAxis.axisPosition>20
+                % Approach the home position with a regular non-blocking motion then home.
+                fprintf('Moving Z-jack to zero and homing it\n')
+                obj.moveZto(1,1); % Go to 1 mm above zero in a blocking motion
+                obj.zAxis.referenceStage;
+            end
+
+            % Now go to zero (should already be there if we homed)
+            obj.moveZto(0,1);
+            obj.zAxis.axisPosition; % To update the GUI
+            success = true;
+        end % lowerZstage
 
         function success = moveZto(obj,position,blocking)
             % Absolute z-stage motion

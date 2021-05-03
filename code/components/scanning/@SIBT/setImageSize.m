@@ -1,5 +1,7 @@
-function setImageSize(obj,pixelsPerLine,evnt)
+function setImageSize(obj,pixelsPerLine)
     % Set image size or apply frame size setting
+    %
+    % SIBT.setImageSize(obj,pixelsPerLine)
     %
     % Purpose
     % Change the number of pixels per line and ensure that the number of lines per frame changes 
@@ -31,6 +33,9 @@ function setImageSize(obj,pixelsPerLine,evnt)
     pixEqLin = obj.hC.hRoiManager.pixelsPerLine == obj.hC.hRoiManager.linesPerFrame; % Do we currently have a square image?
     fastMult = [];
     slowMult = [];
+    shiftFast = [];
+    shiftSlow = [];
+    spatialFillFrac = [];
     objRes = [];
     zoomFact =[];
     pixBin = [];
@@ -57,11 +62,15 @@ function setImageSize(obj,pixelsPerLine,evnt)
         fastMult = settings.fastMult;
         slowMult = settings.slowMult;
         zoomFact = settings.zoomFactor;
+        shiftFast = settings.shiftFast;
+        shiftSlow = settings.shiftSlow;
+        spatialFillFrac = settings.spatialFillFrac;
         objRes = settings.objRes;
         if strcmp('linear',obj.scannerType)
             pixBin = settings.pixBin;
             sampRate = settings.sampRate;
         end
+
 
     end
 
@@ -71,6 +80,10 @@ function setImageSize(obj,pixelsPerLine,evnt)
     % Do we have square images?
     pixEqLinCheckBox = obj.hC.hRoiManager.forceSquarePixelation;
 
+    % If scanning, stop scanner
+    if obj.isAcquiring
+        obj.abortScanning
+    end
 
     if pixEqLin % is the user asking for square tiles?
         % It's pretty easy to change the image size if we have square images. 
@@ -100,10 +113,6 @@ function setImageSize(obj,pixelsPerLine,evnt)
             obj.hC.hRoiManager.scanAngleMultiplierFast=fastMult;
             obj.hC.hRoiManager.scanAngleMultiplierSlow=slowMult;
 
-            if ~isempty(objRes)
-                obj.hC.objectiveResolution = objRes;
-            end
-
     end
     
     if ~isempty(zoomFact)
@@ -118,7 +127,25 @@ function setImageSize(obj,pixelsPerLine,evnt)
         obj.hC.hScan2D.sampleRate = sampRate;
     end
 
-    % Issue a warning if the FOV of the image has changed after changing the number of pixels. 
+    
+    % If present, set the slow and fast shifts and the spatial fill fraction           
+    if ~isempty(spatialFillFrac)
+        obj.hC.hScan2D.fillFractionSpatial = spatialFillFrac;
+    end
+
+    if ~isempty(objRes)
+        obj.hC.objectiveResolution = objRes;
+    end
+    
+    if ~isempty(shiftSlow)
+        obj.hC.hRoiManager.scanAngleShiftSlow = shiftSlow;
+    end
+
+    if ~isempty(shiftFast)
+        obj.hC.hRoiManager.scanAngleShiftFast = shiftFast;
+    end
+
+    % Issue a warning if the FOV of the image has changed after changing the number of pixels.
     after = obj.returnScanSettings;
 
     if isempty(objRes)

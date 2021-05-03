@@ -1,0 +1,36 @@
+setA:
+  objective: OBJNAME
+  pixelsPerLine: 256
+  linesPerFrame: 256
+  zoomFactor: 1.0
+  nominalMicronsPerPixel: 1.2
+  fastMult: 1
+  slowMult: 1
+  shiftSlow: 0
+  shiftFast: 0
+  spatialFillFrac: 0.8
+  objRes: 50
+  lensDistort: {rows: 0, cols: 0.0}
+  affineMat: 
+    - [1,      0,   0]
+    - [0,      1,   0]
+    - [0,      0,   1]
+  stitchingVoxelSize: {X: 1.23, Y: 1.23}
+setB:
+  objective: OBJNAME
+  pixelsPerLine: 256
+  linesPerFrame: 256
+  zoomFactor: 1.0
+  nominalMicronsPerPixel: 2.4
+  fastMult: 1
+  slowMult: 1
+  shiftSlow: 0
+  shiftFast: 0
+  spatialFillFrac: 0.8
+  objRes: 50
+  lensDistort: {rows: 0, cols: 0.0}
+  affineMat: 
+    - [1,      0,   0]
+    - [0,      1,   0]
+    - [0,      0,   1]
+  stitchingVoxelSize: {X: 2.46, Y: 2.46}

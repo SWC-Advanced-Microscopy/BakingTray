@@ -1,4 +1,4 @@
-function success=resumeAcquisition(obj,recipeFname,varargin)
+function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % Resume a previously terminated acquisition by loading its recipe
     %
     % function success=resumeAcquisition(obj,recipeFname,simulate)
@@ -39,11 +39,16 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     %
     % Outputs
     % success - Returns true if the resumption process succeeded and
-    %           the system is ready to start.
+    %           the system is ready to start. If the recipe loaded
+    %           correctly but the scanner settings were not fully applied,
+    %           the method still returns true but msg is a non-empty
+    %           string describing what went wrong.
+    % msg - a message string that can be displayed by GUIs if needed.
     %
 
 
     success=false;
+    msg = '';
 
     params = inputParser;
     params.CaseSensitive = false;
@@ -184,9 +189,12 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     if slicenow==false && strcmp(existing,'nothing')
         targetPosition = targetPosition + details.sliceThickness;
     end
+
+    msg = sprintf('Moving Z stage to %0.3f\n', targetPosition);
     if simulate
-        fprintf('Move Z stage to %0.3f\n', targetPosition)
+        fprintf(msg)
     else
+        mWin = BakingTray.utils.messageWindow(msg);
         obj.moveZto(targetPosition, true); % execute blocking motion to last stage position
     end
 
@@ -194,9 +202,11 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     % Slicing and then re-imaging makes no sense, but we have checked at the top for this and 
     % so everything that follows is safe.
     if slicenow
+        msg = sprintf('Slicing sample\n');
         if simulate
-            fprintf('Slicing sample\n')
+            fprintf(msg)
         else
+            mWin.writeMessage(msg);
             obj.sliceSample
         end
     end
@@ -227,12 +237,17 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         newSectionStartNumber = lastImagedSectionNumber+1;
     end
 
+    % Update current section number property in BT to ensure GUI is reflecting what will happen
+    obj.currentSectionNumber = newSectionStartNumber;
+
     newNumberOfRequestedSections = originalNumberOfRequestedSections-newSectionStartNumber+1;
     if newNumberOfRequestedSections<1
         fprintf('\n** Original number of requested sections was %d but since section start number is now %d this is not possible.\n', ...
             originalNumberOfRequestedSections, newSectionStartNumber)
         fprintf('** Resuming acquisition asking for just one section. You may modify this value as appropriate.\n\n')
         newNumberOfRequestedSections=1;
+        mWin.writeMessage('*** WARNING SEE MESSAGES AT COMMAND LINE ***');
+        pause(2)
     end
 
 
@@ -248,7 +263,7 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     end
 
 
-    % %TODO -- this code is dead right now as we don't give the user the option to continue. 
+    % %TODO -- this code is dead right now as we don't give the user the option to continue.
     if strcmp(existing,'complete')
         if simulate
             fprintf('Resuming acquisition at tile position %d section %d\n', ...
@@ -275,7 +290,9 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
         end
     end
 
-
+    if ~simulate
+        delete(mWin)
+    end
 
     % Set up the scanner as it was before. We have to manually read the scanner
     % field from the recipe, as the "live" version in the object be overwritten
@@ -287,6 +304,15 @@ function success=resumeAcquisition(obj,recipeFname,varargin)
     else
         if ~simulate
             obj.scanner.applyScanSettings(tmp.ScannerSettings)
+            % Check that all were applied correctly
+            [setsuccess,msg] = obj.scanner.doScanSettingsMatchRecipe(recipeFname);
+            if setsuccess
+                fprintf('Settings correctly applied\n\n')
+            end
+            if nargout<2
+                % Never the case in live acquisitions
+                fprintf(msg)
+            end
         else
             fprintf('Applying scan settings\n')
         end

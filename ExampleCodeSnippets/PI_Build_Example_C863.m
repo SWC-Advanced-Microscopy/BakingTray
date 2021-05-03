@@ -14,6 +14,11 @@ function PI = PI_Build_Example_C863
 	% Inputs
 	% None, but you will need to edit below. 
 	%
+    % Example
+    % PI = PI_Build_Example_C863
+    % PI.absoluteMove(5)
+    % PI.axisPosition
+    % delete(PI)
 	%
 	% Rob Campbell - SWC 2019
 	%
@@ -22,8 +27,8 @@ function PI = PI_Build_Example_C863
 	% First we will set up a stage
     stageComponent=genericPIstage;
     stageComponent.axisName='xAxis'; %Doesn't matter what it's called for now
-    stageComponent.minPos=10;
-    stageComponent.maxPos=300;
+    stageComponent.minPos = -300; 
+    stageComponent.maxPos = 300;
 
     % Make a PI controller object with this stage attached
     PI = C863(stageComponent); % <-- EDIT FOR OTHER CONTROLLERS
@@ -34,15 +39,15 @@ function PI = PI_Build_Example_C863
 	% Option one: these are the setting for connecting via USB
     controllerIDusb.interface='usb';
     controllerIDusb.controllerModel=PImodel;
-    controllerIDussb.ID='1122342334';
+    controllerIDusb.ID='120037650'; %EDIT AS NEEDED
 
     % Option two: these are the settings for connecting via serial
     controllerIDrs232.interface='rs232';
     controllerIDrs232.controllerModel=PImodel;
-    controllerIDrs232.COM=10;
+    controllerIDrs232.COM=10; % EDIT AS NEEDED
     controllerIDrs232.baudrate=115200;
 
-    PI.connect(controllerIDrs232); %Connect to the controller
+    PI.connect(controllerIDusb); %Connect to the controller EDIT AS NEEDED
 
     % It should at this point say it's connected. It might say it failed. 
     % If it failed, it's possible it's actually connected but that something

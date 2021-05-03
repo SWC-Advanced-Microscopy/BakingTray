@@ -1,4 +1,4 @@
-function populateCurrentTilePattern(obj,varargin)
+function varargout=populateCurrentTilePattern(obj,varargin)
     % populate obj.currentTilePattern and obj.positionArray
     %
     % Purpose
@@ -26,6 +26,9 @@ function populateCurrentTilePattern(obj,varargin)
     %               vector so to remove the first and last tiles of a tile pattern having 
     %               length 256 you would supply [1,256] as the value for this parameter.
     %
+    % Outputs
+    % pos - The tile pattern. This is returned to make it easier to confirm
+    %       what was generated. 
     % NOTE:
     % a) You can not supply both keepTiles and removeTiles. 
     % b) The keepTiles and removeTiles arguments are currently not used for anything and are
@@ -78,6 +81,9 @@ function populateCurrentTilePattern(obj,varargin)
 
     if isempty(pos)
         fprintf('No tile pattern was generated in BT.populateCurrentTilePattern\n');
+        if nargout>0
+            varargout=pos;
+        end
         return
     end
 
@@ -100,5 +106,8 @@ function populateCurrentTilePattern(obj,varargin)
     % Report to screen what's just been made
     fprintf('BT.%s populated BT.positionArray with a tile pattern of length %d\n', ...
      mfilename, size(obj.positionArray,1))
-
+    
+    if nargout>0
+        varargout=pos;
+    end
 end %populateCurrentTilePattern

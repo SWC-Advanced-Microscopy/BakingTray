@@ -44,22 +44,9 @@ switch componentName
     case 'SIBT'
         %Look for ScanImage and only proceed if it's present
         W = evalin('base','whos');
-        if ismember('hSI',{W.name});
+        if ismember('hSI',{W.name})
             fprintf('Connecting to scanner\n')
             component=SIBT;
-
-            %add settings
-            if ~isempty(scannerSettings) && isstruct(scannerSettings)
-                f=fields(scannerSettings);
-                for ii=1:length(f)
-                    if isfield(component.settings,f{ii});
-                        component.settings.(f{ii}) = scannerSettings.(f{ii}); %TODO: add more error checking
-                    else
-                        fprintf('Skipping unknown scanner setting field %s\n', f{ii});
-                    end
-                end
-
-            end
 
         else
             fprintf('No instance of ScanImage started. SKIPPING CONSTRUCTION OF SCANNER COMPONENT.\n')

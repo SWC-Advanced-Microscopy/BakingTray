@@ -106,7 +106,7 @@ classdef recipe < handle
     % VoxelSize.[XY] (The nominal voxel size returned by the scanner)
     %
     % The following are records of various parameters used for the acquisition. 
-    % ScannerSettings (A structure that stores a variety of information about how the scanner is configured)
+    % ScannerSettings (A structure that stores a variety of information about how the scanner is configured. see recipe.recordScannerSettings)
     % SYSTEM and SLICER (Two structures contain the information found in the systemSettings.yml)
 
 
@@ -434,6 +434,7 @@ classdef recipe < handle
 
                         case 'sectionStartNum'
                             fieldValue = obj.checkInteger(fieldValue);
+
                         case 'numSections'
                             fieldValue = obj.checkInteger(fieldValue);
 
@@ -445,7 +446,7 @@ classdef recipe < handle
                                 if distanceRequested>distanceAvailable
                                     numSlicesPossible = floor(distanceAvailable/obj.mosaic.sliceThickness)-1;
                                     fprintf(['Requested %d slices: this is %0.2f mm thick but only %0.2f mm is possible. ',...
-                                        'You can cut a maximum of %d slices.\n'], ...
+                                        'Setting to the maximum value of %d slices.\n'], ...
                                      fieldValue,...
                                      distanceRequested, ...
                                      distanceAvailable,...
@@ -461,7 +462,7 @@ classdef recipe < handle
                         case 'sliceThickness'
                             fieldValue = obj.checkFloat(fieldValue,0.01,1); %Allow slices up to 1 mm thick
                         case 'numOverlapZPlanes'
-                            fieldValue = obj.checkInteger(fieldValue);
+                            fieldValue = obj.checkInteger(fieldValue,true);
                         case 'numOpticalPlanes'
                             fieldValue = obj.checkInteger(fieldValue);
                         case 'overlapProportion'

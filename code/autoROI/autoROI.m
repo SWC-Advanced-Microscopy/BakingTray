@@ -1,7 +1,7 @@
-function varargout=autoROI(pStack, varargin)
+function varargout=autoROI(pStack, lastSectionStats, varargin)
     % autoROI
     %
-    % function varargout=autoROI(pStack, 'param',val, ... )
+    % function varargout=autoROI(pStack, lastSectionStats, 'param',val, ... )
     % 
     % Purpose
     % Automatically detect regions in the current section where there is
@@ -16,14 +16,15 @@ function varargout=autoROI(pStack, varargin)
     % 
     % Inputs (Required)
     % pStack - The pStack structure. From this we extract key information such as pixel size.
+    % lastSectionStats - By default the whole image is used. If this argument is 
+    %               present it should be the output of autoROI from a
+    %               previous section. This is empty by default. Not in input parser
+    %               because adding there slows down the parser.
     %
     % Inputs (Optional param/val pairs)
     % tThresh - Threshold for tissue/no tissue. By default this is auto-calculated
     % tThreshSD - Used to do the auto-calculation of tThresh.
     % doPlot - if true, display image and overlay boxes. false by default
-    % lastSectionStats - By default the whole image is used. If this argument is 
-    %               present it should be the output of autoROI from a
-    %               previous section;
     % skipMergeNROIThresh - If more than this number of ROIs is found, do not attempt
     %                         to merge. Just return them. Used to speed up auto-finding.
     %                         By default this is infinity, so we always try to merge.
@@ -43,6 +44,10 @@ function varargout=autoROI(pStack, varargin)
     %
     % Rob Campbell - SWC, 2019
 
+
+    if nargin<2
+        lastSectionStats=[];
+    end
 
     if ~isstruct(pStack)
         fprintf('%s - First input argument must be a structure.\n',mfilename)
@@ -66,8 +71,12 @@ function varargout=autoROI(pStack, varargin)
     % Get size settings from pStack structure
     pixelSize = pStack.voxelSizeInMicrons;
     tileSize = pStack.tileSizeInMicrons;
-
-
+    if isfield(pStack,'tileOverlapProportion')
+        tileOverlapProportion = pStack.tileOverlapProportion;
+    else
+        % If this field is missing, we likely have test data that were all acquired at 0.1
+        tileOverlapProportion = 0.1;
+    end
 
     params = inputParser;
     params.CaseSensitive = false;
@@ -75,7 +84,6 @@ function varargout=autoROI(pStack, varargin)
     params.addParameter('doPlot', true, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('tThresh',[], @(x) isnumeric(x) && isscalar(x))
     params.addParameter('tThreshSD',[], @(x) isnumeric(x) && isscalar(x) || isempty(x))
-    params.addParameter('lastSectionStats',[], @(x) isstruct(x) || isempty(x))
     params.addParameter('skipMergeNROIThresh',inf, @(x) isnumeric(x) )
     params.addParameter('showBinaryImages', false, @(x) islogical(x) || x==1 || x==0)
     params.addParameter('doBinaryExpansion', [], @(x) islogical(x) || x==1 || x==0 || isempty(x))
@@ -87,7 +95,6 @@ function varargout=autoROI(pStack, varargin)
     doPlot = params.Results.doPlot;
     tThresh = params.Results.tThresh;
     tThreshSD = params.Results.tThreshSD;
-    lastSectionStats = params.Results.lastSectionStats;
     skipMergeNROIThresh = params.Results.skipMergeNROIThresh;
     showBinaryImages = params.Results.showBinaryImages;
     doBinaryExpansion = params.Results.doBinaryExpansion;
@@ -122,37 +129,13 @@ function varargout=autoROI(pStack, varargin)
     end
 
 
-    % Remove sharp edges. This helps with artifacts associated with the missing corner tile found in test 
-    % data. TODO: could remove this step in the future. However, since it will clean up local very large 
-    % values it might not be a bad idea it to leave it in.
-    im = autoROI.removeCornerEdgeArtifacts(im);
-
-
-    sizeIm=size(im);
-    if rescaleTo>1
-        %fprintf('%s is rescaling image to %d mic/pix from %0.2f mic/pix\n', mfilename, rescaleTo, pixelSize);
-
-        sizeIm = round( sizeIm / (rescaleTo/pixelSize) );
-        im = imresize(im, sizeIm,'nearest'); %Must use nearest-neighbour to avoid interpolation
-        origPixelSize = pixelSize;
-        pixelSize = rescaleTo;
-    else
-        origPixelSize = pixelSize;
-    end
-
-
-
-
-
-    % Median filter the image first. This is necessary, otherwise downstream steps may not work.
-    im = medfilt2(im,[settings.main.medFiltRawImage,settings.main.medFiltRawImage]);
-    im = single(im);
-
+    sizeOrigIm=size(im); % The original image size
+    [im,pixelSize,origPixelSize] = autoROI.rescaleAndFilterImage(im,pixelSize);
 
 
     % If no threshold for segregating sample from background was supplied then calculate one
     % based on the pixels around the image border. This is only going to work for cases where
-    % there no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
+    % there are no ROIs. i.e. the whole FOV was imaged. TODO: have a check for this. 
     if isempty(tThresh)
         %Find pixels within b pixels of the border
         b = borderPixSize;
@@ -163,12 +146,13 @@ function varargout=autoROI(pStack, varargin)
         borderPix(borderPix == -42) = [];
         borderPix(borderPix == 0) = [];
 
-        tThresh = median(borderPix) + std(borderPix)*tThreshSD;
+        SD_border = autoROI.obtainCleanBackgroundSD(borderPix);
+        tThresh = median(borderPix) + SD_border*tThreshSD;
         fprintf(['\n\nNo threshold provided to %s - USING IMAGE BORDER PIXELS to extract a threshold:\n  ', ...
             'tThresh set to %0.1f based on supplied threshSD of %0.2f\n'], ...
          mfilename, tThresh, tThreshSD)
         fprintf('  Median border pix: %0.2f\n  SD border pix: %0.2f\n', ...
-            median(borderPix), std(borderPix))
+            median(borderPix), SD_border)
     else
         fprintf('Running %s with provided threshold of %0.2f\n', mfilename, tThresh)
     end
@@ -193,7 +177,7 @@ function varargout=autoROI(pStack, varargin)
         if length(stats) < skipMergeNROIThresh
             stats = autoROI.mergeOverlapping(stats,size(im)); % Merge partially overlapping ROIs
         end
-
+        containsSampleMask = []; % Must at least define this as empty if we don't make the mask
     else
         % We have provided bounding box history from previous sections and so we will pull out these sub-ROIs
         % and work on them alone
@@ -206,16 +190,17 @@ function varargout=autoROI(pStack, varargin)
 
         % Run within each ROI then afterwards consolidate results
         nT=1;
-
+        containsSampleMask = zeros(size(im)); % All regions of the imaged area that are above threshold. Used for logging
         for ii = 1:length(lastROI.BoundingBoxes)
             % Scale down the bounding boxes
 
-            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason. see Issue 58. 
+            % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
 
             tBW = autoROI.binarizeImage(tIm,pixelSize,tThresh,binArgs{:});
+            containsSampleMask = containsSampleMask + tBW.afterExpansion;
             if isAutoThresh
                 tBoundingBox = [];
             end
@@ -229,6 +214,7 @@ function varargout=autoROI(pStack, varargin)
             % Uncomment the following line for debug purposes
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
+        containsSampleMask = logical(containsSampleMask > 0); % In case of any double counting due to ROI overlap
 
         if ~isempty(tStats{1})
 
@@ -288,7 +274,7 @@ function varargout=autoROI(pStack, varargin)
     for ii=1:length(stats)
         [stats(ii).BoundingBox, stats(ii).BoundingBoxDetails] = ...
         autoROI.boundingBoxToTiledBox(stats(ii).BoundingBox, ...
-            pixelSize, tileSize);
+            pixelSize, tileSize, tileOverlapProportion);
     end
 
     % Sort the bounding boxes along the image rows (microscope X axis).
@@ -367,7 +353,7 @@ function varargout=autoROI(pStack, varargin)
 
     % Get the foreground and background pixel stats from the ROIs (not the whole image)
     out.roiStats(n).medianBackground = median([imStats.backgroundPix]);
-    out.roiStats(n).stdBackground = std([imStats.backgroundPix]);
+    out.roiStats(n).stdBackground = autoROI.obtainCleanBackgroundSD([imStats.backgroundPix]);
 
     out.roiStats(n).medianForeground = median([imStats.foregroundPix]);
     out.roiStats(n).stdForeground = std([imStats.foregroundPix]);
@@ -386,8 +372,9 @@ function varargout=autoROI(pStack, varargin)
     % What proportion of the whole FOV is covered by the bounding boxes?
     % This number is only available in test datasets. In real acquisitions with the 
     % auto-finder we won't have this number. 
-    out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeIm);
-
+    out.roiStats(n).propImagedAreaCoveredByBoundingBox = sum(nBoundingBoxPixels) / prod(sizeOrigIm);
+    out.roiStats(n).containsSampleMask = containsSampleMask;
+    out.roiStats(n).previewImage = im;
 
     % Finally: return bounding boxes to original size
     % If we re-scaled then we need to put the bounding box coords back into the original size
@@ -423,23 +410,28 @@ function varargout=autoROI(pStack, varargin)
             % Re-run autothresh on the current section with the current ROIs
             [tThreshSD,~,thresh]=autoROI.autothresh.run(pStack,[],[],out);
 
-            % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
-            % This means we have to remove the roiStats data we just added, because it's 
-            % going to need to be replaced with new numbers
-            out.roiStats(end)=[];
+            % Something went really wrong if there was a NaN happened
+            if ~isnan(tThreshSD)
+                % Re-run autoROI with the new tThreshSD and tThresh on the current section. 
+                % This means we have to remove the roiStats data we just added, because it's 
+                % going to need to be replaced with new numbers
+                out.roiStats(end)=[];
 
-            out = autoROI(pStack, ...
-                    'doPlot', doPlot, ...
-                    'skipMergeNROIThresh', skipMergeNROIThresh, ...
-                    'showBinaryImages', showBinaryImages, ...
-                    'doBinaryExpansion', doBinaryExpansion, ...
-                    'settings', settings, ...
-                    'tThreshSD',tThreshSD, ...
-                    'tThresh',thresh,...
-                    'lastSectionStats',out);
+                out = autoROI(pStack, out, ...
+                        'doPlot', doPlot, ...
+                        'skipMergeNROIThresh', skipMergeNROIThresh, ...
+                        'showBinaryImages', showBinaryImages, ...
+                        'doBinaryExpansion', doBinaryExpansion, ...
+                        'settings', settings, ...
+                        'tThreshSD',tThreshSD, ...
+                        'tThresh',thresh);
 
-            % Log that we re-calculated on this section
-            out.roiStats(n).tThreshSD_recalc=true;
+                % Log that we re-calculated on this section
+                out.roiStats(n).tThreshSD_recalc=true;
+            else
+                fprintf('The recalc of tThreshSD failed. It returned Nan\n')                
+            end
+
         end
     end
 

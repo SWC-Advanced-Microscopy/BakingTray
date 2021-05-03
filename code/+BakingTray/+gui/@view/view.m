@@ -78,7 +78,8 @@ classdef view < handle
 
         % Button callback functions
         startPreviewSampleGUI(obj,evt,src)
-        loadRecipe(obj,evt,src)
+        newSample(obj,evt,src)
+        loadRecipe(obj,evt,src,pathToRecipe)
         startPrepareGUI(obj,evt,src)
         startLaserGUI(obj,evt,src)
 
@@ -128,6 +129,10 @@ classdef view < handle
             if obj.model.isScannerConnected
                 obj.connectScannerListeners
             end
+            
+            % Finally we make sure that the scanner is set to the default
+            % resolution displayed in BakingTrau
+            obj.applyScanSettings(obj.recipeEntryBoxes.other{1});
         end %close constructor
 
 
@@ -205,6 +210,9 @@ classdef view < handle
         function saveRecipeToDisk(obj,~,~)
             %Save recipe to disk. Open the default settings directory.
             [fname,pathToRecipe] = uiputfile('*.yml',BakingTray.settings.settingsLocation);
+            if fname==0
+                return
+            end
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
@@ -276,18 +284,22 @@ classdef view < handle
         end % disableDuringAcquisition
 
 
-        function applyScanSettings(obj,src,evt)
+        function applyScanSettings(obj,src,~)
             % Apply the chosen scan settings to ScanImage and send the current stitching settings
             % to the recipe. TODO: This method performs critical tasks that should not be done by a view class. 
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
+
+            if ~obj.model.isScannerConnected
+                return
+            end
 
             % Disable the listeners on the scanner temporarily otherwise 
             % we get things that look like error messages
             obj.scannerListeners{1}.Enabled=false; 
 
             %Set the scanner settings
-            obj.model.scanner.setImageSize(src,evt)
+            obj.model.scanner.setImageSize(src)
 
             obj.scannerListeners{1}.Enabled=true;
             %Send copies of stitching-related data to the recipe

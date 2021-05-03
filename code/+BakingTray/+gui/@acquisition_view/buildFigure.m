@@ -23,6 +23,7 @@ function buildFigure(obj)
     else
         textFSize=11;
     end
+
     obj.statusText = annotation(obj.statusPanel,'textbox', 'Units','Pixels', 'Color', 'w', ...
                                 'Position',[0,1,200,panelHeight-4],'EdgeColor','none',...
                                 'HorizontalAlignment','left', 'VerticalAlignment','middle',...
@@ -80,6 +81,7 @@ function buildFigure(obj)
         'Units','Pixels',...
         'ForegroundColor','k', ...
         'FontWeight', 'bold');
+
 
     %Ensure the bake button reflects what is currently happening
     if ~obj.model.acquisitionInProgress
@@ -148,21 +150,25 @@ function buildFigure(obj)
     drawnow
 
 
-        % Populate the depth popup
-        obj.populateDepthPopup
-        obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
+    % Populate the depth popup
+    obj.populateDepthPopup
+    obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
     obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
         'Position', [420, 0, 70, 30], 'String', '', 'Callback', @obj.setChannelToView,...
         'Interruptible', 'off');
-        % Add the channel names. This is under the control of a listener in case the user makes a 
-        % change in ScanImage after the acquisition_view GUI has opened.
-        obj.updateChannelsPopup
-        obj.setChannelToView % Ensure that the property is set to a valid channel
+
+    % Add the channel names. This is under the control of a listener in case the user makes a 
+    % change in ScanImage after the acquisition_view GUI has opened.
+    obj.updateChannelsPopup
+    obj.setChannelToView % Ensure that the property is set to a valid channel
 
 
     % Report the cursor position with a callback function
     set(obj.hFig, 'WindowButtonMotionFcn', @obj.pointerReporter)
+    
+    % Enable "click to move to position" (double click)
+    set(obj.hFig, 'WindowButtonDownFcn', @obj.previewMoveToPosition)
 
 
     obj.button_previewScan=uicontrol(...
@@ -224,6 +230,7 @@ function buildFigure(obj)
         'String', 'B', ...
         'ToolTip', 'Select area to image', ...
         'Callback', @obj.areaSelector);
+
 
     % Add checkboxes for toggling disabling the laser at the end of acquisition and for 
     % slicing the last section at the end of acquisition. 
