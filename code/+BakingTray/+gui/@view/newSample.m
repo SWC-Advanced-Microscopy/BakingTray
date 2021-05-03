@@ -16,4 +16,8 @@ function newSample(obj,~,~)
         obj.view_prepare.resetStepSizesToDefaults;
     end
     
+    % Wipe the sample save path
+    obj.text_sampleDir.String='';
+    obj.model.sampleSavePath='';
+    
 end %newSample
