@@ -46,8 +46,6 @@ function buildWindow(obj)
     %TODO: this item should only appear if the scanner if ScanImage
     obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
 
-
-    obj.menu.about = uimenu(obj.menu.tools,'Label','About','Callback',@obj.about);
     obj.menu.quit = uimenu(obj.menu.tools,'Label','Quit','Callback',@obj.closeBakingTray);
 
 
