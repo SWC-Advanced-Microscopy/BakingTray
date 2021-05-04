@@ -7,7 +7,14 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user. 
 
 
-2nd May 2021
+4th May 2021
+- USER - All trim slices now start from the cutting start point. This seems more like the expected behavior
+- Bugfix - Attempt to trap error that is causing acquisition to crash if there is only one row or column of 
+           tiles near the the end of a sample. Acquisition will just end at this point. The assumption being
+           that it is complete. This is not a perfect solution but it's serviceable for now.
+
+
+3nd May 2021
 - USER - If requested number of slices exceeds what is possible, the recipe is updated automatically. Therefore
           default recipe can now have a very large number of slices requested and by extension BakingTray will
           by default image the full available depth. 

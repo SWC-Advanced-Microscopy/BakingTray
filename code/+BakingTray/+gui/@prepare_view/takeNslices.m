@@ -11,6 +11,13 @@ function takeNslices(obj,~,~)
         warndlg(msg,'')
         return
     end
+
+    % Move to the cutting start point. This causes the blade to always
+    % return to this position when trimming and it avoids user confusion
+    % in cases such as an abort of the cutting that then leads to the blade
+    % returning to a location above the sample
+    obj.model.moveXYto(obj.model.recipe.CuttingStartPoint.X,0,true)
+
     %Takes multiple slices according to what is entered in the multiple slice text entry box
     slicesToTake = str2double(obj.editBox.takeNslices.String);
     origString=obj.takeNSlices_button.String;
