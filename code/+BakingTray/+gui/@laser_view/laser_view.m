@@ -12,11 +12,19 @@ classdef laser_view < BakingTray.gui.child_view
         connectionIndicator
         connectionText
         laserPowerText
+        powerAtObjectiveText
+        
+        % The following setting is the offset and slope of objective power
+        % as a function of photodiode voltage. If empty we do nothing 
+        % with this. If present, power at objective is shown. 
+        powerCoefs = []%[-6, 83.9] % [b0, b1]
 
         buttonOnOff
         buttonShutter
         editWavelength
         currentWavelengthText
+        
+        
     end
 
     properties(Hidden)
@@ -113,8 +121,10 @@ classdef laser_view < BakingTray.gui.child_view
             obj.connectionText = obj.makeTextLabel(obj.statusPanel,[0, 49, 110 20],'Connected: NO');
             set(obj.connectionText, 'HorizontalAlignment', 'Right');
 
-            obj.laserPowerText = obj.makeTextLabel(obj.statusPanel,[0, 29, 130 20],'Power: 0 mW');
-
+            obj.laserPowerText = obj.makeTextLabel(obj.statusPanel,[0, 29, 180 20],'Output Power: 0 mW');
+            
+            % The following will not be updated if obj.powerCoefs is empty
+            obj.powerAtObjectiveText = obj.makeTextLabel(obj.statusPanel,[0, 09, 200 20],'');
 
             % Buttons
             obj.buttonOnOff=uicontrol(...
@@ -368,7 +378,40 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
             powerIn_mW = round(obj.model.laser.readPower);
-            set(obj.laserPowerText,'String', sprintf('Power: %d mW',powerIn_mW))
+            set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
+        end
+
+        function updatePowerAtObjectiveText(obj)
+            % THE FOLLOWING IS A TEMPORARY HACK FOR NEUROVISION
+            if isempty(obj.powerCoefs)
+                return
+            end
+            rs = dabs.resources.ResourceStore();
+
+            % If shutter is closed we can not take a reading
+            s=rs.filterByName('shutter');
+            if s.isOpen 
+                obj.powerAtObjectiveText.String = 'Power @ sample: close shutter';
+                return
+            end
+
+
+            beam = rs.filterByName('Pockels'); % This is a hard-coded name based on the MDF
+
+            % If beam is set to zero we don't read
+            if beam.hAOControl.lastKnownValue == 0
+                obj.powerAtObjectiveText.String = 'Set Pockels for Power @ sample';
+                return
+            end
+
+            PD = beam.hAIFeedback;
+            AIval = PD.readValue;
+
+            powerInmW = AIval*obj.powerCoefs(2) + obj.powerCoefs(1);
+
+            tStr = sprintf('Power at sample: %0.1f mW', powerInmW);
+            obj.powerAtObjectiveText.String = tStr;
+
         end
 
         function updateGUI(obj,~,~)
@@ -377,6 +420,7 @@ classdef laser_view < BakingTray.gui.child_view
             obj.updateLaserConnectedElements
             obj.updateLaserOnElements
             obj.updatePowerText
+            obj.updatePowerAtObjectiveText
         end %updateGUI
 
         function regularGUIupdater(obj,~,~)
@@ -393,6 +437,7 @@ classdef laser_view < BakingTray.gui.child_view
                 obj.updateModeLockElements
                 obj.updatePowerText
                 obj.updateCurrentWavelength
+                obj.updatePowerAtObjectiveText
             catch ME 
                 fprintf('Failed to update laser GUI with error: %s\n', ME.message)
             end
