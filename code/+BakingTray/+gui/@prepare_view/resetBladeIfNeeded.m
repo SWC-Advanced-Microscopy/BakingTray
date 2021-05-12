@@ -1,9 +1,18 @@
 function resetBladeIfNeeded(obj)
-
+    % Esnures sample is on the correct side of the blade during trimming
+    %
+    % resetBladeIfNeeded
+    %
+    % Purpose
     % Move to the cutting start point if sample is beyond blade.
     % This causes the blade to always return to this position when trimming 
     % and it avoids user confusion in cases such as an abort of the cutting 
     % that then leads to the blade returning to a location above the sample
+    %
+    % No inputs or outputs
+    %
+    % Called by takeNslices and takeOneSlice
+    
 
     startPoint = obj.model.recipe.CuttingStartPoint.X; %Cutting start point
     xPos = obj.model.getXpos;
