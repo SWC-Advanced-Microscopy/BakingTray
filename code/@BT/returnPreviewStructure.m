@@ -104,7 +104,8 @@ function chan = getLongestWavelength(chanNames,chansToAcquire)
     % channel names are not informative enough for this.
     % Do not return the far red channel as this has very little
     % sample autofluorescence. 
-    % This method expects channels to be named: "Far Red", "Red", "Green", and "Blue"
+    % This method expects channels to be named either: "Far Red", "Red", "Green", and "Blue"
+    % OR: "Chan 1: Far Red", "Chan 2: Red", "Chan 3: Green", and "Chan 4: Blue"
     % Not all are needed but only those strings are expected. Case insensitive.
     %
     % Inputs
@@ -116,6 +117,12 @@ function chan = getLongestWavelength(chanNames,chansToAcquire)
 
     chan = [];
     chanNames = lower(chanNames);
+
+    for ii=1:length(chanNames)
+        % remove any leading text that looks like "chan 1: "
+        chanNames{ii} = regexprep(chanNames{ii},'.*: ', '');
+    end
+
     chanNamesAcq = chanNames(chansToAcquire);
 
     preferredChanOrder = {'red','green','blue'};
