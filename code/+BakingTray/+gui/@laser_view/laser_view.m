@@ -13,11 +13,12 @@ classdef laser_view < BakingTray.gui.child_view
         connectionText
         laserPowerText
         powerAtObjectiveText
-        
-        % The following setting is the offset and slope of objective power
-        % as a function of photodiode voltage. If empty we do nothing 
-        % with this. If present, power at objective is shown. 
-        powerCoefs = []%[-6, 83.9] % [b0, b1]
+
+        % The following setting is to hold coefs for converting photo-doide voltage to 
+        % laser power at the sample. e.g. the offset and slope of objective power.
+        % If empty we do nothing. The value is to be filled in from a settings file 
+        % in the constructor. Do not edit the property below.
+        powerCoefs = []
 
         buttonOnOff
         buttonShutter
@@ -35,6 +36,14 @@ classdef laser_view < BakingTray.gui.child_view
         laserViewUpdateTimer
         setWavelengthLabel
     end
+
+
+    %Declare function signatures for methods in external files
+    methods
+        updatePowerAtObjectiveText(obj)
+        readLaserPowerSettingsFile(obj)
+    end
+
 
     methods
         function obj = laser_view(hBT,parentView)
@@ -143,6 +152,12 @@ classdef laser_view < BakingTray.gui.child_view
                 'String', 'Open Shutter', ...
                 'Callback', @obj.shutterButtonCallBack);
 
+
+            % - - - - - - - - - 
+            % See if there is a settings file for the laser power look-up
+            obj.readLaserPowerSettingsFile
+
+
             % - - - - - - - - -
             % Wavelength
             %Get the wavelength
@@ -176,6 +191,7 @@ classdef laser_view < BakingTray.gui.child_view
             %Set the target wavelength to equal the current wavelength
             obj.model.laser.targetWavelength=obj.model.laser.currentWavelength;
 
+
             start(obj.laserViewUpdateTimer)
 
         end %constructor
@@ -197,6 +213,7 @@ classdef laser_view < BakingTray.gui.child_view
 
             delete@BakingTray.gui.child_view(obj);
         end
+
 
         % UI Callback functions
         function setWavelengthEditPanel(obj,~,~)
@@ -379,39 +396,6 @@ classdef laser_view < BakingTray.gui.child_view
             end
             powerIn_mW = round(obj.model.laser.readPower);
             set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
-        end
-
-        function updatePowerAtObjectiveText(obj)
-            % THE FOLLOWING IS A TEMPORARY HACK FOR NEUROVISION
-            if isempty(obj.powerCoefs)
-                return
-            end
-            rs = dabs.resources.ResourceStore();
-
-            % If shutter is closed we can not take a reading
-            s=rs.filterByName('shutter');
-            if s.isOpen 
-                obj.powerAtObjectiveText.String = 'Power @ sample: close shutter';
-                return
-            end
-
-
-            beam = rs.filterByName('Pockels'); % This is a hard-coded name based on the MDF
-
-            % If beam is set to zero we don't read
-            if beam.hAOControl.lastKnownValue == 0
-                obj.powerAtObjectiveText.String = 'Set Pockels for Power @ sample';
-                return
-            end
-
-            PD = beam.hAIFeedback;
-            AIval = PD.readValue;
-
-            powerInmW = AIval*obj.powerCoefs(2) + obj.powerCoefs(1);
-
-            tStr = sprintf('Power at sample: %0.1f mW', powerInmW);
-            obj.powerAtObjectiveText.String = tStr;
-
         end
 
         function updateGUI(obj,~,~)
