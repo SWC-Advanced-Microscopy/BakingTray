@@ -32,7 +32,7 @@ function updatePowerAtObjectiveText(obj)
 
     % TODO -- not yet implemented the lambda scaling. See readLaserPowerSettingsFile
 
-    powerInmW = AIval*obj.linear.b1 + obj.powerCoefslinear.b0;
+    powerInmW = AIval*obj.powerCoefs.linear.b1 + obj.powerCoefs.linear.b0;
 
     tStr = sprintf('Power at sample: %0.1f mW', powerInmW);
     obj.powerAtObjectiveText.String = tStr;
