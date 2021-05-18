@@ -205,10 +205,18 @@ function sectionInd = bake(obj,varargin)
             return
         end
 
-        if ~obj.runTileScan
-            fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
-            return
+        runTileScanSuccess = obj.runTileScan;
+        if  runTileScanSuccess.success == false % if runTileScan failed, we quit
+            if isempty(runTileScanSuccess.msg)
+                fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
+                return
+            elseif strcmp(runTileScanSuccess.msg,'initpreviewfailed')
+                fprintf('\n--> BT.runTileScan failed to make preview image. Likely sample vanished. Stop and mark as finished. QUITTING BT.bake\n\n')
+                makeFinished()
+                return
+            end
         end
+
         % We will use this later to decide whether to cut. This test asks if the positionArray is complete 
         % so we don't cut if tiles are missing. We test here because the position array is modified before
         % cutting can happen.
@@ -324,7 +332,7 @@ function sectionInd = bake(obj,varargin)
             success = obj.getNextROIs;
 
 
-            if ~success
+            if ~success %If getNextROIs failed
                 % Bail out gracefully if no tissue was found
                 msg = sprintf('Found no tissue in Section %d during Bake. Quitting acquisition.', ...
                     obj.currentSectionNumber);
@@ -334,8 +342,7 @@ function sectionInd = bake(obj,varargin)
 
                 % Assume the acquisition is supposed to have finished this way
                 % TODO -- this could be a setting                
-                fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
-                fclose(fid);
+                makeFinished()
                 return
             end
 
@@ -422,11 +429,14 @@ function sectionInd = bake(obj,varargin)
     % chooses not to when the stop the acquisition early.
     if obj.completeAcquisitionOnBakeLoopExit
         obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
-
-        %Create an empty finished file
-        fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
-        fclose(fid);
+        makeFinished()
     end
 
-end
+end %End of main bake loop
 
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+function makeFinished
+    %Create an empty finished file
+    fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+    fclose(fid);
