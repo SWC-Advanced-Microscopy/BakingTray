@@ -432,7 +432,7 @@ function sectionInd = bake(obj,varargin)
         makeFinished()
     end
 
-end %End of main bake loop
+end %close of bake
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -440,3 +440,4 @@ function makeFinished
     %Create an empty finished file
     fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
     fclose(fid);
+end
