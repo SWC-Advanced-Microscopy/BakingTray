@@ -212,7 +212,7 @@ function sectionInd = bake(obj,varargin)
                 return
             elseif strcmp(runTileScanSuccess.msg,'initpreviewfailed')
                 fprintf('\n--> BT.runTileScan failed to make preview image. Likely sample vanished. Stop and mark as finished. QUITTING BT.bake\n\n')
-                makeFinished()
+                makeFinished(obj.sampleSavePath)
                 return
             end
         end
@@ -342,7 +342,7 @@ function sectionInd = bake(obj,varargin)
 
                 % Assume the acquisition is supposed to have finished this way
                 % TODO -- this could be a setting                
-                makeFinished()
+                makeFinished(obj.sampleSavePath)
                 return
             end
 
@@ -429,15 +429,15 @@ function sectionInd = bake(obj,varargin)
     % chooses not to when the stop the acquisition early.
     if obj.completeAcquisitionOnBakeLoopExit
         obj.acqLogWriteLine(sprintf('%s -- FINISHED AND COMPLETED ACQUISITION\n',currentTimeStr() ));
-        makeFinished()
+        makeFinished(obj.sampleSavePath)
     end
 
 end %close of bake
 
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-function makeFinished
+function makeFinished(sampleSavePath)
     %Create an empty finished file
-    fid=fopen(fullfile(obj.sampleSavePath,'FINISHED'), 'w');
+    fid=fopen(fullfile(sampleSavePath,'FINISHED'), 'w');
     fclose(fid);
 end
