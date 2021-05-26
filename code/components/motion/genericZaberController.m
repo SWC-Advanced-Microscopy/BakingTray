@@ -14,12 +14,15 @@ classdef genericZaberController < linearcontroller
 % https://www.zaber.com/software/docs/motion-library/ascii/tutorials/initialize/
 %
 %
-% Example
+% Example (connecting to a 100 mm travel range linear stage)
 % tStage = genericStage;
 % tStage.axisName='xaxis'
+% tStage.minPos=0;
+% tStage.maxPos=100;
+%
 % Z=genericZaberController(tStage);
 % Z.connect('com3')
-%
+
 %
 % NOTE:
 % This class currently connects to a single X-MX[ABC] device and assumes control of 
@@ -335,7 +338,6 @@ classdef genericZaberController < linearcontroller
         end
 
         function success = setMaxVelocity(obj, velocity)
-             %obj.hC.genericCommand('set maxspeed 204850') %but it's in ticks
             ready=obj.isAxisReady;
             success = false;
 
