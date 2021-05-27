@@ -7,9 +7,18 @@ function runSuccess = runTileScan(obj)
     % The method moves the sample to the front/left position, initialises some variables
     % then initiates the scan cycle. This method is called by BT.bake and runs on whatever
     % is in currentTilePattern. If currentTilePattern is empty, it is populated. 
+    %
+    % Outputs
+    % runSuccess - returns a structure describing if the command succeeded and if it failed why. 
+    %              runSuccess.success = true or false
+    %              runSuccess.msg = '' a string that returns reason for failure if so. 
+    %              This latter is done because failure to find a preview stack indicates that 
+    %              likely there is not much tissue left to image and we can almost certainly
+    %              bail out. 
 
 
-    runSuccess=false;
+    runSuccess.success=false;
+    runSuccess.msg = '';
 
     % Ensure hBT exists in the base workspace. Placing this line here ensures it will
     % be run periodically
@@ -28,6 +37,7 @@ function runSuccess = runTileScan(obj)
     % it generally indicates that the auto-ROI has reached the end of the sample.
     initSuccess = obj.initialisePreviewImageData(obj.currentTilePattern);
     if ~initSuccess
+        runSuccess.msg = 'initpreviewfailed';
         return
     end
 
@@ -98,5 +108,4 @@ function runSuccess = runTileScan(obj)
     end
 
 
-    runSuccess=true;
-
+    runSuccess.success=true;

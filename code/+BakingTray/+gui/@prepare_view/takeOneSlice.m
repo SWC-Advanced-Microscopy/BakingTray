@@ -11,5 +11,7 @@ function takeOneSlice(obj,~,~)
         return
     end
 
+    obj.resetBladeIfNeeded
+
     obj.model.sliceSample(obj.lastSliceThickness, obj.lastCuttingSpeed);
 end

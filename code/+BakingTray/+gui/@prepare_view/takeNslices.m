@@ -11,6 +11,9 @@ function takeNslices(obj,~,~)
         warndlg(msg,'')
         return
     end
+
+    obj.resetBladeIfNeeded
+
     %Takes multiple slices according to what is entered in the multiple slice text entry box
     slicesToTake = str2double(obj.editBox.takeNslices.String);
     origString=obj.takeNSlices_button.String;

@@ -14,6 +14,16 @@ classdef genericZaberController < linearcontroller
 % https://www.zaber.com/software/docs/motion-library/ascii/tutorials/initialize/
 %
 %
+% Example (connecting to a 100 mm travel range linear stage)
+% tStage = genericStage;
+% tStage.axisName='xaxis'
+% tStage.minPos=0;
+% tStage.maxPos=100;
+%
+% Z=genericZaberController(tStage);
+% Z.connect('com3')
+
+%
 % NOTE:
 % This class currently connects to a single X-MX[ABC] device and assumes control of 
 % the first axis. The class does not handle multiple axes. 
@@ -28,7 +38,7 @@ classdef genericZaberController < linearcontroller
       % The following are inherited properties from linearcontroller
       % controllerID - the information necessary to build a connected PI_GCS_Controller object
       %
-      % This property is filled in if needed during C891.connect
+      % This property is filled in if needed during genericZaberController.connect
       tConnection % The COM connection is made here. The axis will be on hC
       velocityUnits % We store here how speeds are defined (mm/s or um/s)
       accelerationUnits % We store here how accelerations are defined (mm/s^2 or um/s^2)
@@ -125,10 +135,19 @@ classdef genericZaberController < linearcontroller
               end
             end
 
+            % If the above failed and there is just one device in the list and it matches 
+            % on of the following known working devices, then we will try to connect to that
+            if isempty(controllerInd) && length(deviceList)==1
+              if contains(char(deviceList(ii)),'X-LRM')
+                controllerInd = 1;
+              end
+            end
+
             if isempty(controllerInd)
               fprintf('\n\nFailed to find a Zaber controller in devices list:\n')
               arrayfun(@(x) fprintf('%s\n',x), deviceList)
               fprintf('\n')
+              obj.tConnection.close();
               return
             end
 
@@ -319,7 +338,6 @@ classdef genericZaberController < linearcontroller
         end
 
         function success = setMaxVelocity(obj, velocity)
-             %obj.hC.genericCommand('set maxspeed 204850') %but it's in ticks
             ready=obj.isAxisReady;
             success = false;
 

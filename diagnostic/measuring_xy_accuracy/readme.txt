@@ -1,0 +1,3 @@
+This folder contains code useful for assessing stage motion accuracy. Specifically, this is code written for measuring the performance of Zaber X-LRM100A stages. These stages are well priced but borderline in terms of speed. To assess how well they perform and how fast we can move the test bench has a camera that images a white dot painted on a piece of tape attached to the stage carriage. The CMOS camera can be set up to run at about 200 FPS whilst the dot is moved beneath it. This allows us to measure how long it takes to move and settle. We can then try things like running open loop or tweaking the PID loop. 
+
+In this case we are using a Basler camera. The code for connecting to the stage and camera are therefore specific to the hardware we have locally. 

@@ -9,8 +9,7 @@ classdef DRV014 < linearstage
 % If we have microsteps of, say, 64. Then that's 12800 microsteps per mm.
 
 properties
-    positionUnits
-    
+
     %Referencing variables. Fill these in for defining how the actuator
     %will be referenced. Here we set the limit switches and homing direction 
     %so that the retracted position will be the zero position. We assume the 
