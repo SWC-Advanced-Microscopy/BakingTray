@@ -57,6 +57,9 @@ function settings = readSettings(readFromYaml)
         case 'chunkedCNN_Alg'
             % pass -- no settings right now
             algSet = dynamicThresh_Alg.readSettings; %HACK -- TODO. For now read these
+        case 'u_net_Alg'
+            % pass -- no settings right now
+            algSet = dynamicThresh_Alg.readSettings; %HACK -- TODO. For now read these
         otherwise
             fprintf('autoROI.readSettings can not find algorithm module %s\n', settings.alg)
             algSet = [];
@@ -82,6 +85,7 @@ function settings = readSettings(readFromYaml)
         % string '_Alg'
         settings.alg = 'dynamicThresh_Alg';
         settings.alg = 'chunkedCNN_Alg';
+        settings.alg = 'u_net_Alg';
 
         % The following are used in autoROI > getBoundingBoxes
         settings.mainGetBB.minSizeInSqMicrons = 15000; % Chuck out ROIs smaller than this

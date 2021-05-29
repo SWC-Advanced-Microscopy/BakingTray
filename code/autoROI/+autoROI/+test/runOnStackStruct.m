@@ -48,7 +48,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
         tThreshSD=[];
     end
 
-    pauseBetweenSections=true;
+    pauseBetweenSections=false;
 
     % Ensure we start at section 1
     pStack.sectionNumber = 1;
@@ -88,7 +88,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     switch settings.alg
         case 'dynamicThresh_Alg'
             stats = autoROI(pStack, [], boundingBoxArgIn{:},'tThreshSD',tThreshSD);
-        case 'chunkedCNN_Alg'
+        case {'chunkedCNN_Alg','u_net_Alg'}
             stats = autoROI(pStack, [], boundingBoxArgIn{:},'tNet',tThreshSD); %HACK TO GET NETWORK IN
     end
 

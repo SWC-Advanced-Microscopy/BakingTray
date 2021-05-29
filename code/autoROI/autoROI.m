@@ -73,9 +73,11 @@ function varargout=autoROI(pStack, lastSectionStats, varargin)
             stats=dynamicThresh_Alg.run(pStack,lastSectionStats,varargin{:});
         case 'chunkedCNN_Alg'
             stats=chunkedCNN_Alg.run(pStack,lastSectionStats,tNet);
+        case 'u_net_Alg'
+            stats=u_net_Alg.run(pStack,lastSectionStats,tNet);
         otherwise
             stats= [];
-            fprintf('autoROI does not know algorithm module %s. QUITTING.\n',settings.alg)
+            fprintf('autoROI.m does not know algorithm module %s. QUITTING.\n',settings.alg)
     end
 
 
