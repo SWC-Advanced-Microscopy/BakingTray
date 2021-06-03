@@ -77,7 +77,6 @@ function [OUT,stats] = applyU_Net(im,tNet,plotResults)
 
 
     if plotResults
-        figure(120)
         imagesc(im)
         axis equal tight
         colormap gray

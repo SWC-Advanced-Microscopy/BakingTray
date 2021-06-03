@@ -162,19 +162,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             tBoundingBox = lastROI.BoundingBoxes{ii};
             tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,false,minIm); % Pull out just this sub-region
 
-
-            if false
-                figure(1243)
-                subplot(1,2,1)
-                imagesc(im), axis square
-
-                subplot(1,2,2)
-                imagesc(tIm>minIm), axis square
-                drawnow
-                colormap gray
-                %pause
-            end
-
             tBW = u_net_Alg.applyU_Net(tIm,tNet,false);
 
             % Turn BW matrices into an image the same size as containsSampleMask
@@ -208,16 +195,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
         containsSampleMask = logical(containsSampleMask > 0); % In case of any double counting due to ROI overlap
-
-
-        % TODO : DEBUGGING
-        if false
-            tempIm = tIm .* containsSampleMask;
-            imagesc(tempIm)
-            title(sprintf('Image is %d by %d pixels', size(containsSampleMask)))
-            axis equal tight
-            drawnow, pause
-        end
 
 
         % get a single number for the whole slice in case there were multiple ROIs
