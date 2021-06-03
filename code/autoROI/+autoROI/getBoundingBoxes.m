@@ -63,7 +63,7 @@ function stats = getBoundingBoxes(BWims,im,pixelSize,roiBoundingBox)
                 stats.BoundingBox = stats.BoundingBox + ROIDELTA;
             end
         else
-            fprintf('%s -- BWims does not contain field "beforeExpansion". Skipping edge expansion\n',mfilename)
+            fprintf('autoROI.%s -- BWims does not contain field "beforeExpansion". Skipping edge expansion\n',mfilename)
         end
 
     end

@@ -27,8 +27,15 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     %
     %
     % Examples TODO-- remove soon
-    % TEMP  -- run CNN version: autoROI.test.runOnStackStruct(pStack,[],[],N750)
+    % CNN version
+    % autoROI.test.runOnStackStruct(pStack,[],[],N750)
     %
+    % U-net
+    % load ~/work/Anatomy/code/dlbrainfinder/code/U_Net/models/net_more_data.mat
+    % cd /Volumes/data/previewStacks/
+    % load stacks/singleBrains/LS_935673_BLAcasp_previewStack.mat
+    % pStack.imStack(:,:,1:240)=[];
+    % autoROI.test.runOnStackStruct(pStack,[],[],net)
     %
     % Rob Campbell - 2020 SWC
 
@@ -65,6 +72,10 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
     if ~noPlot
         clf
     end
+
+
+    % Report to CLI a few details about the pStack
+    fprintf('Processing a %d by %d stack with %d depths\n', size(pStack.imStack))
 
 
     if isempty(tThreshSD)
@@ -142,7 +153,7 @@ function varargout=runOnStackStruct(pStack,noPlot,settings,tThreshSD)
                 boundingBoxArgIn{:}, ...
                 'tNet',tThreshSD);
         end
-            
+
 
         if ~isempty(tmp)
             stats=tmp;

@@ -46,8 +46,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
     % See also: autoROI.m
 
     % TODO THIS MAY BE POSSIBLE TO SHARE BETWEEN THE DL ALGs
-    disp('CAN WE SHARE THE RUN FUNCTION BETWEEN DL ALGS?')
-
     if nargin<2
         lastSectionStats=[];
     end
@@ -126,10 +124,11 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
         pause
     end
 
+
     if isempty(lastSectionStats)
         % Get binarized image using CNN
 
-        tBW = u_net_Alg.applyU_Net(im,tNet,pixelSize);
+        tBW = u_net_Alg.applyU_Net(im,tNet);
 
         stats = autoROI.getBoundingBoxes(tBW,im,pixelSize);  % Find bounding boxes
         if length(stats) < skipMergeNROIThresh
@@ -146,7 +145,8 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
 
         % Run within each ROI then afterwards consolidate results
         nT=1;
-        containsSampleMask = zeros(size(im)); % All regions of the imaged area that are above threshold. Used for logging
+        sizeIm = size(im);
+        containsSampleMask = zeros(sizeIm); % All regions of the imaged area that are above threshold. Used for logging
         imagedArea=containsSampleMask;
         % We log paramaters related to the image stats as we need these to evaluate normalisation of the ROIs for the CNN
         sliceStats.wholeImMean = zeros(1,length(lastROI.BoundingBoxes));
@@ -160,7 +160,7 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             % TODO -- we run binarization each time. Otherwise boundingboxes merge don't unmerge for some reason.
             minIm = min(im(:));
             tBoundingBox = lastROI.BoundingBoxes{ii};
-            tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,true,minIm); % Pull out just this sub-region
+            tIm = autoROI.getSubImageUsingBoundingBox(im, tBoundingBox,false,minIm); % Pull out just this sub-region
 
 
             if false
@@ -175,12 +175,19 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
                 %pause
             end
 
-            % **BUG** I am feeding the CNN the whole image! So not only the bounding box region. 
-            % I know this because  lowSNR_deemed_fixed\Rat13_bulb_first_previewStack.mat is finding
-            % regions outside of the imaged area (bounding box) and deeming them to be signal. 
-            tBW = u_net_Alg.applyU_Net(tIm,tNet,pixelSize,minIm);
-            containsSampleMask = containsSampleMask + tBW.FINAL;
-            imagedArea = imagedArea + (tIm>minIm);
+            tBW = u_net_Alg.applyU_Net(tIm,tNet,false);
+
+            % Turn BW matrices into an image the same size as containsSampleMask
+            tBW.rawBW = autoROI.placeImageInBlankFrame(tBW.rawBW,tBoundingBox,sizeIm);
+            tBW.FINAL = autoROI.placeImageInBlankFrame(tBW.FINAL,tBoundingBox,sizeIm);
+
+            containsSampleMask = containsSampleMask + tBW.FINAL; % Place within the mask image
+
+
+
+            tIm = autoROI.placeImageInBlankFrame(tIm,tBoundingBox,sizeIm);
+
+            imagedArea = imagedArea + (tIm>minIm); % TODO this may not be correct
             tStats{ii} = autoROI.getBoundingBoxes(tBW,tIm,pixelSize,tBoundingBox);
 
 
@@ -201,6 +208,17 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             %disp('SHOWING tIm in autoROI: PRESS RETURN'), figure(1234),imagesc(tBW), colorbar, drawnow, pause
         end
         containsSampleMask = logical(containsSampleMask > 0); % In case of any double counting due to ROI overlap
+
+
+        % TODO : DEBUGGING
+        if false
+            tempIm = tIm .* containsSampleMask;
+            imagesc(tempIm)
+            title(sprintf('Image is %d by %d pixels', size(containsSampleMask)))
+            axis equal tight
+            drawnow, pause
+        end
+
 
         % get a single number for the whole slice in case there were multiple ROIs
         sliceStats.wholeImMean = mean(sliceStats.wholeImMean);
@@ -279,7 +297,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
 
 
     if doPlot
-        subplot(2,2,1)
         cla
         H=autoROI.overlayBoundingBoxes(im,stats);
         title('Final boxes')
@@ -305,7 +322,6 @@ function varargout=run(pStack, lastSectionStats, tNet, varargin)
             hold off
         end
         caxis([0,100])
-        subplot(2,2,2)
     else
         H=[];
     end
