@@ -1,4 +1,4 @@
-function varargout = runOnAllInDir(runDir,testDir,settings)
+function varargout = runOnAllInDir(runDir,testDir,settings,tNet)
     % Run auto-find test on all structures in runDir
     %
     % function testDirThisSession = autoROI.tests.runOnAllInDir(runDir,settings)
@@ -19,7 +19,7 @@ function varargout = runOnAllInDir(runDir,testDir,settings)
     %           directory called "tests" in the current directory.
     % settings - Structure based on the output of the readSettings file. 
     %            Otherwise, it reads from this file directly.
-    %
+    % tNet - if present this is a trained network
     %
     % Outputs
     % testDirThisSession - the location of the test directory itself: where data were saved to.
@@ -48,6 +48,10 @@ end
 
 if nargin<3 || isempty(settings)
     settings = autoROI.readSettings;
+end
+
+if nargin<4 
+    tNet = [];
 end
 
 
@@ -109,7 +113,7 @@ parfor ii=1:length(pStack_list)
 
     try
         % Run
-        testLog = autoROI.test.runOnStackStruct(pStack,true,settings);
+        testLog = autoROI.test.runOnStackStruct(pStack,true,settings,tNet);
 
         % Log useful info in first element
         testLog(1).stackFname = tFile; %Into the first element add the file name

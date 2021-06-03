@@ -29,6 +29,8 @@ if (size(im,1) + offset(1)) > imSize(1) || ...
     (size(im,2) + offset(2)) > imSize(2)
 
     fprintf('WARNING: autoROI.%s will clip image during translation\n', mfilename)
+    %size(im) + offset
+    %imSize
 end
 
 
