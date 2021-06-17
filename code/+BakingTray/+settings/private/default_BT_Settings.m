@@ -23,6 +23,7 @@ function settings=default_BT_Settings
     settings.SYSTEM.cutterSide=1;
     settings.SYSTEM.defaultFrontLeft=[0,0];
     settings.SYSTEM.homeZjackOnZeroMove=1;
+    settings.SYSTEM.defaultYcutPos=0;
 
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
