@@ -180,6 +180,7 @@ end % tilePattern
         dominantStage = 'x';
 
         switch dominantStage
+
             case 'x'
                 % Fill in column 2, which will be the locations for the Y stage
                 R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);

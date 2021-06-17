@@ -11,7 +11,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - USER (Dev) - New default settings in system settings file are now automatically added to the live file. A backup of the original live file is created. 
 - New option added to system settings file: defaultYcutPos. This allows the vibratime to be mounted off-centre
  with respect to objective. Useful for some water baths. 
-
+- USER (Dev) - Option to set dominant stage tiling direction. To date X was dominant. Now Y is default. 
 
 4th May 2021
 - USER - All trim slices now start from the cutting start point. This seems more like the expected behavior
