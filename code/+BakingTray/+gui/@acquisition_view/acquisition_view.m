@@ -232,13 +232,12 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %indicateCutting
 
 
-        function updateStatusText(obj,src,evt)
+        function updateStatusText(obj,src,~)
 
             % Set to empty variables: handles case where the callback is not called 
             % by a listener
             if nargin<2
                 src=[];
-                evt=[];
             end
 
             % If the source was currentSectionNumber and there is no acquisition in progress, then
