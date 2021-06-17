@@ -94,6 +94,12 @@ function [settings,settingsNonHardCoded] = readSystemSettings
         allValid=false;
     end
 
+    if ~isnumeric(settings.SYSTEM.defaultYcutPos)
+        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.defaultYcutPos)
+        settings.SYSTEM.defaultYcutPos = DEFAULT_SETTINGS.SYSTEM.defaultYcutPos;
+        allValid=false;
+    end
+
     if ~isnumeric(settings.SLICER.approachSpeed)
         fprintf('SLICER.approachSpeed should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.approachSpeed)
         settings.SLICER.approachSpeed = DEFAULT_SETTINGS.SLICER.approachSpeed;
