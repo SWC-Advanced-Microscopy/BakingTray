@@ -296,11 +296,10 @@ classdef recipe < handle
             % Return the number of tiles to be imaged in one plane
             %
             % If we are doing a manual ROI, this is the product of the number of
-            % tiles in X and Y. If this is an auto-ROI, the result is the number
-            % of rows in BT.currentTilePattern. Of course that means one must have
-            % have updated the current tile pattern before running this!
+            % tiles in X and Y. If this is an auto-ROI, we use NumTiles.
             if strcmp(obj.mosaic.scanmode,'tiled: auto-ROI')
-                numTiles = size(obj.parent.currentTilePattern,1);
+                N = obj.NumTiles.tilesPerPlane;
+                numTiles = N.total;
             elseif strcmp(obj.mosaic.scanmode,'tiled: manual ROI')
                 numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
             end
