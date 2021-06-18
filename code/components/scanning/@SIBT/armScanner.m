@@ -7,18 +7,27 @@ function [success,msg] = armScanner(obj)
         return
     end
 
-    % We'll need to enable external triggering on the correct terminal line. 
-    % Safest to instruct ScanImage of this each time. 
+    % We'll need to enable external triggering on the correct terminal line.
+    % Safest to instruct ScanImage of this each time.
     switch obj.scannerType
         case 'resonant'
             %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
-            trigLine='PFI1';
+            trigLine='PF1';
         case 'linear'
             trigLine='PFI0';
     end
 
     if ~strcmp(obj.hC.hScan2D.trigAcqInTerm, trigLine)
-        obj.hC.hScan2D.trigAcqInTerm=trigLine;
+      % The try/catch is here because at the moment I can not
+      % find a way of identifying whether we have a vDAQ.
+      % vDAQ does not have PFI lines and so errors. TODO
+      try
+          obj.hC.hScan2D.trigAcqInTerm=trigLine;
+      catch ME
+          if strcmp(ME.message, 'Invalid channel ID.')
+              obj.hC.hScan2D.trigAcqInTerm='D0.0';
+          end
+        end
     end
 
     obj.enableArmedListeners
@@ -41,8 +50,8 @@ function [success,msg] = armScanner(obj)
     % Set up ScanImage z-stacks
     obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
-    % Set the system to display just the first depth in ScanImage. 
-    % Should run a little faster this way, especially if we have 
+    % Set the system to display just the first depth in ScanImage.
+    % Should run a little faster this way, especially if we have
     % multiple channels being displayed.
     if obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
         fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
@@ -69,7 +78,7 @@ function [success,msg] = armScanner(obj)
 
     fprintf('Armed scanner: %s\n', datestr(now))
 
-    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only 
-    % happens with USB DAQs, but we want to avoid any possibility that it happens at all. 
+    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only
+    % happens with USB DAQs, but we want to avoid any possibility that it happens at all.
     obj.hC.hPmts.autoPower(:) = 0;
 end %armScanner
