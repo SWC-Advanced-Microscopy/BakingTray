@@ -2,19 +2,19 @@ function runSuccess = runTileScan(obj)
     % This method inititiates the acquisition of a tile scan for one section
     %
     % function runSuccess = BT.runTileScan(obj)
-    % 
+    %
     % Purpose
     % The method moves the sample to the front/left position, initialises some variables
     % then initiates the scan cycle. This method is called by BT.bake and runs on whatever
-    % is in currentTilePattern. If currentTilePattern is empty, it is populated. 
+    % is in currentTilePattern. If currentTilePattern is empty, it is populated.
     %
     % Outputs
-    % runSuccess - returns a structure describing if the command succeeded and if it failed why. 
+    % runSuccess - returns a structure describing if the command succeeded and if it failed why.
     %              runSuccess.success = true or false
-    %              runSuccess.msg = '' a string that returns reason for failure if so. 
-    %              This latter is done because failure to find a preview stack indicates that 
+    %              runSuccess.msg = '' a string that returns reason for failure if so.
+    %              This latter is done because failure to find a preview stack indicates that
     %              likely there is not much tissue left to image and we can almost certainly
-    %              bail out. 
+    %              bail out.
 
 
     runSuccess.success=false;
@@ -23,7 +23,6 @@ function runSuccess = runTileScan(obj)
     % Ensure hBT exists in the base workspace. Placing this line here ensures it will
     % be run periodically
     assignin('base','hBT',obj)
-
     if isempty(obj.currentTilePattern)
         % If it fails to generate a tile pattern then we quit runTileScan
         % and return false,
@@ -67,7 +66,7 @@ function runSuccess = runTileScan(obj)
     % triggered by a listener that's monitoring the notifier which fires when the frame has been
     % acquired. So the events that handle the next frame will be triggered by the callback function
     % we attach to frameAcquired in ScanImage. We just have to initiate the first frame here, then
-    % the acquisition process will continue until all frames have been acquired. 
+    % the acquisition process will continue until all frames have been acquired.
 
     startTime=now;
 
@@ -87,7 +86,7 @@ function runSuccess = runTileScan(obj)
     obj.placeNewTilesInPreviewData
 
     %Ensure we are back at normal motion speed
-    obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed) 
+    obj.setXYvelocity(obj.recipe.SYSTEM.xySpeed)
 
     % Report the total time
     totalTime = now-startTime;
