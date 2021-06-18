@@ -177,10 +177,8 @@ end % tilePattern
         % will be converted to a location in mm. 
         tilePosArray = zeros(ROIparams.numTiles.Y*ROIparams.numTiles.X, 2);
 
-        dominantStage = 'x';
 
-        switch dominantStage
-
+        switch obj.SYSTEM.dominantTilingDirection
             case 'x'
                 % Fill in column 2, which will be the locations for the Y stage
                 R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);

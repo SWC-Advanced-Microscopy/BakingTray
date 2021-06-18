@@ -94,9 +94,24 @@ function [settings,settingsNonHardCoded] = readSystemSettings
         allValid=false;
     end
 
-    if ~isnumeric(settings.SYSTEM.defaultYcutPos)
-        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.defaultYcutPos)
-        settings.SYSTEM.defaultYcutPos = DEFAULT_SETTINGS.SYSTEM.defaultYcutPos;
+
+    if ~isnumeric(settings.SYSTEM.homeZjackOnZeroMove)
+        fprintf('SYSTEM.homeZjackOnZeroMove should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
+        allValid=false;
+    elseif settings.SYSTEM.homeZjackOnZeroMove~=0 && settings.SYSTEM.homeZjackOnZeroMove~=1
+        fprintf('SYSTEM.homeZjackOnZeroMove should be 0 or 1. Setting it to %s \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
+        allValid=false;
+    end
+
+    if ~ischar(settings.SYSTEM.dominantTilingDirection)
+        fprintf('SYSTEM.dominantTilingDirection should be a character. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
+        allValid=false;
+    elseif ~strcmpi(settings.SYSTEM.dominantTilingDirection,'y') ~=0 && ~strcmpi(settings.SYSTEM.dominantTilingDirection,'x')
+        fprintf('SYSTEM.dominantTilingDirection should be x or y. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
         allValid=false;
     end
 
@@ -140,6 +155,11 @@ function [settings,settingsNonHardCoded] = readSystemSettings
         allValid=false;
     end
 
+    if ~isnumeric(settings.SLICER.defaultYcutPos)
+        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.defaultYcutPos)
+        settings.SLICER.defaultYcutPos = DEFAULT_SETTINGS.SLICER.defaultYcutPos;
+        allValid=false;
+    end
 
     if ~allValid
         fprintf('\n ********************************************************************\n')
