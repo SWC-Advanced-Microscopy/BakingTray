@@ -229,6 +229,20 @@ classdef SIBT < scanner
             enabledPMTs = find(obj.hC.hPmts.powersOn);
             enabledPMTs = enabledPMTs(:);
         end
+        
+        function success = disablePMTautoPower(obj)
+            % function success = disablePMTautoPower(obj)
+            %
+            % Purpose
+            % Disable PMT auto power and return true if it
+            % succeeded. False if it failed
+            obj.hC.hPmts.autoPower(:)=0;
+            if any(obj.hC.hPmts.autoPower)
+                success = false;
+            else
+                success = true;
+            end
+        end % disablePMTautoPower
 
         function framePeriod = getFramePeriod(obj) %TODO: this isn't in the abstract class.
             %return the frame period (how long it takes to acquire a frame) in seconds
