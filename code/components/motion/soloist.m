@@ -102,17 +102,7 @@ classdef soloist < linearcontroller
             if ~isempty(obj.hC)
               fprintf('Closing connection to %s controller\n', 'Soloist')
               obj.disableAxis;
-              % TODO the two try/catch statements are because of a seeming
-              % change in the API. We need to get rid of this crap somehow.
-              try
-                  SoloistDisconnect(obj.hC);
-              catch
-              end
-              try
-                  SoloistDisconnect;
-              catch
-              end
-
+              SoloistDisconnect;
             end
         end % Destructor
 
