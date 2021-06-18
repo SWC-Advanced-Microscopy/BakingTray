@@ -7,7 +7,7 @@ function settings=default_BT_Settings
     % settings.SYSTEM.cutterSide=1; %if 1 the cutter is to the right of the objective. If -1 it's to the left.
     % settings.SYSTEM.defaultFrontLeft=[0,0]; %Use any reasonable value for the front left position. This is basically just a user courtesy issue.
     % settings.SYSTEM.homeZjackOnZeroMove=1; %If true, BakingTray homes the Z jack if the user moves to zero (lowered) from a large distance away. THE HOME POSITION MUST BE THE LOWERED POSITION!
-    %
+
     % settings.SLACK.user='@SYSTEM'; % This is the username that appears with a Slack message
     % settings.SLACK.hook=[]; % This is the hook for sending messages
     %
@@ -15,7 +15,7 @@ function settings=default_BT_Settings
     % settings.SLICER.vibrateRate=10.0;   %Cutter vibration rate
     % settings.SLICER.postCutDelay=6.0;   %How long to wait after cutting for the slice to settle
     % settings.SLICER.postCutVibrate=3.0; %How fast to vibrate during the wait period
-
+    % settings.SYSTEM.defaultYcutPos=0; % The Y position to which to move the stage before cutting. Same for all samples
 
 
     settings.SYSTEM.ID='SYSTEM_NAME';
@@ -23,7 +23,8 @@ function settings=default_BT_Settings
     settings.SYSTEM.cutterSide=1;
     settings.SYSTEM.defaultFrontLeft=[0,0];
     settings.SYSTEM.homeZjackOnZeroMove=1;
-    settings.SYSTEM.defaultYcutPos=0;
+    settings.SYSTEM.dominantTilingDirection='y';
+
 
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
@@ -32,4 +33,4 @@ function settings=default_BT_Settings
     settings.SLICER.vibrateRate=10.0;
     settings.SLICER.postCutDelay=6.0;
     settings.SLICER.postCutVibrate=3.0;
-
+    settings.SLICER.defaultYcutPos=0;

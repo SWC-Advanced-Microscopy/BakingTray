@@ -10,5 +10,5 @@ function setCurrentPositionAsCuttingPosition(obj)
     hBT=obj.parent;
     [x,y]=hBT.getXYpos;
     obj.CuttingStartPoint.X = x;
-    obj.CuttingStartPoint.Y = obj.SYSTEM.defaultYcutPos; % Set to value in settings file
+    obj.CuttingStartPoint.Y = obj.SLICER.defaultYcutPos; % Set to value in settings file
 end % setCurrentPositionAsCuttingPosition
