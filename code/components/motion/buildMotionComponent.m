@@ -113,7 +113,7 @@ switch controllerName
         
         component = eval([controllerName,'(stageComponents)']);
         controllerID = controllerParams.connectAt;
-        component.connect(controllerID)
+        component.connect(controllerID);
 
     case 'dummy_linearcontroller'
         stageComponents = BUILD_GENERIC_STAGE(stages);
