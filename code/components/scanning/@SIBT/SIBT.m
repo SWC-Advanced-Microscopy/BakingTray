@@ -13,7 +13,10 @@ classdef SIBT < scanner
 % to be taking place. 
 %
 %
-
+% NOTE ON TRIGGERS:
+% NI linear scanners tigger on PFI0, reso NI on PFI1, and vDAQ on D0.0 
+% Therefore do not use those ports for other stuff. 
+%
 % TODO: what does  hSI.hScan2D.scannerToRefTransform do?
 
     properties
@@ -236,6 +239,8 @@ classdef SIBT < scanner
             % Purpose
             % Disable PMT auto power and return true if it
             % succeeded. False if it failed
+            %
+            % Note: in SI BASIC 2021 this seems not to change the setting
             obj.hC.hPmts.autoPower(:)=0;
             if any(obj.hC.hPmts.autoPower)
                 success = false;
@@ -596,6 +601,12 @@ classdef SIBT < scanner
             end
             obj.hC.hDisplay.displayRollingAverageFactor=nFrames;
         end % setNumAverageFrames
+
+
+        function out = is_vDAQ(obj)
+            % Retrun tru if this is a vDAQ            
+            out = isa(obj.hC.hScan2D,'scanimage.components.scan2d.RggScan');
+        end %is_vDAQ
 
 
     end %Close SIBT methods
