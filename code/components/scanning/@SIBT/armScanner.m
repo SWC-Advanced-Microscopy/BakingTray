@@ -7,14 +7,15 @@ function [success,msg] = armScanner(obj)
         return
     end
 
-    % We'll need to enable external triggering on the correct terminal line. 
-    % Safest to instruct ScanImage of this each time. 
-    switch obj.scannerType
-        case 'resonant'
-            %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
-            trigLine='PFI1';
-        case 'linear'
-            trigLine='PFI0';
+    % We'll need to enable external triggering on the correct terminal line.
+    % Safest to instruct ScanImage of this each time.
+    if obj.is_vDAQ
+        trigLine='D0.0';
+    elseif strcmp(obj.scannerType,'resonant')
+        %To make it possible to enable the external trigger. PFI0 is reserved for resonant scanning
+        trigLine='PFI1';
+    elseif strcmp(obj.scannerType,'linear')
+        trigLine='PFI0';
     end
 
     if ~strcmp(obj.hC.hScan2D.trigAcqInTerm, trigLine)
@@ -41,8 +42,8 @@ function [success,msg] = armScanner(obj)
     % Set up ScanImage z-stacks
     obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
 
-    % Set the system to display just the first depth in ScanImage. 
-    % Should run a little faster this way, especially if we have 
+    % Set the system to display just the first depth in ScanImage.
+    % Should run a little faster this way, especially if we have
     % multiple channels being displayed.
     if obj.hC.hStackManager.numSlices>1 && isempty(obj.hC.hDisplay.selectedZs)
         fprintf('Displaying only first depth in ScanImage for speed reasons.\n');
@@ -69,7 +70,7 @@ function [success,msg] = armScanner(obj)
 
     fprintf('Armed scanner: %s\n', datestr(now))
 
-    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only 
-    % happens with USB DAQs, but we want to avoid any possibility that it happens at all. 
-    obj.hC.hPmts.autoPower(:) = 0;
+    % Disable PMT auto-on, as this can cause rare and random MATLAB hard-crashes. Maybe this only
+    % happens with USB DAQs, but we want to avoid any possibility that it happens at all.
+    obj.disablePMTautoPower;
 end %armScanner

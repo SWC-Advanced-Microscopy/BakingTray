@@ -223,14 +223,6 @@ classdef view < handle
 
 
     methods (Hidden)
-        function about(~,~,~)
-            %Generate an "about" box
-            h = msgbox(sprintf('BakingTray\nAutomated anatomy'));
-            h.Position(3:4)=[240,90];
-            ch = get(get(h,'CurrentAxes'), 'Children');
-            set(ch, 'FontSize', 20 );
-        end
-
 
         function changeDir(obj,~,~)
             % The dir selector should open at the current save path by default

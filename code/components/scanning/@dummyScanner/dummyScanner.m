@@ -338,6 +338,9 @@ classdef dummyScanner < scanner
             obj.focusStartStopMenu.Callback=@obj.startFocus;
         end % stop focus
 
+        function success = disablePMTautoPower(obj)
+            success = true;
+        end
     end %close methods
 
     methods (Hidden=true)

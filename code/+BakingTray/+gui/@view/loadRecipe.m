@@ -38,7 +38,7 @@ function loadRecipe(obj,~,~,fullPath)
         end
 
         % Do nothing if the user presses cancel or closes the window
-        if strcmpi(reply,'cancel') || isempty(reply)
+        if  strcmpi(reply,'no') || strcmpi(reply,'cancel') || isempty(reply)
             return
         end
     end

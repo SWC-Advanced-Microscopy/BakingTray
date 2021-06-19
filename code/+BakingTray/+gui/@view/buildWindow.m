@@ -21,7 +21,9 @@ function buildWindow(obj)
     obj.menu.tools = uimenu(obj.hFig,'Label','Tools');
 
 
-    obj.menu.api = uimenu(obj.menu.sample,'Label','New','Callback',@obj.newSample);
+    obj.menu.api = uimenu(obj.menu.sample,'Label','New Sample','Callback',@obj.newSample);
+    obj.menu.api = uimenu(obj.menu.sample,'Label','Load Recipe','Callback', @obj.loadRecipe);
+    obj.menu.api = uimenu(obj.menu.sample,'Label','Resume Acquisition', 'Callback', @obj.loadRecipe);
     obj.menu.api = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
     obj.menu.api = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
     obj.menu.api = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
@@ -44,8 +46,6 @@ function buildWindow(obj)
     %TODO: this item should only appear if the scanner if ScanImage
     obj.menu.disarmScanner = uimenu(obj.menu.scanner,'Label','Show Fast Z Calib','Callback', @(~,~) obj.model.scanner.showFastZCalib);
 
-
-    obj.menu.about = uimenu(obj.menu.tools,'Label','About','Callback',@obj.about);
     obj.menu.quit = uimenu(obj.menu.tools,'Label','Quit','Callback',@obj.closeBakingTray);
 
 

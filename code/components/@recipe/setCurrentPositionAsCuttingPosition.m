@@ -10,5 +10,5 @@ function setCurrentPositionAsCuttingPosition(obj)
     hBT=obj.parent;
     [x,y]=hBT.getXYpos;
     obj.CuttingStartPoint.X = x;
-    obj.CuttingStartPoint.Y = 0; % By default force cutting to be centred on blade
+    obj.CuttingStartPoint.Y = obj.SLICER.defaultYcutPos; % Set to value in settings file
 end % setCurrentPositionAsCuttingPosition

@@ -178,7 +178,7 @@ classdef BT < loghandler
         % House-keeping
         out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
         success=renewLaserConnection(obj)
-        initialisePreviewImageData(obj,tp, frontLeft)
+        success=initialisePreviewImageData(obj,tp, frontLeft)
         preAllocateTileBuffer(obj)
         slack(obj,message)
         n=tilesRemaining(obj)

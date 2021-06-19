@@ -232,7 +232,22 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %indicateCutting
 
 
-        function updateStatusText(obj,~,~)
+        function updateStatusText(obj,src,~)
+
+            % Set to empty variables: handles case where the callback is not called 
+            % by a listener
+            if nargin<2
+                src=[];
+            end
+
+            % If the source was currentSectionNumber and there is no acquisition in progress, then
+            % we don't update the status text. This is because currentSectionNumber can be called
+            % at other times, such as to check whether section directories are present at the start
+            % of an acquisition and this callback is somewhat slow to run under those circumstances.
+            if ~isempty(src) && strcmp(src.Name,'currentSectionNumber') && ~obj.model.acquisitionInProgress
+                return
+            end
+
             % Update the text in the top left of the acquisition view if we are in an acquisition
             % This is called when currentSectionNumber updates
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end

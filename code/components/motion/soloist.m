@@ -12,11 +12,11 @@ classdef soloist < linearcontroller
 %
 %
 % SETUP
-% To use the soloist class, install the Aerotech support files from the install 
-% medium that came with your device. You should ensure you ask Aerotech to supply the 
-% MATLAB libraries with the product. 
+% To use the soloist class, install the Aerotech support files from the install
+% medium that came with your device. You should ensure you ask Aerotech to supply the
+% MATLAB libraries with the product.
 % In the Windows Defender firewall you will need to allow MATLAB to
-% communicate over both public and private networks. 
+% communicate over both public and private networks.
 %
 %
 % Examples
@@ -36,11 +36,11 @@ classdef soloist < linearcontroller
 %
 % Ethernet connection
 % If you wish to connect to the Soloist directly from a spare ethernet port on the PC
-% then you need to ensure that the ethernet card and the Soloist are on the same sub-net. 
-% E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the 
-% IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the 
+% then you need to ensure that the ethernet card and the Soloist are on the same sub-net.
+% E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the
+% IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the
 % card could be 127.0.0.1. IP addresses can't be the same. You can manually set this stuff
-% under the network properties in Windows.  
+% under the network properties in Windows.
 % You can see the IP address of the card by running ipconfig in the Windows
 % command prompt.
 %
@@ -52,9 +52,9 @@ classdef soloist < linearcontroller
       %
       % This class is written assuming you are connecting over ethernet.
       % The controller ID string should be that shown in the Aerotech
-      % config software where you mapped the device. At the moment this 
+      % config software where you mapped the device. At the moment this
       % is just a safety feature to confirm that we have connected to the
-      % correct device. 
+      % correct device.
       %
       % Ethernet
       % controllerID.interface='ethernet'
@@ -81,7 +81,7 @@ classdef soloist < linearcontroller
 
             obj.maxStages=1;
 
-            % Try to add Aerotech MATLAB library to path and bail out if this fails. 
+            % Try to add Aerotech MATLAB library to path and bail out if this fails.
             success = obj.addAerotechLibsToPath;
             if success==false
               delete(soloist)
@@ -102,7 +102,7 @@ classdef soloist < linearcontroller
             if ~isempty(obj.hC)
               fprintf('Closing connection to %s controller\n', 'Soloist')
               obj.disableAxis;
-              SoloistDisconnect(obj.hC);
+              SoloistDisconnect;
             end
         end % Destructor
 
@@ -127,7 +127,7 @@ classdef soloist < linearcontroller
               H=[];
               fprintf('Failed to find a Soloist: %s\n', ME.message);
               success=false;
-              
+
              return
           end
 
@@ -185,7 +185,7 @@ classdef soloist < linearcontroller
               return
             end
 
-            try 
+            try
                 %Contains a string bearing the name of the controller
                 reply = SoloistInformationGetName(obj.hC);
                 if isempty(reply)
@@ -292,7 +292,7 @@ classdef soloist < linearcontroller
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function pos = getPositionUnits(~,~)
-              pos='mm'; %The units will stay in mm 
+              pos='mm'; %The units will stay in mm
         end %getPositionUnits
 
         function success=setPositionUnits(obj,controllerUnits,~)
@@ -318,7 +318,7 @@ classdef soloist < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % get or set speed and acceleration settings
         function velocity = getMaxVelocity(obj)
-            % The velocity is read from the stage class and applied each 
+            % The velocity is read from the stage class and applied each
             % time a motion command is requested
             ready=obj.isAxisReady;
             if ~ready
@@ -386,7 +386,7 @@ classdef soloist < linearcontroller
               fprintf('Unable to enable axis. It is reported as not being ready\n')
               return
             end
-            
+
             SoloistAcknowledgeAll(obj.hC) % Wipe any errors
             SoloistMotionEnable(obj.hC)
             success = obj.readAxisBit(1);
@@ -435,13 +435,13 @@ classdef soloist < linearcontroller
 
         function success = addAerotechLibsToPath(obj)
             % This method adds the Aerotech MATLAB libraries to the path if needed
-            
+
             % If the libraries are present we do nothing
             if obj.aerotechLibsPresent
                 success=true;
                 return
             end
-            
+
             if ~exist(obj.aerotechLibPath,'dir')
                 % If the path is missing then we can't add it so bail out
                 fprintf('CAN NOT FIND AEROTECH MATLAB LIBRARIES AT PATH: %s\n',obj.aerotechLibPath)
@@ -449,7 +449,7 @@ classdef soloist < linearcontroller
             else
                 addpath(obj.aerotechLibPath)
             end
-            
+
             % Confirm we have access to the libraries
             if ~exist(obj.solistConnectFunctionName,'file')
                 % Otherwise the path exists but somehow the connect
@@ -481,9 +481,9 @@ classdef soloist < linearcontroller
             %
             % Purpose
             % The status of the axis is stored as a binary word. Each bit
-            % refers to a different thing. This function reads the binary 
-            % word and returns the value of the bit specified by the user 
-            % via the input argument "bitToRead". 
+            % refers to a different thing. This function reads the binary
+            % word and returns the value of the bit specified by the user
+            % via the input argument "bitToRead".
             %
             % Inputs
             % bitToRead - a scalar defining which  bit to read. The values
@@ -492,7 +492,7 @@ classdef soloist < linearcontroller
             %
             % Outputs
             % tBit - the value of the desired bit (0 or 1)
-            
+
             bitToRead = bitToRead-1;
             binWord = dec2bin(SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisStatus')));
             tBit = str2num(binWord(end-bitToRead));
@@ -504,12 +504,12 @@ classdef soloist < linearcontroller
             %  faultString = readAxisFault(obj)
             %
             % Purpose
-            % Return the fault state as a string. 
+            % Return the fault state as a string.
             %
             % Outputs
             % faultString - the current fault state as a string. If there
             % is no fault 'None' is returned.
-            
+
             faultNumber = SoloistStatusGetItem(obj.hC, SoloistStatusItem('AxisFault'));
             faultEnum = SoloistAxisFault(faultNumber);
             faultString = char(faultEnum);
@@ -536,9 +536,9 @@ classdef soloist < linearcontroller
             % Outputs - Position error (unknown unit)
             posError = SoloistStatusGetItem(obj.hC, SoloistStatusItem('PositionError'));
         end %returnPositionError
-        
-        
+
+
     end % Hidden methods
 
 
-end %close classdef 
+end %close classdef

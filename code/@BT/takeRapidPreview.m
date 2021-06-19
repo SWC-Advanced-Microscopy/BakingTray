@@ -4,7 +4,7 @@ function takeRapidPreview(obj)
     % function BT.takeRapidPreview
     %
     % Purpose
-    % During sample set-up the user images the face of the block to determine where 
+    % During sample set-up the user images the face of the block to determine where
     % draw the imaging area. This is called a "preview scan" and is of lower resolution
     % than the final scan. In addition, the preview scan acquires only one optical plane,
     % even if the final acquisition will involved multiple planes. This method performs
@@ -13,7 +13,7 @@ function takeRapidPreview(obj)
     %
     %
 
-    if ~obj.isScannerConnected 
+    if ~obj.isScannerConnected
         fprintf('No scanner connected.\n')
         return
     end
@@ -22,7 +22,7 @@ function takeRapidPreview(obj)
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
 
-    %Temporarily change the sample ID so it won't trigger the blocking of acquisition 
+    %Temporarily change the sample ID so it won't trigger the blocking of acquisition
     %in obj.checkIfAcquisitionIsPossible; TODO: a better solution is needed for this.
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible;
 
@@ -33,14 +33,14 @@ function takeRapidPreview(obj)
 
     % It is safest if the previous autoROI threshold is discarded when
     % a preview stack is taken. We do this regardless of the state of the
-    % the acquisition mode. This avoids the possibility of an old 
-    % set of autoROI stats being used for a new acquisition because the 
+    % the acquisition mode. This avoids the possibility of an old
+    % set of autoROI stats being used for a new acquisition because the
     % user didn't re-calculate the threshold.
     if ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
         fprintf('WIPING PREVIOUS autoROI STATS!\n')
         obj.autoROI=[];
     end
-        
+
     % Perform auto-ROI actions
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         % Enable all channels for preview
@@ -50,10 +50,10 @@ function takeRapidPreview(obj)
         obj.autoROI.channelsToSave = obj.scanner.getChannelsToAcquire;
     end
 
-    
-    
+
+
     %TODO: STORE SCAN PARAMS AND CHANGE TO FAST PARAMS
-    %TODO: Much of this can be in SIBT but not all. 
+    %TODO: Much of this can be in SIBT but not all.
     scanPixPerLine = obj.scanner.getPixelsPerLine;
     frameAve = obj.scanner.getNumAverageFrames;
 

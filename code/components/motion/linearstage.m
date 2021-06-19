@@ -40,6 +40,8 @@ classdef (Abstract) linearstage < handle
         % controller, you should define the axisID property for each manually when you build the
         % objects. see buildConnectedControllers.m
 
+        positionUnits
+        % This property stores the units the stage works in. Not all controllers use this.
 
 
         invertDistance = 1

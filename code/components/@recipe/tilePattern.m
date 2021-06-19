@@ -177,15 +177,30 @@ end % tilePattern
         % will be converted to a location in mm. 
         tilePosArray = zeros(ROIparams.numTiles.Y*ROIparams.numTiles.X, 2);
 
-        % Fill in column 2, which will be the locations for the Y stage
-        R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);
-        tilePosArray(:,2)=R(:);
 
-        theseCols=1:ROIparams.numTiles.X; % The tile index locations along the X axis
+        switch obj.SYSTEM.dominantTilingDirection
+            case 'x'
+                % Fill in column 2, which will be the locations for the Y stage
+                R=repmat(1:ROIparams.numTiles.Y,ROIparams.numTiles.X,1);
+                tilePosArray(:,2)=R(:);
 
-        for ii=1:ROIparams.numTiles.X:size(tilePosArray,1)
-            tilePosArray(ii:ii+ROIparams.numTiles.X-1,1)=theseCols; %Insert X stage positions into the array
-            theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
+                theseCols=1:ROIparams.numTiles.X; % The tile index locations along the X axis
+
+                for ii=1:ROIparams.numTiles.X:size(tilePosArray,1)
+                    tilePosArray(ii:ii+ROIparams.numTiles.X-1,1)=theseCols; %Insert X stage positions into the array
+                    theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
+                end
+            case 'y'
+                % Fill in column 1, which will be the locations for the X stage
+                R=repmat(1:ROIparams.numTiles.X,ROIparams.numTiles.Y,1);
+                tilePosArray(:,1)=R(:);
+
+                theseCols=1:ROIparams.numTiles.Y; % The tile index locations along the Y axis
+
+                for ii=1:ROIparams.numTiles.Y:size(tilePosArray,1)
+                    tilePosArray(ii:ii+ROIparams.numTiles.Y-1,2)=theseCols; %Insert X stage positions into the array
+                    theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
+                end 
         end
 
         % Subtract 1 because we want offsets from zero (i.e. how much to move)

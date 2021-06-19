@@ -36,6 +36,10 @@ function startPreviewScan(obj,~,~)
         obj.model.takeRapidPreview
     catch ME
         fprintf('BT.takeRapidPreview failed with error message:\n%s\n',ME.message)
+        for ii=1:length(ME.stack)
+            disp(ME.stack(ii))
+        end
+
         obj.overlayThreshBorderOnImage
     end
 

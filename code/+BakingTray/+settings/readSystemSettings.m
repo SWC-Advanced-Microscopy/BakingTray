@@ -1,4 +1,4 @@
-function settings = readSystemSettings
+function [settings,settingsNonHardCoded] = readSystemSettings
     % Read BakingTray system settings from SETTINGS/systemSettings.yml 
     %
     % function settings = BakingTray.settings.readSystemSettings
@@ -18,17 +18,13 @@ function settings = readSystemSettings
     % Rob Campbell - Basel 2017
 
     settings=[];
-    systemType='bakingtray'; %This isn't in the YAML because the user should not change it
 
 
-    % Git info will make up the version information
-    g=BakingTray.utils.getGitInfo;
-    systemVersion = sprintf('branch=%s  commit=%s', g.branch, g.hash);
-
-    settingsDir = BakingTray.settings.settingsLocation;
+    [settingsDir,backupSetingsDir] = BakingTray.settings.settingsLocation;
 
 
-    settingsFile = fullfile(settingsDir,'systemSettings.yml');
+    settingsFname = 'systemSettings.yml';
+    settingsFile = fullfile(settingsDir,settingsFname);
 
     DEFAULT_SETTINGS = default_BT_Settings;
     if ~exist(settingsFile)
@@ -56,6 +52,7 @@ function settings = readSystemSettings
 
     % Pull in values from the default settings that are missing in the user settings file.
     f0 = fields(DEFAULT_SETTINGS);
+    addedDefaultValue = false;
     for ii = 1:length(f0);
         f1 = fields(DEFAULT_SETTINGS.(f0{ii}));
 
@@ -66,12 +63,10 @@ function settings = readSystemSettings
 
         for jj = 1:length(f1)
             if ~isfield(settings.(f0{ii}), f1{jj})
+                addedDefaultValue = true;
                 fprintf('\n\n Adding missing default setting "%s.%s" from default_BT_Settings.m\n', ...
                     (f0{ii}), f1{jj})
-                fprintf(' You may incorporate this setting into your systemSettings.yml to modify it or supress this message.\n\n')
                 settings.(f0{ii}).(f1{jj}) = DEFAULT_SETTINGS.(f0{ii}).(f1{jj});
-                fprintf('settings.%s = \n', f0{ii})
-                disp(settings.(f0{ii}))
             end
         end
     end
@@ -96,6 +91,27 @@ function settings = readSystemSettings
     elseif settings.SYSTEM.xySpeed<=0
         fprintf('SYSTEM.xySpeed should be >0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.xySpeed)
         settings.SYSTEM.xySpeed = DEFAULT_SETTINGS.SYSTEM.xySpeed;
+        allValid=false;
+    end
+
+
+    if ~isnumeric(settings.SYSTEM.homeZjackOnZeroMove)
+        fprintf('SYSTEM.homeZjackOnZeroMove should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
+        allValid=false;
+    elseif settings.SYSTEM.homeZjackOnZeroMove~=0 && settings.SYSTEM.homeZjackOnZeroMove~=1
+        fprintf('SYSTEM.homeZjackOnZeroMove should be 0 or 1. Setting it to %s \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
+        allValid=false;
+    end
+
+    if ~ischar(settings.SYSTEM.dominantTilingDirection)
+        fprintf('SYSTEM.dominantTilingDirection should be a character. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
+        allValid=false;
+    elseif ~strcmpi(settings.SYSTEM.dominantTilingDirection,'y') ~=0 && ~strcmpi(settings.SYSTEM.dominantTilingDirection,'x')
+        fprintf('SYSTEM.dominantTilingDirection should be x or y. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
         allValid=false;
     end
 
@@ -139,16 +155,40 @@ function settings = readSystemSettings
         allValid=false;
     end
 
+    if ~isnumeric(settings.SLICER.defaultYcutPos)
+        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.defaultYcutPos)
+        settings.SLICER.defaultYcutPos = DEFAULT_SETTINGS.SLICER.defaultYcutPos;
+        allValid=false;
+    end
 
     if ~allValid
         fprintf('\n ********************************************************************\n')
         fprintf(' * YOU HAVE INVALID VALUES IN %s (see above). \n', settingsFile)
-        fprintf(' * You should correct these. \n', settingsFile)
+        fprintf(' * They have been replaced with valid defaults. \n')
         fprintf(' **********************************************************************\n')
     end
 
 
-    %Add in the hard-coded settings
-    settings.SYSTEM.type=systemType;
+
+    % If there are missing or invalid values we will replace these in the settings file as well as making
+    % a backup copy of the original file.
+    if ~allValid || addedDefaultValue
+       % Copy file
+       backupFname = fullfile(backupSetingsDir, [datestr(now, 'yyyy_mm_dd__HH_MM_SS_'),settingsFname]);
+       fprintf('Making backup of settings file at %s\n', backupFname)
+       copyfile(settingsFile,backupFname)
+
+       % Write the new file to the settings location
+       fprintf('Replacing settings file with updated version\n')
+       BakingTray.yaml.WriteYaml(settingsFile,settings);
+    end
+
+
+    settingsNonHardCoded=settings;
+    %Add in the hard-coded settings or extra info that we never want the user change
+    settings.SYSTEM.type='bakingtray';
+
+    % Git info will make up the version information
+    g=BakingTray.utils.getGitInfo;
+    systemVersion = sprintf('branch=%s  commit=%s', g.branch, g.hash);
     settings.SYSTEM.version=systemVersion;
-    

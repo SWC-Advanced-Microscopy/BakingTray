@@ -12,11 +12,20 @@ classdef laser_view < BakingTray.gui.child_view
         connectionIndicator
         connectionText
         laserPowerText
+        powerAtObjectiveText
+
+        % The following setting is to hold coefs for converting photo-doide voltage to 
+        % laser power at the sample. e.g. the offset and slope of objective power.
+        % If empty we do nothing. The value is to be filled in from a settings file 
+        % in the constructor. Do not edit the property below.
+        powerCoefs = []
 
         buttonOnOff
         buttonShutter
         editWavelength
         currentWavelengthText
+        
+        
     end
 
     properties(Hidden)
@@ -27,6 +36,14 @@ classdef laser_view < BakingTray.gui.child_view
         laserViewUpdateTimer
         setWavelengthLabel
     end
+
+
+    %Declare function signatures for methods in external files
+    methods
+        updatePowerAtObjectiveText(obj)
+        readLaserPowerSettingsFile(obj)
+    end
+
 
     methods
         function obj = laser_view(hBT,parentView)
@@ -113,8 +130,10 @@ classdef laser_view < BakingTray.gui.child_view
             obj.connectionText = obj.makeTextLabel(obj.statusPanel,[0, 49, 110 20],'Connected: NO');
             set(obj.connectionText, 'HorizontalAlignment', 'Right');
 
-            obj.laserPowerText = obj.makeTextLabel(obj.statusPanel,[0, 29, 130 20],'Power: 0 mW');
-
+            obj.laserPowerText = obj.makeTextLabel(obj.statusPanel,[0, 29, 180 20],'Output Power: 0 mW');
+            
+            % The following will not be updated if obj.powerCoefs is empty
+            obj.powerAtObjectiveText = obj.makeTextLabel(obj.statusPanel,[0, 09, 200 20],'');
 
             % Buttons
             obj.buttonOnOff=uicontrol(...
@@ -132,6 +151,12 @@ classdef laser_view < BakingTray.gui.child_view
                 'FontWeight', 'bold', ...
                 'String', 'Open Shutter', ...
                 'Callback', @obj.shutterButtonCallBack);
+
+
+            % - - - - - - - - - 
+            % See if there is a settings file for the laser power look-up
+            obj.readLaserPowerSettingsFile
+
 
             % - - - - - - - - -
             % Wavelength
@@ -166,6 +191,7 @@ classdef laser_view < BakingTray.gui.child_view
             %Set the target wavelength to equal the current wavelength
             obj.model.laser.targetWavelength=obj.model.laser.currentWavelength;
 
+
             start(obj.laserViewUpdateTimer)
 
         end %constructor
@@ -187,6 +213,7 @@ classdef laser_view < BakingTray.gui.child_view
 
             delete@BakingTray.gui.child_view(obj);
         end
+
 
         % UI Callback functions
         function setWavelengthEditPanel(obj,~,~)
@@ -368,7 +395,7 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
             powerIn_mW = round(obj.model.laser.readPower);
-            set(obj.laserPowerText,'String', sprintf('Power: %d mW',powerIn_mW))
+            set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
         end
 
         function updateGUI(obj,~,~)
@@ -377,6 +404,7 @@ classdef laser_view < BakingTray.gui.child_view
             obj.updateLaserConnectedElements
             obj.updateLaserOnElements
             obj.updatePowerText
+            obj.updatePowerAtObjectiveText
         end %updateGUI
 
         function regularGUIupdater(obj,~,~)
@@ -393,6 +421,7 @@ classdef laser_view < BakingTray.gui.child_view
                 obj.updateModeLockElements
                 obj.updatePowerText
                 obj.updateCurrentWavelength
+                obj.updatePowerAtObjectiveText
             catch ME 
                 fprintf('Failed to update laser GUI with error: %s\n', ME.message)
             end

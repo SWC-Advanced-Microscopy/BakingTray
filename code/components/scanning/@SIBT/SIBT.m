@@ -13,7 +13,10 @@ classdef SIBT < scanner
 % to be taking place. 
 %
 %
-
+% NOTE ON TRIGGERS:
+% NI linear scanners tigger on PFI0, reso NI on PFI1, and vDAQ on D0.0 
+% Therefore do not use those ports for other stuff. 
+%
 % TODO: what does  hSI.hScan2D.scannerToRefTransform do?
 
     properties
@@ -229,6 +232,22 @@ classdef SIBT < scanner
             enabledPMTs = find(obj.hC.hPmts.powersOn);
             enabledPMTs = enabledPMTs(:);
         end
+        
+        function success = disablePMTautoPower(obj)
+            % function success = disablePMTautoPower(obj)
+            %
+            % Purpose
+            % Disable PMT auto power and return true if it
+            % succeeded. False if it failed
+            %
+            % Note: in SI BASIC 2021 this seems not to change the setting
+            obj.hC.hPmts.autoPower(:)=0;
+            if any(obj.hC.hPmts.autoPower)
+                success = false;
+            else
+                success = true;
+            end
+        end % disablePMTautoPower
 
         function framePeriod = getFramePeriod(obj) %TODO: this isn't in the abstract class.
             %return the frame period (how long it takes to acquire a frame) in seconds
@@ -582,6 +601,12 @@ classdef SIBT < scanner
             end
             obj.hC.hDisplay.displayRollingAverageFactor=nFrames;
         end % setNumAverageFrames
+
+
+        function out = is_vDAQ(obj)
+            % Retrun tru if this is a vDAQ            
+            out = isa(obj.hC.hScan2D,'scanimage.components.scan2d.RggScan');
+        end %is_vDAQ
 
 
     end %Close SIBT methods
