@@ -124,14 +124,15 @@ classdef tiberius < laser & loghandler
         end
 
         function [powerOnState,details] = isPoweredOn(obj)
-            pPower=obj.readPumpPower;
-            details=num2str(pPower);
-            if pPower>10
-                powerOnState=true;
-            else
-                powerOnState=false;
+            % Really nasty way of telling if the Tiberius is powered on
+            tWavelength=obj.readWavelength;
+            powerOnState = false;
+            if ~isempty(pPower) && isnumeric(tWavelength)
+                if tWavelength>600 && tWavelength<1200
+                    powerOnState = true;
+                end 
             end
-            obj.isLaserOn=powerOnState;
+
         end
 
 
@@ -146,11 +147,6 @@ classdef tiberius < laser & loghandler
             end
             if ~obj.isPoweredOn
                 msg='Laser seems not to be powered on. Pump power is very low';
-                obj.isLaserReady=false;
-                return
-            end
-            if ~obj.emissionPossible
-                msg='Laser is switched off and is not emitting';
                 obj.isLaserReady=false;
                 return
             end
@@ -179,8 +175,15 @@ classdef tiberius < laser & loghandler
             end
 
             %extract modelock state: R means modelocked and N means not.
-            disp('TODO MODELOCK')
-            
+            if strcmp(reply,'R')
+                modelockState = true;
+            elseif strcmp(reply,'N')
+                modelockState = false;
+            else 
+                fprintf('Unknown reply for modelock state: %s\n', reply)
+                modelockState = false;
+            end
+                
             obj.isLaserModeLocked=modelockState;
         end
 
@@ -266,113 +269,35 @@ classdef tiberius < laser & loghandler
 
 
         function laserPower = readPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:POWER?');
-            if ~success
-                laserPower=[];
-                return
-            end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
+            % The Tiberius seems not to return laser power
+            laserPower = nan;
         end
 
 
         function laserID = readLaserID(obj)
-            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');
-            if ~success
-                laserID=[];
-                return
-            end
+            % there is no Tiberius command for returning detailed information
+            laserID = 'tiberius';
         end
 
 
         function laserStats = returnLaserStats(obj)
             lambda = obj.readWavelength;
-            outputPower = obj.readPower;
-            pumpPower = obj.readPumpPower;
-            pumpCurrent = obj.readPumpLaserCurrent;
-            humidity = obj.readHumidity;
+            modelockState = obj.isLaserModeLocked;
+            if modelockState == true
+                modelockState = 'yes';
+            else 
+                modelockState = 'no';
+            end
 
-            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,pumpPower=%dmW,pumpCurrent=%0.1f,humidity=%0.1f', ...
-                lambda,outputPower,pumpPower,pumpCurrent,humidity);
+            laserStats=sprintf('wavelength=%dnm,modelocked=%s', ...
+                lambda, modelockState);
         end
 
         function success=setWatchDogTimer(obj,value)
-            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
-            success=obj.sendAndReceiveSerial(cmd,false);
-            if ~success
-                return
-            end
-            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
-            if ~success
-                return
-            end
-
-            currentValue = round(str2double(currentValue));
-            if currentValue ~= value
-                fprintf('You asked for a tiberius watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
-                    value,currentValue)
-                success=false;
-            end
+            % There seems to be no watchdog on the Tiberius
+            success = true;
         end
         
-
-        % tiberius specific
-        function laserPower = readPumpPower(obj)
-            % Return pump power as a scalar
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');
-            if ~success
-                laserPower=[];
-                return
-            end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
-        end
-
-        function pLasI = readPumpLaserCurrent(obj)
-            [success,pLasI]=obj.sendAndReceiveSerial('READ:PLASER:PCURRENT?');
-            if ~success
-                pLasI=[];
-                return
-            end
-            pLasI = str2double(pLasI(1:end-1));
-        end
-
-        function laserHumidity = readHumidity(obj)
-            [success,laserHumidity]=obj.sendAndReceiveSerial('READ:HUM?');
-            if ~success
-                laserHumidity=[];
-                return
-            end
-            laserHumidity = str2double(laserHumidity(1:end-3));
-        end
-
-        function warmedUpValue = readWarmedUp(obj)
-            %Return a scalar that defines whether the laser is warmed up
-            %100 means warmed up. Returns empty if nothing was read back.
-            [success,warmedUpValue]=obj.sendAndReceiveSerial('READ:PCTWarmedup?');
-            if ~success
-                warmedUpValue=[];
-                return
-            end
-            warmedUpValue = str2double(warmedUpValue(1:end-1));
-        end
-
-        function emission = emissionPossible(obj)
-            [success,reply]=obj.sendAndReceiveSerial('*STB?'); %emission state embedded in the first bit of this 8 bit number
-            if ~success %If we can't talk to it, we assume it's also not emitting (maybe questionable, but let's go with this for now)
-                emission=false;
-                return
-            end
-
-            %extract modelock state
-            bits = fliplr(dec2bin(str2double(reply),8));
-            if strcmp(bits(1),'1')
-                emission=1;
-            else 
-                emission=0;
-            end
-        end
-
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
