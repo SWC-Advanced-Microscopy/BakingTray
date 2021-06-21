@@ -68,7 +68,7 @@ classdef tiberius < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
+            obj.hC=serial(obj.controllerID,'BaudRate',19200,'TimeOut',5);
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
@@ -353,3 +353,4 @@ classdef tiberius < laser & loghandler
     end %close methods
 
 end %close classdef 
+cd ~p
