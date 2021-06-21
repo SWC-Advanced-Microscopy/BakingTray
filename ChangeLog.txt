@@ -6,6 +6,10 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way.
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user.
 
+21st June 2021
+- Show relative motion increment in slicing debug message and correctly display the current z depth (bugfix)
+
+
 18th June 2021
 - USER (Dev) - If PMT Auto-On is enabled, the acquisition will not proceed.
 
