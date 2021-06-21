@@ -121,7 +121,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     pause(1) % a second before carrying on
 
     % start cutter and verify that it started
-    obj.logMessage(inputname(1),dbstack,4,sprintf('Starting to cut at depth %0.3 mmf',  obj.getZpos))
+    obj.logMessage(inputname(1),dbstack,4,sprintf('Starting to cut at depth %0.3f mm',  obj.getZpos))
 
     obj.cutter.startVibrate(obj.recipe.SLICER.vibrateRate);
 
