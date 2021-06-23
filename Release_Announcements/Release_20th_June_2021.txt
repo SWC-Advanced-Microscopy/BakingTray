@@ -12,7 +12,7 @@ from this position.
 
 - The long lag in starting an acquisition after Bake is pressed is now fixed. 
 
-- The tiling pattern has been modified so that the upper (Y) stage now does most of the motions. This stage pushes a lower mass and so this change makes sense. The change can be reverted to the previous behavior by altering a new setting (settings.SYSTEM.dominantTilingDirection) in the system settings file. The new setting is automatically added when BakingTray is started. To alter it you need to edit then re-start BakingTray. 
+- The tiling pattern has been modified so that the upper (Y) stage now does most of the motions. This stage pushes a lower mass and so this change makes sense. The change can be reverted to the previous behavior by altering a new setting (settings.SYSTEM.dominantTilingDirection) in the system settings file. The new setting is automatically added when BakingTray is started. To alter it you need to edit then re-start BakingTray. NOTE -- USING THE Y TILE DIRECTION WILL REQUIRE STITCHIT TO BE UPDATED TOO!
 
 - If PMTs are left with auto-on enabled, this is disabled when Bake is pressed or the scanner is armed. If this fails and the auto-on remains in place, the acquisition will not start until the user disables it. This is because the auto-on feature has caused crashes in some acquisitions and because on some rigs the Pockels cell power is gated by PMT power state. PMTs are in any case turned off at the end of the acquisition. 
 
