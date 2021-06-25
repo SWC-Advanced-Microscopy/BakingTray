@@ -47,8 +47,7 @@ classdef tiberius < laser & loghandler
             obj.targetWavelength=obj.currentWavelength;
 
             %Report connection and humidity
-            fprintf('Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n', ...
-             serialComms, obj.readHumidity)
+            fprintf('Connected to Tiberius laser on %s\n\n', serialComms)
 
             
         end %constructor
@@ -68,7 +67,11 @@ classdef tiberius < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',19200,'TimeOut',5);
+            obj.hC=serial(obj.controllerID,...
+                'BaudRate', 19200, ...
+                'FlowControl','software',...
+                'Terminator','CR', ...
+                'TimeOut',5);
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
@@ -104,10 +107,7 @@ classdef tiberius < laser & loghandler
 
 
         function success = turnOn(obj)
-            if obj.readWarmedUp<100
-                fprintf('Laser is not warmed up. Current warm up state: %0.2f\n',obj.readWarmedUp)
-                return
-            end
+            % WRITE THIS!
             successA=obj.sendAndReceiveSerial('ON',false);
             successB=obj.setWatchDogTimer(0); %otherwise it will turn off again
             success=successA & successB;
@@ -116,6 +116,7 @@ classdef tiberius < laser & loghandler
 
 
         function success = turnOff(obj)
+            % WRITE THIS! CAN NOT!
             obj.closeShutter; % Older tiberius lasers seem not to do this by default 
             success=obj.sendAndReceiveSerial('OFF',false);
             if success
@@ -132,7 +133,7 @@ classdef tiberius < laser & loghandler
                     powerOnState = true;
                 end 
             end
-
+            details='';
         end
 
 
@@ -268,13 +269,13 @@ classdef tiberius < laser & loghandler
         end
 
 
-        function laserPower = readPower(obj)
+        function laserPower = readPower(~)
             % The Tiberius seems not to return laser power
             laserPower = nan;
         end
 
 
-        function laserID = readLaserID(obj)
+        function laserID = readLaserID(~)
             % there is no Tiberius command for returning detailed information
             laserID = 'tiberius';
         end
@@ -293,7 +294,7 @@ classdef tiberius < laser & loghandler
                 lambda, modelockState);
         end
 
-        function success=setWatchDogTimer(obj,value)
+        function success=setWatchDogTimer(~,~)
             % There seems to be no watchdog on the Tiberius
             success = true;
         end
@@ -353,4 +354,3 @@ classdef tiberius < laser & loghandler
     end %close methods
 
 end %close classdef 
-cd ~p
