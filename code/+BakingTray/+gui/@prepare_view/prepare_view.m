@@ -634,10 +634,12 @@ classdef prepare_view < BakingTray.gui.child_view
         function updateElementsDuringSlicing(obj,~,~)
             %Updates the slice once button properties accordin to whether or not the system is slicing
             if obj.model.isSlicing
+                obj.autoTrim_button.Enable='off';
                 obj.takeSlice_button.String='Slicing';
                 obj.takeSlice_button.ForegroundColor='r';
                 obj.stopMotion_button.String='<html><p align="center">STOP<br/>SLICING</p></html>';
             else
+                obj.autoTrim_button.Enable='on';
                 obj.takeSlice_button.String=obj.takeSlice_buttonString;
                 obj.takeSlice_button.ForegroundColor='k';
                 obj.stopMotion_button.String='STOP';
