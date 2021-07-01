@@ -30,8 +30,8 @@ function imageZoomHandler(obj,src,~)
         obj.imageAxes.XLim(2) = obj.imageAxes.XLim(2) + size(obj.model.lastPreviewImageStack,1)*zoomProp;
     case 'zerozoom'
         obj.button_zoomIn.Enable='on'; %In case it was previously disabled
-        obj.imageAxes.YLim = [0,size(obj.model.lastPreviewImageStack,2)];
-        obj.imageAxes.XLim = [0,size(obj.model.lastPreviewImageStack,1)];
+        obj.imageAxes.YLim = [0,size(obj.model.lastPreviewImageStack,1)];
+        obj.imageAxes.XLim = [0,size(obj.model.lastPreviewImageStack,2)];
     otherwise 
         fprintf('bakingtray.gui.acquisition_view.imageZoomHandler encounters unknown source tag: "%s"\n',src.Tag)
     end
