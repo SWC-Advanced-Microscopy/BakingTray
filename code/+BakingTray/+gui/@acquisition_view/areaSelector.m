@@ -14,11 +14,12 @@ function areaSelector(obj,~,~)
     % The only way I can find to move the label to the centre
     roi.RotationAngle=1E-10;
 
-    % Zoom out slightly if we are not already zoomed out
-    if obj.imageAxes.YLim(1)>0
-        obj.imageAxes.YLim = [-5,imSize(1)+7];
-        obj.imageAxes.XLim = [-5,imSize(2)+7];
-    end
+    % Reset zoom to zero then zoom out one step. Zooming out is needed
+    % For the box to be useful
+    obj.imageZoomHandler(struct('Tag','zerozoom'))
+    obj.imageZoomHandler(struct('Tag','zoomout'))
+
+
 
     % Place tile width and overlap proportion into the roi object
     dsMixPix = obj.model.downsampleMicronsPerPixel;
