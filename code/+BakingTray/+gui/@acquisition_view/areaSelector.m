@@ -3,6 +3,9 @@ function areaSelector(obj,~,~)
     %
     % The box is scaled to the nearest whole tile. 
 
+    % Disable draw box button so a second box can't be drawn
+    obj.button_drawBox.Enable='off';
+    obj.removeOverlays('NextROI')
 
     % Draw box and get coords
     imSize = size(obj.model.lastPreviewImageStack);
@@ -15,9 +18,11 @@ function areaSelector(obj,~,~)
     roi.RotationAngle=1E-10;
 
     % Reset zoom to zero then zoom out one step. Zooming out is needed
-    % For the box to be useful
-    obj.imageZoomHandler(struct('Tag','zerozoom'))
-    obj.imageZoomHandler(struct('Tag','zoomout'))
+    % for the box to be useful. Only zoom out if we aren't already zoomed out.
+    if obj.imageAxes.YLim(1)>=0 && obj.imageAxes.XLim(1)>=0
+        obj.imageZoomHandler(struct('Tag','zerozoom')) %In case we are zoomed in
+        obj.imageZoomHandler(struct('Tag','zoomout'))
+    end
 
 
 
@@ -33,7 +38,7 @@ function areaSelector(obj,~,~)
     L=addlistener(roi,'ROIClicked',@clickCallback);
 
     uiwait;
-    
+
     rect_pos = (roi.Position);
     delete(M)
     delete(L)
@@ -72,7 +77,22 @@ function areaSelector(obj,~,~)
         obj.model.recipe.FrontLeft.Y = frontPos;
         obj.model.recipe.mosaic.sampleSize.X = extentAlongX;
         obj.model.recipe.mosaic.sampleSize.Y = extentAlongY;
+
+
+        % Remove any old threshold borders from the image as these
+        % confuse users.
+        obj.removeOverlays('overlayThreshBorderOnImage'); %see obj.overlayThreshBorderOnImage
+        
+        % Overlay a box indicating the area we will image next time
+        x = [leftPos,leftPos-extentAlongX, leftPos-extentAlongX, leftPos, leftPos];
+        y = [frontPos, frontPos, frontPos-extentAlongY, frontPos-extentAlongY, frontPos];
+        pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
+        hold(obj.imageAxes,'on');
+        obj.plotOverlayHandles.NextROI = plot(pixPos(:,1),pixPos(:,2),':', 'color',[0.2,0.3,1],'LineWidth',2,'Parent',obj.imageAxes);
+        hold(obj.imageAxes,'off');
     end
+    
+    obj.button_drawBox.Enable='on';
 
 end % areaSelector
 

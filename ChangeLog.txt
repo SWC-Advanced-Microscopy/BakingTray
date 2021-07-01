@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user.
 
 
+1st July
+- USER (Dev) - Improve behavior of zoom buttons and box buttons in acq view. Includes bug fixes.
+- USER (Dev) - The ROI that was last drawn by the user is painted temporarily onto the imaged area. 
+
 21st June 2021
 - Show relative motion increment in slicing debug message and correctly display the current z depth (bugfix)
 
