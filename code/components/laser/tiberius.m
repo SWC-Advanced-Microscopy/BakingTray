@@ -107,21 +107,15 @@ classdef tiberius < laser & loghandler
 
 
         function success = turnOn(obj)
-            % WRITE THIS!
-            successA=obj.sendAndReceiveSerial('ON',false);
-            successB=obj.setWatchDogTimer(0); %otherwise it will turn off again
-            success=successA & successB;
-            obj.isLaserOn=success;
+            obj.sendAndReceiveSerial('LASER=1',false);
+            success=true;
         end
 
 
         function success = turnOff(obj)
-            % WRITE THIS! CAN NOT!
             obj.closeShutter; % Older tiberius lasers seem not to do this by default 
-            success=obj.sendAndReceiveSerial('OFF',false);
-            if success
-                obj.isLaserOn=false;
-            end
+            obj.sendAndReceiveSerial('LASER=0',false);
+            success=true;
         end
 
         function [powerOnState,details] = isPoweredOn(obj)
