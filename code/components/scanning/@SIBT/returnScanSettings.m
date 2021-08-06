@@ -52,9 +52,15 @@ function scanSettings = returnScanSettings(obj)
 
     % Beam power
     scanSettings.beamPower = obj.hC.hBeams.powers;
-    scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
     scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants; % The length constant used for ramping power
-    scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)
+
+    if obj.versionGreaterThan('2020')
+        scanSettings.powerZAdjust = ~strcmp(char(obj.hC.hBeams.pzAdjust),'None');
+        scanSettings.powerZAdjustType = obj.hC.hBeams.pzAdjust;
+    else
+        scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
+        scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)
+    end
 
     % Scanner type and version
     scanSettings.scanMode = obj.scannerType; %resonant or linear
