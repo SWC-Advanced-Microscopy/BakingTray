@@ -822,6 +822,10 @@ function hMover_KeyPress(~, eventdata, obj)
             runCallBack(obj.(stepSize).up)
         case 'e'
             runCallBack(obj.(stepSize).down)
+        case 'r'
+            runCallBack(obj.(stepSize).up)
+        case 'f'
+            runCallBack(obj.(stepSize).down)
         otherwise
     end
 
