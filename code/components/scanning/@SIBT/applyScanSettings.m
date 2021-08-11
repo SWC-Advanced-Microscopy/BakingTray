@@ -38,7 +38,7 @@ function applyScanSettings(obj,scanSettings)
     % values from the most recent section) fails for some reason. 
     obj.hC.hBeams.powers = scanSettings.beamPower;
 
-    if obj.versionGreaterThan('2020')
+    if obj.versionGreaterThan('2020.1')
         obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjustType;
     else
         obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
@@ -118,7 +118,7 @@ function applyScanSettings(obj,scanSettings)
     obj.hC.hScan2D.linePhase = hSI_Settings.hScan2D.linePhase;
 
     % Apply laser power ramping with depth
-    if obj.versionGreaterThan('2020')
+    if obj.versionGreaterThan('2020.1')
         obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjustType;
     else
         obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;

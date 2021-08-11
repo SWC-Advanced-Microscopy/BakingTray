@@ -54,7 +54,7 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.beamPower = obj.hC.hBeams.powers;
     scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants; % The length constant used for ramping power
 
-    if obj.versionGreaterThan('2020')
+    if obj.versionGreaterThan('2020.1')
         scanSettings.powerZAdjust = ~strcmp(char(obj.hC.hBeams.pzAdjust),'None');
         scanSettings.powerZAdjustType = obj.hC.hBeams.pzAdjust;
     else

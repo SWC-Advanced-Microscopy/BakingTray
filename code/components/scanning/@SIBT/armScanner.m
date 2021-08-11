@@ -22,7 +22,7 @@ function [success,msg] = armScanner(obj)
         obj.hC.hScan2D.trigAcqInTerm=trigLine;
     end
 
-    obj.enableArmedListeners
+    obj.enableArmedListeners;
 
     % The string "msg" will contain any messages we wish to display to the user as part of the confirmation box.
     msg = '';
@@ -40,7 +40,7 @@ function [success,msg] = armScanner(obj)
 
 
     % Set up ScanImage z-stacks
-    obj.applyZstackSettingsFromRecipe % Prepare ScanImage for doing z-stacks
+    obj.applyZstackSettingsFromRecipe; % Prepare ScanImage for doing z-stacks
 
     % Set the system to display just the first depth in ScanImage.
     % Should run a little faster this way, especially if we have
