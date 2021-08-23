@@ -8,17 +8,26 @@ function bake_callback(obj,~,~)
     obj.updateStatusText
 
 
-    %Check whether it's safe to begin
+
     [acqPossible, msg]=obj.model.checkIfAcquisitionIsPossible(true);
     if ~acqPossible
         obj.model.messageString = msg;
         return
     end
 
+    %TODO -- Check whether it's safe to begin
+    if obj.view_acquire.parentView.updateTileSizeLabelText == false
+        startMsg = sprintf(['    ** WARNING **\nChosen resolution in BakingTray does not match that in ScanImage.\n',...
+                            'If this is a mistake, reselect the "Tile Size" setting in BakingTray to correct the error.\n', ...
+                            'Do you wish to Bake with the current settings?']);
+    else
+        startMsg = 'Are you sure you want to Bake this sample?';
+    end
+
     % Allow the user to confirm they want to bake
     ohYes='Yes!';
     noWay= 'No way';
-    choice = questdlg('Are you sure you want to Bake this sample?', '', ohYes, noWay, noWay);
+    choice = questdlg(startMsg, '', ohYes, noWay, noWay);
 
     switch choice
         case ohYes

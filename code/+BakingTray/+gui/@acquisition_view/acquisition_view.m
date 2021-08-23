@@ -3,6 +3,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     %
     % This class defines the GUI which shows the sample preview
 
+
     properties
         imageAxes %The preview image sits here
         compassAxes %This houses the compass-like indicator 
@@ -19,6 +20,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     properties (SetObservable,Transient)
         plotOverlayHandles   % All plotted objects laid over the image should keep their handles here
     end %close hidden transient observable properties
+
 
     properties (Hidden,SetAccess=private)
         statusPanel %The buttons and panals at the top of the window are kept here

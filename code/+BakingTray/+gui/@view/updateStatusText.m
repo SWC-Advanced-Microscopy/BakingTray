@@ -61,7 +61,7 @@ function varargout = updateStatusText(obj,~,~)
         set(obj.text_status,'String', msg)
 
         % Finally we highlight the tile size label as needed
-        obj.updateTileSizeLabelText(scnSet)
+        obj.updateTileSizeLabelText(scnSet);
 
         if nargout>0
             varargout{1} = msg;
