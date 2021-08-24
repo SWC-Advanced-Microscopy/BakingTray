@@ -33,4 +33,7 @@ function newSample(obj,~,~)
     obj.text_sampleDir.String='';
     obj.model.sampleSavePath='';
     
+    % Close the prepare GUI to reset it. (Hack but it's OK)
+    delete(obj.view_prepare)
+
 end %newSample
