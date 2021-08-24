@@ -238,7 +238,7 @@ classdef recipe < handle
             obj.NumTiles = NumTiles(obj); 
 
             %Add these recipe parameters as properties
-            obj.sample = params.sample;
+            obj.sample = []; % Declare only to maintain a nice order for the fields
             obj.mosaic = params.mosaic;
 
             %Add the system settings from the settings file. 
@@ -253,6 +253,8 @@ classdef recipe < handle
             obj.SYSTEM = sysSettings.SYSTEM;
             obj.SLICER = sysSettings.SLICER;
             obj.SLACK = sysSettings.SLACK;
+
+            obj.sample = params.sample; % Can now fill this in: it required the SYSTEM field to be present. 
             obj.fname=recipeFname;
 
 
@@ -343,6 +345,13 @@ classdef recipe < handle
                 if isfield(val,field2check)
                     switch field2check
                         case 'ID'
+                            sampleNameStem = obj.SYSTEM.ID; %The sample name will always start with the system name; 
+                            if strcmp(sampleNameStem,'SYSTEM_NAME')
+                                sampleNameStem = 'BrainSawSample';
+                            end
+                            if ~endsWith(sampleNameStem,'_')
+                                sampleNameStem = [sampleNameStem,'_'];
+                            end
                             if ischar(fieldValue)
                                 % Generate a base file name for the sample, replacing or removing unusual characters
                                 % This is to ensure the user can't make up silly names that cause problems down the line.
@@ -351,17 +360,17 @@ classdef recipe < handle
                                 if length(fieldValue)>0
                                     if regexp(fieldValue(1),'\d')
                                         %Do not allow sample name to start with a number
-                                        fieldValue = ['sample_',fieldValue];
+                                        fieldValue = [sampleNameStem,fieldValue];
                                     elseif regexpi(fieldValue(1),'[^a-z]')
                                         %Do not allow the sample to start with something that isn't a letter
-                                        fieldValue = ['sample_',fieldValue(2:end)];
+                                        fieldValue = [sampleNameStem,fieldValue(2:end)];
                                     end
                                 end
                             end
 
                             % If the sample name is not a string or empty then we just make one up
                             if ~ischar(fieldValue) || length(fieldValue)==0
-                                fieldValue=['sample_',datestr(now,'yymmdd_HHMMSS')];
+                                fieldValue=[sampleNameStem,datestr(now,'yymmdd_HHMMSS')];
                                 fprintf('Setting sample name to: %s\n',fieldValue)
                             end
                             obj.sample.(field2check) = fieldValue;
