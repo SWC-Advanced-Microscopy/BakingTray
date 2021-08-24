@@ -10,7 +10,7 @@ function settingsMatch = updateTileSizeLabelText(obj,scnSet)
     % Outputs
     % settingsMatch - if true the scanner settings match those in BakingTray. 
     %               If false they do not match or the information could not be
-    %			    obtained.
+    %               obtained.
     %
     % Called by updateTileSizeLabelText
 
@@ -52,7 +52,7 @@ function settingsMatch = updateTileSizeLabelText(obj,scnSet)
 
         obj.recipeTextLabels.other{ii}.String = 'Tile Size';
         obj.recipeTextLabels.other{ii}.Color = 'w';
-	    settingsMatch = true;
+        settingsMatch = true;
      else
          obj.recipeTextLabels.other{ii}.String = '*Tile Size';
          obj.recipeTextLabels.other{ii}.Color = 'r';

@@ -100,7 +100,7 @@ classdef view < handle
             end
 
             if ispc
-                obj.fSize=9; 
+                obj.fSize=9;
             end
 
             % Make empty cell arrays that will be used later
@@ -110,7 +110,7 @@ classdef view < handle
 
 
             % Build the window
-            obj.buildWindow
+            obj.buildWindow;
 
             % Add a listener to the sampleSavePath property of the BT model
             obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
@@ -124,8 +124,7 @@ classdef view < handle
             % Displays messages in a warning dialog box
             obj.listeners{end+1}=addlistener(obj.model, 'messageString', 'PostSet', @obj.displayMessage);
 
-            obj.updateStatusText
-
+            obj.updateStatusText;
             if obj.model.isScannerConnected
                 obj.connectScannerListeners
             end

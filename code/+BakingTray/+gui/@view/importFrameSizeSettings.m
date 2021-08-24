@@ -24,5 +24,5 @@ function importFrameSizeSettings(obj)
         obj.recipeEntryBoxes.other{1}.Enable = 'Off';
     end
 
-    obj.updateTileSizeLabelText %Make the label text red if scan settings and pop-up value do not match
+    obj.updateTileSizeLabelText; %Make the label text red if scan settings and pop-up value do not match
 end % importFrameSizeSettings
