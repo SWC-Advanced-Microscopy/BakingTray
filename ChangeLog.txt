@@ -10,6 +10,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 - USER (DEV) - Cutting start point is set to NaN on startup and when a new sample created. System will not cut until it's set. 
 - USER (DEV) - Default sample name is now the microscope ID. 
 - USER (DEV) - Warning issued if the tile size in BakingTray does not match that in ScanImage.
+- POWERUSER (DEV) - The new SYSTEM.defaultSaveOath setting in the systemSettings.yml allows you to set the default path to which data should be saved. **It is suggested you set this!** It will reduce user errors and training time. <---
 
 11th August
 - USER (DEV) - Add the ability move Z stage up and down with R and F in addition to Q and E. 

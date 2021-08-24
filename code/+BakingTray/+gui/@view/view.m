@@ -224,8 +224,11 @@ classdef view < handle
     methods (Hidden)
 
         function changeDir(obj,~,~)
-            % The dir selector should open at the current save path by default
-            if ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
+            % The dir selector should open at the system default save path by default otherwise it uses the 
+            % last model.sampleSavePath and failing that the current directory
+            if ~isempty(obj.model.recipe.SYSTEM.defaultSavePath) &&  exist(obj.model.recipe.SYSTEM.defaultSavePath,'dir')
+                startPath = obj.model.recipe.SYSTEM.defaultSavePath;
+            elseif ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
                 startPath = obj.model.sampleSavePath;
             else
                 startPath = pwd;
