@@ -28,7 +28,6 @@ function settings=default_BT_Settings
     settings.SYSTEM.dominantTilingDirection='y';
     settings.SYSTEM.defaultSavePath='C:\';
 
-
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
 
