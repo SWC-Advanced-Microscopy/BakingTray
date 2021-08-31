@@ -67,12 +67,12 @@ classdef view < handle
     methods (Hidden)
         buildWindow(obj)  % Used once by the constructor
         populateRecipePanel(obj) % Used once by the constructor
-        updateTileSizeLabelText(obj,scnSet) % helper for callbacks
+        out = updateTileSizeLabelText(obj,scnSet) % helper for callbacks
         enableDisableThisView(obj,enableState)
         importFrameSizeSettings(obj)
 
         % Recipe-related callback methods
-        out = updateAllRecipeEditBoxesAndStatusText(obj,evt,src)
+        updateAllRecipeEditBoxesAndStatusText(obj,evt,src)
         updateRecipePropertyInRecipeClass(obj,evt,src)
         displayMessage(obj,~,~)
 
