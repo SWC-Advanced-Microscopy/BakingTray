@@ -72,7 +72,7 @@ classdef view < handle
         importFrameSizeSettings(obj)
 
         % Recipe-related callback methods
-        updateAllRecipeEditBoxesAndStatusText(obj,evt,src)
+        out = updateAllRecipeEditBoxesAndStatusText(obj,evt,src)
         updateRecipePropertyInRecipeClass(obj,evt,src)
         displayMessage(obj,~,~)
 

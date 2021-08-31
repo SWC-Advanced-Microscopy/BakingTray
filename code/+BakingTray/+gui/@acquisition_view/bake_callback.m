@@ -16,7 +16,7 @@ function bake_callback(obj,~,~)
     end
 
     %TODO -- Check whether it's safe to begin
-    if obj.view_acquire.parentView.updateTileSizeLabelText == false
+    if obj.parentView.updateTileSizeLabelText == false
         startMsg = sprintf(['    ** WARNING **\nChosen resolution in BakingTray does not match that in ScanImage.\n',...
                             'If this is a mistake, reselect the "Tile Size" setting in BakingTray to correct the error.\n', ...
                             'Do you wish to Bake with the current settings?']);
