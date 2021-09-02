@@ -181,6 +181,11 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
         stageComponents.(tField) = stageSettings.(tField);
     end
 
+    % Check value of invertDistance. Most likely failures is that user sets this a logical or as zero.
+    if islogical(stageSettings.invertDistance) | stageSettings.invertDistance==0
+        fprintf('\n\n\n\n ---> WARNING: stageSettings.invertDistance in componentSettings.m should be 1 or -1. Setting to 1\n\n\n\n')
+        stageSettings.invertDistance=1;
+    end
 
 function success = checkArgs(stageComponentName,stageSettings)
     % Check whether the stageComponent name and stageSettings structure are correct. 

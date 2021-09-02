@@ -37,10 +37,12 @@ classdef soloist < linearcontroller
 % Ethernet connection
 % If you wish to connect to the Soloist directly from a spare ethernet port on the PC
 % then you need to ensure that the ethernet card and the Soloist are on the same sub-net.
-% E.g. if the subnet mask on the card is 255.255.0.0 then the first two number of the
+% E.g. if the subnet mask on the card is 255.255.0.0 then the first two numbers of the
 % IP address of the card and soloist must match. The Soloist could be 127.0.1.10 and the
 % card could be 127.0.0.1. IP addresses can't be the same. You can manually set this stuff
-% under the network properties in Windows.
+% under the network properties in Windows. See:
+% https://www.digitalcitizen.life/change-subnet-mask-windows-10/
+% If it fails to connect, try a few different IP addresses. 
 % You can see the IP address of the card by running ipconfig in the Windows
 % command prompt.
 %

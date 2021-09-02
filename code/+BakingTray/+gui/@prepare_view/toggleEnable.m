@@ -20,6 +20,8 @@ function toggleEnable(obj,toggleState)
     obj.setFrontLeft_button.Enable=toggleState;
     obj.setVentralMidline_button.Enable=toggleState;
     obj.moveToSample_button.Enable=toggleState;
+    obj.autoTrim_button.Enable=toggleState;
+
 
     jogButtons=fields(obj.largeStep);
 

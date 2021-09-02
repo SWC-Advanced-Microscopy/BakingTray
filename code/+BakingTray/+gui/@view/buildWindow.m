@@ -75,7 +75,7 @@ function buildWindow(obj)
         'FontSize', obj.fSize, ...
         'FitBoxToText','off', ...
         'String', '');
-    obj.updateSampleSavePathBox
+    obj.updateSampleSavePathBox;
 
 
 
@@ -85,6 +85,7 @@ function buildWindow(obj)
         'Position', [5,4, 55, 20], ...
         'String', 'Recipe', ...
         'Callback', @obj.loadRecipe);
+
     if ~obj.suppressToolTips
         obj.button_recipe.TooltipString='Load recipe or resume an acquisition';
     end
@@ -101,7 +102,7 @@ function buildWindow(obj)
         'FitBoxToText','off', ...
         'String', '');
     %TODO: add a listener to this so it updates when the user loads a new recipe
-    obj.updateRecipeFname 
+    obj.updateRecipeFname;
 
 
     %Buttons for interfacing with hardware
@@ -113,6 +114,7 @@ function buildWindow(obj)
         'Position', [10,6, 50, 20], ...
         'Callback',@obj.startLaserGUI, ...
         'String', 'Laser');
+
     if ~obj.suppressToolTips
         obj.button_laser.TooltipString='Start laser GUI';
     end
@@ -139,6 +141,7 @@ function buildWindow(obj)
         'Callback',@obj.startPreviewSampleGUI, ...
         'String', 'Preview', ....
         'ForegroundColor','k');
+
     if ~obj.suppressToolTips
         obj.button_start.TooltipString='Begin acquisition';
     end
@@ -161,13 +164,13 @@ function buildWindow(obj)
     % This contains a selection of recipe fields and talks bidirectionally to the recipe
     % object attached to BT.
     obj.recipePanel = BakingTray.gui.newGenericGUIPanel([3.5, 5, 295, 265],obj.hFig);
-    obj.populateRecipePanel
+    obj.populateRecipePanel;
 
 
     %Fill it in with the recipe
-    obj.updateAllRecipeEditBoxesAndStatusText
+    obj.updateAllRecipeEditBoxesAndStatusText;
 
-    obj.connectRecipeListeners %It's a method because we have to close and re-connect when we load a new recipe
+    obj.connectRecipeListeners; %It's a method because we have to close and re-connect when we load a new recipe
 
 
 
@@ -197,6 +200,6 @@ function buildWindow(obj)
 
     % If we are using ScanImage and we find a frameSize file, populate the tile size property.
     % Otherwise disable and supply a message if needed. 
-    obj.importFrameSizeSettings
+    obj.importFrameSizeSettings;
 
 end %buildWindow

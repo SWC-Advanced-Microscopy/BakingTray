@@ -51,6 +51,9 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         end
     end
 
+    if isnan(obj.recipe.CuttingStartPoint.X)
+        msg=sprintf('%sCutting start point not set.\n',msg);
+    end
 
     %Do we have enough travel to make the cut itself?
     if obj.recipe.SYSTEM.cutterSide == 1
@@ -94,6 +97,7 @@ function [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         cuttingPossible=true;
     else
         cuttingPossible=false;
+        msg = sprintf('Can not slice:\n%s',msg);
     end
 
 

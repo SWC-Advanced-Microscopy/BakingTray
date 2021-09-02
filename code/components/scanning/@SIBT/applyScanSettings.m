@@ -37,9 +37,17 @@ function applyScanSettings(obj,scanSettings)
     % begin with. This is in case the code at the end of the method (which attempts to use
     % values from the most recent section) fails for some reason. 
     obj.hC.hBeams.powers = scanSettings.beamPower;
-    obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
+
+    if obj.versionGreaterThan('2020.1')
+        obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjustType;
+    else
+        obj.hC.hBeams.pzCustom = scanSettings.powerZAdjustType; % What sort of adjustment (if empty it's default exponential)
+        obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
+    end
+
     obj.hC.hBeams.lengthConstants = scanSettings.beamPowerLengthConstant;
-    obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjust; % Bool. If true, we ramped power with depth
+
+
 
 
     % We set the scan parameters. The order in which these are set matters
@@ -74,6 +82,10 @@ function applyScanSettings(obj,scanSettings)
 
     % Attempt to read the meta-data from the last saved directory to apply other settings not in the
     % recipe file. 
+    if isempty(obj.parent)
+        return
+    end
+
     rawDataDir=fullfile(obj.parent.sampleSavePath,obj.parent.rawDataSubDirName);
     sectionDirs = dir(fullfile(rawDataDir,[obj.parent.recipe.sample.ID,'*']));
     if isempty(sectionDirs)
@@ -102,9 +114,17 @@ function applyScanSettings(obj,scanSettings)
     % i.e. the following is not redundant code.
     obj.hC.hPmts.gains = hSI_Settings.hPmts.gains;
     obj.hC.hBeams.powers = hSI_Settings.hBeams.powers;
-    obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;
-    obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
-    obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
     obj.hC.hDisplay.displayRollingAverageFactor = hSI_Settings.hDisplay.displayRollingAverageFactor;
     obj.hC.hScan2D.linePhase = hSI_Settings.hScan2D.linePhase;
+
+    % Apply laser power ramping with depth
+    if obj.versionGreaterThan('2020.1')
+        obj.hC.hBeams.pzAdjust = scanSettings.powerZAdjustType;
+    else
+        obj.hC.hBeams.pzCustom = hSI_Settings.hBeams.pzCustom;
+        obj.hC.hBeams.pzAdjust = hSI_Settings.hBeams.pzAdjust;
+    end
+    obj.hC.hBeams.lengthConstants = hSI_Settings.hBeams.lengthConstants;
+
+
 

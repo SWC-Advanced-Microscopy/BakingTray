@@ -67,7 +67,7 @@ classdef view < handle
     methods (Hidden)
         buildWindow(obj)  % Used once by the constructor
         populateRecipePanel(obj) % Used once by the constructor
-        updateTileSizeLabelText(obj,scnSet) % helper for callbacks
+        out = updateTileSizeLabelText(obj,scnSet) % helper for callbacks
         enableDisableThisView(obj,enableState)
         importFrameSizeSettings(obj)
 
@@ -100,7 +100,7 @@ classdef view < handle
             end
 
             if ispc
-                obj.fSize=9; 
+                obj.fSize=9;
             end
 
             % Make empty cell arrays that will be used later
@@ -110,7 +110,7 @@ classdef view < handle
 
 
             % Build the window
-            obj.buildWindow
+            obj.buildWindow;
 
             % Add a listener to the sampleSavePath property of the BT model
             obj.listeners{end+1} = addlistener(obj.model, 'sampleSavePath', 'PostSet', @obj.updateSampleSavePathBox);
@@ -124,8 +124,7 @@ classdef view < handle
             % Displays messages in a warning dialog box
             obj.listeners{end+1}=addlistener(obj.model, 'messageString', 'PostSet', @obj.displayMessage);
 
-            obj.updateStatusText
-
+            obj.updateStatusText;
             if obj.model.isScannerConnected
                 obj.connectScannerListeners
             end
@@ -225,8 +224,11 @@ classdef view < handle
     methods (Hidden)
 
         function changeDir(obj,~,~)
-            % The dir selector should open at the current save path by default
-            if ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
+            % The dir selector should open at the system default save path by default otherwise it uses the 
+            % last model.sampleSavePath and failing that the current directory
+            if ~isempty(obj.model.recipe.SYSTEM.defaultSavePath) &&  exist(obj.model.recipe.SYSTEM.defaultSavePath,'dir')
+                startPath = obj.model.recipe.SYSTEM.defaultSavePath;
+            elseif ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
                 startPath = obj.model.sampleSavePath;
             else
                 startPath = pwd;

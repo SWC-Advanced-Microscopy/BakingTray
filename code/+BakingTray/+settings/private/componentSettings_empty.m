@@ -91,17 +91,16 @@ function settings=componentSettings
     motionAxis(nC).type=''; % One of: 'C891', 'C863', 'C663','BSC201_APT','soloist', 'dummy_linearcontroller'
                             % There may be other available controllers. See
                             % the components/motion directory.
+    % "connectAt" defines where to look for the connection. This could be a COM port (e.g. COM11) or, 
+    % for some PI devices like the C891, this could be a string defining
+    % the serial number. See docs in class files for more info.
     motionAxis(nC).settings.connectAt.interface='';
     motionAxis(nC).settings.connectAt.ID='';
     motionAxis(nC).settings.connectAt.controllerModel=''; % Used mainly for PI hardwar which have a generic controller e.g. C-891
-  
-    % "connectAt" defines where to look for the connection. This could be a COM port (e.g. COM11) or, 
-    % for some PI devices like the C891, this could be a string defining
-    % the serial number. 
-    motionAxis(nC).settings.connectAt=''; 
-
+ 
+    % Following are settings for the stage
     motionAxis(nC).stage.type=''; % One of: 'genericPIstage',  'DRV014', 'AVS_100_25', 'haydon43K4U', or 'dummy_linearstage'
-    motionAxis(nC).stage.settings.invertDistance=[]; % True or false. Set so positive motions are away for Y, Right for X, and up for Z000
+    motionAxis(nC).stage.settings.invertDistance=[]; % 1 or 0. Set so positive motions are away for Y, Right for X, and up for Z000
     motionAxis(nC).stage.settings.positionOffset=0; % X and Y should be zero at motion midpoint. Z at bottom of range. Adjust this scalar to achieve this if needed.
     motionAxis(nC).stage.settings.axisName=''; %One of: 'xAxis', 'yAxis', or 'zAxis'
     motionAxis(nC).stage.settings.minPos=[];

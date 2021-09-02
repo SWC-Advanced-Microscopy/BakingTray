@@ -21,6 +21,12 @@ function checkIfAcquisitionIsPossible(obj,~,~)
     % The front left position needs to be *at least* the thickness of a cut from the 
     % blade plus half the X width of the specimen. This doesn't even account for
     % the agar, etc. So it's a very relaxed criterion. 
+    if isnan(obj.CuttingStartPoint.X)
+        % blade position not set if it's a Nan and system will not cut
+        obj.acquisitionPossible=false;
+        return
+    end
+
     if obj.SYSTEM.cutterSide==1
         if (obj.FrontLeft.X-obj.mosaic.sampleSize.X) < obj.CuttingStartPoint.X
             obj.acquisitionPossible=true;

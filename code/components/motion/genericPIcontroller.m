@@ -8,6 +8,8 @@ classdef genericPIcontroller < linearcontroller
 % To use genericPIcontroller, install the PI MATLAB support package. Ensure that the instances of
 % the class can be created and behave as expected. e.g. that the .MOV method can be used to
 % move the stage. So go through PI's example MATLAB scripts and ensure all makes sense.
+% The support package needs to be added to the MATLAB path and is probably
+% located at: C:\Program Files (x86)\Physik Instrumente (PI)\Software Suite\MATLAB_Driver
 %
 % Do not use this class directly! Instead, write a sub-class specific to the device you are controlling. 
 % e.g. see C891.m and C663.m
@@ -28,7 +30,7 @@ classdef genericPIcontroller < linearcontroller
       %
       % Serial
       % controllerID.interface='rs232'
-      % controllerID.COM='COM1'
+      % controllerID.COM=8
       % controllerID.baudrate=115200
       %
       % TCP/IP
