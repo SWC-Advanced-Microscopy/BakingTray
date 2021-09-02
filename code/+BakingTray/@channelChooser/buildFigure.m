@@ -12,9 +12,12 @@ function buildFigure(obj)
     obj.hFig.Name = 'BakingTray Channel Chooser';
 
 
+    % The main axes that show the emission spectra and filter bands
     obj.hAxesMain = uiaxes(obj.hFig);
     obj.hAxesMain.Units = 'normalized';
     obj.hAxesMain.Position = [0.05,0.5,0.9,0.45];
+
+
 
 
     hold(obj.hAxesMain,'on')
@@ -28,7 +31,7 @@ function buildFigure(obj)
     %h(4) = obj.plotEmissionSpectrum('alexa647');
     %h(5) = obj.plotEmissionSpectrum('DiI');
 
-    obj.hAxesMain.XLim = [400,750];
+    obj.hAxesMain.XLim = [400,720];
     obj.hAxesMain.YLim = [0,1];
     obj.hAxesMain.YTick = [];
     obj.hAxesMain.Box='on';
@@ -38,7 +41,7 @@ function buildFigure(obj)
     % Make tick boxes for each fluorophore
     obj.hPanel = uipanel('Parent', obj.hFig, ...
                      'Units', 'normalized', ...
-                     'Position',[0.05,0.05,0.9,0.35],...
+                     'Position',[0.05,0.05,0.9,0.4],...
                      'BackgroundColor',[0.75,0.75,0.75]);
     
 
@@ -51,7 +54,21 @@ function buildFigure(obj)
     end
 
     obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
-                                'Position',[200,25,350,100]);
+                                'Position',[150,8,700,50]);
+
+
+    % The smaller axis that shows the excitation spectra and 2p cross sections
+    obj.hAxesExcite = uiaxes(obj.hPanel);
+    obj.hAxesExcite.Position = [150,90,700,300];
+    obj.hAxesExcite.XLim=[760,950];
+    obj.hAxesExcite.XLabel.String='Excitation Wavelength (nm)';
+    hold(obj.hAxesExcite,'on')
+    obj.hAxesExcite.XGrid='on';
+
+    % Legend
+    obj.hLegend = legend(obj.hAxesExcite);
+    obj.hLegend.Box='off';
+    obj.hLegend.Location='northwest' 
 
 end
 

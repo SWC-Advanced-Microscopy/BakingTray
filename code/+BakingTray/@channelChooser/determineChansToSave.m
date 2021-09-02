@@ -4,7 +4,7 @@ function chansToSave = determineChansToSave(obj)
     
     chansToSave = [];
 
-    tFields = fields(obj.hDyeSpectra);
+    tFields = fields(obj.hDyeSpectraEmission);
 
     if isempty(tFields)
         return
@@ -13,8 +13,8 @@ function chansToSave = determineChansToSave(obj)
     chansToSave = zeros(1,length(tFields));
     for ii=1:length(tFields)
         % Determine the channel that overlaps most with the spectrum rather than just where the max is. 
-        Y = obj.hDyeSpectra.(tFields{ii}).YData;
-        X = obj.hDyeSpectra.(tFields{ii}).XData;
+        Y = obj.hDyeSpectraEmission.(tFields{ii}).YData;
+        X = obj.hDyeSpectraEmission.(tFields{ii}).XData;
         areaUnderCurve = chanOverlap(X,Y);
 
         % This is the channel with the biggest area

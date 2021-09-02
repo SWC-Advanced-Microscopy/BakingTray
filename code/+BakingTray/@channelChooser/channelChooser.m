@@ -1,4 +1,4 @@
-classdef channelChooser < handle
+classdef channelChooser < BakingTray.gui.child_view
     % BakingTray.channelChooser
     %
     % Purpose
@@ -19,11 +19,13 @@ classdef channelChooser < handle
     end % properties
 
     properties (Hidden)
-        hFig % Handle of the GUI figure window
         hAxesMain % The axes that show the wavelength plot
+        hAxesExcite % The excitation spectra are plotted here
         mainGUIname = 'channelChooserMain'
         hFilterBands % rectangles indicating filter bands
-        hDyeSpectra
+        hDyeSpectraEmission
+        hDyeSpectraExcitation
+        hLegend
         hPanel % panel that houses ui components
         hCheckBoxes % structure of checkbox handles
         hMessageText % Text displayed in the panel for user info
@@ -32,7 +34,19 @@ classdef channelChooser < handle
 
 
     methods
-        function obj = channelChooser
+        function obj = channelChooser(hBT,hBTview)
+
+            obj = obj@BakingTray.gui.child_view;
+
+            if nargin>0
+                %If the BT view created this panel, it will provide this argument
+                obj.model = hBT;
+            end
+
+            if nargin>1
+                %If the BT view created this panel, it will provide this argument
+                obj.hBTview = hBTview;
+            end
 
             % Do not open if it already exists. Just focus existing window and end
             f=findobj('Tag',obj.mainGUIname);
@@ -42,6 +56,7 @@ classdef channelChooser < handle
                 delete(obj)
                 return
             end
+
 
             % Hard code for now. (TODO)
             obj.chanRanges(1).centre = 676;
@@ -80,14 +95,29 @@ classdef channelChooser < handle
             dyeName = src.Text;
             if src.Value == 1
                 % Plot the dye 
-                obj.hDyeSpectra.(dyeName) = obj.plotEmissionSpectrum(dyeName);
+                obj.hDyeSpectraEmission.(dyeName) = obj.plotEmissionSpectrum(dyeName);
+                obj.hDyeSpectraExcitation.(dyeName) = obj.plotExcitationSpectrum(dyeName);
+
+                if ~isempty(obj.hDyeSpectraExcitation.(dyeName))
+                    obj.hDyeSpectraExcitation.(dyeName).Color = obj.hDyeSpectraEmission.(dyeName).Color;
+                else
+                    obj.hDyeSpectraExcitation = rmfield(obj.hDyeSpectraExcitation, dyeName);
+                end
+
             else
                 % Remove the dye               
-                if isfield(obj.hDyeSpectra,dyeName)
-                    delete(obj.hDyeSpectra.(dyeName))
-                    obj.hDyeSpectra = rmfield(obj.hDyeSpectra, dyeName);
+                if isfield(obj.hDyeSpectraEmission,dyeName)
+                    delete(obj.hDyeSpectraEmission.(dyeName))
+                    obj.hDyeSpectraEmission = rmfield(obj.hDyeSpectraEmission, dyeName);
+                end
+                if isfield(obj.hDyeSpectraExcitation,dyeName)
+                    delete(obj.hDyeSpectraExcitation.(dyeName))
+                    obj.hDyeSpectraExcitation = rmfield(obj.hDyeSpectraExcitation, dyeName);
                 end
             end
+            
+            obj.hLegend.String = fields(obj.hDyeSpectraExcitation); %update legend
+
             % Report to message box which channels the user should select in SI
             obj.updateMessageText
         end

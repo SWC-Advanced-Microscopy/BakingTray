@@ -1,13 +1,17 @@
-function h = plotEmissionSpectrum(obj,dye)
+function h = plotExcitationSpectrum(obj,dye)
     % Plot emission spectrum and return handle to plot object
 
 
 
-    data = BakingTray.channelChooser.loadEmissionSpectrum(dye);
+    data = BakingTray.channelChooser.loadExcitationSpectrum(dye);
 
+    if isempty(data)
+        h = [];
+        return
+    end
 
-    h = plot(data(:,1),data(:,2),'-', ...
-        'Parent',obj.hAxesMain, ...
+    h = plot(data(:,1),data(:,3),'-', ...
+        'Parent',obj.hAxesExcite, ...
         'LineWidth',2);
 
     [~,ind] = max(data(:,2));
@@ -21,4 +25,4 @@ function h = plotEmissionSpectrum(obj,dye)
 
     %text(peakL,peakL],[0.9,0.9], ...
     %    sprintf('%s (%d nm)', dye,peakL), ...
-    %    'Parent',obj.hAxesMain)
+    %    'Parent',obj.hAxesExcite)
