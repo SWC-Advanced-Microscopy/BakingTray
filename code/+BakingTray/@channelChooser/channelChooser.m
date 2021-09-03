@@ -13,15 +13,10 @@ classdef channelChooser < BakingTray.gui.child_view
     properties
         chanRanges % structure listing available channel ranges. Built in the constructor
 
-        % Available dye names
-        dyes = {'Alexa647', 'mCherry', 'tdTomato', 'eCFP', 'eGFP', 'eYFP', 'eBFP', 'DiI', 'DiO'}
-
-    end % properties
-
-    properties (Hidden)
         hAxesMain % The axes that show the wavelength plot
         hAxesExcite % The excitation spectra are plotted here
-        mainGUIname = 'channelChooserMain'
+
+
         hFilterBands % rectangles indicating filter bands
         hDyeSpectraEmission
         hDyeSpectraExcitation
@@ -29,12 +24,20 @@ classdef channelChooser < BakingTray.gui.child_view
         hPanel % panel that houses ui components
         hCheckBoxes % structure of checkbox handles
         hMessageText % Text displayed in the panel for user info
+
+    end % properties
+
+    properties (Hidden)
+        mainGUIname = 'BakingTray_channelChooser';
+
+        % Available dye names
+        dyes = {'Alexa647', 'mCherry', 'tdTomato', 'eCFP', 'eGFP', 'eYFP', 'eBFP', 'DiI', 'DiO'}
     end % hidden properties
 
 
 
     methods
-        function obj = channelChooser(hBT,hBTview)
+        function obj = channelChooser(hBT,parentView)
 
             obj = obj@BakingTray.gui.child_view;
 
@@ -45,17 +48,9 @@ classdef channelChooser < BakingTray.gui.child_view
 
             if nargin>1
                 %If the BT view created this panel, it will provide this argument
-                obj.hBTview = hBTview;
+                obj.parentView = parentView;
             end
 
-            % Do not open if it already exists. Just focus existing window and end
-            f=findobj('Tag',obj.mainGUIname);
-            if ~isempty(f)
-                % TODO -- test this
-                figure(f)
-                delete(obj)
-                return
-            end
 
 
             % Hard code for now. (TODO)
@@ -79,9 +74,8 @@ classdef channelChooser < BakingTray.gui.child_view
             obj.chanRanges(4).name = 'Blue';
             obj.chanRanges(4).hardwareChanIndex = 4;
 
-
             % Build the figure
-            buildFigure(obj)
+            buildFigure(obj);
 
 
         end
@@ -119,7 +113,7 @@ classdef channelChooser < BakingTray.gui.child_view
             obj.hLegend.String = fields(obj.hDyeSpectraExcitation); %update legend
 
             % Report to message box which channels the user should select in SI
-            obj.updateMessageText
+            obj.updateMessageText;
         end
 
 
