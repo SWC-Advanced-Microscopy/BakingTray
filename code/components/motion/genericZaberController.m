@@ -216,6 +216,9 @@ classdef genericZaberController < linearcontroller
 
             pos = obj.hC.getPosition(obj.attachedStage.positionUnits);
             pos = pos*obj.attachedStage.controllerUnitsInMM;
+            % Correctly return axis position if it is inverted
+            pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset);
+            
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
