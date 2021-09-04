@@ -4,6 +4,10 @@ function chansToSave = determineChansToSave(obj)
     
     chansToSave = [];
 
+    if isempty(obj.hDyeSpectraEmission)
+        return
+    end 
+
     tFields = fields(obj.hDyeSpectraEmission);
 
     if isempty(tFields)
@@ -35,8 +39,6 @@ function chansToSave = determineChansToSave(obj)
             areaUnderCurve(kk) = sum(Y(f));
         end
         
-    end
+    end %chanOverlap
 
-end
-
-
+end %determineChansToSave

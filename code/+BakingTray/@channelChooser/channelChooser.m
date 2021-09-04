@@ -119,10 +119,10 @@ classdef channelChooser < BakingTray.gui.child_view
 
         function updateMessageText(obj,src,evt)
             chansToSave = obj.determineChansToSave;
-            msg = 'Channels to save: ';
+            msg = sprintf('Channels to save:\n');
             for ii=1:length(chansToSave)
                 cr=obj.chanRanges(chansToSave(ii));
-                msg = sprintf('%sChannel %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
+                msg = sprintf('%sChan %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
             end
             msg(end-1:end)=[];
             obj.hMessageText.Value = msg;

@@ -23,17 +23,12 @@ function buildFigure(obj)
     obj.hFig.Color = obj.hAxesMain.BackgroundColor;
 
 
+    % Add the emission filter bands as colored areas
 
     hold(obj.hAxesMain,'on')
     for ii=1:4 
         obj.hFilterBands(ii) = obj.plotChanBand(obj.chanRanges(ii));
     end
-
-    %h(1) = obj.plotEmissionSpectrum('egfp');
-    %h(2) = obj.plotEmissionSpectrum('mcherry');
-    %h(3) = obj.plotEmissionSpectrum('ebfp');
-    %h(4) = obj.plotEmissionSpectrum('alexa647');
-    %h(5) = obj.plotEmissionSpectrum('DiI');
 
     obj.hAxesMain.XLim = [400,720];
     obj.hAxesMain.YLim = [0,1];
@@ -41,14 +36,15 @@ function buildFigure(obj)
     obj.hAxesMain.Box='on';
 
 
-    % Make tick boxes for each fluorophore
+    % Create a panel into which we will place the user interaction
+    % elements such as fluorophore checkboxes. 
     obj.hPanel = uipanel('Parent', obj.hFig, ...
                      'Position',[5, 5, 880,400],...
                      'BackgroundColor',[0.75,0.75,0.75]);
     
 
-
-    y=linspace(1,300,length(obj.dyes));
+    % Make tick boxes for each fluorophore
+    y=linspace(30,300,length(obj.dyes));
     for ii = 1:length(obj.dyes)
         obj.hCheckBoxes(ii) = uicheckbox(obj.hPanel,'Text',obj.dyes{ii}, ...
             'Position',[40, y(ii),100,22], ...
@@ -56,7 +52,7 @@ function buildFigure(obj)
     end
 
     obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
-                                'Position',[150,8,700,50]);
+                                'Position',[150,8,450,50]);
 
     % The smaller axis that shows the excitation spectra and 2p cross sections
     obj.hAxesExcite = uiaxes(obj.hPanel);
@@ -65,6 +61,7 @@ function buildFigure(obj)
     obj.hAxesExcite.XLim=[760,950];
     obj.hAxesExcite.TickLength=[0,0];
     obj.hAxesExcite.XLabel.String='Excitation Wavelength (nm)';
+    obj.hAxesExcite.YLabel.String='2-Photon Brightness';
     hold(obj.hAxesExcite,'on')
     obj.hAxesExcite.XGrid='on';
 

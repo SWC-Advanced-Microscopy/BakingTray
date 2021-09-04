@@ -5,6 +5,15 @@ Col 2 - the two photon absorption spectrum (aka 2PA cross section)
 Col 3 - the two-photon brightness (aka action cross section)
 
 
+NOTE:
+Currently we do not have excitation for spectra for some flurophores. To approximate them temporarily we use other spectra with roughly similar spectra. 
+So we approximate Alexa647, for instance, with eBFP because this will give the 
+same answer for optimal wavelength. The "fake" spectra and their sources are:
+
+Af647 - eBFP
+eYFP - eCFP
+DiO - eGFP
+DII - eCFP 
 
 Acknowledgements
 
