@@ -9,7 +9,11 @@ classdef pos_tester < handle
     % The following properties relate to settings the user can modify to alter the behavior of the class
     properties
         cam      % The camera class
+<<<<<<< Updated upstream
         linStage % A fully set up BakingTray linear stage object
+=======
+
+>>>>>>> Stashed changes
         camToStart=2; %Default camera mode start
         pixSize     % Pixel size of camera in microns
     end
@@ -23,6 +27,7 @@ classdef pos_tester < handle
     % Constructor and destructor
     methods
 
+<<<<<<< Updated upstream
         function obj = pos_tester(camToStart,linStage)
             % pos_tester constructor
             %
@@ -44,15 +49,29 @@ classdef pos_tester < handle
             % p=pos_tester(2,Z);
             %
             
+=======
+        function obj = pos_tester(camToStart)
+            % pos_tester constructor
+            %
+            % obj = pos_tester(camToStart)
+            %
+            % Inputs
+            % camToStart - Optional input argument defining which camera is to be connected to on startup
+            %
+
+>>>>>>> Stashed changes
 
             if nargin<1
                 camToStart = obj.camToStart;
             end
 
+<<<<<<< Updated upstream
             if nargin>1
                 obj.linStage = linStage;
             end
 
+=======
+>>>>>>> Stashed changes
             % Connect to the camera and bail out if this fails
             try
                 obj.cam = mxy.camera(camToStart);
@@ -69,7 +88,11 @@ classdef pos_tester < handle
 
                 rPos = obj.cam.vid.ROIPosition;
 
+<<<<<<< Updated upstream
                 preview(obj.cam.vid)
+=======
+                preview(p.cam.vid)
+>>>>>>> Stashed changes
             catch ME
                 delete(obj)
                 rethrow(ME)
@@ -80,6 +103,10 @@ classdef pos_tester < handle
         function delete(obj)
             % Destructor
             delete(obj.cam)
+<<<<<<< Updated upstream
+=======
+            delete(obj.hFig)
+>>>>>>> Stashed changes
         end % Close destructor
 
     end % Close block containing constructor and destructor
@@ -98,6 +125,7 @@ classdef pos_tester < handle
 
         end
 
+<<<<<<< Updated upstream
         function varargout = runStagePosSequence(obj,seq)
             % seq is a relative move sequence in mm
             obj.startCam
@@ -109,12 +137,19 @@ classdef pos_tester < handle
                 if ~isempty(obj.linStage)
                     obj.linStage.relativeMove(seq(ii));
                 end
+=======
+        function runStagePosSequence(obj,seq)
+            obj.startCam
+            obj.startTime=tic;
+            for ii=1:length(seq)
+>>>>>>> Stashed changes
                 pause(0.25)
             end
             elapsedTime = toc(obj.startTime);
             obj.cam.stopVideo
 
             fps = round(obj.cam.vid.framesAcquired/elapsedTime);
+<<<<<<< Updated upstream
             fprintf('Ran at %d fps\n',fps)
 
             warning off 
@@ -129,6 +164,11 @@ classdef pos_tester < handle
                 varargout{1}=out;
             end
         end % runStagePosSequence
+=======
+            fprintf('Ran at %d fps',fps)
+
+        end
+>>>>>>> Stashed changes
 
     end % Close block containing short methods
 
