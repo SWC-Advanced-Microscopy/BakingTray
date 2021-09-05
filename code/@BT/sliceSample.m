@@ -128,34 +128,56 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % progress a distance of obj.recipe.mosaic.cutSize mm at a speed of obj.recipe.SLICER.cuttingSpeed
     obj.setXvelocity(cuttingSpeed);
     cuttingMove=abs(obj.recipe.mosaic.cutSize)*obj.recipe.SYSTEM.cutterSide;
+ 
+    targetPos = obj.getXpos + cuttingMove; % Where the cutting move should finish
+    
+    if verbose
+        fprintf('Moving X stage by %0.3f mm to target position %0.3f mm\n', cuttingMove, targetPos)
+    end
 
+    stopDistanceThreshMM = 0.05; %stop cutting if we are within this many mm of the target
+    nTimesNearThresh = 0; %Counter indicating how many times the if statment looking for the X stage being near the final position was breached
+ 
     obj.moveXby(cuttingMove); %Start cutting and return (don't block)
     pause(0.05)
 
-    targetPos = obj.getXpos + cuttingMove; % Where the cutting move should finish
-
+    
+    
     while 1 %Blocking loop until we have reached the cut end position
        if ~obj.xAxis.isMoving % Uses the controller API routine (if availble)
+           if verbose
+               fprintf('Slicing motion stopped. Breaking loop\n')
+           end
            break
+       else
+           %fprintf('.')
        end
+       
        % Some stages are sensitive and the vibratome motion causes them to 
        % think the stage has not settled. So we add the following
-       % statements to catch this
-       if obj.recipe.SYSTEM.cutterSide==1 && obj.getXpos >= targetPos
-           disp('ABORT CUT: we are at the cutting end point and this was not caught by the controller API command')
-            obj.xAxis.stopAxis;
-           break
-       elseif obj.recipe.SYSTEM.cutterSide==-1 && obj.getXpos <= targetPos
+       % statements to catch this: stopping the motion if we are within
+       % 50 microns of the target position on more than two passes through
+       % the loop.
+       
+       if obj.recipe.SYSTEM.cutterSide==1 && (targetPos-obj.getXpos)<=stopDistanceThreshMM
+           nTimesNearThresh = nTimesNearThresh+1;           
+       elseif obj.recipe.SYSTEM.cutterSide==-1 && (obj.getXpos-targetPos)<=stopDistanceThreshMM
+           nTimesNearThresh = nTimesNearThresh+1;           
+       end
+
+       if nTimesNearThresh >= 2
+           if verbose
+              fprintf('ABORT CUT:\n At the cutting end point and this was not caught by the controller API command\n')
+           end
            obj.xAxis.stopAxis;
            break
        end
-
        % To honour abort command
        if obj.abortSlice
            return
        end
-       pause(0.05)
-    end
+       pause(0.1)
+    end % while 1
 
     if obj.abortSlice
         return
@@ -180,6 +202,9 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     % initiate post-cut slice-removal dance
     swipeSize = 4;
+    if verbose
+        fprintf('Swipe move 1\n')
+    end
     obj.moveXYby(0,swipeSize, 1, 0.3,1); %swipe (with 1 second time-out)
     if obj.abortSlice
         return
@@ -187,15 +212,19 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.getXpos;
 
     for ii=1:2
+        if verbose
+            fprintf('Swipe move %d\n', ii+1)
+        end
         swipeSize = swipeSize*-1;
         obj.moveXYby(0,swipeSize*2, 1, 0.3, 1); %swipe (with 1 second time-out)
         if obj.abortSlice
             return
-        end
-        obj.getXpos;
+        end        
     end
 
-
+    if verbose
+        fprintf('Tidy up after slicing\n')
+    end
     %Reset speeds of stages to what they were originally    
     obj.setYvelocity(moveStepSpeed);
     obj.setXvelocity(moveStepSpeed);
