@@ -438,7 +438,11 @@ end
 if ishghandle(QuestFig)
     % Go into uiwait if the figure handle is still valid.
     % This is mostly the case during regular use.
-    c = matlab.ui.internal.dialog.DialogUtils.disableAllWindowsSafely();
+    if verLessThan('matlab','9.10')
+        c = matlab.ui.internal.dialog.DialogUtils.disableAllWindowsSafely();
+    else
+        c = matlab.ui.internal.dialog.DialogUtils.disableAllWindowsSafely(true); %Add true for R2021a
+    end
     uiwait(QuestFig);
     delete(c);
 end
