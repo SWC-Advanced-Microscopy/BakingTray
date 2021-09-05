@@ -282,7 +282,7 @@ classdef genericZaberController < linearcontroller
               return
             end
 
-            success=obj.hC.stop;
+            obj.hC.stop;
         end %stopAxis
 
 
