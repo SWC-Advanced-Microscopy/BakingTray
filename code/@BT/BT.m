@@ -643,6 +643,46 @@ classdef BT < loghandler
 
 
         % Brief convenience methods
+        function stagesToRef = allStagesReferenced(obj)
+            % Returns empty if all stages are referenced. 
+            % If stages need referencing, returns a cell array of stage
+            % names to reference. e.g. if x and y stages need referencing
+            % then it returns {'xAxis','yAxis'}
+            
+            stagesToRef = {};
+            axesToTest = {'xAxis','yAxis','zAxis'};
+            for ii=1:length(axesToTest)
+                if obj.(axesToTest{ii}).isStageReferenced == false
+                    stagesToRef{end+1} = axesToTest{ii};
+                end
+            end
+        end %allStagesReferenced
+
+
+        function referenceRequiredAxes(obj,stagesToRef)
+            % Reference all unreferenced axes or axes defined in cell array
+            % stagesToRef.
+            % BT.referenceRequiredAxes(obj,stagesToRef)
+            
+            if nargin<2
+                stagesToRef = obj.allStagesReferenced;
+            end
+            
+            if isempty(stagesToRef)
+                return
+            end
+            
+            for ii=1:length(stagesToRef)
+                obj.(stagesToRef{ii}).referenceStage;
+            end
+            % Now move all referenced axes to their zero position in case
+            % this was not the reference location
+            for ii=1:length(stagesToRef)
+                obj.(stagesToRef{ii}).absoluteMove(0);
+            end
+        end %referenceRequiredAxes
+
+
         function acqLogFname = acquisitionLogFileName(obj)
             %This is the file name of the log file that sits in the sample root directory
             if ~obj.isRecipeConnected

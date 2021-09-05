@@ -408,6 +408,7 @@ classdef genericZaberController < linearcontroller
         function success = referenceStage(obj)
           try
             obj.hC.home
+            obj.axisPosition; %update the position in the stage class
             success = true;
           catch
             success = false;
