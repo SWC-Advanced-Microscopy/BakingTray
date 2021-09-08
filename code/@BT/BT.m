@@ -29,8 +29,8 @@ classdef BT < loghandler
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
-        disabledAxisReadyCheckDuringAcq=false % If true, we don't check whether stages are ready to 
-                                              % move before each motion when we are in an acquisition
+        disabledAxisReadyCheckDuringAcq=true % If true, we don't check whether stages are ready to 
+                                             % move before each motion when we are in an acquisition
         previewTilePositions % Pixel locations defining where tiles will be placed in the lastPreviewImageStack.
                              % We take into account the overlap between tiles: BT.initialisemodel)
         autoROI = [] % All info related to the autoROI goes here.
