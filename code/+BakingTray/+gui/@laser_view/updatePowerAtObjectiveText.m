@@ -5,7 +5,7 @@ function updatePowerAtObjectiveText(obj)
     %
     %
 
-    if isempty(obj.powerCoefs)
+    if isempty(obj.powerCoefs) || ~exist('scanimage','file')
         return
     end
 
