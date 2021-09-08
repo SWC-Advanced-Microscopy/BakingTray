@@ -364,7 +364,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
             %   query the axis, etc. false otherwise.
             ready=false;
 
-            if ~isempty(obj.parent) && obj.parent.disabledAxisReadyCheckDuringAcq && obj.parent.acquisitionInProgress 
+            if ~isempty(obj.parent) & obj.parent.disabledAxisReadyCheckDuringAcq & obj.parent.acquisitionInProgress 
                 ready=true;
                 return
             end
@@ -373,6 +373,11 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % Is a connection established to the hardare and is at least one linearstage connected?
             if ~obj.isControllerConnected || ~obj.isStageConnected 
                 obj.logMessage(inputname(1),dbstack,6,'Controller or stages not connected.')
+                return
+            end
+
+            if ~obj.isStageReferenced 
+                obj.logMessage(inputname(1),dbstack,6,'Controller not referenced.')
                 return
             end
 
