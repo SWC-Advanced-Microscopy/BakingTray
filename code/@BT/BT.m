@@ -679,6 +679,10 @@ classdef BT < loghandler
             % this was not the reference location
             for ii=1:length(stagesToRef)
                 obj.(stagesToRef{ii}).absoluteMove(0);
+                while obj.xAxis.isMoving
+                    pause(0.1)
+                end
+                obj.(stagesToRef{ii}).axisPosition;
             end
         end %referenceRequiredAxes
 
