@@ -177,7 +177,28 @@ classdef view < handle
             fprintf('\nCreating API access components in base workspace:\nmodel: hBT\nview: hBTview\n\n')
             assignin('base','hBTview',obj)
             assignin('base','hBT',obj.model)
-        end
+        end %copyAPItoBaseWorkSpace
+
+
+        function referenceStages(obj,~,~)
+            % Reference stages if needed
+            ST = obj.model.allStagesReferenced;
+            if isempty(ST)
+                % No stages need referencing
+                msgbox('All stage axes are referenced')
+            else
+                if length(ST)==1
+                    msg = sprintf('1 axis needs referencing.\n');
+                else
+                    msg = sprintf('%d axes need referencing.\n',length(ST));
+                end
+                OUT=questdlg(sprintf('%sRemove water bath and press START.',msg), ...
+                    '','START','Cancel','Cancel');
+                if strcmp(OUT,'START')
+                    obj.model.referenceRequiredAxes(ST);
+                end
+            end
+        end %referenceStages
 
 
         function connectScanImage(obj,~,~)

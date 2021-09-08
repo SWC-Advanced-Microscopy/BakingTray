@@ -1,4 +1,4 @@
-function settings=default_SIBT_Settings
+function settings=default_SIBT_settings
     % Return a set of default settings for the SIBT class to write to a file in the main settings directory
     %
     %
@@ -19,3 +19,4 @@ function settings=default_SIBT_Settings
 
 
 	settings.hardware.doResetTrippedPMT = false;
+    settings.hardware.fixedStageMotionTimeConstant = 0;

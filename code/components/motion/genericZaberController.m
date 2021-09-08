@@ -165,13 +165,6 @@ classdef genericZaberController < linearcontroller
               obj.setPositionUnits('native');
             else
              obj.setPositionUnits('mm');
-           end
-
-
-
-            % Reference stage if it is not currently referenced
-            if ~obj.isStageReferenced
-               obj.referenceStage;
             end
 
         end %connect
@@ -216,6 +209,9 @@ classdef genericZaberController < linearcontroller
 
             pos = obj.hC.getPosition(obj.attachedStage.positionUnits);
             pos = pos*obj.attachedStage.controllerUnitsInMM;
+            % Correctly return axis position if it is inverted
+            pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset);
+            
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -279,7 +275,7 @@ classdef genericZaberController < linearcontroller
               return
             end
 
-            success=obj.hC.stop;
+            obj.hC.stop;
         end %stopAxis
 
 
@@ -412,6 +408,7 @@ classdef genericZaberController < linearcontroller
         function success = referenceStage(obj)
           try
             obj.hC.home
+            obj.axisPosition; %update the position in the stage class
             success = true;
           catch
             success = false;

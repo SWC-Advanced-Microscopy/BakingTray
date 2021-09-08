@@ -29,8 +29,8 @@ classdef BT < loghandler
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
-        disabledAxisReadyCheckDuringAcq=false % If true, we don't check whether stages are ready to 
-                                              % move before each motion when we are in an acquisition
+        disabledAxisReadyCheckDuringAcq=true % If true, we don't check whether stages are ready to 
+                                             % move before each motion when we are in an acquisition
         previewTilePositions % Pixel locations defining where tiles will be placed in the lastPreviewImageStack.
                              % We take into account the overlap between tiles: BT.initialisemodel)
         autoROI = [] % All info related to the autoROI goes here.
@@ -643,6 +643,50 @@ classdef BT < loghandler
 
 
         % Brief convenience methods
+        function stagesToRef = allStagesReferenced(obj)
+            % Returns empty if all stages are referenced. 
+            % If stages need referencing, returns a cell array of stage
+            % names to reference. e.g. if x and y stages need referencing
+            % then it returns {'xAxis','yAxis'}
+            
+            stagesToRef = {};
+            axesToTest = {'xAxis','yAxis','zAxis'};
+            for ii=1:length(axesToTest)
+                if obj.(axesToTest{ii}).isStageReferenced == false
+                    stagesToRef{end+1} = axesToTest{ii};
+                end
+            end
+        end %allStagesReferenced
+
+
+        function referenceRequiredAxes(obj,stagesToRef)
+            % Reference all unreferenced axes or axes defined in cell array
+            % stagesToRef.
+            % BT.referenceRequiredAxes(obj,stagesToRef)
+            
+            if nargin<2
+                stagesToRef = obj.allStagesReferenced;
+            end
+            
+            if isempty(stagesToRef)
+                return
+            end
+            
+            for ii=1:length(stagesToRef)
+                obj.(stagesToRef{ii}).referenceStage;
+            end
+            % Now move all referenced axes to their zero position in case
+            % this was not the reference location
+            for ii=1:length(stagesToRef)
+                obj.(stagesToRef{ii}).absoluteMove(0);
+                while obj.xAxis.isMoving
+                    pause(0.1)
+                end
+                obj.(stagesToRef{ii}).axisPosition;
+            end
+        end %referenceRequiredAxes
+
+
         function acqLogFname = acquisitionLogFileName(obj)
             %This is the file name of the log file that sits in the sample root directory
             if ~obj.isRecipeConnected

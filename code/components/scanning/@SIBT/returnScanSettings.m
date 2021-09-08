@@ -56,7 +56,7 @@ function scanSettings = returnScanSettings(obj)
 
     if obj.versionGreaterThan('2020.1')
         scanSettings.powerZAdjust = ~strcmp(char(obj.hC.hBeams.pzAdjust),'None');
-        scanSettings.powerZAdjustType = obj.hC.hBeams.pzAdjust;
+        scanSettings.powerZAdjustType = char(obj.hC.hBeams.pzAdjust);
     else
         scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
         scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)

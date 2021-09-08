@@ -1,13 +1,18 @@
 function result = WriteYaml(filename, data, flowstyle)
-import BakingTray.yaml.*;
-if ~exist('flowstyle','var')
+    import BakingTray.yaml.*
+    
+    if ~exist('flowstyle','var')
         flowstyle = 0;
-    end;
+    end
+    
     if ~ismember(flowstyle, [0,1])
         error('Flowstyle must be 0,1 or empty.');
-    end;
+    end
+    
     result = [];
     [pth,~,~] = fileparts(mfilename('fullpath'));
+    
+    % Import snakeyaml Java class via which we do the writing
     try
         import('org.yaml.snakeyaml.*');
         javaObject('Yaml');
@@ -17,32 +22,45 @@ if ~exist('flowstyle','var')
         	javaaddpath(dp); % javaaddpath clears global variables!?
         end
         import('org.yaml.snakeyaml.*');
-    end;
+    end
+    
+    % Convert data to Java types and generate a Java structure
     javastruct = scan(data);
+    
+    
     dumperopts = DumperOptions();
-    dumperopts.setLineBreak(        javaMethod('getPlatformLineBreak',        'org.yaml.snakeyaml.DumperOptions$LineBreak'));
+    dumperopts.setLineBreak(javaMethod('getPlatformLineBreak','org.yaml.snakeyaml.DumperOptions$LineBreak'));
+
     if flowstyle
         classes = dumperopts.getClass.getClasses;
         flds = classes(3).getDeclaredFields();
         fsfld = flds(1);
         if ~strcmp(char(fsfld.getName), 'FLOW')
-            error(['Accessed another field instead of FLOW. Please correct',            'class/field indices (this error maybe caused by new snakeyaml version).']);
-        end;
+            error(['Accessed another field instead of FLOW. Please correct', 'class/field indices (this error maybe caused by new snakeyaml version).']);
+        end
         dumperopts.setDefaultFlowStyle(fsfld.get([]));
-    end;
+    end
+    
+    % Dump to a string
     yaml = Yaml(dumperopts);
     output = yaml.dump(javastruct);
+    
+    % Write to disk
     if ~isempty(filename)
         fid = fopen(filename,'w');
         fprintf(fid,'%s',char(output) );
         fclose(fid);
     else
         result = output;
-    end;
+    end
 end
+
+
+
+
 function result = scan(r)
-import BakingTray.yaml.*;
-if ischar(r)
+    import BakingTray.yaml.*
+    if ischar(r)
         result = scan_char(r);
     elseif iscell(r)
         result = scan_cell(r);
@@ -60,9 +78,10 @@ if ischar(r)
         error(['Cannot handle type: ' class(r)]);
     end
 end
+
 function result = scan_numeric(r)
-import BakingTray.yaml.*;
-if isempty(r)
+    import BakingTray.yaml.*
+    if isempty(r)
         result = java.util.ArrayList();
     elseif(isinteger(r))
         result = java.lang.Integer(r);
@@ -70,47 +89,52 @@ if isempty(r)
         result = java.lang.Double(r);
     end
 end
+
 function result = scan_logical(r)
-import BakingTray.yaml.*;
-if isempty(r)
+    import BakingTray.yaml.*
+    if isempty(r)
         result = java.util.ArrayList();
     else
         result = java.lang.Boolean(r);
     end
 end
+
 function result = scan_char(r)
-import BakingTray.yaml.*;
-if isempty(r)
+    import BakingTray.yaml.*
+    if isempty(r)
         result = java.util.ArrayList();
     else
         result = java.lang.String(r);
     end
 end
+
 function result = scan_datetime(r)
-import BakingTray.yaml.*;
-[Y, M, D, H, MN,S] = datevec(double(r));            
+    import BakingTray.yaml.*
+    [Y, M, D, H, MN,S] = datevec(double(r));            
 	result = java.util.GregorianCalendar(Y, M-1, D, H, MN,S);
 	result.setTimeZone(java.util.TimeZone.getTimeZone('UTC'));
 end
+
 function result = scan_cell(r)
-import BakingTray.yaml.*;
-if(isrowvector(r))  
+    import BakingTray.yaml.*
+    if(isrowvector(r))  
         result = scan_cell_row(r);
     elseif(iscolumnvector(r))
         result = scan_cell_column(r);
     elseif(ismymatrix(r))
         result = scan_cell_matrix(r);
-    elseif(issingle(r));
+    elseif(issingle(r))
         result = scan_cell_single(r);
     elseif(isempty(r))
         result = java.util.ArrayList();
     else
         error('Unknown cell content.');
-    end;
+    end
 end
+
 function result = scan_ord(r)
-import BakingTray.yaml.*;
-if(isrowvector(r))
+    import BakingTray.yaml.*
+    if(isrowvector(r))
         result = scan_ord_row(r);
     elseif(iscolumnvector(r))
         result = scan_ord_column(r);
@@ -122,73 +146,82 @@ if(isrowvector(r))
         result = java.util.ArrayList();
     else
         error('Unknown ordinary array content.');
-    end;
+    end
 end
+
 function result = scan_cell_row(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for ii = 1:size(r,2)
         result.add(scan(r{ii}));
-    end;
+    end
 end
+
 function result = scan_cell_column(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for ii = 1:size(r,1)
         tmp = r{ii};
         if ~iscell(tmp)
             tmp = {tmp};
-        end;
+        end
         result.add(scan(tmp));
-    end;    
+    end
 end
+
 function result = scan_cell_matrix(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for ii = 1:size(r,1)
         i = r(ii,:);
         result.add(scan_cell_row(i));
-    end;
+    end
 end
+
 function result = scan_cell_single(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*;
+    result = java.util.ArrayList();
     result.add(scan(r{1}));
 end
+
 function result = scan_ord_row(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for i = r
         result.add(scan(i));
-    end;
+    end
 end
+
 function result = scan_ord_column(r)
-import BakingTray.yaml.*;
+import BakingTray.yaml.*
 result = java.util.ArrayList();
     for i = 1:size(r,1)
         result.add(scan_ord_row(r(i)));
-    end;
+    end
 end
+
 function result = scan_ord_matrix(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for i = r'
         result.add(scan_ord_row(i'));
-    end;
+    end
 end
+
 function result = scan_ord_single(r)
-import BakingTray.yaml.*;
-result = java.util.ArrayList();
+    import BakingTray.yaml.*
+    result = java.util.ArrayList();
     for i = r'
         result.add(r);
-    end;
+    end
 end
+
 function result = scan_struct(r)
-import BakingTray.yaml.*;
-result = java.util.LinkedHashMap();
+    import BakingTray.yaml.*
+    result = java.util.LinkedHashMap();
     for i = fields(r)'
         key = i{1};
         val = r.(key);
         result.put(key,scan(val));
-    end;
+    end
 end
