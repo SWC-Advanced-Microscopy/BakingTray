@@ -70,7 +70,7 @@ function areaSelector(obj,~,~)
         msg = 'Apply new selection box?';
     end
 
-    A=questdlg(msg);
+    A=questdlg(msg,'','Yes','No','No');
 
     if strcmpi(A,'yes')
         obj.model.recipe.FrontLeft.X = leftPos;
