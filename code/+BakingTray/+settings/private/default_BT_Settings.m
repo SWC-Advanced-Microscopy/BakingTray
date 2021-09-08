@@ -9,6 +9,7 @@ function settings=default_BT_Settings
     % settings.SYSTEM.homeZjackOnZeroMove=1; %If true, BakingTray homes the Z jack if the user moves to zero (lowered) from a large distance away. THE HOME POSITION MUST BE THE LOWERED POSITION!
     % settings.SYSTEM.dominantTilingDirection='y'; % The  stage axis which will conduct the bulk of the motions in the S-shaped tile scan
     % settings.SYSTEM.defaultSavePath='C:\'; % The default path to bring up for saving data. If missing or not valid we use the current directory instead. 
+    % settings.SYSTEM.autoROIchannelOrder={'red','green','blue'}; % The first available of these channels will be used for the autoROI. 
     %
     % settings.SLACK.user='@SYSTEM'; % This is the username that appears with a Slack message
     % settings.SLACK.hook=[]; % This is the hook for sending messages
@@ -27,7 +28,8 @@ function settings=default_BT_Settings
     settings.SYSTEM.homeZjackOnZeroMove=1;
     settings.SYSTEM.dominantTilingDirection='y';
     settings.SYSTEM.defaultSavePath='C:\';
-
+    settings.SYSTEM.autoROIchannelOrder={'red','green','blue'};
+    
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
 
