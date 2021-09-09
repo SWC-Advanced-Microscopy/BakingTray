@@ -39,7 +39,10 @@ The current feature set is as follows:
 
 
 ### Getting started ###
+The software has been tested on MATLAB R2019b to R2021a. 
+It runs on ScanImage 5.6.x and Basic 2020 and 2021. 
 See the documentation at [bakingtray.mouse.vision](https://bakingtray.mouse.vision)
+
 Please do get in touch if use the software: especially if you are publishing with it!
 
 
