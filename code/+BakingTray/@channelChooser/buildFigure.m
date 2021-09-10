@@ -26,7 +26,7 @@ function buildFigure(obj)
     % Add the emission filter bands as colored areas
 
     hold(obj.hAxesMain,'on')
-    for ii=1:4 
+    for ii=1:length(obj.chanRanges)
         obj.hFilterBands(ii) = obj.plotChanBand(obj.chanRanges(ii));
     end
 

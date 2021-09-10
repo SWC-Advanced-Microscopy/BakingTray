@@ -51,28 +51,7 @@ classdef channelChooser < BakingTray.gui.child_view
                 obj.parentView = parentView;
             end
 
-
-
-            % Hard code for now. (TODO)
-            obj.chanRanges(1).centre = 676;
-            obj.chanRanges(1).width = 29;
-            obj.chanRanges(1).name = 'Far Red';
-            obj.chanRanges(1).hardwareChanIndex = 1;
-
-            obj.chanRanges(2).centre = 605;
-            obj.chanRanges(2).width = 70;
-            obj.chanRanges(2).name = 'Red';
-            obj.chanRanges(2).hardwareChanIndex = 2;
-
-            obj.chanRanges(3).centre = 525;
-            obj.chanRanges(3).width = 39;
-            obj.chanRanges(3).name = 'Green';
-            obj.chanRanges(3).hardwareChanIndex = 3;
-
-            obj.chanRanges(4).centre = 460;
-            obj.chanRanges(4).width = 60;
-            obj.chanRanges(4).name = 'Blue';
-            obj.chanRanges(4).hardwareChanIndex = 4;
+            obj.chanRanges = BakingTray.channelChooser.readSettings;
 
             % Build the figure
             buildFigure(obj);
@@ -131,6 +110,3 @@ classdef channelChooser < BakingTray.gui.child_view
 
 
 end % classdef
-
-
-
