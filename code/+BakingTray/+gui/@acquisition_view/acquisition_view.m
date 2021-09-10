@@ -50,7 +50,6 @@ classdef acquisition_view < BakingTray.gui.child_view
         button_drawBox
 
         checkBoxLaserOff
-        checkBoxCutLast
 
     end %close hidden private properties
 
@@ -448,13 +447,6 @@ classdef acquisition_view < BakingTray.gui.child_view
             % Set the leave laser on flag in the model.
             % Responds to checkbox
             obj.model.leaveLaserOn=~obj.checkBoxLaserOff.Value;
-        end %updateLeaveLaserOn
-
-
-        function updateSliceLastSection(obj,~,~)
-            % Set the slice last section flag in the model.
-            % Responds to checkbox
-            obj.model.sliceLastSection=obj.checkBoxCutLast.Value;
         end %updateLeaveLaserOn
 
     end %close hidden callbacks

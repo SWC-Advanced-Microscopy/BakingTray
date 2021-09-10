@@ -9,6 +9,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 10th September
 - USER (Dev) - When a cutting position is set the Z jack motions via the GUI are disabled using a checkbox. This can be over-ridden by the user. 
+- USER (Dev) - Slice last section is now removed from the acqusition view and is disabled by default. 
 
 
 5th September
