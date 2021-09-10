@@ -1,7 +1,7 @@
-function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
+function optimalWavelength = determineLaserWavelength(obj,diagnosticPlot)
     % Based on emission spectra figure out the optimal laser wavelength
     %
-    %  function chansToSave = channelChooser.determineLaserWavelength(obj,diagnostPlot)
+    %  function optimalWavelength = channelChooser.determineLaserWavelength(obj,diagnostPlot)
     %
     % Purpose
     % Returns optimal laser wavelength in nm
@@ -24,7 +24,7 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
     end 
 
 
-    laserWavelength = [];
+    optimalWavelength = [];
 
     if isempty(obj.hDyeSpectraExcitation)
         return
@@ -66,7 +66,8 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
     [val,ind]=max(sum(normSpectra,2));
     x = eL(1:end-1) + stepSize/2;
 
-    fprintf('Optimal wavelength: %d nm\n', x(ind))
+    optimalWavelength = x(ind);
+    fprintf('Optimal wavelength: %d nm\n', optimalWavelength)
 
 
     if ~diagnosticPlot

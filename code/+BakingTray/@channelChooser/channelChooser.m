@@ -25,6 +25,8 @@ classdef channelChooser < BakingTray.gui.child_view
         hCheckBoxes % structure of checkbox handles
         hMessageText % Text displayed in the panel for user info
 
+        hLaserSetButton
+        hChannelSetButton
     end % properties
 
     properties (Hidden)
@@ -47,7 +49,7 @@ classdef channelChooser < BakingTray.gui.child_view
             end
 
             if nargin>1
-                %If the BT view created this panel, it will provide this argument
+                %If the BT view class created this panel, it will provide this argument
                 obj.parentView = parentView;
             end
 
@@ -62,6 +64,45 @@ classdef channelChooser < BakingTray.gui.child_view
         function delete(obj)
             delete(obj.hFig)
         end
+
+
+
+        function setLaserWavelengthCallback(obj,~,~)
+            if obj.model.laser.isPoweredOn == false
+                warndlg('Laser wavelength can not be set until laser is powered on.')
+                return
+            end
+            if isempty(obj.hDyeSpectraExcitation)
+                warndlg('Select dyes to calculate an optimal laser wavelength.')
+                return
+            end 
+
+            optimalWavelength = obj.determineLaserWavelength;
+            if isempty(optimalWavelength)
+                warndlg('No optimal laser wavelength is available.')
+                return
+            end 
+
+            msg = sprintf('Tune laser to %d nm?',optimalWavelength);
+            q=questdlg(msg,'','Yes','No','Yes');
+            if strcmpi(q,'yes')
+                obj.model.laser.setWavelength(optimalWavelength);
+            end
+        end %setLaserWavelengthCallback
+
+
+        function setChannelsToAcquire(obj,~,~)
+            if isempty(obj.hDyeSpectraExcitation)
+                warndlg('Select dyes to determine which channels to save.')
+                return
+            end 
+            chansToSave = obj.determineChansToSave;
+            if isempty(chansToSave)
+                warndlg('Not able to determine channels to save.')
+                return
+            end 
+            obj.model.scanner.setChannelsToAcquire = chansToSave;
+        end %setChannelsToAcquire
 
 
         function dyeCallback(obj,src,evt)   
@@ -93,7 +134,7 @@ classdef channelChooser < BakingTray.gui.child_view
 
             % Report to message box which channels the user should select in SI
             obj.updateMessageText;
-        end
+        end %dyeCallback
 
 
         function updateMessageText(obj,src,evt)
@@ -105,7 +146,8 @@ classdef channelChooser < BakingTray.gui.child_view
             end
             msg(end-1:end)=[];
             obj.hMessageText.Value = msg;
-        end
+        end %updateMessageText
+
     end % methods
 
 

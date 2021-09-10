@@ -329,6 +329,25 @@ classdef SIBT < scanner
         end %getChannelsToDisplay
 
 
+        function setChannelsToAcquire(obj,chans)
+            % Ensure chans is valid
+            chans = unique(chans);
+            chans(chans<1)=[];
+            chans(chans>obj.maxChannelsAvailable)=[];
+
+            if ~isequal(obj.channelsToSave,chans)
+                if obj.verbose
+                    fprintf(' channelsToAcquire has changed\n')
+                end
+                %Then something has changed
+                obj.flipScanSettingsChanged
+                obj.channelsToSave = theseChans; %store the currently selected channels to save
+            end
+            
+            obj.hC.hChannels.channelSave = chans;
+        end % setChannelsToAcquire
+
+
         function setChannelsToDisplay(obj,chans)
             % Ensure chans is valid
             chans = unique(chans);

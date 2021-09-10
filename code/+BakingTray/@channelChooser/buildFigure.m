@@ -51,9 +51,6 @@ function buildFigure(obj)
             'ValueChangedFcn', @obj.dyeCallback);
     end
 
-    obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
-                                'Position',[150,8,450,50]);
-
     % The smaller axis that shows the excitation spectra and 2p cross sections
     obj.hAxesExcite = uiaxes(obj.hPanel);
     obj.hAxesExcite.BackgroundColor = obj.hPanel.BackgroundColor;
@@ -70,6 +67,26 @@ function buildFigure(obj)
     obj.hLegend.Box='off';
     obj.hLegend.Location='northwest'; 
 
+
+    % Text box for reporting to screen
+    obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
+                                'Position',[150,8,450,50]);
+
+    % Button for setting laser
+    obj.hLaserSetButton = uibutton('Parent',obj.hPanel, ...
+                        'Text','Set Laser Wavelength', ...
+                        'Position',[620,38,170,20], ...
+                        'ButtonPushedFcn',@obj.setLaserWavelengthCallback);
+
+    obj.hChannelSetButton = uibutton('Parent',obj.hPanel, ...
+                        'Text','Set Channels To Acquire', ...
+                        'Position',[620,10,170,20],...
+                        'ButtonPushedFcn',@obj.setChannelsToAcquire);
+    
+    if isempty(obj.parentView)
+        obj.hLaserSetButton.Enable='off';
+        obj.hChannelSetButton.Enable='off';
+    end
 end
 
 

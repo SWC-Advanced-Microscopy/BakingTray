@@ -230,6 +230,10 @@ classdef dummyScanner < scanner
         end
 
 
+        function setChannelsToAcquire(obj,chans)
+        end
+
+
         function setChannelsToDisplay(obj,chans)
         end
 
