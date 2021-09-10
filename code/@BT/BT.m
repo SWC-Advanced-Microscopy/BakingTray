@@ -71,7 +71,7 @@ classdef BT < loghandler
     properties (SetObservable,AbortSet,Transient)
         sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         leaveLaserOn=false      % If true, the laser is not switched off when acquisition finishes.
-        sliceLastSection=true   % If true, the last section is sliced. If false it's left on the face of the block
+        sliceLastSection=false  % If true, the last section is sliced. If false it's left on the face of the block
         importLastFrames=true   % If true, we keep a copy of the frames acquired at the last X/Y position in BT.downSampledTileBuffer
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
