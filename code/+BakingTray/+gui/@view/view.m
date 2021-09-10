@@ -21,6 +21,7 @@ classdef view < handle
         view_laser      % The laser GUI object is stored here
         view_prepare    % The prepare GUI object is stored here
         view_acquire    % The acquisition GUI object is stored here
+        view_channelChooser % The channelChooser GUI
 
         % Text display boxes
         text_sampleDir
@@ -60,7 +61,7 @@ classdef view < handle
         recipePanel %recipe editing goes here
 
         suppressToolTips=false
-
+        allowChannelChooser=false % If true the channel chooser appears in the Tools menu.
     end
 
     % Declare methods and callbacks in separate files

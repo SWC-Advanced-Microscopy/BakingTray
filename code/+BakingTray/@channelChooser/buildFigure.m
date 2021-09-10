@@ -3,6 +3,9 @@ function buildFigure(obj)
 
     obj.hFig = BakingTray.gui.newGenericGUIFigureWindow(obj.mainGUIname,false,true);
 
+    % Closing the figure closes the prepare_view object
+    set(obj.hFig,'CloseRequestFcn', @obj.closeComponentView);
+
     obj.hFig.Tag = obj.mainGUIname;
     obj.hFig.Position = [obj.hFig.Position(1:2),900,800]; %hack
 

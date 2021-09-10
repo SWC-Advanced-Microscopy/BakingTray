@@ -21,14 +21,20 @@ function buildWindow(obj)
     obj.menu.tools = uimenu(obj.hFig,'Label','Tools');
 
 
-    obj.menu.api = uimenu(obj.menu.sample,'Label','New Sample','Callback',@obj.newSample);
-    obj.menu.api = uimenu(obj.menu.sample,'Label','Load Recipe','Callback', @obj.loadRecipe);
-    obj.menu.api = uimenu(obj.menu.sample,'Label','Resume Acquisition', 'Callback', @obj.loadRecipe);
-    obj.menu.api = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
-    obj.menu.api = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
-    obj.menu.api = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
-    obj.menu.api = uimenu(obj.menu.tools,'Label','Reference Stages','Callback',@obj.referenceStages);
+    obj.menu.newSample = uimenu(obj.menu.sample,'Label','New Sample','Callback',@obj.newSample);
+    obj.menu.loadRecipe = uimenu(obj.menu.sample,'Label','Load Recipe','Callback', @obj.loadRecipe);
+    obj.menu.resumeAcq = uimenu(obj.menu.sample,'Label','Resume Acquisition', 'Callback', @obj.loadRecipe);
+    obj.menu.saveTecipe = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
+    obj.menu.gensupportreport = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
+    obj.menu.genAPIhandles = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
+    obj.menu.refStages = uimenu(obj.menu.tools,'Label','Reference Stages','Callback',@obj.referenceStages);
+    obj.menu.chanChooser = uimenu(obj.menu.tools,'Label','Channel chooser','Callback',@obj.startChannelChooserGUI);
 
+    % The channel chooser is optional right now because it's experimental
+    if ~obj.allowChannelChooser
+        disp('Disabling channelChooser menu item')
+        obj.menu.chanChooser.Enable='off';
+    end
 
     %If the user runs ScanImage, prompt to connect to ScanImage
     %TODO: these menu items should react to whether or not the scanner is connected
