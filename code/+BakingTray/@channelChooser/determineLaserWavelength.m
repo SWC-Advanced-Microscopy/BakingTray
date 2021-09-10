@@ -11,6 +11,13 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
     %                  showing how the result was achieved. 
     %
 
+    % TODO:
+    % 1. Compare mCherry at 760 and 780. How much nicer is it? Should we cap the laser to 780? Are there other issues with 760?
+    % 2. Compare tdTomato at 920 vs 980. Supposedly it's brighter at 980 and if we have it alone then this would make sense. However,
+    %    how much less power is there? Will it be a hasle to set up or should I just have a power calib curve for 980? 
+    % 3. Maybe I should write code to make a power calib table automatically. Then it can be produced for the user at the same time
+    %    as the laser wavelenth is set. 
+
 
     if nargin<2
         diagnosticPlot = false;
@@ -38,7 +45,7 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
     stepSize = 10;
     eL = XLim(1):stepSize:XLim(2);
 
-    eSpectra = zeros(length(eL), length(tFields));
+    eSpectra = zeros(length(eL)-1, length(tFields));
 
     for ii=1:length(tFields)
 
@@ -46,9 +53,20 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
         % We will not consider ever setting the wavelength to values
         % where one of the flurophores has a very low value. So we 
         % bias ourselves here by setting these to Nans. TODO.
-        return
+        
 
     end
+
+    % To bias away from choosing values where a fluorophore is very low brightness, set
+    % any brightness values that are less than 2.5 to -10
+    eSpectra(eSpectra<=2.5)=-10;
+
+    normSpectra = eSpectra ./ max(eSpectra);
+
+    [val,ind]=max(sum(normSpectra,2));
+    x = eL(1:end-1) + stepSize/2;
+
+    fprintf('Optimal wavelength: %d nm\n', x(ind))
 
 
     if ~diagnosticPlot
@@ -57,7 +75,12 @@ function chansToSave = determineLaserWavelength(obj,diagnosticPlot)
 
     f = figure(sum(mfilename));
     f.Name = 'wavelength diagnostics';
+    subplot(1,2,1)
+    plot(eSpectra), drawnow,
+    plot(x,sum(eSpectra,2)), drawnow,
 
+    subplot(1,2,2)
+    plot(x,sum(normSpectra,2))
 
 
 
@@ -78,11 +101,18 @@ end %determineLaserWavelength
 
 
 function OUT = resampleCurve(data,eL)
+    % resampleCurve
+    % Resample the wavelength curve in fixed bins defined by the vector eL
+
     X = data.XData;
     Y = data.YData;
 
-    origDataSamplePeriod = mode(diff(X))
+    OUT = zeros(1,length(eL)-1);
+
+    origDataSamplePeriod = mode(diff(X));
     for ii = 1:length(eL)-1
-        f = find(X>=eL(ii) & X<=eL(ii+1))
+        f = find(X>=eL(ii) & X<=eL(ii+1));
+        OUT(ii) = mean(Y(f));
     end
+
 end %resampleCurve

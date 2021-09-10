@@ -58,7 +58,7 @@ function buildFigure(obj)
     obj.hAxesExcite = uiaxes(obj.hPanel);
     obj.hAxesExcite.BackgroundColor = obj.hPanel.BackgroundColor;
     obj.hAxesExcite.Position = [150,90,700,300];
-    obj.hAxesExcite.XLim=[760,950];
+    obj.hAxesExcite.XLim=[760,980];
     obj.hAxesExcite.TickLength=[0,0];
     obj.hAxesExcite.XLabel.String='Excitation Wavelength (nm)';
     obj.hAxesExcite.YLabel.String='2-Photon Brightness';
