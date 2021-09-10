@@ -138,6 +138,8 @@ classdef channelChooser < BakingTray.gui.child_view
 
 
         function updateMessageText(obj,src,evt)
+
+            % First list channels to save
             chansToSave = obj.determineChansToSave;
             msg = sprintf('Channels to save:\n');
             for ii=1:length(chansToSave)
@@ -145,6 +147,14 @@ classdef channelChooser < BakingTray.gui.child_view
                 msg = sprintf('%sChan %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
             end
             msg(end-1:end)=[];
+
+
+            % No add optimal laser wavelength
+            optimalWavelength = obj.determineLaserWavelength;
+            if ~isempty(optimalWavelength)
+                msg = sprintf('%s\nOptimal laser wavelength: %d nm',msg,optimalWavelength);
+            end
+
             obj.hMessageText.Value = msg;
         end %updateMessageText
 

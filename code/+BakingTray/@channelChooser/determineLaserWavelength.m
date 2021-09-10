@@ -67,12 +67,13 @@ function optimalWavelength = determineLaserWavelength(obj,diagnosticPlot)
     x = eL(1:end-1) + stepSize/2;
 
     optimalWavelength = x(ind);
-    fprintf('Optimal wavelength: %d nm\n', optimalWavelength)
 
 
     if ~diagnosticPlot
         return
     end
+
+    fprintf('Optimal wavelength: %d nm\n', optimalWavelength)
 
     f = figure(sum(mfilename));
     f.Name = 'wavelength diagnostics';
