@@ -50,7 +50,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
 
 
     properties (Hidden)
-        parent  %A copy of the parent object (likely BakingTray) to which this component is attached
+        parent  %A reference of the parent object (likely BakingTray) to which this component is attached
     end
 
     % These are GUI-related properties. The view class that comproses the GUIi listens to changes in 

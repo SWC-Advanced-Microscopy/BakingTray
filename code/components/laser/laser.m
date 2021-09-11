@@ -32,7 +32,7 @@ classdef (Abstract) laser < handle
     end %close public properties
 
     properties (Hidden)
-        parent  %A copy of the parent object (likely BakingTray) to which this component is attached
+        parent  %A reference of the parent object (likely BakingTray) to which this component is attached
     end %close hidden properties
 
 

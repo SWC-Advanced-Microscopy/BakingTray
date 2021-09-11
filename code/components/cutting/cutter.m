@@ -32,7 +32,7 @@ classdef (Abstract) cutter < handle
                                  % motion of the blade once it's cut through the block.
     end
     properties (Hidden)
-        parent  %A copy of the parent object (likely BakingTray) to which this component is attached
+        parent  %A reference of the parent object (likely BakingTray) to which this component is attached
     end 
 
 
