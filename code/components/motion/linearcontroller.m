@@ -375,12 +375,6 @@ classdef (Abstract) linearcontroller < handle & loghandler
                 obj.logMessage(inputname(1),dbstack,6,'Controller or stages not connected.')
                 return
             end
-
-            if ~obj.isStageReferenced 
-                obj.logMessage(inputname(1),dbstack,6,'Controller not referenced.')
-                return
-            end
-
             ready=true;
         end %isAxisReady
 

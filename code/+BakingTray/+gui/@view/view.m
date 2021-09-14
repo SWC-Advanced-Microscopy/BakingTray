@@ -183,8 +183,8 @@ classdef view < handle
 
         function referenceStages(obj,~,~)
             % Reference stages if needed
-            ST = obj.model.allStagesReferenced;
-            if isempty(ST)
+            [allReferenced,ST] = obj.model.allStagesReferenced;
+            if allReferenced
                 % No stages need referencing
                 msgbox('All stage axes are referenced')
             else

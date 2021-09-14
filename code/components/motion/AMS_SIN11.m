@@ -359,11 +359,6 @@ classdef AMS_SIN11 < linearcontroller
         %We first ensure that the limit switch associated with home
         %is the switch associated with the retracted actuator. This
         %will be safer for our application. 
-        success=obj.isAxisReady;
-        if ~success
-          return
-        end
-
         fprintf('Homing axis on AMS_SIN11')
 
         obj.sendAndReceiveSerial([obj.axID,'M-20000']); %go all the way down

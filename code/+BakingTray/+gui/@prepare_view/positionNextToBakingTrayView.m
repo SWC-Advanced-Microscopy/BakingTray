@@ -3,11 +3,11 @@ function positionNextToBakingTrayView(obj)
     %
     % function BT.positionNextToBakingTrayView(obj)
 
-    if isempty(obj.hBTview)
+    if isempty(obj.parentView)
         %Then the GUI wasn't started by pressing the button on the main BT view
         return
     end
 
-    iptwindowalign(obj.hBTview.hFig, 'right', obj.hFig, 'left');
+    iptwindowalign(obj.parentView.hFig, 'right', obj.hFig, 'left');
 
 end %positionNextToBakingTrayView

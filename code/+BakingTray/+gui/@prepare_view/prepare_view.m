@@ -5,7 +5,6 @@ classdef prepare_view < BakingTray.gui.child_view
     %
 
     properties
-
         %Buttons
         largeStep=struct
         smallStep=struct
@@ -25,7 +24,6 @@ classdef prepare_view < BakingTray.gui.child_view
     end
 
     properties (Hidden)
-        hBTview  % Handle to the main view class that spawns this GUI
         % The following properties store GUI panel handles
         move_panel
         slice_panel
@@ -73,7 +71,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
             if nargin>1
                 %If the BT view created this panel, it will provide this argument
-                obj.hBTview=hBTview;
+                obj.parentView=hBTview;
             end
 
             %Do not proceed if any components are missing
@@ -82,7 +80,16 @@ classdef prepare_view < BakingTray.gui.child_view
                 fprintf('Not starting BakingTray.gui.prepare_view:\n%s\n',msg)
                 obj.delete
             end
-
+            
+            %Force user to reference stages before carrying on.
+            if hBT.allStagesReferenced == false
+                hBTview.referenceStages
+                if hBT.allStagesReferenced == false
+                     msgbox('There are still non-referenced stages. Not opening prepare GUI.')
+                     delete(obj)
+                     return
+                end
+            end
             %Keep a copy of the BT model
             obj.model = hBT;
 
@@ -118,8 +125,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 delete(obj.prepareViewUpdateTimer)
             end
 
-            obj.hBTview=[];
-            delete@BakingTray.gui.child_view(obj);
+            delete@BakingTray.gui.child_view(obj); %TODO: this is redundant, I think
         end %Constructor
 
 
@@ -297,10 +303,25 @@ classdef prepare_view < BakingTray.gui.child_view
         end %updateCuttingConfigurationText
 
         function executeAbsoluteMotion(obj,event,~)
-            % Execute motion on the axis object that we determine from the tag of the absolute motion edit box
+            % BakingTray.gui.view.executeAbsoluteMotion
+            %
+            % This callback is run when the user edits one of the absolute
+            % motion text entry boxes. It executes motion on the axis object 
+            % that we determine from the tag of the absolute motion edit box
+            % itself. 
+            
+             
             motionAxisString=event.Tag;
             axisToMove=obj.model.(motionAxisString);
             if ~obj.isSafeToMove(axisToMove)
+                return
+            end
+
+            % If any axis is not referenced we ask the user to refence the
+            % stages. 
+            if obj.model.allStagesReferenced == false
+                obj.parentView.referenceStages;
+                axisToMove.axisPosition; %Ensure current position is displayed in GUI
                 return
             end
 
