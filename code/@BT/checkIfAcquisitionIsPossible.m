@@ -70,7 +70,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % Check if PMT auto power on is selected. Try to turn it off but if
     % this fails we make the user do it. 
     if obj.scanner.disablePMTautoPower == false
-        msgPMT = 'Uncheck PMT auto-on. PMTs will be turned off automatically when Bake completes.\n';
+        msgPMT = 'Uncheck PMT auto-on. PMTs will be turned off automatically when Bake completes.';
         msg = sprintf('%s%d) %s\n', msg, msgNumber, msgPMT);
         msgNumber=msgNumber+1;
     end

@@ -81,6 +81,7 @@ classdef C863 < genericPIcontroller
           else
             %Reference the stage
             obj.hC.FRF('1')
+            obj.axisPosition; %update the position in the stage class
           end
         end
     end %close 

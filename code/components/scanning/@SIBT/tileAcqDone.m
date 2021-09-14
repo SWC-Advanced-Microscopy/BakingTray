@@ -16,22 +16,37 @@ function tileAcqDone(obj,~,~)
     % completed. 
 
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
-    if ~isempty(obj.parent.positionArray)
-        obj.parent.lastTilePos.X = obj.parent.positionArray(obj.parent.currentTilePosition,1);
-        obj.parent.lastTilePos.Y = obj.parent.positionArray(obj.parent.currentTilePosition,2);
-        obj.parent.lastTileIndex = obj.parent.currentTilePosition;
-    else
-        fprintf('BT.positionArray is empty. Not logging last tile positions. Likely hBT.runTileScan was not run.\n')
-    end
+    curTilePos = obj.parent.currentTilePosition; %Current tile position
+    obj.parent.lastTilePos.X = obj.parent.positionArray(curTilePos,1); %Tile X index
+    obj.parent.lastTilePos.Y = obj.parent.positionArray(curTilePos,2); %Tile Y index
+    obj.parent.lastTileIndex = curTilePos;
 
+
+    % Some stages (e.g. Zaber linear stages) do not report quickly or at
+    % all when they have reached their target position. This slows down the
+    % acquisition. There is therefore the option simply use the MATLAB
+    % pause function to wait a fixed time based on distance traveled before
+    % proceeding with the next tile. See fixedStageMotionTimeConstant in
+    % the SIBT_settings.yml (this can be modified live at:
+    % hBT.scanner.settings.hardware.fixedStageMotionTimeConstant see also
+    % the ChangeLog.txt file.
+    fixedWait = obj.settings.hardware.fixedStageMotionTimeConstant;
+
+    % The pause duration is calculated near the end of the callback
+    if fixedWait > 0
+        blockingMotion = false;
+    else
+        blockingMotion = true;
+    end
+    
     %Initiate move to the next X/Y position (blocking motion)
     %the if statement stops us from attempting a move once this callback is
     %called for the final time (a self-call, see below)
     if obj.parent.currentTilePosition < size(obj.parent.currentTilePattern,1)
-        obj.parent.moveXYto(obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,1), ...
-                obj.parent.currentTilePattern(obj.parent.currentTilePosition+1,2), true);
+        obj.parent.moveXYto(obj.parent.currentTilePattern(curTilePos+1,1), ...
+                obj.parent.currentTilePattern(curTilePos+1,2), blockingMotion);
     end
-
+    
     % Import the last frames and downsample them
     debugMessages=false;
 
@@ -96,7 +111,7 @@ function tileAcqDone(obj,~,~)
 
             if obj.verbose
                 fprintf('%d - Placed data from frameNumberAcq=%d (%d) ; frameTimeStamp=%0.4f\n', ...
-                    obj.parent.currentTilePosition, ...
+                    curTilePos, ...
                     lastStripe.frameNumberAcq, ...
                     lastStripe.frameNumberAcqMode, ...
                     lastStripe.frameTimestamp)
@@ -117,9 +132,22 @@ function tileAcqDone(obj,~,~)
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
 
-
+ 
+    % If we are not doing blocking motions then we must have a short pause.
+    % Determine here how long to wait. During a tile scan with one ROI all 
+    % motions will be the same size. With multiple ROIs this is not the case. 
+    % So figure out here what is the longest distance moved so we know how 
+    % long to wait at the end. 
+    if blockingMotion == false
+        dX = diff(obj.parent.positionArray(curTilePos:curTilePos+1,3));
+        dY = diff(obj.parent.positionArray(curTilePos:curTilePos+1,4));
+        dMax = max(abs([dX,dY]));
+        timeToWaitInSeconds = fixedWait * dMax;
+    end
+    
+    
     % Increment the counter and make the new position the current one
-    obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
+    obj.parent.currentTilePosition = curTilePos+1;
 
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
     doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
@@ -142,6 +170,11 @@ function tileAcqDone(obj,~,~)
         pause(0.25)
     end
 
+
+    if blockingMotion == false
+        pause(timeToWaitInSeconds)
+    end
+    
     % Write message to the log file using the logger class
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 

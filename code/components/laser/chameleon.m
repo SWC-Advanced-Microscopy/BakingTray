@@ -344,9 +344,9 @@ classdef chameleon < laser & loghandler
             lambda = obj.readWavelength;
             outputPower = obj.readPower;
             humidity = obj.readHumidity;
-
-            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,humidity=%0.1f', ...
-                lambda,outputPower,humidity);
+            basePlate = obj.readBaseplateTemp;
+            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,humidity=%0.1f,baseplate temp=%0.3f', ...
+                lambda,outputPower,humidity,basePlate);
         end
 
         function success=setWatchDogTimer(obj,value)
@@ -408,6 +408,16 @@ classdef chameleon < laser & loghandler
             keyState = str2double(reply);
         end
 
+        function baseplateTemp = readBaseplateTemp(obj)
+            % return baseplate temp
+            [success,reply] = obj.sendAndReceiveSerial('?BT');
+            if ~success
+                baseplateTemp=[];
+                return
+            end
+            baseplateTemp = str2double(reply);
+        end
+        
         function [faultNumbers,faultStateString] = readFaultState(obj)
             % Return the laser fault state(s) as an integer code and a string. 
             % If there is no fault, it returns the integer "0"

@@ -27,6 +27,7 @@ function buildWindow(obj)
     obj.menu.api = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
     obj.menu.api = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
     obj.menu.api = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);
+    obj.menu.api = uimenu(obj.menu.tools,'Label','Reference Stages','Callback',@obj.referenceStages);
 
 
     %If the user runs ScanImage, prompt to connect to ScanImage

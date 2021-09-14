@@ -21,8 +21,12 @@ function pStack = returnPreviewStructure(obj)
     % This is because agar autofluoresces a lot in blue at 2p excitation
     % wavelengths shorter than about 840 nm. To choose the right channel 
     % we need the channels named in ScanImage. If that is not the case, 
-    % then we get the channel with the highest median.
-    chanToKeep = getLongestWavelength(obj.scanner.getChannelNames,obj.scanner.getChannelsToAcquire);
+    % then we get the channel with the highest median. The channel order
+    % by default is red,green,blue but it can be over-rideden by the user
+    % in the system settings YAML file
+    chanToKeep = getAutoROIChan(obj.scanner.getChannelNames,...
+        obj.scanner.getChannelsToAcquire, ...
+         obj.recipe.SYSTEM.autoROIchannelOrder);
     if isempty(chanToKeep)
         chanToKeep = determineChannelWithHighestSNR(im);
     end
@@ -98,10 +102,11 @@ function chan = determineChannelWithHighestSNR(im)
 
 end
 
-function chan = getLongestWavelength(chanNames,chansToAcquire)
-    % Use a cell array of channel names being acquirred to figure out which
-    % channel is the longest wavelength. Returns empty if the
-    % channel names are not informative enough for this.
+function chan = getAutoROIChan(chanNames,chansToAcquire,autoROIchannelOrder)
+    % Use a cell array of channel names being acquired to figure out which
+    % channel is the one we want for the autoROI. Based on setting found
+    % in the recipe which comes from the system settings YAML.
+    % Returns empty if the channel names are not informative enough for this.
     % Do not return the far red channel as this has very little
     % sample autofluorescence. 
     % This method expects channels to be named either: "Far Red", "Red", "Green", and "Blue"
@@ -125,10 +130,8 @@ function chan = getLongestWavelength(chanNames,chansToAcquire)
 
     chanNamesAcq = chanNames(chansToAcquire);
 
-    preferredChanOrder = {'red','green','blue'};
-
-    for ii=1:length(preferredChanOrder)
-        tChan = preferredChanOrder{ii};
+    for ii=1:length(autoROIchannelOrder)
+        tChan = autoROIchannelOrder{ii};
         ind = strmatch(tChan,chanNamesAcq);
         if ~isempty(ind)
             chan = chansToAcquire(ind);

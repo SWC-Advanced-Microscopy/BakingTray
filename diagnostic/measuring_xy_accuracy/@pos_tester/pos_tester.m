@@ -22,7 +22,6 @@ classdef pos_tester < handle
 
     % Constructor and destructor
     methods
-
         function obj = pos_tester(camToStart,linStage)
             % pos_tester constructor
             %
@@ -43,15 +42,17 @@ classdef pos_tester < handle
             %
             % p=pos_tester(2,Z);
             %
-            
+        
 
             if nargin<1
                 camToStart = obj.camToStart;
             end
 
+
             if nargin>1
                 obj.linStage = linStage;
             end
+
 
             % Connect to the camera and bail out if this fails
             try
@@ -69,7 +70,8 @@ classdef pos_tester < handle
 
                 rPos = obj.cam.vid.ROIPosition;
 
-                preview(obj.cam.vid)
+                preview(p.cam.vid)
+
             catch ME
                 delete(obj)
                 rethrow(ME)
@@ -80,6 +82,7 @@ classdef pos_tester < handle
         function delete(obj)
             % Destructor
             delete(obj.cam)
+            delete(obj.hFig)
         end % Close destructor
 
     end % Close block containing constructor and destructor
@@ -109,12 +112,12 @@ classdef pos_tester < handle
                 if ~isempty(obj.linStage)
                     obj.linStage.relativeMove(seq(ii));
                 end
-                pause(0.25)
             end
             elapsedTime = toc(obj.startTime);
             obj.cam.stopVideo
 
             fps = round(obj.cam.vid.framesAcquired/elapsedTime);
+
             fprintf('Ran at %d fps\n',fps)
 
             warning off 
@@ -129,6 +132,7 @@ classdef pos_tester < handle
                 varargout{1}=out;
             end
         end % runStagePosSequence
+
 
     end % Close block containing short methods
 

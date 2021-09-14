@@ -71,6 +71,18 @@ function settings = readSIBTsettings
         allValid=false;
     end
 
+    if ~isfield(settings.hardware,'fixedStageMotionTimeConstant')
+        % This is a new setting so existing users will not have it
+        % (5/09/20211)
+        settings.hardware.fixedStageMotionTimeConstant = DEFAULT_SETTINGS.hardware.fixedStageMotionTimeConstant;
+        BakingTray.yaml.WriteYaml(settingsFile,settings);
+    end
+
+    if ~isnumeric(settings.hardware.fixedStageMotionTimeConstant) || settings.hardware.fixedStageMotionTimeConstant<0 || ~isscalar(settings.hardware.doResetTrippedPMT)
+        fprintf('hardware.doResetTrippedPMT should be a positive scalar. Setting it to "%d"\n',DEFAULT_SETTINGS.hardware.fixedStageMotionTimeConstant)
+        settings.hardware.fixedStageMotionTimeConstant = DEFAULT_SETTINGS.hardware.fixedStageMotionTimeConstant;
+        allValid=false;
+    end
 
     if ~allValid
         fprintf('\n ********************************************************************\n')

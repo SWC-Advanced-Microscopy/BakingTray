@@ -149,9 +149,6 @@ classdef genericPIcontroller < linearcontroller
           end
           success=true;
 
-          % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
-          obj.referenceStage;
-
           % The PI code turns on a load of warnings. So we turn them off here
           warning off 
         end %connect

@@ -32,7 +32,12 @@ function rgb = wavelength2rgb(lambda,demo)
 	ind = round(lambda - 399);
 
 
-	c = turbo(290);
+	if exist('turbo')
+		c = turbo(290); %Turbo is not in R2019b
+	else
+		disp('NEED TO MAKE MY OWN COLORMAP AS TURBO IS NOT PRESENT IN THIS MATLAB RELEASE')
+		c = jet(290);
+	end
 	cLight = brighten(c,0.85);
 	cDark = brighten(c,-0.95);
 

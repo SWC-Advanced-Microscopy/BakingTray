@@ -1,4 +1,4 @@
-classdef channelChooser < handle
+classdef channelChooser < BakingTray.gui.child_view
     % BakingTray.channelChooser
     %
     % Purpose
@@ -13,35 +13,45 @@ classdef channelChooser < handle
     properties
         chanRanges % structure listing available channel ranges. Built in the constructor
 
-        % Available dye names
-        dyes = {'Alexa647', 'mCherry', 'tdTomato', 'eCFP', 'eGFP', 'eYFP', 'eBFP', 'DiI', 'DiO'}
+        hAxesMain % The axes that show the wavelength plot
+        hAxesExcite % The excitation spectra are plotted here
+
+
+        hFilterBands % rectangles indicating filter bands
+        hDyeSpectraEmission
+        hDyeSpectraExcitation
+        hLegend
+        hPanel % panel that houses ui components
+        hCheckBoxes % structure of checkbox handles
+        hMessageText % Text displayed in the panel for user info
 
     end % properties
 
     properties (Hidden)
-        hFig % Handle of the GUI figure window
-        hAxesMain % The axes that show the wavelength plot
-        mainGUIname = 'channelChooserMain'
-        hFilterBands % rectangles indicating filter bands
-        hDyeSpectra
-        hPanel % panel that houses ui components
-        hCheckBoxes % structure of checkbox handles
-        hMessageText % Text displayed in the panel for user info
+        mainGUIname = 'BakingTray_channelChooser';
+
+        % Available dye names
+        dyes = {'Alexa647', 'mCherry', 'tdTomato', 'eCFP', 'eGFP', 'eYFP', 'eBFP', 'DiI', 'DiO'}
     end % hidden properties
 
 
 
     methods
-        function obj = channelChooser
+        function obj = channelChooser(hBT,parentView)
 
-            % Do not open if it already exists. Just focus existing window and end
-            f=findobj('Tag',obj.mainGUIname);
-            if ~isempty(f)
-                % TODO -- test this
-                figure(f)
-                delete(obj)
-                return
+            obj = obj@BakingTray.gui.child_view;
+
+            if nargin>0
+                %If the BT view created this panel, it will provide this argument
+                obj.model = hBT;
             end
+
+            if nargin>1
+                %If the BT view created this panel, it will provide this argument
+                obj.parentView = parentView;
+            end
+
+
 
             % Hard code for now. (TODO)
             obj.chanRanges(1).centre = 676;
@@ -64,9 +74,8 @@ classdef channelChooser < handle
             obj.chanRanges(4).name = 'Blue';
             obj.chanRanges(4).hardwareChanIndex = 4;
 
-
             % Build the figure
-            buildFigure(obj)
+            buildFigure(obj);
 
 
         end
@@ -80,25 +89,40 @@ classdef channelChooser < handle
             dyeName = src.Text;
             if src.Value == 1
                 % Plot the dye 
-                obj.hDyeSpectra.(dyeName) = obj.plotEmissionSpectrum(dyeName);
+                obj.hDyeSpectraEmission.(dyeName) = obj.plotEmissionSpectrum(dyeName);
+                obj.hDyeSpectraExcitation.(dyeName) = obj.plotExcitationSpectrum(dyeName);
+
+                if ~isempty(obj.hDyeSpectraExcitation.(dyeName))
+                    obj.hDyeSpectraExcitation.(dyeName).Color = obj.hDyeSpectraEmission.(dyeName).Color;
+                else
+                    obj.hDyeSpectraExcitation = rmfield(obj.hDyeSpectraExcitation, dyeName);
+                end
+
             else
                 % Remove the dye               
-                if isfield(obj.hDyeSpectra,dyeName)
-                    delete(obj.hDyeSpectra.(dyeName))
-                    obj.hDyeSpectra = rmfield(obj.hDyeSpectra, dyeName);
+                if isfield(obj.hDyeSpectraEmission,dyeName)
+                    delete(obj.hDyeSpectraEmission.(dyeName))
+                    obj.hDyeSpectraEmission = rmfield(obj.hDyeSpectraEmission, dyeName);
+                end
+                if isfield(obj.hDyeSpectraExcitation,dyeName)
+                    delete(obj.hDyeSpectraExcitation.(dyeName))
+                    obj.hDyeSpectraExcitation = rmfield(obj.hDyeSpectraExcitation, dyeName);
                 end
             end
+            
+            obj.hLegend.String = fields(obj.hDyeSpectraExcitation); %update legend
+
             % Report to message box which channels the user should select in SI
-            obj.updateMessageText
+            obj.updateMessageText;
         end
 
 
         function updateMessageText(obj,src,evt)
             chansToSave = obj.determineChansToSave;
-            msg = 'Channels to save: ';
+            msg = sprintf('Channels to save:\n');
             for ii=1:length(chansToSave)
                 cr=obj.chanRanges(chansToSave(ii));
-                msg = sprintf('%sChannel %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
+                msg = sprintf('%sChan %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
             end
             msg(end-1:end)=[];
             obj.hMessageText.Value = msg;

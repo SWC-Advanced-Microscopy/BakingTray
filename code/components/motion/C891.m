@@ -143,6 +143,7 @@ classdef C891 < genericPIcontroller
             obj.hC.SVO('1',false);
             obj.hC.FRF('1')
             obj.hC.SVO('1',true);
+            obj.axisPosition; %update the position in the stage class
           end
 
         end
