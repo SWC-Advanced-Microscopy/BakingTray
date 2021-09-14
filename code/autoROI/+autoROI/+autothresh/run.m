@@ -25,6 +25,7 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
     % sample vanishes at high threshold values but might go through a peak with many ROIs. At low
     % threshold a low SNR sample is fine. 
 
+
     if nargin<2 || isempty(runSeries)
         runSeries=false;
     end
@@ -54,13 +55,15 @@ function [tThreshSD,stats,tThresh] = run(pStack, runSeries, settings, BBstats)
             fprintf('\n\n\nIn autoThresh.run\n\n ***** WARNING PSTACK SLICES: %d. CURRENT SECTION NUMBER: %d\n', ...
                 size(pStack.imStack,3), pStack.sectionNumber)
             fprintf('Likely re-calculating thresh in live acq. Forcing sectionNumber to equal stack length\n')
+            sectionToProcess = pStack.sectionNumber;
             origIM = pStack.imStack(:,:, 1); % Make a backup of the original image
+            BB = BBstats.roiStats(end).BoundingBoxes; %TODO: this should fix Github Issue #398
         else
             origIM = pStack.imStack(:,:, pStack.sectionNumber); % Make a backup of the original image
+            BB = BBstats.roiStats(pStack.sectionNumber).BoundingBoxes;
         end
 
 
-        BB = BBstats.roiStats(pStack.sectionNumber).BoundingBoxes;
         pStack.sectionNumber=1; % We will use just one plane
 
         for ii=1:length(BB)

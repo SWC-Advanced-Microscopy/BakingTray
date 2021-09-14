@@ -17,6 +17,9 @@ function areaSelector(obj,~,~)
     % The only way I can find to move the label to the centre
     roi.RotationAngle=1E-10;
 
+    obj.statusText.String='Adjust box then double-click'; %display text in message window
+    obj.button_previewScan.Enable='off'; %disable the preview scan button until the user has drawn the ROI
+
     % Reset zoom to zero then zoom out one step. Zooming out is needed
     % for the box to be useful. Only zoom out if we aren't already zoomed out.
     if obj.imageAxes.YLim(1)>=0 && obj.imageAxes.XLim(1)>=0
@@ -70,7 +73,7 @@ function areaSelector(obj,~,~)
         msg = 'Apply new selection box?';
     end
 
-    A=questdlg(msg);
+    A=questdlg(msg,'','Yes','No','No');
 
     if strcmpi(A,'yes')
         obj.model.recipe.FrontLeft.X = leftPos;
@@ -91,9 +94,10 @@ function areaSelector(obj,~,~)
         obj.plotOverlayHandles.NextROI = plot(pixPos(:,1),pixPos(:,2),':', 'color',[0.2,0.3,1],'LineWidth',2,'Parent',obj.imageAxes);
         hold(obj.imageAxes,'off');
     end
-    
-    obj.button_drawBox.Enable='on';
 
+    obj.button_drawBox.Enable='on';
+    obj.button_previewScan.Enable='on';
+    obj.statusText.String=''; %wipe display text in message window
 end % areaSelector
 
 
