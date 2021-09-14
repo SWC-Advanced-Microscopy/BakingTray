@@ -7,6 +7,10 @@ In the following text, the tag "USER" indicates a significant change that will i
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user.
 
 
+14th September
+- USER (Dev) - Sample ID is set automatically after the user chooses a save directory 
+
+
 10th September
 - USER (Dev) - When a cutting position is set the Z jack motions via the GUI are disabled using a checkbox. This can be over-ridden by the user. 
 - USER (Dev) - Slice last section is now removed from the acqusition view and is disabled by default. 

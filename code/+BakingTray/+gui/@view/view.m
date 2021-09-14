@@ -237,13 +237,6 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
-    end %Methods
-
-
-
-
-
-    methods (Hidden)
 
         function changeDir(obj,~,~)
             % The dir selector should open at the system default save path by default otherwise it uses the 
@@ -259,8 +252,19 @@ classdef view < handle
             if ischar(thisDir) && exist(thisDir,'dir')
                 obj.model.sampleSavePath = thisDir; % The GUI itself is changed via a listener defeined in the constructor
             end
+
+            % Set the directory name to be the sample name
+            [~,tDirName] = fileparts(thisDir);
+            obj.model.recipe.sample.ID = tDirName;
         end
 
+    end %Methods
+
+
+
+
+
+    methods (Hidden)
 
         function updateRecipeFname(obj,~,~)
             if obj.model.isRecipeConnected
