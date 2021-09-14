@@ -173,9 +173,6 @@ classdef soloist < linearcontroller
           end
           success=true;
 
-          % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
-          obj.referenceStage;
-
         end %connect
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

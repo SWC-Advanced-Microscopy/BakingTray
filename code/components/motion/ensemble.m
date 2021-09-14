@@ -127,9 +127,8 @@ classdef ensemble < linearcontroller
           catch ME
               H=[];
               fprintf('Failed to find a Ensemble: %s\n', ME.message);
-              success=false;
-              
-             return
+              success=false;              
+              return
           end
 
           if length(H)>1
@@ -171,10 +170,6 @@ classdef ensemble < linearcontroller
             return
           end
           success=true;
-
-          % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
-          obj.referenceStage;
-
 
         end %connect
 
