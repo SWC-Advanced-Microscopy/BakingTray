@@ -408,6 +408,7 @@ classdef soloist < linearcontroller
           if obj.isStageReferenced
               return
           end
+          obj.enableAxis;
           SoloistMotionHome(obj.hC)
           success=obj.isStageReferenced;
         end

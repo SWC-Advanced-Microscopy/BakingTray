@@ -405,6 +405,7 @@ classdef ensemble < linearcontroller
           if obj.isStageReferenced
               return
           end
+          obj.enableAxis;
           EnsembleMotionHome(obj.hC, 0);
           success=obj.isStageReferenced;
         end
