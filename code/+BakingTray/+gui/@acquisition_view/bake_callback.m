@@ -70,7 +70,15 @@ function bake_callback(obj,~,~)
         return
     end
 
+
+
     obj.button_BakeStop.Enable='on'; 
+
+    % Enable the z-jack again if the prep GUI is open
+    if isvalid(obj.parentView.view_prepare)
+        obj.parentView.view_prepare.unLockZ;
+    end
+
 
     if obj.checkBoxLaserOff.Value==1 & sectionInd>0
         % If the laser was slated to turn off then we also close

@@ -14,5 +14,7 @@ function takeOneSlice(obj,~,~)
     obj.resetBladeIfNeeded
 
     obj.model.sliceSample(obj.lastSliceThickness, obj.lastCuttingSpeed);
-    obj.lockZ_callback;
-end
+
+    % So the Z stage can not be moved by accident
+    obj.lockZ
+end % takeOneSlice

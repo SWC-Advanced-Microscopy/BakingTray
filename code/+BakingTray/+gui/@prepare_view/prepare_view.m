@@ -165,6 +165,21 @@ classdef prepare_view < BakingTray.gui.child_view
 
         end %resetStepSizesToDefaults
 
+
+        function lockZ(obj)
+            % Locks the Z jack
+            obj.lockZ_checkbox.Value=1; 
+            obj.lockZ_callback;
+        end 
+
+
+        function unLockZ(obj)
+            % unlocks the Z jack
+            obj.lockZ_checkbox.Value=0;
+            obj.lockZ_callback;
+        end 
+
+
         function updateJogProperties(obj,event,~)
             %This callback function ensures that the jog properties are kept up to date when the user
             %edits one of the step size values. 
@@ -362,7 +377,6 @@ classdef prepare_view < BakingTray.gui.child_view
             % Runs when the set cutting start point button is pressed
             obj.model.recipe.setCurrentPositionAsCuttingPosition;
             obj.updateCuttingConfigurationText;
-            obj.lockZ_checkbox.Value=1; % So the Z stage can not be moved by accident
         end % setCuttingPos_callback
 
         function setVentralMidline_callback(obj,~,~)
