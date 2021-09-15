@@ -223,6 +223,15 @@ classdef (Abstract) scanner < handle & loghandler
         % by the scanner software. 
         % e.g. if channels one and three are to be displayed this method should return [1,3]
 
+        setChannelsToAcquire(obj)
+        % setChannelsToAcquire
+        % 
+        % Behavior
+        % Set channels to save by the scanner
+        %
+        % Inputs
+        % chans - a vector of channels to save
+
         setChannelsToDisplay(obj,chans)
         % setChannelsToDisplay(chans)
         %

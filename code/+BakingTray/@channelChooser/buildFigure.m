@@ -3,6 +3,9 @@ function buildFigure(obj)
 
     obj.hFig = BakingTray.gui.newGenericGUIFigureWindow(obj.mainGUIname,false,true);
 
+    % Closing the figure closes the prepare_view object
+    set(obj.hFig,'CloseRequestFcn', @obj.closeComponentView);
+
     obj.hFig.Tag = obj.mainGUIname;
     obj.hFig.Position = [obj.hFig.Position(1:2),900,800]; %hack
 
@@ -26,7 +29,7 @@ function buildFigure(obj)
     % Add the emission filter bands as colored areas
 
     hold(obj.hAxesMain,'on')
-    for ii=1:4 
+    for ii=1:length(obj.chanRanges)
         obj.hFilterBands(ii) = obj.plotChanBand(obj.chanRanges(ii));
     end
 
@@ -51,14 +54,11 @@ function buildFigure(obj)
             'ValueChangedFcn', @obj.dyeCallback);
     end
 
-    obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
-                                'Position',[150,8,450,50]);
-
     % The smaller axis that shows the excitation spectra and 2p cross sections
     obj.hAxesExcite = uiaxes(obj.hPanel);
     obj.hAxesExcite.BackgroundColor = obj.hPanel.BackgroundColor;
     obj.hAxesExcite.Position = [150,90,700,300];
-    obj.hAxesExcite.XLim=[760,950];
+    obj.hAxesExcite.XLim=[760,980];
     obj.hAxesExcite.TickLength=[0,0];
     obj.hAxesExcite.XLabel.String='Excitation Wavelength (nm)';
     obj.hAxesExcite.YLabel.String='2-Photon Brightness';
@@ -70,6 +70,26 @@ function buildFigure(obj)
     obj.hLegend.Box='off';
     obj.hLegend.Location='northwest'; 
 
+
+    % Text box for reporting to screen
+    obj.hMessageText = uitextarea('Parent',obj.hPanel, ...
+                                'Position',[150,8,520,50]);
+
+    % Button for setting laser
+    obj.hLaserSetButton = uibutton('Parent',obj.hPanel, ...
+                        'Text','Set Laser Wavelength', ...
+                        'Position',[680,38,170,20], ...
+                        'ButtonPushedFcn',@obj.setLaserWavelengthCallback);
+
+    obj.hChannelSetButton = uibutton('Parent',obj.hPanel, ...
+                        'Text','Set Channels To Acquire', ...
+                        'Position',[680,10,170,20],...
+                        'ButtonPushedFcn',@obj.setChannelsToAcquire);
+    
+    if isempty(obj.parentView)
+        obj.hLaserSetButton.Enable='off';
+        obj.hChannelSetButton.Enable='off';
+    end
 end
 
 

@@ -24,7 +24,7 @@ function newSample(obj,~,~)
     % Set to default values other properties of BakingTray
     obj.model.currentSectionNumber = 1;
 
-    % Set default jog sizes
+    % Set default jog sizes (redundant since we close the GUI but let's leave it here for now)
     if ~isempty(obj.view_prepare) && isvalid(obj.view_prepare)
         obj.view_prepare.resetStepSizesToDefaults;
     end

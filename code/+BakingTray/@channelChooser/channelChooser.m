@@ -25,6 +25,8 @@ classdef channelChooser < BakingTray.gui.child_view
         hCheckBoxes % structure of checkbox handles
         hMessageText % Text displayed in the panel for user info
 
+        hLaserSetButton
+        hChannelSetButton
     end % properties
 
     properties (Hidden)
@@ -47,32 +49,11 @@ classdef channelChooser < BakingTray.gui.child_view
             end
 
             if nargin>1
-                %If the BT view created this panel, it will provide this argument
+                %If the BT view class created this panel, it will provide this argument
                 obj.parentView = parentView;
             end
 
-
-
-            % Hard code for now. (TODO)
-            obj.chanRanges(1).centre = 676;
-            obj.chanRanges(1).width = 29;
-            obj.chanRanges(1).name = 'Far Red';
-            obj.chanRanges(1).hardwareChanIndex = 1;
-
-            obj.chanRanges(2).centre = 605;
-            obj.chanRanges(2).width = 70;
-            obj.chanRanges(2).name = 'Red';
-            obj.chanRanges(2).hardwareChanIndex = 2;
-
-            obj.chanRanges(3).centre = 525;
-            obj.chanRanges(3).width = 39;
-            obj.chanRanges(3).name = 'Green';
-            obj.chanRanges(3).hardwareChanIndex = 3;
-
-            obj.chanRanges(4).centre = 460;
-            obj.chanRanges(4).width = 60;
-            obj.chanRanges(4).name = 'Blue';
-            obj.chanRanges(4).hardwareChanIndex = 4;
+            obj.chanRanges = BakingTray.channelChooser.readSettings;
 
             % Build the figure
             buildFigure(obj);
@@ -83,6 +64,45 @@ classdef channelChooser < BakingTray.gui.child_view
         function delete(obj)
             delete(obj.hFig)
         end
+
+
+
+        function setLaserWavelengthCallback(obj,~,~)
+            if obj.model.laser.isPoweredOn == false
+                warndlg('Laser wavelength can not be set until laser is powered on.')
+                return
+            end
+            if isempty(obj.hDyeSpectraExcitation)
+                warndlg('Select dyes to calculate an optimal laser wavelength.')
+                return
+            end 
+
+            optimalWavelength = obj.determineLaserWavelength;
+            if isempty(optimalWavelength)
+                warndlg('No optimal laser wavelength is available.')
+                return
+            end 
+
+            msg = sprintf('Tune laser to %d nm?',optimalWavelength);
+            q=questdlg(msg,'','Yes','No','Yes');
+            if strcmpi(q,'yes')
+                obj.model.laser.setWavelength(optimalWavelength);
+            end
+        end %setLaserWavelengthCallback
+
+
+        function setChannelsToAcquire(obj,~,~)
+            if isempty(obj.hDyeSpectraExcitation)
+                warndlg('Select dyes to determine which channels to save.')
+                return
+            end 
+            chansToSave = obj.determineChansToSave;
+            if isempty(chansToSave)
+                warndlg('Not able to determine channels to save.')
+                return
+            end 
+            obj.model.scanner.setChannelsToAcquire = chansToSave;
+        end %setChannelsToAcquire
 
 
         function dyeCallback(obj,src,evt)   
@@ -114,10 +134,12 @@ classdef channelChooser < BakingTray.gui.child_view
 
             % Report to message box which channels the user should select in SI
             obj.updateMessageText;
-        end
+        end %dyeCallback
 
 
         function updateMessageText(obj,src,evt)
+
+            % First list channels to save
             chansToSave = obj.determineChansToSave;
             msg = sprintf('Channels to save:\n');
             for ii=1:length(chansToSave)
@@ -125,12 +147,18 @@ classdef channelChooser < BakingTray.gui.child_view
                 msg = sprintf('%sChan %d (%s), ', msg, cr.hardwareChanIndex, cr.name);
             end
             msg(end-1:end)=[];
+
+
+            % No add optimal laser wavelength
+            optimalWavelength = obj.determineLaserWavelength;
+            if ~isempty(optimalWavelength)
+                msg = sprintf('%s\nOptimal laser wavelength: %d nm',msg,optimalWavelength);
+            end
+
             obj.hMessageText.Value = msg;
-        end
+        end %updateMessageText
+
     end % methods
 
 
 end % classdef
-
-
-

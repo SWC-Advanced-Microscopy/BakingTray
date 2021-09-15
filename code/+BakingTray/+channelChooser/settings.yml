@@ -1,0 +1,20 @@
+channelA:
+  centre: 676
+  width: 29
+  name: 'Far Red'
+  hardwareChanIndex: 1
+channelB:
+  centre: 605
+  width: 70
+  name: 'Red'
+  hardwareChanIndex: 2
+channelC:
+  centre: 525
+  width: 39
+  name: 'Green'
+  hardwareChanIndex: 3
+channelD:
+  centre: 460
+  width: 60
+  name: 'Blue'
+  hardwareChanIndex: 4

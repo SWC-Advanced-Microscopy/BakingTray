@@ -173,9 +173,6 @@ classdef soloist < linearcontroller
           end
           success=true;
 
-          % Reference the stage (Not all controller/stage combinations need this so the method is not defined in this class here)
-          obj.referenceStage;
-
         end %connect
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -411,6 +408,7 @@ classdef soloist < linearcontroller
           if obj.isStageReferenced
               return
           end
+          obj.enableAxis;
           SoloistMotionHome(obj.hC)
           success=obj.isStageReferenced;
         end

@@ -6,6 +6,16 @@ When mature, changes should be merged into master *as a merge commit*  and this 
 In the following text, the tag "USER" indicates a significant change that will impact user experience in some way.
 The tag "DEVELOPER" indicates a change that significantly impacts the code but is likely not visible to the user.
 
+
+14th September
+- USER (Dev) - Sample ID is set automatically after the user chooses a save directory 
+
+
+10th September
+- USER (Dev) - When a cutting position is set the Z jack motions via the GUI are disabled using a checkbox. This can be over-ridden by the user. 
+- USER (Dev) - Slice last section is now removed from the acqusition view and is disabled by default. 
+
+
 5th September
 - USER (Dev) - Stages that need referencing no longer auto-ref when connected. Instead the user must manually select Tools > References Stages from the menu.
 - DEVELOPER (Dev) - Zaber linear stages can be used as X/Y. e.g. X-LRM100A-DE51 are verified to work.

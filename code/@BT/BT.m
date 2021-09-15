@@ -71,7 +71,7 @@ classdef BT < loghandler
     properties (SetObservable,AbortSet,Transient)
         sampleSavePath=''       % The absolute path in which all data related to the current sample will be saved.
         leaveLaserOn=false      % If true, the laser is not switched off when acquisition finishes.
-        sliceLastSection=true   % If true, the last section is sliced. If false it's left on the face of the block
+        sliceLastSection=false  % If true, the last section is sliced. If false it's left on the face of the block
         importLastFrames=true   % If true, we keep a copy of the frames acquired at the last X/Y position in BT.downSampledTileBuffer
         processLastFrames=true; % If true we downsample, these frames, rotate, calculate averages, or similar TODO: define this
     end
@@ -643,17 +643,25 @@ classdef BT < loghandler
 
 
         % Brief convenience methods
-        function stagesToRef = allStagesReferenced(obj)
-            % Returns empty if all stages are referenced. 
+        function [stagesReferenced,stagesToRef] = allStagesReferenced(obj)
+            % BT.allStagesReferenced
+            %
+            % [stagesReferenced,stagesToRef] = allStagesReferenced(obj)\
+            %
+            % Behavior
+            % stagesReferenced is true of all axes are referenced
+            % stagesToRef is empty if all stages are referenced. 
             % If stages need referencing, returns a cell array of stage
             % names to reference. e.g. if x and y stages need referencing
             % then it returns {'xAxis','yAxis'}
             
+            stagesReferenced = true;
             stagesToRef = {};
             axesToTest = {'xAxis','yAxis','zAxis'};
             for ii=1:length(axesToTest)
                 if obj.(axesToTest{ii}).isStageReferenced == false
                     stagesToRef{end+1} = axesToTest{ii};
+                    stagesReferenced = false;
                 end
             end
         end %allStagesReferenced
@@ -665,7 +673,7 @@ classdef BT < loghandler
             % BT.referenceRequiredAxes(obj,stagesToRef)
             
             if nargin<2
-                stagesToRef = obj.allStagesReferenced;
+                [~,stagesToRef] = obj.allStagesReferenced;
             end
             
             if isempty(stagesToRef)

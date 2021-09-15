@@ -21,6 +21,7 @@ classdef view < handle
         view_laser      % The laser GUI object is stored here
         view_prepare    % The prepare GUI object is stored here
         view_acquire    % The acquisition GUI object is stored here
+        view_channelChooser % The channelChooser GUI
 
         % Text display boxes
         text_sampleDir
@@ -60,7 +61,7 @@ classdef view < handle
         recipePanel %recipe editing goes here
 
         suppressToolTips=false
-
+        allowChannelChooser=false % If true the channel chooser appears in the Tools menu.
     end
 
     % Declare methods and callbacks in separate files
@@ -182,8 +183,8 @@ classdef view < handle
 
         function referenceStages(obj,~,~)
             % Reference stages if needed
-            ST = obj.model.allStagesReferenced;
-            if isempty(ST)
+            [allReferenced,ST] = obj.model.allStagesReferenced;
+            if allReferenced
                 % No stages need referencing
                 msgbox('All stage axes are referenced')
             else
@@ -236,13 +237,6 @@ classdef view < handle
             obj.model.recipe.saveRecipe(fullfile(pathToRecipe,fname));
         end %saveRecipeToDisk
 
-    end %Methods
-
-
-
-
-
-    methods (Hidden)
 
         function changeDir(obj,~,~)
             % The dir selector should open at the system default save path by default otherwise it uses the 
@@ -258,8 +252,19 @@ classdef view < handle
             if ischar(thisDir) && exist(thisDir,'dir')
                 obj.model.sampleSavePath = thisDir; % The GUI itself is changed via a listener defeined in the constructor
             end
+
+            % Set the directory name to be the sample name
+            [~,tDirName] = fileparts(thisDir);
+            obj.model.recipe.sample.ID = tDirName;
         end
 
+    end %Methods
+
+
+
+
+
+    methods (Hidden)
 
         function updateRecipeFname(obj,~,~)
             if obj.model.isRecipeConnected
