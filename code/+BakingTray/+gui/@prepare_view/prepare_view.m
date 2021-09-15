@@ -363,7 +363,6 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.model.recipe.setCurrentPositionAsCuttingPosition;
             obj.updateCuttingConfigurationText;
             obj.lockZ_checkbox.Value=1; % So the Z stage can not be moved by accident
-            obj.lockZ_callback;
         end % setCuttingPos_callback
 
         function setVentralMidline_callback(obj,~,~)

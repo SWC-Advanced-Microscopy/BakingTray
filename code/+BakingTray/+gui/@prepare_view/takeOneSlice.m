@@ -14,4 +14,5 @@ function takeOneSlice(obj,~,~)
     obj.resetBladeIfNeeded
 
     obj.model.sliceSample(obj.lastSliceThickness, obj.lastCuttingSpeed);
+    obj.lockZ_callback;
 end
