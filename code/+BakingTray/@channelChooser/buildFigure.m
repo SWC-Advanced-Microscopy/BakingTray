@@ -8,7 +8,7 @@ function buildFigure(obj)
 
     obj.hFig.Tag = obj.mainGUIname;
     obj.hFig.Position = [obj.hFig.Position(1:2),900,800]; %hack
-
+    BakingTray.utils.centerFigureInScreen(obj.hFig)
 
     %obj.hFig.MenuBar = 'none';
     %obj.hFig.ToolBar = 'none';
