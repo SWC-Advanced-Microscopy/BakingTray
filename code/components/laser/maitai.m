@@ -379,6 +379,19 @@ classdef maitai < laser & loghandler
             end
         end
 
+        function readErrorCodeHistory(obj)
+            % Print to screen Mai Tai error codes
+            [success,reply]=obj.sendAndReceiveSerial('PLAS:AHIS?');
+            disp(reply)
+            
+        end
+        
+        function readLastErrorCode(obj)
+            % Print to screen Mai Tai error codes
+            [success,reply]=obj.sendAndReceiveSerial('PLAS:ERRC?');
+            disp(reply)
+            
+        end
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
