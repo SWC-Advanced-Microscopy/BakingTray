@@ -6,6 +6,12 @@ function takeNslices(obj,~,~)
     % Reads from the number of slices edit box and takes this many slices off the block
     % Updates GUI elements accordingly.
 
+
+    if obj.model.allStagesReferenced == false
+            obj.parentView.referenceStages;
+            return
+    end
+
     [cuttingPossible,msg]=obj.model.checkIfCuttingIsPossible;
     if ~cuttingPossible
         warndlg(msg,'')

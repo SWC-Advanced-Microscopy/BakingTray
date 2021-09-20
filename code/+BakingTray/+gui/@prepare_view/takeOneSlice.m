@@ -5,6 +5,11 @@ function takeOneSlice(obj,~,~)
     %
     %
 
+    if obj.model.allStagesReferenced == false
+            obj.parentView.referenceStages;
+            return
+    end
+
     [cuttingPossible,msg]=obj.model.checkIfCuttingIsPossible;
     if ~cuttingPossible
         warndlg(msg,'')

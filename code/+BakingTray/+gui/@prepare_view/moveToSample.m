@@ -4,6 +4,11 @@ function moveToSample(obj,~,~)
     % function prepare_view.moveToSample(obj,~,~)
 
 
+    if obj.model.allStagesReferenced == false
+            obj.parentView.referenceStages;
+            return
+    end
+
     [~,xMSG] = obj.isSafeToMove(obj.model.xAxis);
     [~,yMSG] = obj.isSafeToMove(obj.model.yAxis);
 
