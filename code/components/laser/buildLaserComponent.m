@@ -38,6 +38,9 @@ validComponentSuperClassName = 'laser'; %The name of the abstract class that all
 switch componentName
     case 'dummyLaser'
         component = dummyLaser;
+     case 'tiberius'
+        COMPORT = BakingTray.settings.parseComPort(varargin{1});
+        component = tiberius(COMPORT);
     case 'maitai'
         COMPORT = BakingTray.settings.parseComPort(varargin{1});
         component = maitai(COMPORT);
