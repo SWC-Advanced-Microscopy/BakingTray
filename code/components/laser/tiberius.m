@@ -70,7 +70,7 @@ classdef tiberius < laser & loghandler
             obj.hC=serial(obj.controllerID,...
                 'BaudRate', 19200, ...
                 'FlowControl','software',...
-                'Terminator','CR', ...
+                'Terminator','CR/LF', ...
                 'TimeOut',5);
             try 
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
@@ -107,7 +107,9 @@ classdef tiberius < laser & loghandler
 
 
         function success = turnOn(obj)
+            fprintf('Trying to turn on Tiberius\n')
             obj.sendAndReceiveSerial('LASER=1',false);
+            obj.isLaserOn = true;
             success=true;
         end
 
@@ -115,18 +117,13 @@ classdef tiberius < laser & loghandler
         function success = turnOff(obj)
             obj.closeShutter; % Older tiberius lasers seem not to do this by default 
             obj.sendAndReceiveSerial('LASER=0',false);
+            obj.isLaserOn = false;
             success=true;
         end
 
         function [powerOnState,details] = isPoweredOn(obj)
-            % Really nasty way of telling if the Tiberius is powered on
-            tWavelength=obj.readWavelength;
-            powerOnState = false;
-            if ~isempty(pPower) && isnumeric(tWavelength)
-                if tWavelength>600 && tWavelength<1200
-                    powerOnState = true;
-                end 
-            end
+            % Just return true. It has no way to get this info
+            powerOnState = obj.isLaserOn;
             details='';
         end
 
@@ -175,7 +172,7 @@ classdef tiberius < laser & loghandler
             elseif strcmp(reply,'N')
                 modelockState = false;
             else 
-                fprintf('Unknown reply for modelock state: %s\n', reply)
+                fprintf('Unknown reply for modelock state: "%s"\n', reply)
                 modelockState = false;
             end
                 
@@ -207,7 +204,7 @@ classdef tiberius < laser & loghandler
                 shutterState=[];
                 return
             end
-            shutterState = str2double(reply); %if open the command returns 1
+            shutterState = str2double(reply(3)); %if open the command returns 1
             obj.isLaserShutterOpen=shutterState;
         end
 
@@ -218,7 +215,7 @@ classdef tiberius < laser & loghandler
                 wavelength=[];
                 return
             end
-            wavelength = str2double(wavelength(1:end-2));
+            wavelength = str2double(wavelength(1:end));
             obj.currentWavelength=wavelength;
         end
 
@@ -250,7 +247,7 @@ classdef tiberius < laser & loghandler
                 return
             end
 
-            wavelengthDesired = str2double(wavelengthDesired(1:end-2));
+            wavelengthDesired = str2double(wavelengthDesired(1:end));
             pause(0.33)
             currentWavelength = obj.readWavelength;
 
@@ -334,7 +331,7 @@ classdef tiberius < laser & loghandler
             end
 
             if ~isempty(reply)
-                reply(end)=[];
+                reply(end-1:end)=[];
             else
                 msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
                 success=false;
