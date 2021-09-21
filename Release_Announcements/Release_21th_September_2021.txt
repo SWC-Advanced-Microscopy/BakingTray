@@ -1,0 +1,30 @@
+Release 21st September 2021
+
+This release encapsulates changes made between 20th June 2021 and 21st September 2021.
+
+BakingTray is now compatible with the latest version of SI Basic 2020 and also 2021. 
+BakingTray has been tested and works with MATLAB R2021a
+
+The following changes relevant to end-users were made:
+
+
+
+
+
+
+** Minor improvements in workflow 
+- The Z jack can now be moved up and down using R and F in addition to Q and E. 
+- System will not cut until a cutting start point is set. 
+- Default sample name is now the microscope ID. 
+- Warning issued if the tile size in BakingTray does not match that in ScanImage.
+- Default save location can now be set, so users do not need to navigate to the data drive. NOTE: for this to work the power user must set the new  SYSTEM.defaultSavePath setting in the systemSettings.yml. **It is suggested you set this!** It will reduce user errors. 
+- Drawing of the ROI is now smoother: 
+    - Pressing the "B" button causes the view to zoom out slightly. 
+    - A blue box is temporarily drawn around the area to image once a new ROI is selected.
+
+
+
+
+** Other changes
+- Stages that need referencing will no longer auto-reference when connected. Instead the user must manually select Tools > References Stages from the menu. If there is an unreferenced stage, this will be indicated when the user opens the Prepare GUI, makes an absolute motion command, attempts to slice, or moves to sample. 
+
