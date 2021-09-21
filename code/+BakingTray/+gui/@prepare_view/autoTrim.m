@@ -28,6 +28,9 @@ function autoTrim(obj,~,~)
     obj.lastCuttingSpeed = obj.model.recipe.mosaic.cuttingSpeed;
     obj.checkCuttingSpeedEditBoxValue
 
+    % Ensure we start on the correct side of the blade always. 
+    obj.resetBladeIfNeeded
+
     % Loop through all and cut
     wF = waitbar(0,'Preparing to cut');
     for n = 1:length(cutSeq)

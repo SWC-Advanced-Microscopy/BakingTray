@@ -11,7 +11,7 @@ function resetBladeIfNeeded(obj)
     %
     % No inputs or outputs
     %
-    % Called by takeNslices and takeOneSlice
+    % Called by takeNslices, takeOneSlice, and autoTrim
     
 
     startPoint = obj.model.recipe.CuttingStartPoint.X; %Cutting start point
