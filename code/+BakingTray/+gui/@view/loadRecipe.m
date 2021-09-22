@@ -11,8 +11,9 @@ function loadRecipe(obj,~,~,fullPath)
     % Load recipe button callback -- loads a new recipe from disk
     if nargin<4
     	fullPath = [];
-        pathForUIgetFile = [];
     end
+
+    pathForUIgetFile = [];
 
     if ~isempty(fullPath) && ischar(fullPath) && exist(fullPath,'file')
     	% Then fullpath is a path to a file and we want the absolute path to it
@@ -24,7 +25,7 @@ function loadRecipe(obj,~,~,fullPath)
     if ~isempty(fullPath) && ischar(fullPath) && exist(fullPath,'dir')
     	pathForUIgetFile = fullPath;
     elseif isempty(fullPath)
-    	pathForUIgetFile = BakingTray.settings.settingsLocation; 	
+    	pathForUIgetFile = BakingTray.settings.settingsLocation;
     end
 
     
