@@ -250,7 +250,7 @@ classdef view < handle
             % last model.sampleSavePath and failing that the current directory
             thisDir = uigetdir(obj.getDefaultSavePath,'choose dirctory');
 
-            if thisDir==0 || ~exist(thisDir,'dir')
+            if thisDir==0 | ~exist(thisDir,'dir')
                 return
             end
 
