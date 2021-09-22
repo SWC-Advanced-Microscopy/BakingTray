@@ -33,10 +33,6 @@ function overlaySlideFrostedAreaOnImage(obj)
     x = [slideFrontLeft_X, slideFrontLeft_X-frostedWidth, slideFrontLeft_X-frostedWidth, slideFrontLeft_X, slideFrontLeft_X];
     y = [slideFrontLeft_Y, slideFrontLeft_Y, slideFrontLeft_Y-slideWidth, slideFrontLeft_Y-slideWidth, slideFrontLeft_Y];
 
-    % Top left pixel is maxPos for both axes and bottom right is minPos.
-    % The line we will draw therefore will be:
-    %x = [x_lim(2),x_lim(1),x_lim(1),x_lim(2),x_lim(2)];
-    %y = [y_lim(2),y_lim(2),y_lim(1),y_lim(1),y_lim(2)];
 
     pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
 
@@ -49,8 +45,6 @@ function overlaySlideFrostedAreaOnImage(obj)
                 'FaceAlpha', 0.1, ...
                 'EdgeAlpha', 0.25, ...
                 'Parent', obj.imageAxes);
-    %rectPos = obj.model.convertStagePositionToImageCoords([slideFrontLeft_X, slideFrontLeft_Y, slideWidth, frostedWidth]);
-    %obj.plotOverlayHandles.(mfilename) = rectangle('Position', rectPos, 'Parent', obj.imageAxes);
 
     hold(obj.imageAxes,'off')
 
