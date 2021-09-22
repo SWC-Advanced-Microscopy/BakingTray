@@ -80,6 +80,8 @@ classdef acquisition_view < BakingTray.gui.child_view
     methods
         getThresholdAndOverlayGrid(obj,~,~)
         spawnTilePickerWindow(obj)
+        overlayStageBoundariesOnImage(obj)
+        overlaySlideFrostedAreaOnImage(obj)
     end
 
 

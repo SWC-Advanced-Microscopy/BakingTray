@@ -13,7 +13,7 @@ For more information on major releases merged into master from pre-release.
 22nd September 2021
 - USER (Dev) - Cut size moved to Prepare GUI and is set automatically when "Set Blade Position" is pressed
 - USER (Dev) - Z-jack now locks after the first slice not when a cutting position is set. 
-
+- USER (Dev) - Overlaid stage boundaries no longer are limited by the blade on the x axis. 
 
 14th September
 - USER (Dev) - Sample ID is set automatically after the user chooses a save directory 
