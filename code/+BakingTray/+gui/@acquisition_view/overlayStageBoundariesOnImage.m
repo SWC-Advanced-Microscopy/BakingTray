@@ -22,12 +22,7 @@ function overlayStageBoundariesOnImage(obj)
     obj.removeOverlays(mfilename)
 
     % The limits of the stages
-    if obj.model.recipe.SYSTEM.cutterSide == 1
-        x_lim = [obj.model.xAxis.getMinPos, obj.model.recipe.CuttingStartPoint.X]; 
-    elseif obj.model.recipe.SYSTEM.cutterSide == -1
-        % NOT TESTED
-        x_lim = [obj.model.recipe.CuttingStartPoint.X,obj.model.xAxis.getMaxPos]; 
-    end
+    x_lim = [obj.model.xAxis.getMinPos,obj.model.xAxis.getMaxPos];
     y_lim = [obj.model.yAxis.getMinPos, obj.model.yAxis.getMaxPos];
 
     % Shift the negative y limit out by one tile size, otherwise the 
