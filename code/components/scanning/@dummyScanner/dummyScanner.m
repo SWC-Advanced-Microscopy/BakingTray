@@ -129,6 +129,13 @@ classdef dummyScanner < scanner
         function success = armScanner(obj,~)
             obj.inAcquiringMode=true;
             obj.placeInDownSampledTileBuffer=true;
+
+            if isempty(obj.imageStackVoxelSizeXY)
+                fprintf('summyScanner can not arm: image voxel size is empty\n')
+                success=false;
+                return
+            end
+
             % Ensure we run as fast as possible 
             if isa(obj.parent.xAxis,'dummy_linearcontroller')
                 obj.parent.xAxis.instantMotions=true;
