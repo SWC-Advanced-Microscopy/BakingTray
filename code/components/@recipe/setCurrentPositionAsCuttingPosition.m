@@ -11,4 +11,7 @@ function setCurrentPositionAsCuttingPosition(obj)
     [x,y]=hBT.getXYpos;
     obj.CuttingStartPoint.X = x;
     obj.CuttingStartPoint.Y = obj.SLICER.defaultYcutPos; % Set to value in settings file
+
+    % Automatically set the cut size
+    obj.autoSetCutSize
 end % setCurrentPositionAsCuttingPosition

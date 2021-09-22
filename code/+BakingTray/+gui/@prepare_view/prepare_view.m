@@ -13,11 +13,9 @@ classdef prepare_view < BakingTray.gui.child_view
         takeNSlices_button
         autoTrim_button
 
-
         lockZ_checkbox
 
         setCuttingPos_button
-        setFrontLeft_button
         setVentralMidline_button
 
         moveToSample_button
@@ -300,7 +298,7 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function updateCuttingConfigurationText(obj,~,~)
             % Updates the cutting config edit boxes. This method is run once in the
-            % constructor, whenever one of the three buttons in the plan panel
+            % constructor, whenever one of the buttons in the plan panel
             % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
             % It's also a callback function run if the user edits the F/L or cut points.
             R = obj.model.recipe;
@@ -308,13 +306,12 @@ classdef prepare_view < BakingTray.gui.child_view
                 return
             end
 
-            C=R.CuttingStartPoint;
-            obj.editBox.cut_X.String = sprintf('%0.2f', round(C.X,2));
+            CSP = R.CuttingStartPoint;
+            obj.editBox.cut_X.String = sprintf('%0.2f', round(CSP.X,2));
 
-            F=R.FrontLeft;
-            obj.editBox.frontLeft_X.String = sprintf('%0.2f', round(F.X,2));
-            obj.editBox.frontLeft_Y.String = sprintf('%0.2f', round(F.Y,2));
-
+            % Update the cut size
+            CS = R.mosaic.cutSize;
+            obj.editBox.cutSize_X.String = sprintf('%0.2f', round(CS,2));
         end %updateCuttingConfigurationText
 
         function executeAbsoluteMotion(obj,event,~)
@@ -385,12 +382,6 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.updateCuttingConfigurationText;
         end % setVentralMidline_callback
 
-        function setFrontLeft_callback(obj,~,~)
-            % Runs when the set front/left button is pressed
-            obj.model.recipe.setCurrentPositionAsFrontLeft;
-            obj.updateCuttingConfigurationText;
-        end % setFrontLeft_callback
-
         function lockZ_callback(obj,~,~)
             % Runs when the checkbox is checked
             if obj.lockZ_checkbox.Value == 1
@@ -415,7 +406,7 @@ classdef prepare_view < BakingTray.gui.child_view
             end
         end %lockZ_callback
 
-        function updateRecipeFrontLeftOrCutPointOnEditBoxChange(obj,src,~)
+        function updateRecipeCutPointOnEditBoxChange(obj,src,~)
             tokens = strsplit(src.Tag,'||');
             obj.model.recipe.(tokens{1}).(tokens{2}) = str2num(src.String);
         end % updateRecipeFrontLeftOrCutPointOnEditBoxChange

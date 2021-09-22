@@ -26,8 +26,6 @@ function autoSetCutSize(obj)
 	agarWidth = abs(obj.SYSTEM.bladeXposAtSlideEnd - obj.CuttingStartPoint.X);
 	agarWidth = agarWidth + 2; % Add a bit in case the agar is right up against the slide end. 
 
-
 	obj.mosaic.cutSize = agarWidth;
-
 
 end % autoSetCutSize
