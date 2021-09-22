@@ -17,7 +17,6 @@ function toggleEnable(obj,toggleState)
     obj.takeSlice_button.Enable=toggleState;
     obj.takeNSlices_button.Enable=toggleState;
     obj.setCuttingPos_button.Enable=toggleState;
-    obj.setFrontLeft_button.Enable=toggleState;
     obj.setVentralMidline_button.Enable=toggleState;
     obj.moveToSample_button.Enable=toggleState;
     obj.autoTrim_button.Enable=toggleState;
