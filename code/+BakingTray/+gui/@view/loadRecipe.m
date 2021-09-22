@@ -1,11 +1,35 @@
 function loadRecipe(obj,~,~,fullPath)
     % Loads a new recipe and initiates resumption of a previous acquisition if necessary
     %
-    % If a fourth argument is provided, this is the recipe that is loaded. 
+    % Behavior
+    % If a fourth argument is provided and it is a path to a file, this is treated, 
+    % as a recipe to be loaded. If the fourth argument is a directory, it is treated as 
+    % the path which uigetfile opens. If the fourth argument is not supplied, we start
+    % uigetfile in the BakingTray settings directory
+    %
 
     % Load recipe button callback -- loads a new recipe from disk
     if nargin<4
-        [fname,absPath] = uigetfile('*.yml','Choose a recipe',BakingTray.settings.settingsLocation);
+    	fullPath = [];
+        pathForUIgetFile = [];
+    end
+
+    if ~isempty(fullPath) && ischar(fullPath) && exist(fullPath,'file')
+    	% Then fullpath is a path to a file and we want the absolute path to it
+    	% This is potentially accident prone, but the user can not call this method this way. 
+  		absPath = fileparts(fullPath);
+    end
+
+
+    if ~isempty(fullPath) && ischar(fullPath) && exist(fullPath,'dir')
+    	pathForUIgetFile = fullPath;
+    elseif isempty(fullPath)
+    	pathForUIgetFile = BakingTray.settings.settingsLocation; 	
+    end
+
+    
+    if ~isempty(pathForUIgetFile)
+        [fname,absPath] = uigetfile('*.yml','Choose a recipe',pathForUIgetFile);
 
         if fname==0
             % if the user hits cancel
@@ -13,9 +37,8 @@ function loadRecipe(obj,~,~,fullPath)
         end
 
         fullPath = fullfile(absPath,fname);
-    else
-        absPath = fileparts(fullPath);
     end
+
 
     if ~exist(fullPath,'file')
         return

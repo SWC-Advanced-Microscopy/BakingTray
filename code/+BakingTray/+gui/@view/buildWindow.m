@@ -23,7 +23,7 @@ function buildWindow(obj)
 
     obj.menu.newSample = uimenu(obj.menu.sample,'Label','New Sample','Callback',@obj.newSample);
     obj.menu.loadRecipe = uimenu(obj.menu.sample,'Label','Load Recipe','Callback', @obj.loadRecipe);
-    obj.menu.resumeAcq = uimenu(obj.menu.sample,'Label','Resume Acquisition', 'Callback', @obj.loadRecipe);
+    obj.menu.resumeAcq = uimenu(obj.menu.sample,'Label','Resume Acquisition', 'Callback', @obj.resumeAcq);
     obj.menu.saveTecipe = uimenu(obj.menu.sample,'Label','Save recipe','Callback',@obj.saveRecipeToDisk);
     obj.menu.gensupportreport = uimenu(obj.menu.tools,'Label','Generate support report','Callback',@(~,~) BakingTray.utils.generateSupportReport);
     obj.menu.genAPIhandles = uimenu(obj.menu.tools,'Label','Generate API handles','Callback',@obj.copyAPItoBaseWorkSpace);

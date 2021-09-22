@@ -228,8 +228,15 @@ classdef view < handle
         end %connectScanImage
 
 
+        function resumeAcq(obj,~,~)
+            % Resume an acquisition. This just loads the recipe but does so using the default save
+            % path as the default directory.
+            obj.loadRecipe([],[],obj.getDefaultSavePath)
+        end %resumeAcq
+
+
         function saveRecipeToDisk(obj,~,~)
-            %Save recipe to disk. Open the default settings directory.
+            %Save recipe to disk. Open the default settings directory. This is a callback from a menu
             [fname,pathToRecipe] = uiputfile('*.yml',BakingTray.settings.settingsLocation);
             if fname==0
                 return
@@ -241,14 +248,12 @@ classdef view < handle
         function changeDir(obj,~,~)
             % The dir selector should open at the system default save path by default otherwise it uses the 
             % last model.sampleSavePath and failing that the current directory
-            if ~isempty(obj.model.recipe.SYSTEM.defaultSavePath) &&  exist(obj.model.recipe.SYSTEM.defaultSavePath,'dir')
-                startPath = obj.model.recipe.SYSTEM.defaultSavePath;
-            elseif ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
-                startPath = obj.model.sampleSavePath;
-            else
-                startPath = pwd;
+            thisDir = uigetdir(obj.getDefaultSavePath,'choose dirctory');
+
+            if thisDir==0 || ~exist(thisDir,'dir')
+                return
             end
-            thisDir = uigetdir(startPath,'choose dirctory');
+
             if ischar(thisDir) && exist(thisDir,'dir')
                 obj.model.sampleSavePath = thisDir; % The GUI itself is changed via a listener defeined in the constructor
             end
@@ -256,8 +261,20 @@ classdef view < handle
             % Set the directory name to be the sample name
             [~,tDirName] = fileparts(thisDir);
             obj.model.recipe.sample.ID = tDirName;
-        end
+        end % changeDir
 
+
+        function savePath = getDefaultSavePath(obj)
+            % Get the default save path. If it is available in the system settings file and
+            % is valid, use that. 
+            if ~isempty(obj.model.recipe.SYSTEM.defaultSavePath) &&  exist(obj.model.recipe.SYSTEM.defaultSavePath,'dir')
+                savePath = obj.model.recipe.SYSTEM.defaultSavePath;
+            elseif ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
+                savePath = obj.model.sampleSavePath;
+            else
+                savePath = pwd;
+            end
+        end % getDefaultSavePath
     end %Methods
 
 
