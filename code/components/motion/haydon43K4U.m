@@ -12,7 +12,7 @@ methods
     
     %Constructor
     function obj = haydon43K4U(obj)
-        obj.positionUnits='mm'
+        obj.positionUnits='mm';
         obj.axisID = ''; % We have just one axis on the controller and run in "single mode"
     end %Constructor
 
