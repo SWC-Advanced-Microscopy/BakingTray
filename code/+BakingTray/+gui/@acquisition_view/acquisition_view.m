@@ -71,6 +71,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         areaSelector(obj,~,~)
         imageZoomHandler(obj,src,~)
+        zoomOutToShowSlide(obj,src,~)
 
         setDepthToView(obj,~,~)
         setChannelToView(obj,~,~)

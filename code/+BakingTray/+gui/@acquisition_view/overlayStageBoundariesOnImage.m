@@ -38,8 +38,8 @@ function overlayStageBoundariesOnImage(obj)
     pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
 
     obj.plotOverlayHandles.(mfilename) = plot(pixPos(:,1),pixPos(:,2),'-y','Parent',obj.imageAxes,'LineWidth',2);
-
-
+    
+       
     hold(obj.imageAxes,'off')
 
     drawnow

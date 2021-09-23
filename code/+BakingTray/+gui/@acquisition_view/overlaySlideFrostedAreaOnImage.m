@@ -22,14 +22,19 @@ function overlaySlideFrostedAreaOnImage(obj)
     obj.removeOverlays(mfilename)
 
     % All measurements in mm 
-    slideFrontLeft_X = 15;  % TODO: must come from settings file
-    slideFrontLeft_Y = 12.5; % TODO: must come from settings file
+    slideFrontLeft_X = obj.model.recipe.SYSTEM.slideFrontLeft{1};
+    slideFrontLeft_Y = obj.model.recipe.SYSTEM.slideFrontLeft{2};
+
+    % Correct for the tile size, as the coords in the image are top left
+    % corner. 
+    slideFrontLeft_X = slideFrontLeft_X - (obj.model.recipe.TileStepSize.X/2);
+    slideFrontLeft_Y = slideFrontLeft_Y - (obj.model.recipe.TileStepSize.Y/2);
 
     % TODO -- probably these too should come from settings file
     slideWidth = 25;
-    frostedWidth = 20;
+    frostedWidth = 18;
 
-
+    
     x = [slideFrontLeft_X, slideFrontLeft_X-frostedWidth, slideFrontLeft_X-frostedWidth, slideFrontLeft_X, slideFrontLeft_X];
     y = [slideFrontLeft_Y, slideFrontLeft_Y, slideFrontLeft_Y-slideWidth, slideFrontLeft_Y-slideWidth, slideFrontLeft_Y];
 
@@ -46,6 +51,20 @@ function overlaySlideFrostedAreaOnImage(obj)
                 'EdgeAlpha', 0.25, ...
                 'Parent', obj.imageAxes);
 
+            
+    % The slide edge outside of the frosted area
+    slideLength = 75;
+    x = [slideFrontLeft_X-frostedWidth, slideFrontLeft_X-slideLength, ...
+          slideFrontLeft_X-slideLength,slideFrontLeft_X-frostedWidth];
+
+    y = [slideFrontLeft_Y, slideFrontLeft_Y, ...
+         slideFrontLeft_Y-slideWidth,slideFrontLeft_Y-slideWidth];     
+
+    pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
+    obj.plotOverlayHandles.(mfilename)(2) = plot(pixPos(:,1),pixPos(:,2), '--', ...
+                'Color', [1,1,1]*0.25, ...
+                'Parent', obj.imageAxes);    
+            
     hold(obj.imageAxes,'off')
 
     drawnow

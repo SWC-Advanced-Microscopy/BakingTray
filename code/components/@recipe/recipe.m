@@ -498,8 +498,8 @@ classdef recipe < handle
                                 end
 
                                 % The maximum size of the sample is *hard-coded* here
-                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 35);
-                                fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 25);
+                                fieldValue.X = obj.checkFloat(fieldValue.X, minSampleSizeX, 40);
+                                fieldValue.Y = obj.checkFloat(fieldValue.Y, minSampleSizeY, 29);
                                 if isempty(fieldValue.X) || isempty(fieldValue.Y)
                                     fieldValue=[];
                                 end
