@@ -21,7 +21,8 @@ function startPreviewScan(obj,~,~)
 
     % Update the preview image in case the recipe has altered since the GUI was opened or
     % since the preview was last taken.
-    obj.setUpImageAxes;
+    obj.addBlankImageToImageAxes;
+
 
     if size(obj.model.lastPreviewImageStack,3)>1
         %A bit nasty but temporarily wipe the higher depths (they'll be re-made later)

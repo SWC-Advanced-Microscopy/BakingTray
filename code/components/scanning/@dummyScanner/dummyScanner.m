@@ -131,7 +131,7 @@ classdef dummyScanner < scanner
             obj.placeInDownSampledTileBuffer=true;
 
             if isempty(obj.imageStackVoxelSizeXY)
-                fprintf('summyScanner can not arm: image voxel size is empty\n')
+                fprintf('dummyScanner can not arm: image voxel size is empty\n')
                 success=false;
                 return
             end

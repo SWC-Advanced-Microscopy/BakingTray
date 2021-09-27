@@ -303,6 +303,7 @@ classdef view < handle
 
 
         function updateReadyToAcquireElements(obj,~,~)
+            % If acquisition is possible, the "Preview" button turns green. 
             if obj.model.recipe.acquisitionPossible
                 obj.button_start.ForegroundColor=[0,0.75,0];
             else

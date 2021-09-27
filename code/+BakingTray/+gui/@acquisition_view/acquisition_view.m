@@ -48,8 +48,10 @@ classdef acquisition_view < BakingTray.gui.child_view
         button_zoomOut
         button_zoomNative
         button_drawBox
+        button_showSlide
 
         checkBoxLaserOff
+        checkBoxShowSlide
 
     end %close hidden private properties
 
@@ -131,7 +133,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
     % Short hidden methods 
     methods (Hidden)
-        function setUpImageAxes(obj)
+        function addBlankImageToImageAxes(obj)
             % Add a blank images to the image axes
             blankImage = squeeze(obj.model.lastPreviewImageStack(:,:,obj.depthToShow,obj.chanToShow));
 
@@ -151,8 +153,8 @@ classdef acquisition_view < BakingTray.gui.child_view
                 'YColor','w')
             set(obj.imageAxes.YAxis,'Direction','Reverse'); % TODO-- buildFigure also does this. But has to be here or work of buildfigure gets undone. Buildfigure should call this!
             set(obj.hFig,'Colormap', gray(256))
-            obj.overlayStageBoundariesOnImage
-        end %setUpImageAxes
+
+        end %addBlankImageToImageAxes
 
         function populateDepthPopup(obj)
             % BakingTray.gui.acquisition_view.populateDepthPopup
@@ -394,6 +396,23 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateChannelsPopup
 
 
+        function showSlide(obj,~,~)
+            % Overlay slide on image and zoom out to ensure the whole thing is visible. 
+            % This callback runs when the slide button is pressed
+            obj.overlaySlideFrostedAreaOnImage
+            obj.zoomOutToShowSlide
+            obj.checkBoxShowSlide.Value = 1;
+        end %showSlide
+
+
+        function showSlideCheckBoxCallback(obj,~,~)
+            % Runs when the show slide checkbox is called
+            if obj.checkBoxShowSlide.Value == 1
+                obj.overlaySlideFrostedAreaOnImage
+            elseif obj.checkBoxShowSlide.Value == 0
+                obj.removeOverlays('overlaySlideFrostedAreaOnImage')
+            end
+        end %showSlideCheckBoxCallback
 
 
         function pointerReporter(obj,~,~)
