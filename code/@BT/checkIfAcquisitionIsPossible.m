@@ -63,7 +63,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
 
 
     if obj.isRecipeConnected && ~obj.recipe.acquisitionPossible
-        msg=sprintf(['%s%d) Did you define the cutting position and front/left positions?\n'], msg, msgNumber);
+        msg=sprintf(['%s%d) Did you define the cutting position?\n'], msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 

@@ -123,7 +123,7 @@ function buildFigure(obj)
     %Pop-ups for selecting which depth and channel to show
     % Create pop-up menu
     obj.depthSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-   'Position', [340, 0, 70, 30], 'String', 'depth', 'Callback', @obj.setDepthToView,...
+   'Position', [340, 8, 70, 30], 'String', 'depth', 'Callback', @obj.setDepthToView,...
               'Interruptible', 'off');
 
 
@@ -155,7 +155,7 @@ function buildFigure(obj)
     obj.setDepthToView; %Ensure that the property is set to a valid depth (it should be anyway)
 
     obj.channelSelectPopup = uicontrol('Parent', obj.statusPanel, 'Style', 'popup',...
-        'Position', [420, 0, 70, 30], 'String', '', 'Callback', @obj.setChannelToView,...
+        'Position', [420, 8, 70, 30], 'String', '', 'Callback', @obj.setChannelToView,...
         'Interruptible', 'off');
 
     % Add the channel names. This is under the control of a listener in case the user makes a 
@@ -269,4 +269,6 @@ function buildFigure(obj)
         % Ensure any another recipe-related things are up to date
         obj.recipeListener
 
+    % By default we show the slide. 
+    obj.showSlide
 end %close buildFigure

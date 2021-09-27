@@ -42,7 +42,11 @@ function bake_callback(obj,~,~)
     % Update the preview image in case the recipe has altered since the GUI was opened or
     % since the preview was last taken.
     obj.addBlankImageToImageAxes;
-    obj.removeOverlays('overlaySlideFrostedAreaOnImage') % If the slide overlay was present we remove it
+
+    % If the slide overlay was present we remove it 
+    % (TODO: these two lines should be a method but I don't know where else we need to do this so leave as is for now.)
+    obj.removeOverlays('overlaySlideFrostedAreaOnImage')
+    obj.view_acquire.checkBoxShowSlide.Value=0;
 
     % Force update of the depths and channels because for some reason they 
     % sometimes do not update when the recipe changes. 
