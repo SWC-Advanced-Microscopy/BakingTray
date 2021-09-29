@@ -440,7 +440,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             % The callback does not run if an
             % acquisition is in progress or if the plotted image contains only zeros.
             
-            if obj.model.acquisitionInProgress || obj.model.isSlicing || all(obj.sectionImage.CData(:)==0)
+            if obj.model.acquisitionInProgress || obj.model.isSlicing
                 return
             end
             
