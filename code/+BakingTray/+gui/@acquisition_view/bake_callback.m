@@ -46,7 +46,7 @@ function bake_callback(obj,~,~)
     % If the slide overlay was present we remove it 
     % (TODO: these two lines should be a method but I don't know where else we need to do this so leave as is for now.)
     obj.removeOverlays('overlaySlideFrostedAreaOnImage')
-    obj.view_acquire.checkBoxShowSlide.Value=0;
+    obj.checkBoxShowSlide.Value=0;
 
     % Force update of the depths and channels because for some reason they 
     % sometimes do not update when the recipe changes. 
