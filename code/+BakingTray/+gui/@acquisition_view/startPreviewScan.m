@@ -48,8 +48,6 @@ function startPreviewScan(obj,~,~)
     obj.button_BakeStop.Enable='on'; 
     obj.depthSelectPopup.Enable=depthEnableState; %return to original state
 
-
-    obj.overlayStageBoundariesOnImage
     % Run auto-ROI stuff (the following only runs if the recipe says we are in auto-ROI mode)
     obj.overlayThreshBorderOnImage
 
