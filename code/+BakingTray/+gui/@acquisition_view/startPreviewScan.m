@@ -31,8 +31,15 @@ function startPreviewScan(obj,~,~)
 
     obj.updateImageLUT;
 
-    % Take the preview scan
+    % Remove all overlays but keep the frosted area if the user asked for
+    % this.
     obj.removeOverlays
+    if obj.checkBoxShowSlide.Value == 1
+        obj.overlaySlideFrostedAreaOnImage
+    end
+
+    
+    % Take the preview scan
     try
         obj.model.takeRapidPreview
     catch ME

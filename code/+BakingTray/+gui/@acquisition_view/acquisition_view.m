@@ -120,6 +120,11 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             obj.statusText.Color = 'w';
             obj.updateStatusText;
+            
+            % Ensure have empty tiles in hBT.downSampledTileBuffer since
+            % this tells us how many pixels across is a tile in the
+            % acq view.
+            obj.model.preAllocateTileBuffer
         end
 
         function delete(obj)
