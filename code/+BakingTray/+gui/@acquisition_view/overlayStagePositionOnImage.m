@@ -1,11 +1,13 @@
-function overlayStagePositionOnImage(obj)
+function overlayStagePositionOnImage(obj,xPos,yPos)
     % Overlay the position of the stage on the slide. 
     %
     %
     % Purpose
     % Overay a red box indicating where the imaging position is.
     %
-    %
+    % Inputs
+    % xPos - x position of stage in mm
+    % yPos - y position of stage in mm
     %
     % See also:
     % obj.overlayBoundingBoxesOnImage
@@ -17,8 +19,8 @@ function overlayStagePositionOnImage(obj)
 
     obj.removeOverlays(mfilename)
     
-    [x,y]=obj.model.getXYpos;
-    pixPos=obj.model.convertStagePositionToImageCoords([x,y]);
+
+    pixPos=obj.model.convertStagePositionToImageCoords([xPos,yPos]);
 
 
     % TODO: this needs to be based on absolute units or scaled by the number
@@ -41,12 +43,7 @@ function overlayStagePositionOnImage(obj)
     pixPos(:,1) = pixPos(:,1)+tileSizeX*(pShrinkBy/2);
     pixPos(:,2) = pixPos(:,2)-tileSizeY*(pShrinkBy/2);
 
-    
-
-    obj.plotOverlayHandles.(mfilename) = [];
     obj.plotOverlayHandles.(mfilename)=plotTile(pixPos);
-
-
 
     hold(obj.imageAxes,'off')
 

@@ -85,7 +85,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         spawnTilePickerWindow(obj)
         overlayStageBoundariesOnImage(obj)
         overlaySlideFrostedAreaOnImage(obj)
-        overlayStagePositionOnImage(obj)
+        overlayStagePositionOnImage(obj,xPos,yPos)
     end
 
 
@@ -396,7 +396,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
         end %updateChannelsPopup
 
-
+        
+        function updateStagePosOnImage(obj,~,~)
+            x = obj.parentView.view_prepare.lastXpos;
+            y = obj.parentView.view_prepare.lastYpos;
+            obj.overlayStagePositionOnImage(x,y);
+        end %updateStagePosOnImage
         function showSlide(obj,~,~)
             % Overlay slide on image and zoom out to ensure the whole thing is visible. 
             % This callback runs when the slide button is pressed

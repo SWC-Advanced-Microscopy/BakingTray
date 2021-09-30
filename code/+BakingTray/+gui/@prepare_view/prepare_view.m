@@ -53,13 +53,15 @@ classdef prepare_view < BakingTray.gui.child_view
         %Ready text color: the color of a text element when it's at the correct value to proceed
         readyTextColor=[0.25,1,0.25]
 
-        lastXpos=0
-        lastYpos=0
-        lastZpos=0
-
         % Default small and large step sizes for the jogs
         defaultSmallStep = 0.1;
         defaultLargeStep = 0.5;
+    end
+    
+    properties (SetObservable,Hidden)
+        lastXpos=0
+        lastYpos=0
+        lastZpos=0
     end
 
     methods

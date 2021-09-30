@@ -266,8 +266,13 @@ function buildFigure(obj)
         'Value', 0, ...
         'Callback', @obj.showSlideCheckBoxCallback);
 
-        % Ensure any another recipe-related things are up to date
-        obj.recipeListener
+    % Ensure any another recipe-related things are up to date
+    obj.recipeListener
+    
+    
+    obj.listeners{end+1}=addlistener(obj.parentView.view_prepare, 'lastXpos', 'PostSet', @obj.updateStagePosOnImage);
+    obj.listeners{end+1}=addlistener(obj.parentView.view_prepare, 'lastYpos', 'PostSet', @obj.updateStagePosOnImage);
+    
 
     % By default we show the slide. 
     obj.showSlide
