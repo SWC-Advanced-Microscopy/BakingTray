@@ -433,7 +433,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             % Report stage position to screen. The reported position is the 
             % top/left tile position.
-            if obj.model.acquisitionInProgress || all(obj.sectionImage.CData(:)==0)
+            if obj.model.acquisitionInProgress
                 return
             end
 
