@@ -121,6 +121,8 @@ classdef maitai < laser & loghandler
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default 
             success=obj.sendAndReceiveSerial('OFF',false);
+            pause(0.1)
+            obj.isLaserModeLocked; % Because otherwise the modelock flag sometimes stays on
             if success
                 obj.isLaserOn=false;
             end
