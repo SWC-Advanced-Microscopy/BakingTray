@@ -91,7 +91,7 @@ function areaSelector(obj,~,~)
         y = [frontPos, frontPos, frontPos-extentAlongY, frontPos-extentAlongY, frontPos];
         pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
         hold(obj.imageAxes,'on');
-        obj.plotOverlayHandles.NextROI = plot(pixPos(:,1),pixPos(:,2),':', 'color',[0.2,0.3,1],'LineWidth',2,'Parent',obj.imageAxes);
+        obj.plotOverlayHandles.NextROI = plot(pixPos(:,1),pixPos(:,2),':', 'color','c','LineWidth',2,'Parent',obj.imageAxes);
         hold(obj.imageAxes,'off');
     end
 
