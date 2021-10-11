@@ -29,6 +29,14 @@ classdef (Abstract) laser < handle
         maxWavelength=0 %The longest wavelength the laser can be tuned to in nm
         minWavelength=0 %The longest wavelength the laser can be tuned to in nm
         friendlyName = '' % This string is displayed in the GUI window title. Shouldn't be too long. e.g. could be "MaiTai"
+
+        % The following is used for optional Pockels cell control. An external device
+        % may be connected to Pockels cell power to turn the mains power on and off
+        % with the laser
+        doPockelsPowerControl=false %If true we attempt to gate pockels power with the DAQ
+        pockelsDAQ='' % DAQ device ID for gating pockels power. e.g. "Dev1"
+        pockelsDigitalLine='' % e.g. 'port0/line2' DO line for pockels cell.
+        hDO % Handle to the digital output task
     end %close public properties
 
     properties (Hidden)
@@ -318,6 +326,39 @@ classdef (Abstract) laser < handle
             msg='';
             inRange=true;
         end
+
+        function connectToPockelsControlDAQ(obj)
+            % Connect to NI DAQ that will control Pockels power
+            if ~isempty(obj.pockelsDAQ) && ischar(obj.pockelsDAQ) && ... 
+                ~isempty(obj.pockelsDigitalLine) && ischar(obj.pockelsDigitalLine)
+                % Try to connect to the Pockels cell DAQ
+                try
+                    obj.hDO = dabs.ni.daqmx.Task('laserpockels');
+                    obj.hDO(1).createDOChan(obj.pockelsDAQ, obj.pockelsDigitalLine); %Open one digital line
+                catch ME
+                    fprintf('\nLaser failed to connect to Pockels DAQ\n')
+                    disp(ME.message)
+                    obj.hDO = [];
+                end
+
+            end
+        end % connectToPockelsControlDAQ
+
+        function switchPockelCell(obj)
+            % Gate pockels cell based on the reported power state of the laser
+            % This method can be called from methods that turn on or turn off the 
+            % laser. It is not a callback. 
+            if isempty(obj.hDO) || ~obj.doPockelsPowerControl
+                return 
+            end
+
+            if obj.isLaserOn
+                obj.hDO.writeDigitalData(1)
+            else
+                obj.hDO.writeDigitalData(0)
+            end
+        end % switchPockelCell
+
 
     end %close methods
 

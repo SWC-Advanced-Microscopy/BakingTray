@@ -114,6 +114,7 @@ classdef maitai < laser & loghandler
             successB=obj.setWatchDogTimer(0); %otherwise it will turn off again
             success=successA & successB;
             obj.isLaserOn=success;
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
 
@@ -123,6 +124,7 @@ classdef maitai < laser & loghandler
             if success
                 obj.isLaserOn=false;
             end
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
         function [powerOnState,details] = isPoweredOn(obj)

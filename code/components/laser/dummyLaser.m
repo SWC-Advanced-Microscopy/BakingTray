@@ -18,6 +18,7 @@ classdef dummyLaser < laser %& loghandler
         wavelengthTimer             % To simulate slow wavelength changing
         updateInterval = 0.10      % Every 100 ms update the wavelength during wavelength change
         hiddenCurrentWavelength=800 % This is the current laser wavelength that is incremented gradually when the user "tunes" the dummy laser 
+
     end
 
     methods

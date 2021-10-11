@@ -111,6 +111,7 @@ classdef tiberius < laser & loghandler
             obj.sendAndReceiveSerial('LASER=1',false);
             obj.isLaserOn = true;
             success=true;
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
 
@@ -119,6 +120,7 @@ classdef tiberius < laser & loghandler
             obj.sendAndReceiveSerial('LASER=0',false);
             obj.isLaserOn = false;
             success=true;
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
         function [powerOnState,details] = isPoweredOn(obj)

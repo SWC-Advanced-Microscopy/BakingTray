@@ -166,6 +166,7 @@ classdef chameleon < laser & loghandler
             end
             
             obj.isLaserOn=success;
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
 
@@ -176,6 +177,7 @@ classdef chameleon < laser & loghandler
             if success
                 obj.isLaserOn=false;
             end
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
         function [powerOnState,reply] = isPoweredOn(obj)
