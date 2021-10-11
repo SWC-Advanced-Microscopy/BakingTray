@@ -36,11 +36,14 @@ function startPreviewScan(obj,~,~)
     obj.removeOverlays
 
 
-    % Take the preview scan
+    % Take the preview scan updating the preview image on each tile
+    origupdatePreviewEveryNTiles = obj.updatePreviewEveryNTiles;
     try
+        obj.updatePreviewEveryNTiles=2;
         obj.model.takeRapidPreview
     catch ME
         fprintf('BT.takeRapidPreview failed with error message:\n%s\n',ME.message)
+        obj.updatePreviewEveryNTiles = origupdatePreviewEveryNTiles;
         for ii=1:length(ME.stack)
             disp(ME.stack(ii))
         end
@@ -50,6 +53,9 @@ function startPreviewScan(obj,~,~)
             obj.overlaySlideFrostedAreaOnImage
         end
     end
+
+    % Return to default
+    obj.updatePreviewEveryNTiles = origupdatePreviewEveryNTiles;
 
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
     obj.button_BakeStop.Enable='on'; 

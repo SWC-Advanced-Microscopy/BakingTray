@@ -5,12 +5,12 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
     properties
-        imageAxes %The preview image sits here
-        compassAxes %This houses the compass-like indicator 
+        imageAxes   % The preview image sits here
+        compassAxes % The compass-like indicator showing near/far and blade/away from blade
         
-        sectionImage %Reference to the Image object (the image axis child which displays the image)
+        sectionImage % Reference to the Image object (the image axis child which displays the image)
 
-        doSectionImageUpdate=true %if false we don't update the image
+        doSectionImageUpdate=true   % If false we don't update the image
         updatePreviewEveryNTiles=10 % Update the preview image each time a multiple of updatePreviewEveryNTiles has been acquired
 
         verbose=false % If true, we print to screen callback actions and other similar things that may be slowing us down
@@ -32,9 +32,9 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         %This button initiate bake and then switches to being a stop button
         button_BakeStop
-        buttonSettings_BakeStop %Structure that contains the different settings for the two button states
+        buttonSettings_BakeStop % Structure that contains the different settings for the two button states
 
-        %The pause buttons and its settings (for enable/disable)
+        % The pause buttons and its settings (for enable/disable)
         button_Pause
         buttonSettings_Pause 
 
@@ -77,8 +77,8 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         setDepthToView(obj,~,~)
         setChannelToView(obj,~,~)
-
     end
+
 
     methods
         getThresholdAndOverlayGrid(obj,~,~)
