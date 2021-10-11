@@ -31,14 +31,11 @@ function startPreviewScan(obj,~,~)
 
     obj.updateImageLUT;
 
-    % Remove all overlays but keep the frosted area if the user asked for
-    % this.
+    % Remove all overlays. We will return the frosted area at the end if the user asked for
+    % this because the box is ticked. 
     obj.removeOverlays
-    if obj.checkBoxShowSlide.Value == 1
-        obj.overlaySlideFrostedAreaOnImage
-    end
 
-    
+
     % Take the preview scan
     try
         obj.model.takeRapidPreview
@@ -49,6 +46,9 @@ function startPreviewScan(obj,~,~)
         end
 
         obj.overlayThreshBorderOnImage
+        if obj.checkBoxShowSlide.Value == 1
+            obj.overlaySlideFrostedAreaOnImage
+        end
     end
 
     %Ensure the bakeStop button is enabled if BT.takeRapidPreview failed to run
@@ -58,5 +58,9 @@ function startPreviewScan(obj,~,~)
     % Run auto-ROI stuff (the following only runs if the recipe says we are in auto-ROI mode)
     obj.overlayThreshBorderOnImage
 
+
+    if obj.checkBoxShowSlide.Value == 1
+        obj.overlaySlideFrostedAreaOnImage
+    end
 
 end %startPreviewScan
