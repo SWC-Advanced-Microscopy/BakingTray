@@ -82,7 +82,15 @@ function loadRecipe(obj,~,~,fullPath)
         % Attempt to resume the acquisition 
         % First we set the tile size in the GUI to what is in the recipe. 
         thisRecipe=BakingTray.settings.readRecipe(fullPath);
-        obj.recipeEntryBoxes.other{1}.Value=thisRecipe.StitchingParameters.scannerSettingsIndex;
+
+        if isempty(thisRecipe.StitchingParameters) || ~isfield(thisRecipe.StitchingParameters,'scannerSettingsIndex')
+        	% This can happen if we load a recipe from an acquisition that did not have an entry in 
+        	% frame settings YAML
+        	fprintf('WARNING: stitching parameters empty. Skipping\n')
+        else
+	        obj.recipeEntryBoxes.other{1}.Value=thisRecipe.StitchingParameters.scannerSettingsIndex;
+	    end
+
         obj.updateStatusText
         
         % Now we do the resumption
