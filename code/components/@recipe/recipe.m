@@ -265,8 +265,8 @@ classdef recipe < handle
                 obj.FrontLeft.X = params.FrontLeft.X;
                 obj.FrontLeft.Y = params.FrontLeft.Y;
             else %otherwise use defaults
-                obj.FrontLeft.X = obj.SYSTEM.defaultFrontLeft{1};
-                obj.FrontLeft.Y = obj.SYSTEM.defaultFrontLeft{2};
+                obj.FrontLeft.X = 0;
+                obj.FrontLeft.Y = 0;
             end %if inputArgs.Results.resume
 
 
