@@ -28,6 +28,8 @@ classdef FaulhaberMCDC < cutter & loghandler
                             %number so it's a bad idea to change it. 
         maxControlValue=30000; %TODO: find the max control value. e.g. when motor 
                                 %commanded to this setting it should produdce motorMaxSpeed cycles/sec
+        
+        modeMap % dictionary to return mode state
     end %close public properties
 
 
@@ -42,20 +44,29 @@ classdef FaulhaberMCDC < cutter & loghandler
                 obj.attachLogObject(logObject);
             end
 
+            % Populate the mode dictionary
+            obj.modeMap = containers.Map({'I','D','S','A','H','E','G','V'}, ...
+                {'IXRMOD','CONTMOD','STEPMOD','APCMOD','ENCMOD','ENCSPEED','GEARMOD','VOLTMOD'});
 
-            fprintf(['Setting up Faulhaber MCDC3006 DC motor controller.\n',...
-                'Motor max speed: %d revs per second.\n'], obj.motorMaxSpeed);
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
             success = obj.connect;
 
-            obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
 
             if ~success
                 fprintf(['\n\nWARNING!\nComponent FaulhaberMCDC failed to connect to vibrotome controller.\n',...
                     'Closing serial port\n'])
                 fclose(obj.hC)
                 delete(obj.hC)
+                return
+            end
+            
+            obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
+            if strcmp(obj.readMode,'IXRMOD')
+                fprintf(['Setting up Faulhaber MCDC3006 DC motor controller.\n',...
+                    'Motor max speed: %d revs per second.\n'], obj.motorMaxSpeed);
+            else
+                % TODO -- report tru max speed in RPM if in CONTMOD 
             end
         end %constructor
 
@@ -105,7 +116,7 @@ classdef FaulhaberMCDC < cutter & loghandler
                 return
             end
             [success,reply] = obj.sendReceiveSerial('VER');
-            success = success &  ~isempty(strfind(reply,'Version'));
+            success = success &  contains(reply,'Version');
             obj.isCutterConnected=success;
         end %isControllerConnected
 
@@ -120,14 +131,24 @@ classdef FaulhaberMCDC < cutter & loghandler
         end %disable
 
 
-        function success = startVibrate(obj,cyclesPerSec)
+        function success = startVibrate(obj,targetSpeed)
             obj.enable;
-            speedRatio=cyclesPerSec/obj.motorMaxSpeed;
-            if speedRatio>1
-                obj.logMessage(inputname(1),dbstack,4,'Capping motor speed to max.')
-                speedRatio=1;
+            if strcmp(obj.readMode,'IXRMOD')
+                %Legacy behavior
+                speedRatio=targetSpeed/obj.motorMaxSpeed;
+                if speedRatio>1
+                    obj.logMessage(inputname(1),dbstack,4,'Capping motor speed to max.')
+                    speedRatio=1;
+                end
+                commandedSpeed = round(obj.maxControlValue*speedRatio);
+            elseif strcmp(obj.readMode,'CONTMOD')
+                % This will be RPM
+                commandedSpeed = targetSpeed;
+            else
+                success = false;
+                fprintf('Device is in mode %s. Expected IXRMOD or CONTMOD\n', ...
+                    obj.readMode);
             end
-            commandedSpeed = round(obj.maxControlValue*speedRatio);
             success = obj.sendReceiveSerial(sprintf('V%d',commandedSpeed));
         end %startVibrate
 
@@ -141,10 +162,44 @@ classdef FaulhaberMCDC < cutter & loghandler
 
 
         function cyclesPerSec = readVibrationSpeed(obj)
-            cyclesPerSec=false;
+            cyclesPerSec = false;
         end %readVibrationSpeed
 
+        
+        function cyclesPerSec = readTargetVelocity(obj)
+            [~,reply] = obj.sendReceiveSerial('GV');
+            cyclesPerSec = str2double(reply);
+        end %readVibrationSpeed
+        
 
+        function set2IXRMOD(obj)
+            % Set device to IXRMOD mode, which does not use the encoder
+            obj.genericModeSet('IXRMOD');
+        end %set2IXRMOD
+
+ 
+        function set2CONTMOD(obj)
+            % Set device to CONTMOD mode, which uses the encoder
+            obj.genericModeSet('CONTMOD');
+        end %set2CONTMOD
+
+        
+        function genericModeSet(obj,mode)
+            obj.sendReceiveSerial(mode);
+            if strcmp(obj.readMode,mode)
+                fprintf('Set to %s\n',mode)
+                obj.sendReceiveSerial('EEPSAV');
+            else
+                fprintf('Failed to set to %s. In mode %s\n',mode,obj.readMode)
+            end
+        end %genericModeSet
+
+
+        function deviceMode=readMode(obj)
+            % Return device
+            [~,tMode] = obj.sendReceiveSerial('GMOD');
+            deviceMode =  obj.modeMap(tMode);
+        end %readMode
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function [success,reply] = sendReceiveSerial(obj,commandString)
@@ -157,7 +212,7 @@ classdef FaulhaberMCDC < cutter & loghandler
             end
             fprintf(obj.hC,commandString);
             reply=fgetl(obj.hC);
-
+            reply(end)=[];
             if strfind(reply,'Unknown command')
                 success=false;
             else 
