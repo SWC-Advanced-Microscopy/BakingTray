@@ -9,6 +9,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+11th October 2021
+- USER (Dev) - Do not write full recipe on Bake if one already exists (happens during a resume). This fixes a bug where the number 
+              of sections to acquire decreased each time an acquisition was resumed. 
+- POWERUSER (Dev) - Hidden feature to enable Pockels cell when laser is turned on or off. Uses an NI DAQ. 
 
 22nd September 2021
 - USER (Dev) - Cut size moved to Prepare GUI and is set automatically when "Set Blade Position" is pressed
