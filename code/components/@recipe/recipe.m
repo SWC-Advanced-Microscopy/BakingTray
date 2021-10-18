@@ -159,9 +159,13 @@ classdef recipe < handle
         % These properties are populated by structures that can be set by the user only by editing 
         % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
         SYSTEM
-        SLICER
         SLACK
     end %close protected properties
+
+    properties
+        % Slicer is here so we can easily change things like vibrate rate if needed
+        SLICER
+    end
 
     properties (Hidden)
         % The acquisition property is set by other functions and isn't important to the user, so we hide it
