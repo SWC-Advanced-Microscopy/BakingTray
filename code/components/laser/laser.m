@@ -333,21 +333,29 @@ classdef (Abstract) laser < handle
                 ~isempty(obj.pockelsDigitalLine) && ischar(obj.pockelsDigitalLine)
                 % Try to connect to the Pockels cell DAQ
                 try
-                    obj.hDO = dabs.ni.daqmx.Task('laserpockels');
+                    obj.hDO = dabs.ni.daqmx.Task('laserpockelspower');
                     obj.hDO(1).createDOChan(obj.pockelsDAQ, obj.pockelsDigitalLine); %Open one digital line
                 catch ME
-                    fprintf('\nLaser failed to connect to Pockels DAQ\n')
-                    disp(ME.message)
+                    if obj.doPockelsPowerControl
+                        fprintf('\n\n\nWARNING!!!\n\nFailed to connect to DAQ that gates Pockels cell power.\n')
+                        fprintf('The Pockels cell will not turn on automatically with the laser.\n')
+                        disp(ME.message)
+                    end
                     obj.hDO = [];
                 end
-
             end
+            obj.switchPockelsCell % To turn it on if the laser is already on
         end % connectToPockelsControlDAQ
 
-        function switchPockelCell(obj)
+        function switchPockelsCell(obj)
             % Gate pockels cell based on the reported power state of the laser
             % This method can be called from methods that turn on or turn off the 
             % laser. It is not a callback. 
+
+            if obj.doPockelsPowerControl && isempty(obj.hDO)
+                fprintf('\nAuto-switch on of Pockels cell requested by DAQ not connected!\n')
+            end
+
             if isempty(obj.hDO) || ~obj.doPockelsPowerControl
                 return 
             end
@@ -357,7 +365,7 @@ classdef (Abstract) laser < handle
             else
                 obj.hDO.writeDigitalData(0)
             end
-        end % switchPockelCell
+        end % switchPockelsCell
 
 
     end %close methods

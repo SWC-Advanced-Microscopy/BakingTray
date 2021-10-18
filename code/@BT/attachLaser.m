@@ -24,8 +24,16 @@ function success=attachLaser(obj,settings)
          settings=settings.laser;
     end
 
+    % The pockels field is new (2021/10/11) optional and if present looks like this:
+    %   pockels.doPockelsPowerControl=true;
+    %   pockels.pockelsDAQ='Dev3';
+    %   pockels.pockelsDigitalLine='port0/line0';
+    if ~isfield(settings,'pockels')
+        settings.pockels=[];
+    end
+
     %Build the component
-    obj.laser=buildLaserComponent(settings.type, settings.COM);
+    obj.laser=buildLaserComponent(settings.type, settings);
 
     %Return false if the attachment failed
     if ~isempty(obj.laser)

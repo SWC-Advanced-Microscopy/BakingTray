@@ -62,6 +62,7 @@ classdef tiberius < laser & loghandler
                 flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 fclose(obj.hC);
                 delete(obj.hC);
+                delete(obj.hDO)
             end  
         end %destructor
 

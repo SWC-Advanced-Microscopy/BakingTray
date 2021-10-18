@@ -22,6 +22,8 @@ function component = buildLaserComponent(componentName,varargin)
 %
 %
 % Basel - 2016
+%
+% See alseo: BT.attachLaser
 
 
 if ~ischar(componentName)
@@ -33,27 +35,24 @@ end
 
 validComponentSuperClassName = 'laser'; %The name of the abstract class that all laser components must inherit
 
+laserSettings = varargin{1};
+COMPORT = BakingTray.settings.parseComPort(laserSettings.COM);
 
 %Build the correct object based on "componentName"
 switch componentName
     case 'dummyLaser'
         component = dummyLaser;
      case 'tiberius'
-        COMPORT = BakingTray.settings.parseComPort(varargin{1});
         component = tiberius(COMPORT);
     case 'maitai'
-        COMPORT = BakingTray.settings.parseComPort(varargin{1});
         component = maitai(COMPORT);
     case 'chameleon'
-        COMPORT = BakingTray.settings.parseComPort(varargin{1});
         component = chameleon(COMPORT);
-        return
     otherwise
         fprintf('ERROR: unknown laser component "%s" SKIPPING BUILDING\n', componentName)
         component=[];
         return
 end
-
 
 % Do not return component if it's not of the correct class. 
 % e.g. this can happen if the class doesn't inherit the correct abstract class
@@ -64,3 +63,14 @@ if ~isa(component,validComponentSuperClassName)
     component = [];
 end
 
+
+
+%If requested, we connect to the pockels cell
+% TODO -- for now we place this here. Later maybe move to the laeser classes
+if ~isempty(laserSettings.pockels)
+    fprintf('%s is connecting to Pockels cell power gating\n',mfilename)
+    component.pockelsDAQ = laserSettings.pockels.pockelsDAQ;
+    component.pockelsDigitalLine = laserSettings.pockels.pockelsDigitalLine;
+    component.doPockelsPowerControl = laserSettings.pockels.doPockelsPowerControl;
+    component.connectToPockelsControlDAQ;
+end
