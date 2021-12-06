@@ -135,7 +135,7 @@ classdef recipe < handle
         % They are used for determining where to image and where to cut and aren't 
         % relevant beyond this. Cutting and imaging won't be possible until these are set to reasonable values. 
         CuttingStartPoint=struct('X',NaN, 'Y',0)   % Start location for cutting
-        FrontLeft=struct('X',0, 'Y',0)           % Front/left position of the tile array
+        FrontLeft=struct('X',NaN, 'Y',0)           % Front/left position of the tile array
 
 
         StitchingParameters
@@ -268,9 +268,9 @@ classdef recipe < handle
                 obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
                 obj.FrontLeft.X = params.FrontLeft.X;
                 obj.FrontLeft.Y = params.FrontLeft.Y;
-            else %otherwise use defaults
-                obj.FrontLeft.X = 0;
-                obj.FrontLeft.Y = 0;
+            else %otherwise use a position near the slide front/left
+                obj.FrontLeft.X = obj.SYSTEM.slideFrontLeft{1}-2;
+                obj.FrontLeft.Y = obj.SYSTEM.slideFrontLeft{2}-2;
             end %if inputArgs.Results.resume
 
 
