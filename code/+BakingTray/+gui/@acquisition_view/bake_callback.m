@@ -55,6 +55,9 @@ function bake_callback(obj,~,~)
 
     obj.chooseChanToDisplay %By default display the channel shown in ScanImage
 
+    % Ensure the section image is displayed
+    obj.sectionImage.Visible='On';
+
     set(obj.button_Pause, obj.buttonSettings_Pause.enabled{:})
     obj.button_BakeStop.Enable='off'; %This gets re-enabled when the scanner starts imaging
 

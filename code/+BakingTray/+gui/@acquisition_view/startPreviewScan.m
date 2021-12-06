@@ -36,6 +36,10 @@ function startPreviewScan(obj,~,~)
     obj.removeOverlays
 
 
+    % Ensure the section image is displayed
+    obj.sectionImage.Visible='On';
+
+
     % Take the preview scan updating the preview image on each tile
     origupdatePreviewEveryNTiles = obj.updatePreviewEveryNTiles;
     try

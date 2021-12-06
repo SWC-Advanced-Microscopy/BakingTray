@@ -125,6 +125,13 @@ classdef acquisition_view < BakingTray.gui.child_view
             % this tells us how many pixels across is a tile in the
             % acq view.
             obj.model.preAllocateTileBuffer
+
+            % If the section image is empty, do not plot it
+            if sum(obj.sectionImage.CData(:))==0
+                obj.sectionImage.Visible='Off';
+            else
+                obj.sectionImage.Visible='On';
+            end
         end
 
         function delete(obj)
