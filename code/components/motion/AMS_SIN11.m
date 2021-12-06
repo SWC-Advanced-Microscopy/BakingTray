@@ -210,8 +210,7 @@ classdef AMS_SIN11 < linearcontroller
         else
             plusSign='-';
         end
-        distanceToMove = num2str(round(distanceToMove));
-
+        distanceToMove = num2str(abs(round(distanceToMove)));
         obj.sendAndReceiveSerial([obj.axID,plusSign,distanceToMove]);
         success=true;
 
@@ -424,7 +423,7 @@ classdef AMS_SIN11 < linearcontroller
                 obj.logMessage(inputname(1),dbstack,6,'AMS_SIN11.sendReceiveSerial command string not valid.')
                 return
             end
-
+            
             fprintf(obj.hC,commandString);
 
             if ~waitForReply
