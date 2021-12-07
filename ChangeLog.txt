@@ -9,11 +9,26 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+December 6th 2021
+- USER (Dev) - Bugfix to ensure Front/Left is always viable. 
+- USER (Dev) - Do not display image box in Acq GUI axes if it's empty.
+- USER (Dev) - Minor bugfix to AMS SIN11
+
+
+11th October 2021
+- DEVELOPER (Dev) - Pockels cell power can be automatically cut off using a DIO line that is controlled by laser GUI. This requires a relay that can handle mains voltage.
+
+
 11th October 2021
 - USER (Dev) - Do not write full recipe on Bake if one already exists (happens during a resume). This fixes a bug where the number 
               of sections to acquire decreased each time an acquisition was resumed. 
 - POWERUSER (Dev) - Hidden feature to enable Pockels cell when laser is turned on or off. Uses an NI DAQ. 
 - USER (Dev) - Preview tile scan updates every other tile instead of every 10. 
+- USER (Dev) - Handle encoder with Faulhaber MCDC 
+
+
+22nd to 30th September
+- USER (Dev) - Large re-organisation of acquire GUI to show a schematic of the slide. MAJOR.
 
 
 22nd September 2021
@@ -21,8 +36,22 @@ For more information on major releases merged into master from pre-release.
 - USER (Dev) - Z-jack now locks after the first slice not when a cutting position is set. 
 - USER (Dev) - Overlaid stage boundaries no longer are limited by the blade on the x axis. 
 
+
+21th September
+- USER (Dev) - Auto-Trim now moves the sample to the correct side of the blade before starting if needed. 
+
+
+20th September
+- USER (Dev) - Add support for ThorLabs Tiberius laser.
+
+
+15th September
+- USER (Dev) - Minor improvements to Z locking.
+
+
 14th September
 - USER (Dev) - Sample ID is set automatically after the user chooses a save directory 
+- DEVELOPER (Dev) - Stages are no longer checked for reference on each move. Other minor motion-related changes.
 
 
 10th September 2021

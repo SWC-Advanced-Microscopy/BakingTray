@@ -33,7 +33,7 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
         forceWrite = false;
     end
 
-    % Does the path alraedy contain a recipe?
+    % Does the path already contain a recipe?
     tRecipes = dir(fullfile(dirName,'recipe_*_*.yml'));
 
     if isempty(tRecipes)

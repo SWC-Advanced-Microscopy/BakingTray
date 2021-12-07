@@ -1,0 +1,52 @@
+Release 7th December 2021
+
+This release encapsulates changes made between 21st September 2021 and 7th December 2021
+
+Thorlabs Tiberius now supported. 
+
+This release sees a MAJOR change in the acquisition GUI and how ROIs are defined. The following are now gone:
+- Image size edit boxes in main view. 
+- Front/left position in prepare GUI. 
+- "Set ventral midline" button and "go to sample" button.
+
+Taking the place of these UI elements is a schematic representation of the slide in the Acqusition GUI. The current FOV location and size is higlighted by a blue square. User navigation around the sample space is made easier by the existing ability to middle-click on the Acquisition GUI image axes to focus on that location. This supplements the WASD and GUI arrow keys. New sample setup process is documented at bakingray.mouse.vision and the old approach archived there under "Legacy User Guide". 
+
+
+IMPORTANT POWER-USER TASK
+Setting up the slide view in the acquisition GUI requires defining the position of the objective at the slide front/left corner.
+Start BakingTray and close it. This will add SYSTEM.slideFrontLeft to you systemSettings.yml file. Put a slide into your water bath. Insert into microscope. Set laser to visible wavelength. Point in ScanImage. Focus beam by eye until it is over the front left corner of the slide. You don't need fluid in the bath. Insert the X and Y coords into the SYSTEM.slideFrontLeft field of the YML file. It goes [Xpos,yPos]. In mm. 
+The SYSTEM.defaultFrontLeft field no longer does anything. You can either leave it in place or delete it. It is ignored. 
+
+
+
+The cut size is now set automatically when the user presses the "Set Blade Position" button. 
+IMPORTANT POWER-USER TASK
+Setting this up requires defining the position of the blade as it reaches the end of the slide. i.e. left edge of slide if blade is on the right as you look at the microscope. If you did the step above already then your systemSettings.yml file will contain a SYSTEM.bladeXposAtSlideEnd field. Place a blade in your microscope blade holder and mount it. Move the X stage until the tip of the blade is coincident with the edge of the slide. Enter this number into the YML file SYSTEM.bladeXposAtSlideEnd
+
+Restart BakingTray. 
+
+
+
+
+The Pockels cell power can be gated by the laser power button in the GUI. Setting this up requires the Pockels controller to be plugged into a box that gates mains current with a relay based on a TTL signal from a NIDAQ card. You then need to add these lines to the laser section of the componentSettings.m file:
+
+laser.pockels.doPockelsPowerControl=true;       % I false the gating is not done. 
+laser.pockels.pockelsDAQ='scan'                 % Name of the NI card
+laser.pockels.pockelsDigitalLine='port0/line0'; % Line to use
+
+You can manually switch the relay by doing:
+hBT.laser.hDO.writeDigitalData(1)
+hBT.laser.hDO.writeDigitalData(0)
+
+See the methods at the end of laser superclass for more.
+
+
+
+
+The Faulhaber vibratome can now operate in RPM mode based on an encoder. Wire the encoder. Set it up in Faulhaber Motion manager and check that all works. You can confirm RPM with a laser pointer and a photodiode: have the motion of the blade occlude the beam and look with an osciloscope how many light intensity transitions you see per second. Confirm this matches what you asked for. CONTMOD mode seems to work for all this. Set to CONTMOD and store to the device. Edit cutting speed to be an RPM value in the systemSettings YAML file. About 3200 RPM should work. 
+
+
+
+
+
+Other small changes: see Changelog file
