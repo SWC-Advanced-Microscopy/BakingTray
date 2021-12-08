@@ -52,6 +52,13 @@ classdef BT < loghandler
         % based on this value. We can't use the recipe front/left position because then the stage coords
         % derived from the image would be wrong until the user re-acquires a preview stack.
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
+
+        % Log files stored here. This is a new property (Dec 2021) so it will take a while to migrate
+        % everything as downstream processing will be affected by this change. 
+        logFilePath = 'logfiles'
+
+        % Directory to keep old, backup, log files generated during things like acquisition resumes
+        backupDir = 'bak'
     end
 
 
@@ -722,6 +729,36 @@ classdef BT < loghandler
             fprintf(fid,msg);
             fclose(fid);
         end %acqLogWriteLine
+
+
+        function makeLoggingDir(obj)
+            % Make a directory into which logging files can be stored
+            if ~exist(obj.sampleSavePath)
+                fprintf('Sample dir %s does not exist. Can not make log dir.\n')
+                return 
+            end
+
+            loggingDir = fullfile(obj.sampleSavePath,obj.logFilePath);
+            if ~exist(loggingDir)
+                mkdir(loggingDir)
+            end
+        end % makeLoggingDir
+
+
+        function makeLoggingBackupDir(obj)
+            % Make a directory into which logging files can be stored
+            if ~exist(obj.sampleSavePath)
+                fprintf('Sample dir %s does not exist. Can not make log dir.\n')
+                return 
+            end
+
+            obj.makeLoggingDir
+
+            bakDir = fullfile(obj.sampleSavePath,obj.logFilePath,obj.backupDir);
+            if ~exist(bakDir)
+                mkdir(bakDir)
+            end
+        end % makeLoggingBackupDir
 
     end %close methods
 

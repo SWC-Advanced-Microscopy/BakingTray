@@ -47,6 +47,8 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     %
 
 
+    % DEV NOTE: Please respect the simulted mode if adding features
+
     success=false;
     msg = '';
 
@@ -184,6 +186,8 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
 
     % Move the system to the last z-position
     targetPosition = details.sections(end).Z;
+
+
     %If the last section ws sliced and we just move on to the next section then we need to
     %add one section thickness
     if slicenow==false && strcmp(existing,'nothing')
@@ -313,6 +317,10 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
                 % Never the case in live acquisitions
                 fprintf(msg)
             end
+
+            % Move existing recipe to backup location so a new one is made
+            obj.makeLoggingBackupDir
+            movefile('recipe_*.yml',fullfile(obj.sampleSavePath,obj.logFilePath,obj.backupDir))
         else
             fprintf('Applying scan settings\n')
         end
