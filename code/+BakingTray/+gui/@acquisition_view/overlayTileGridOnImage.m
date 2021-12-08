@@ -100,12 +100,12 @@ function overlayTileGridOnImage(obj,tileGrid)
         % H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
         xT = [cPix(1), cPix(1)+tileSizeX, cPix(1)+tileSizeX, cPix(1), cPix(1)];
         yT = [cPix(2), cPix(2), cPix(2)+tileSizeY, cPix(2)+tileSizeX, cPix(2)];
-        H=plot(xT,yT,'-b','Parent',obj.imageAxes,'LineWidth',1.5);
+        H=plot(xT,yT,'-','Parent',obj.imageAxes,'LineWidth',1,'Color',[0,0,0.9]);
         if doTileNumber
             H(2)=text(mean(xT(1:4)), mean(yT(1:4)), num2str(tileIndex),'Parent',obj.imageAxes, ...
                 'Color','r', 'HorizontalAlignment' ,'Center','FontWeight','bold');
         end
-    end
+    end % plotTile
 
     function tSize = getTileSizeFromPositionList(pList)
         % pList is a list of X or Y stage or pixel positions
@@ -114,6 +114,6 @@ function overlayTileGridOnImage(obj,tileGrid)
         d = diff(pList);
         d(d==0) = [];
         tSize = mode(abs(d));
-    end
+    end % getTileSizeFromPositionList
 
-end %overlayTileGridOnImage
+end % overlayTileGridOnImage

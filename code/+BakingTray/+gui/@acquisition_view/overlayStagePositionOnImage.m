@@ -31,21 +31,20 @@ function overlayStagePositionOnImage(obj,xPos,yPos)
         
     tileSize = size(obj.model.downSampledTileBuffer,1);
     
-    obj.plotOverlayHandles.(mfilename)=plotTile(pixPos);
+    obj.plotOverlayHandles.(mfilename) = plotFOV(pixPos);
 
     hold(obj.imageAxes,'off')
 
     drawnow
 
     % Nested functions follow
-    function H=plotTile(cPix)
+    function H=plotFOV(cPix)
         % cPix - corner pixel location
         % H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
         xT = [cPix(1), cPix(1)+tileSize, cPix(1)+tileSize, cPix(1), cPix(1)];
         yT = [cPix(2), cPix(2), cPix(2)+tileSize, cPix(2)+tileSize, cPix(2)];
-        H=plot(xT,yT,'-b','Parent',obj.imageAxes,'LineWidth',1.5);
-
-    end
+        H=plot(xT,yT,'-','Parent',obj.imageAxes,'LineWidth',2,'Color',0.2,0.2,1);
+    end % plotFOV
 
 
 end %overlayStagePositionOnImage
