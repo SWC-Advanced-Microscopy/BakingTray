@@ -181,6 +181,14 @@ function sectionInd = bake(obj,varargin)
             obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
         end
 
+        % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
+        % This is also done in obj.getThreshold, but repeating it here ensures the user can't
+        % alter the channel during acquisition. 
+        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
+            obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
+        end
+
+
         % For syncAndCrunch to be happy we need to write the currently
         % displayed channels. A bit of hack, but it's easiest solution
         % for now. Alternative would be to have S&C rip it out of the
@@ -191,12 +199,6 @@ function sectionInd = bake(obj,varargin)
             save(fullfile(saveSettingsTo,'scanSettings.mat'), 'scanSettings')
         end
 
-        % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
-        % This is also done in obj.getThreshold, but repeating it here ensures the user can't
-        % alter the channel during acquisition. 
-        if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
-            obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
-        end
 
 
         %  ===> Now the scanning runs <===
