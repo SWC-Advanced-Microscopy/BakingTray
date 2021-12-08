@@ -84,6 +84,7 @@ function [settings,settingsNonHardCoded] = readSystemSettings
         allValid=false;
     end
 
+
     if ~isnumeric(settings.SYSTEM.xySpeed)
         fprintf('SYSTEM.xySpeed should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.xySpeed)
         settings.SYSTEM.xySpeed = DEFAULT_SETTINGS.SYSTEM.xySpeed;
@@ -96,70 +97,122 @@ function [settings,settingsNonHardCoded] = readSystemSettings
 
 
     if ~isnumeric(settings.SYSTEM.homeZjackOnZeroMove)
-        fprintf('SYSTEM.homeZjackOnZeroMove should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        fprintf('SYSTEM.homeZjackOnZeroMove should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
         settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
         allValid=false;
     elseif settings.SYSTEM.homeZjackOnZeroMove~=0 && settings.SYSTEM.homeZjackOnZeroMove~=1
-        fprintf('SYSTEM.homeZjackOnZeroMove should be 0 or 1. Setting it to %s \n',DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
+        fprintf('SYSTEM.homeZjackOnZeroMove should be 0 or 1. Setting it to "%s" \n', ...
+            DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove)
         settings.SYSTEM.homeZjackOnZeroMove = DEFAULT_SETTINGS.SYSTEM.homeZjackOnZeroMove;
         allValid=false;
     end
 
+
     if ~ischar(settings.SYSTEM.dominantTilingDirection)
-        fprintf('SYSTEM.dominantTilingDirection should be a character. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        fprintf('SYSTEM.dominantTilingDirection should be a character. Setting it to %s \n', ...
+            DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
         settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
         allValid=false;
     elseif ~strcmpi(settings.SYSTEM.dominantTilingDirection,'y') ~=0 && ~strcmpi(settings.SYSTEM.dominantTilingDirection,'x')
-        fprintf('SYSTEM.dominantTilingDirection should be x or y. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
+        fprintf('SYSTEM.dominantTilingDirection should be x or y. Setting it to %s \n', ...
+            DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection)
         settings.SYSTEM.dominantTilingDirection = DEFAULT_SETTINGS.SYSTEM.dominantTilingDirection;
         allValid=false;
     end
 
+
+    if ~isnumeric(settings.SYSTEM.bladeXposAtSlideEnd)
+        fprintf('SYSTEM.bladeXposAtSlideEnd should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SYSTEM.bladeXposAtSlideEnd)
+        settings.SYSTEM.bladeXposAtSlideEnd = DEFAULT_SETTINGS.SYSTEM.bladeXposAtSlideEnd;
+        allValid=false;
+    end
+
+
+    if length(settings.SYSTEM.slideFrontLeft) ~= 2
+        fprintf('SYSTEM.slideFrontLeft should be a vector length 2. Setting it to default value\n')
+        settings.SYSTEM.slideFrontLeft = DEFAULT_SETTINGS.SYSTEM.slideFrontLeft;
+        allValid=false;
+    end
+
+
+    if ~isnumeric(settings.SYSTEM.slideFrontLeft{1}) || ~isnumeric(settings.SYSTEM.slideFrontLeft{2})
+        fprintf('SYSTEM.slideFrontLeft should be a number. Setting it to default value\n')
+        settings.SYSTEM.slideFrontLeft = DEFAULT_SETTINGS.SYSTEM.slideFrontLeft;
+        allValid=false;
+    end
+
+
+    if ~ischar(settings.SYSTEM.defaultSavePath)
+        fprintf('SYSTEM.defaultSavePath should be a character string. Setting it to "%s" \n', ...
+            DEFAULT_SETTINGS.SYSTEM.defaultSavePath)
+        settings.SYSTEM.defaultSavePath = DEFAULT_SETTINGS.SYSTEM.defaultSavePath;
+    elseif ~exist(settings.SYSTEM.defaultSavePath ,'dir')
+        fprintf('SYSTEM.defaultSavePath should be a valid directory path. Setting it to "%s" \n', ...
+            DEFAULT_SETTINGS.SYSTEM.defaultSavePath)
+        settings.SYSTEM.defaultSavePath = DEFAULT_SETTINGS.SYSTEM.defaultSavePath;
+    end
+
+
     if ~isnumeric(settings.SLICER.approachSpeed)
-        fprintf('SLICER.approachSpeed should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.approachSpeed)
+        fprintf('SLICER.approachSpeed should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.approachSpeed)
         settings.SLICER.approachSpeed = DEFAULT_SETTINGS.SLICER.approachSpeed;
         allValid=false;
     elseif settings.SLICER.approachSpeed<=0
-        fprintf('SLICER.approachSpeed should not be <=0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.approachSpeed)
+        fprintf('SLICER.approachSpeed should not be <=0. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.approachSpeed)
         settings.SLICER.approachSpeed = DEFAULT_SETTINGS.SLICER.approachSpeed;
         allValid=false;
     end
 
+
     if ~isnumeric(settings.SLICER.vibrateRate)
-        fprintf('SLICER.vibrateRate should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.vibrateRate)
+        fprintf('SLICER.vibrateRate should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.vibrateRate)
         settings.SLICER.vibrateRate = DEFAULT_SETTINGS.SLICER.vibrateRate;
         allValid=false;
     elseif settings.SLICER.vibrateRate<=0
-        fprintf('SLICER.vibrateRate should not be <=0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.vibrateRate)
+        fprintf('SLICER.vibrateRate should not be <=0. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.vibrateRate)
         settings.SLICER.vibrateRate = DEFAULT_SETTINGS.SLICER.vibrateRate;
         allValid=false;
     end
 
+
     if ~isnumeric(settings.SLICER.postCutDelay)
-        fprintf('SLICER.postCutDelay should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.postCutDelay)
+        fprintf('SLICER.postCutDelay should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.postCutDelay)
         settings.SLICER.postCutDelay = DEFAULT_SETTINGS.SLICER.postCutDelay;
         allValid=false;
     elseif settings.SLICER.postCutDelay<0
-        fprintf('SLICER.postCutDelay should not be <0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.postCutDelay)
+        fprintf('SLICER.postCutDelay should not be <0. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.postCutDelay)
         settings.SLICER.postCutDelay = DEFAULT_SETTINGS.SLICER.postCutDelay;
         allValid=false;
     end
 
+
     if ~isnumeric(settings.SLICER.postCutVibrate)
-        fprintf('SLICER.postCutDelay should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.postCutVibrate)
+        fprintf('SLICER.postCutDelay should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.postCutVibrate)
         settings.SLICER.postCutVibrate = DEFAULT_SETTINGS.SLICER.postCutVibrate;
         allValid=false;
     elseif settings.SLICER.postCutVibrate<0
-        fprintf('SLICER.postCutVibrate should not be <0. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.postCutVibrate)
+        fprintf('SLICER.postCutVibrate should not be <0. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.postCutVibrate)
         settings.SLICER.postCutVibrate = DEFAULT_SETTINGS.SLICER.postCutVibrate;
         allValid=false;
     end
 
+
     if ~isnumeric(settings.SLICER.defaultYcutPos)
-        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n',DEFAULT_SETTINGS.SLICER.defaultYcutPos)
+        fprintf('SYSTEM.defaultYcutPos should be a number. Setting it to %0.2f \n', ...
+            DEFAULT_SETTINGS.SLICER.defaultYcutPos)
         settings.SLICER.defaultYcutPos = DEFAULT_SETTINGS.SLICER.defaultYcutPos;
         allValid=false;
     end
+
 
     if ~allValid
         fprintf('\n ********************************************************************\n')
