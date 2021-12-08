@@ -16,9 +16,6 @@ classdef prepare_view < BakingTray.gui.child_view
         lockZ_checkbox
 
         setCuttingPos_button
-        setVentralMidline_button
-
-        moveToSample_button
     end
 
     properties (Hidden)
@@ -377,12 +374,6 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.model.recipe.setCurrentPositionAsCuttingPosition;
             obj.updateCuttingConfigurationText;
         end % setCuttingPos_callback
-
-        function setVentralMidline_callback(obj,~,~)
-            % Runs when the set ventral midline button is pressed
-            obj.model.recipe.setFrontLeftFromVentralMidLine;
-            obj.updateCuttingConfigurationText;
-        end % setVentralMidline_callback
 
         function lockZ_callback(obj,~,~)
             % Runs when the checkbox is checked

@@ -2,6 +2,8 @@ function toggleEnable(obj,toggleState)
     % Enables/disables all UI elements. This method is triggered by the callback prepare_view.updateGUIduringAcq so 
     % that it automatically disables the GUI during preview scans and bakes. 
     %
+    % toggleEnable(obj,toggleState)
+    %
     % Inputs
     % toggleState - should be the string: 'on' or 'off' The function does nothing if this is not the case
 
@@ -17,8 +19,6 @@ function toggleEnable(obj,toggleState)
     obj.takeSlice_button.Enable=toggleState;
     obj.takeNSlices_button.Enable=toggleState;
     obj.setCuttingPos_button.Enable=toggleState;
-    obj.setVentralMidline_button.Enable=toggleState;
-    obj.moveToSample_button.Enable=toggleState;
     obj.autoTrim_button.Enable=toggleState;
 
 
