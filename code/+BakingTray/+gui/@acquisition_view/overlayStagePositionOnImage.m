@@ -43,7 +43,7 @@ function overlayStagePositionOnImage(obj,xPos,yPos)
         % H=plot(cornerPix(1),cornerPix(2),'or','Parent',obj.imageAxes);
         xT = [cPix(1), cPix(1)+tileSize, cPix(1)+tileSize, cPix(1), cPix(1)];
         yT = [cPix(2), cPix(2), cPix(2)+tileSize, cPix(2)+tileSize, cPix(2)];
-        H=plot(xT,yT,'-','Parent',obj.imageAxes,'LineWidth',2,'Color',0.2,0.2,1);
+        H=plot(xT,yT,'-','Parent',obj.imageAxes,'LineWidth',2,'Color', [0.2,0.2,1]);
     end % plotFOV
 
 
