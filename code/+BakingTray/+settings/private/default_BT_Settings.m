@@ -29,7 +29,7 @@ function settings=default_BT_Settings
     settings.SYSTEM.defaultSavePath='C:\';
     settings.SYSTEM.autoROIchannelOrder={'red','green','blue'};
     settings.SYSTEM.bladeXposAtSlideEnd=nan;
-    settings.SYSTEM.slideFrontLeft=[nan,nan];
+    settings.SYSTEM.slideFrontLeft={nan,nan};
 
     settings.SLACK.user='@SYSTEM';
     settings.SLACK.hook=[];
