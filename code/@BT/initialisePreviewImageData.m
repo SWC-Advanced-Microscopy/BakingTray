@@ -50,13 +50,20 @@ function success = initialisePreviewImageData(obj,tp,frontLeft)
     rangeAlongRowsInMM = range(tp(:,1)) + (stepSizesMM(2)/ovLap);
     imRows = round(rangeAlongRowsInMM / (obj.downsampleMicronsPerPixel * 1E-3) );
 
-    % We are getting crashes here when, I think, the autoROI finds no
-    % tissue. To help diagnose we add a try/catch for now (18/02/2021)
+    if isnan(imCols) || isnan(imRows)
+        fprintf('Preview image stack is smaller than minimum size.\n')
+        fprintf('initialisePreviewImageData is not generating a blank preview\n')
+        return
+    end
+
+    % The above if statement should clear up crashes but just in case we for now
+    % keep the try/catch (14/02/2022)
     try
         obj.lastPreviewImageStack = zeros([imRows,imCols, ...
             obj.recipe.mosaic.numOpticalPlanes + obj.recipe.mosaic.numOverlapZPlanes, ...
             obj.scanner.maxChannelsAvailable],'int16');
     catch ME
+
         fprintf('Failed to make preview image stack!\n')
         disp('imRows:')
         disp(imRows)
