@@ -137,8 +137,19 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     end
 
 
+    % Stops us from writing into samples marked as FINISHED
+    if exist(fullfile(obj.sampleSavePath,'FINISHED'))
+        msg=sprintf(['%s%d) Directory %s already contains a finished acquisition.\n',...
+            'Either choose Sample > Resume Acquisition to carry on with this acquisition, or create a new sample directory.\n'], ...
+            msg, msgNumber, obj.sampleSavePath);
+        msgNumber=msgNumber+1;
+        containedFinished=true;
+    else
+        containedFinished=false;
+    end 
+
     % Check if we will end up writing into existing directories
-    if obj.isRecipeConnected && isBake
+    if obj.isRecipeConnected && isBake && ~containedFinished
         n=0;
         origCurrentSectionNum = obj.currentSectionNumber; % store the current section number because it's going to be modified here
         for ii=1:obj.recipe.mosaic.numSections
@@ -154,8 +165,8 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
                 nDirStr='ies';
             end
             msg=sprintf(['%s%d) Conducting acquisition in this directory would write data into %d existing section director%s.\n',...
-                'Acquisition will not proceed.\nSolutions:\n\t* Start a new directory.\n\t* Change the sample ID name.\n',...
-                '\t* Change the section start number.\n'], msg, msgNumber, n, nDirStr);
+                'Acquisition will not proceed.\nSolutions:\n\t* Start a new directory.\n\t* ',...
+                'Change the section start number.\n'], msg, msgNumber, n, nDirStr);
             msgNumber=msgNumber+1;
         end
         obj.currentSectionNumber = origCurrentSectionNum; % revert it
