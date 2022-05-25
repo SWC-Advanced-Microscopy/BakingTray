@@ -81,7 +81,9 @@ classdef chameleon < laser & loghandler
             fprintf('Connected to Chameleon laser on serial port %s\n\n', serialComms)
 
 
-            % Must call this here to make sure Pockels is turned on
+            % Must call these here to make sure Pockels is turned on
+            obj.isPoweredOn
+            obj.isModeLocked
             obj.switchPockelsCell
         end %constructor
 
