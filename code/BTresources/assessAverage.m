@@ -96,10 +96,10 @@ montage(plt_data)
 
 
 
-if nargout>0
+if length(nargout)>0
 	varargout{1} = im;
 end
 
-if varargout>1
+if length(varargout)>1
 	varargout{2} = plt_data;
 end
