@@ -91,7 +91,6 @@ plt_data = plt_data - min(plt_data(:));
 plt_data = plt_data / max(plt_data(:));
 
 disp('Building montage image')
-size(plt_data)
 montage(plt_data)
 
 
