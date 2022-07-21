@@ -218,8 +218,16 @@ classdef SIBT < scanner
                 if doReset(ii) && obj.hC.hPmts.tripped(ii)
                     msg = sprintf('Reset tripped PMT #%d', ii);
                     obj.logMessage(inputname(1) ,dbstack,2, msg)
-                    hSI.hC.hPmts.resetTripStatus(ii);
-                    hSI.hC.hPmts.setPmtPower(ii,1);
+                    if obj.versionGreaterThan('2020')
+                        % For sure 2020 onwards does this but I don't know exactly when the
+                        % change happened.
+                        obj.hC.hPmts.hPMTs{ii}.resetTrip;
+                        obj.hC.hPmts.hPMTs{ii}.setPower(1);
+                    else
+                        % Older versions of ScanImage use this system.
+                        hSI.hC.hPmts.resetTripStatus(ii);
+                        hSI.hC.hPmts.setPmtPower(ii,1);
+                    end
                 end
             end
         end %close resetTrippedPMTs
