@@ -79,6 +79,8 @@ function takeRapidPreview(obj)
     obj.recipe.mosaic.numOpticalPlanes=1;
     obj.recipe.mosaic.numOverlapZPlanes=0;
     obj.scanner.setNumAverageFrames(1);
+    obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
+    disp('APPLYING Z-SCAN SETTINGS')
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject

@@ -214,6 +214,7 @@ function sectionInd = bake(obj,varargin)
                 return
             elseif strcmp(runTileScanSuccess.msg,'initpreviewfailed')
                 fprintf('\n--> BT.runTileScan failed to make preview image. Likely sample vanished. Stop and mark as finished. QUITTING BT.bake\n\n')
+                obj.scanner.abortScanning;
                 makeFinished(obj.sampleSavePath)
                 return
             end
