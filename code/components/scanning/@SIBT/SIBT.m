@@ -362,7 +362,7 @@ classdef SIBT < scanner
             chans(chans<1)=[];
             chans(chans>obj.maxChannelsAvailable)=[];
 
-            obj.hC.hChannels.channelDisplay = chans;
+            obj.hC.hChannels.channelDisplay = chans(:)'; %must be a row vector or SI not happy
         end % setChannelsToDisplay
 
 
