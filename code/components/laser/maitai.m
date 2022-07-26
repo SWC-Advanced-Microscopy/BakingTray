@@ -54,9 +54,9 @@ classdef maitai < laser & loghandler
 
             
             % Must call these here to make sure Pockels is turned on
-            obj.isPoweredOn
-            obj.isModeLocked
-            obj.switchPockelsCell
+            obj.isPoweredOn;
+            obj.isModeLocked;
+            obj.switchPockelsCell;
         end %constructor
 
 

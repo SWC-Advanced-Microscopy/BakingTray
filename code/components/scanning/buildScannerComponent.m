@@ -44,18 +44,22 @@ switch componentName
     case 'SIBT'
         %Look for ScanImage and only proceed if it's present
         W = evalin('base','whos');
-        if ismember('hSI',{W.name})
-            fprintf('Connecting to scanner\n')
-            component=SIBT;
-
-        else
-            fprintf('No instance of ScanImage started. SKIPPING CONSTRUCTION OF SCANNER COMPONENT.\n')
-            fprintf('To attach ScanImage to BakingTray you should:\n')
-            fprintf(' 1) start scanimage\n')
-            fprintf(' 2) run "hBT.attachScanner"\n')
-            component=[];
-            return
+        
+        if ~ismember('hSI',{W.name})
+            pathToSI = which('scanimage');
+            if isempty(pathToSI)
+                fprintf('ScanImage is not installed.\n')
+                fprintf('SKIPPING CONSTRUCTION OF SCANNER COMPONENT.\n')
+                component=[];
+                return
+            end
+            % Start ScanImage
+            scanimage
         end
+        
+        fprintf('Connecting to scanner\n')
+        component=SIBT;
+
     otherwise
         fprintf('ERROR: unknown scanner component "%s" SKIPPING BUILDING\n', componentName)
         component=[];

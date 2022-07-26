@@ -50,9 +50,9 @@ classdef tiberius < laser & loghandler
             fprintf('Connected to Tiberius laser on %s\n\n', serialComms)
 
             % Must call these here to make sure Pockels is turned on
-            obj.isPoweredOn
-            obj.isModeLocked
-            obj.switchPockelsCell            
+            obj.isPoweredOn;
+            obj.isModeLocked;
+            obj.switchPockelsCell;           
         end %constructor
 
 
