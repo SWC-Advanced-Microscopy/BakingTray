@@ -252,6 +252,10 @@ classdef laser_view < BakingTray.gui.child_view
             set(obj.editWavelength,'String',obj.model.laser.targetWavelength)
             obj.setReadWavelengthTextPanel;
 
+            % The wavelength has now stabilised so we can apply laser calibration to the scanner.
+            % If the user has created calibration files to convert laser analog voltage to
+            % mW at the objective, these are now loaded and applied to the scanner.
+            obj.model.applyLaserCalibrationToScanner;
         end
 
 

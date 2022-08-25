@@ -645,6 +645,7 @@ classdef SIBT < scanner
         moveFastZTo(obj,targetPositionInMicrons)
         applyZstackSettingsFromRecipe(obj)
         [success,msg] = doScanSettingsMatchRecipe(obj,tRecipe)
+        applyLaserCalibration(obj,laserPower)
     end %Close SIBT methods in external files
 
 

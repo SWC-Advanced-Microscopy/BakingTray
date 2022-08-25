@@ -253,6 +253,8 @@ classdef dummyScanner < scanner
         function setImageSize(obj,~,~)
         end
 
+        function applyLaserCalibration(obj,~)
+        end
 
         function pixelsPerLine = getPixelsPerLine(obj)
             S=obj.returnScanSettings;

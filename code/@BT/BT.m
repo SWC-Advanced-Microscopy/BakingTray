@@ -190,11 +190,13 @@ classdef BT < loghandler
         slack(obj,message)
         n=tilesRemaining(obj)
 
-
         % auto-ROI related
         success=getNextROIs(obj)
         getThreshold(obj)
         pStack = returnPreviewStructure(obj)
+
+        % Other
+        applyLaserCalibrationToScanner(obj)
     end % Declare methods in separate files
 
 
