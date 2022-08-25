@@ -15,6 +15,11 @@ function addLaserCalib
     hBT=BakingTray.getObject;
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
 
+    if exist(pathToFiles,'dir') == 0
+        fprintf('Creating %s\n', pathToFiles)
+        mkdir(pathToFiles)
+    end
+
     laserPower.wavelength_in_nm = round(hBT.laser.targetWavelength);
     laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(1,2);
     laserPower.maxPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(2,2);
