@@ -24,12 +24,14 @@ function applyLaserCalibration(obj,laserPower)
         load(laserPower)
     else
         fprintf('SIBT.applyLaserCalibration can not load file %s\n', laserPower)
-        return
+        laserPower = [];
     end
 
     if isempty(laserPower)
+        fprintf('Removing laser calibration\n')
         obj.hC.hBeams.hBeams{1}.powerFraction2ModulationVoltLut = [];
         obj.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut = [];
+        return
     end
 
 
