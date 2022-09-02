@@ -4,13 +4,23 @@ function addLaserCalib
     % BakingTray.utils.addLaserCalib
     %
     % Purpose
-    % Stores current laser calibration data in ScanImage to a laser calibration file
+    % Stores current laser calibration data in ScanImage to a laser calibration file.
+    % This feature requires at least SI 2022.
     %
     % Instructions
-    % 1. Set wavelength in ScanImage and run the calibration function for the beam.
-    % 2. Measure min and max power and set these in the MDF GUI under the laser.
-    % 3. Confirm with power meter that the curve makes sense by looking at a few different values.
-    % 4. Run BakingTray.utils.addLaserCalib
+    % 1. Open the Laser GUI in BakingTray.
+    % 2. Turn on the laser and open the shutter.
+    % 3. Set desired wavelength in the laser GUI.
+    % 4. In ScanImage run the beam calibration function from the beams widget.
+    % 5. Measure min and max power and set these in the MDF GUI under the laser. You can access this
+    %    from the gear icon on the beams widget.
+    % 6. Confirm with power meter that the curve makes sense by looking at a few different values.
+    % 7. Run BakingTray.utils.addLaserCalib. This will over-write any existing calibration at
+    %    the same wavelengths
+    %
+    % You may list existing calibrations with BakingTray.utils.listLaserCalib
+    %
+    % Rob Campbell - SWC 2022
 
     hBT=BakingTray.getObject;
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
