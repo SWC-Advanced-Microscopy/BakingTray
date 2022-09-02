@@ -21,6 +21,11 @@ function addLaserCalib
     end
 
     laserPower.wavelength_in_nm = round(hBT.laser.targetWavelength);
+
+    if laserPower.wavelength_in_nm < 1
+        fprintf('\n *** PLEASE OPEN BAKINGTRAY LASER GUI AND TRY AGAIN *** \n')
+    end
+
     laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(1,2);
     laserPower.maxPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(2,2);
     laserPower.powerFraction2ModulationVoltLut = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2ModulationVoltLut;
