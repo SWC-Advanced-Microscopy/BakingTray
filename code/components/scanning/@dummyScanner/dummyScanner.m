@@ -310,6 +310,9 @@ classdef dummyScanner < scanner
         function setNumAverageFrames(~,~)
         end
 
+        function laserPower = returnLaserPowerInmW(~)
+            laserPower = nan;
+        end
 
 
         %---------------------------------------------------------------
