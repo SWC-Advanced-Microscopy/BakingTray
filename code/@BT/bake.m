@@ -100,6 +100,14 @@ function sectionInd = bake(obj,varargin)
         obj.acqLogWriteLine('Failed to extract git commit info for logging\n')
     end
 
+    % Report laser settings and power in mW (if this is possible to do)
+    obj.acqLogWriteLine(sprintf('Acquiring sample at a laser power of %d nm ', obj.laser.readWavelength))
+    laserPowerInmw = obj.scanner.returnLaserPowerinmW;
+    if ~isnan(laserPowerInmw)
+        obj.acqLogWriteLine(sprintf('(power in mW is not calibrated in ScanImage)\n'))
+    else
+        obj.acqLogWriteLine(sprintf('with %d mW at the sample\n', laserPowerInmw)
+    end
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake. 
@@ -107,7 +115,6 @@ function sectionInd = bake(obj,varargin)
     if ~isempty(obj.laser)
         wDogSeconds = 40*60;
         obj.laser.setWatchDogTimer(wDogSeconds);
-        obj.acqLogWriteLine(sprintf('Setting laser watchdog timer to %d seconds\n', wDogSeconds))
     end
 
 
