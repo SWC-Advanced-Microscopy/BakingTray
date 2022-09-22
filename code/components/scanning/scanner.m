@@ -376,6 +376,17 @@ classdef (Abstract) scanner < handle & loghandler
         % Inputs
         % None
 
+        returnLaserPowerInmW(obj)
+        % returnLaserPowerInmW
+        %
+        % Return laser power in mW. Returns nan if power is unavailable.
+        %
+        % Inputs
+        % None
+        %
+        % Outputs
+        % laserPower - laser power in mW. numeric scalar
+
 
      end % close abstract methods
 

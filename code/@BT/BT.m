@@ -190,11 +190,13 @@ classdef BT < loghandler
         slack(obj,message)
         n=tilesRemaining(obj)
 
-
         % auto-ROI related
         success=getNextROIs(obj)
         getThreshold(obj)
         pStack = returnPreviewStructure(obj)
+
+        % Other
+        applyLaserCalibrationToScanner(obj)
     end % Declare methods in separate files
 
 
@@ -249,6 +251,11 @@ classdef BT < loghandler
 
             fprintf('\n\n BakingTray starting...\n Connecting to hardware components:\n\n')
 
+            obj.attachScanner(obj.componentSettings.scanner);
+            if isempty(obj.scanner)
+                fprintf('Failed to connect to scanner.\n')
+            end
+
             try
                 success=obj.attachMotionAxes(obj.componentSettings.motionAxis);
             catch ME1
@@ -274,11 +281,6 @@ classdef BT < loghandler
             obj.attachLaser(obj.componentSettings.laser);
             if isempty(obj.laser)
                 fprintf('Failed to connect to laser.\n')
-            end
-
-            obj.attachScanner(obj.componentSettings.scanner);
-            if isempty(obj.scanner)
-                fprintf('Failed to connect to scanner.\n')
             end
 
             %Attach the default recipe

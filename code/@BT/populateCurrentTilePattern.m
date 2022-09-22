@@ -1,5 +1,5 @@
 function varargout=populateCurrentTilePattern(obj,varargin)
-    % populate obj.currentTilePattern and obj.positionArray
+    % populate the x/y tile pattern at obj.currentTilePattern and obj.positionArray
     %
     % Purpose
     % The positions sampled during an acquisition by a tile scan are stored in advance in

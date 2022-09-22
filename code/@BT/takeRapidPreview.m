@@ -61,8 +61,20 @@ function takeRapidPreview(obj)
         binFactor = obj.scanner.hC.hScan2D.pixelBinFactor;
         sampleRate = obj.scanner.hC.hScan2D.sampleRate;
     end
+
     numZ = obj.recipe.mosaic.numOpticalPlanes;
     numOverlapZ = obj.recipe.mosaic.numOverlapZPlanes;
+
+
+    % Now we change scan parameters for the preview scan
+
+    %Image just one plane without averaging
+    obj.recipe.mosaic.numOpticalPlanes=1;
+    obj.recipe.mosaic.numOverlapZPlanes=0;
+    obj.scanner.setNumAverageFrames(1);
+    obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
+
+    %Change the z resolution
     if strcmp(obj.scanner.scannerType,'linear')
         obj.scanner.setImageSize(128); %Set pixels per line, the method takes care of the rest
     else
@@ -75,12 +87,6 @@ function takeRapidPreview(obj)
         obj.scanner.hC.hScan2D.sampleRate=1.25E6;
     end
 
-    %Image just one plane without averaging
-    obj.recipe.mosaic.numOpticalPlanes=1;
-    obj.recipe.mosaic.numOverlapZPlanes=0;
-    obj.scanner.setNumAverageFrames(1);
-    obj.scanner.applyZstackSettingsFromRecipe; % Inform the scanner of the Z stack settings
-    disp('APPLYING Z-SCAN SETTINGS')
 
     %Remove any attached file logger objects (we won't need them)
     obj.detachLogObject
@@ -89,8 +95,9 @@ function takeRapidPreview(obj)
 
     obj.scanner.disableTileSaving
     obj.currentTileSavePath=[];
-    obj.populateCurrentTilePattern('isFullPreview',true); % Build and log the current tile pattern before starting
-                                          % The "true" indicates we will run a full FOV preview.
+
+    % Build and log the current x/y tile pattern before starting the preview
+    obj.populateCurrentTilePattern('isFullPreview',true); 
 
     if ~obj.scanner.armScanner
         fprintf('\n\n ** FAILED TO START RAPID PREVIEW -- COULD NOT ARM SCANNER.\n\n')

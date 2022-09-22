@@ -64,7 +64,7 @@ classdef chameleon < laser & loghandler
             obj.friendlyName = 'Chameleon';
 
             fprintf('\nSetting up Chameleon laser communication on serial port %s\n', serialComms);
-            BakingTray.utils.clearSerial(serialComms)
+            BakingTray.utils.clearSerial(serialComms);
             obj.controllerID=serialComms;
             success = obj.connect;
 
@@ -82,9 +82,9 @@ classdef chameleon < laser & loghandler
 
 
             % Must call these here to make sure Pockels is turned on
-            obj.isPoweredOn
-            obj.isModeLocked
-            obj.switchPockelsCell
+            obj.isPoweredOn;
+            obj.isModeLocked;
+            obj.switchPockelsCell;
         end %constructor
 
 
@@ -173,7 +173,7 @@ classdef chameleon < laser & loghandler
             end
             
             obj.isLaserOn=success;
-            obj.switchPockelsCell %Gate Pockels mains power
+            obj.switchPockelsCell; %Gate Pockels mains power
         end
 
 

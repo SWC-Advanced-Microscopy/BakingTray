@@ -613,6 +613,15 @@ classdef SIBT < scanner
             end
         end % readFrameSizeSettings
 
+        function laserPower = returnLaserPowerInmW(obj)
+            if obj.versionGreaterThan('2021')
+                currentPower = obj.hC.hBeams.powers;
+                laserPower = obj.hC.hBeams.hBeams{1}.convertPowerFraction2PowerWatt(currentPower/100)*1000;
+            else
+                laserPower = nan;
+            end
+            laserPower = round(laserPower);
+        end % returnLaserPowerInmW
 
         function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
@@ -645,6 +654,7 @@ classdef SIBT < scanner
         moveFastZTo(obj,targetPositionInMicrons)
         applyZstackSettingsFromRecipe(obj)
         [success,msg] = doScanSettingsMatchRecipe(obj,tRecipe)
+        applyLaserCalibration(obj,laserPower)
     end %Close SIBT methods in external files
 
 
