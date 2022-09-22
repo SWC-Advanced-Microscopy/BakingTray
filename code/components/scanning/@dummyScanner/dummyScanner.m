@@ -253,6 +253,8 @@ classdef dummyScanner < scanner
         function setImageSize(obj,~,~)
         end
 
+        function applyLaserCalibration(obj,~)
+        end
 
         function pixelsPerLine = getPixelsPerLine(obj)
             S=obj.returnScanSettings;
@@ -308,6 +310,9 @@ classdef dummyScanner < scanner
         function setNumAverageFrames(~,~)
         end
 
+        function laserPower = returnLaserPowerInmW(~)
+            laserPower = nan;
+        end
 
 
         %---------------------------------------------------------------

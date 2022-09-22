@@ -218,8 +218,16 @@ classdef SIBT < scanner
                 if doReset(ii) && obj.hC.hPmts.tripped(ii)
                     msg = sprintf('Reset tripped PMT #%d', ii);
                     obj.logMessage(inputname(1) ,dbstack,2, msg)
-                    hSI.hC.hPmts.resetTripStatus(ii);
-                    hSI.hC.hPmts.setPmtPower(ii,1);
+                    if obj.versionGreaterThan('2020')
+                        % For sure 2020 onwards does this but I don't know exactly when the
+                        % change happened.
+                        obj.hC.hPmts.hPMTs{ii}.resetTrip;
+                        obj.hC.hPmts.hPMTs{ii}.setPower(1);
+                    else
+                        % Older versions of ScanImage use this system.
+                        hSI.hC.hPmts.resetTripStatus(ii);
+                        hSI.hC.hPmts.setPmtPower(ii,1);
+                    end
                 end
             end
         end %close resetTrippedPMTs
@@ -354,7 +362,7 @@ classdef SIBT < scanner
             chans(chans<1)=[];
             chans(chans>obj.maxChannelsAvailable)=[];
 
-            obj.hC.hChannels.channelDisplay = chans;
+            obj.hC.hChannels.channelDisplay = chans(:)'; %must be a row vector or SI not happy
         end % setChannelsToDisplay
 
 
@@ -605,6 +613,15 @@ classdef SIBT < scanner
             end
         end % readFrameSizeSettings
 
+        function laserPower = returnLaserPowerInmW(obj)
+            if obj.versionGreaterThan('2021')
+                currentPower = obj.hC.hBeams.powers;
+                laserPower = obj.hC.hBeams.hBeams{1}.convertPowerFraction2PowerWatt(currentPower/100)*1000;
+            else
+                laserPower = nan;
+            end
+            laserPower = round(laserPower);
+        end % returnLaserPowerInmW
 
         function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
@@ -637,6 +654,7 @@ classdef SIBT < scanner
         moveFastZTo(obj,targetPositionInMicrons)
         applyZstackSettingsFromRecipe(obj)
         [success,msg] = doScanSettingsMatchRecipe(obj,tRecipe)
+        applyLaserCalibration(obj,laserPower)
     end %Close SIBT methods in external files
 
 

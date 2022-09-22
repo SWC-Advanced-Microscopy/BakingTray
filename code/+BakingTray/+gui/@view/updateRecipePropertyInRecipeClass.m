@@ -24,7 +24,9 @@ function updateRecipePropertyInRecipeClass(obj,eventData,~)
         return
     end
 
-    if strcmp(propertyPath{2},'numOpticalPlanes') || strcmp(propertyPath{2},'sliceThickness')
+    if strcmp(propertyPath{2},'numOpticalPlanes') || ...
+        strcmp(propertyPath{2},'numOverlapZPlanes') || ...
+        strcmp(propertyPath{2},'sliceThickness')
         % If the number of planes were changed, we update the z-stack settings in the scanner software. 
         obj.model.scanner.applyZstackSettingsFromRecipe;
     end

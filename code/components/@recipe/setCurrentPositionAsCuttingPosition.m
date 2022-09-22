@@ -10,7 +10,9 @@ function setCurrentPositionAsCuttingPosition(obj)
     hBT=obj.parent;
     [x,y]=hBT.getXYpos;
     obj.CuttingStartPoint.X = x;
-    obj.CuttingStartPoint.Y = obj.SLICER.defaultYcutPos; % Set to value in settings file
+
+    % The y position is not set by the user but comes from a settings file.
+    % This is set in the recipe at load time in the constructor
 
     % Automatically set the cut size
     obj.autoSetCutSize
