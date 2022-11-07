@@ -53,6 +53,10 @@ classdef maitai < laser & loghandler
              serialComms, obj.readHumidity)
 
             
+            % Must call these here to make sure Pockels is turned on
+            obj.isPoweredOn;
+            obj.isModeLocked;
+            obj.switchPockelsCell;
         end %constructor
 
 

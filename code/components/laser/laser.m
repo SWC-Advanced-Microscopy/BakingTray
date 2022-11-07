@@ -349,8 +349,8 @@ classdef (Abstract) laser < handle
 
         function switchPockelsCell(obj)
             % Gate pockels cell based on the reported power state of the laser
-            % This method can be called from methods that turn on or turn off the 
-            % laser. It is not a callback. 
+            % This method should be called from methods that turn on or turn off the
+            % laser and also at the end of the constructor. It is not a callback.
 
             if obj.doPockelsPowerControl && isempty(obj.hDO)
                 fprintf('\nAuto-switch on of Pockels cell requested by DAQ not connected!\n')

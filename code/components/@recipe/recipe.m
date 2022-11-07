@@ -268,9 +268,13 @@ classdef recipe < handle
                 obj.CuttingStartPoint.Y = params.CuttingStartPoint.Y;
                 obj.FrontLeft.X = params.FrontLeft.X;
                 obj.FrontLeft.Y = params.FrontLeft.Y;
-            else %otherwise use a position near the slide front/left
+            else
+                %otherwise use a position near the slide front/left
                 obj.FrontLeft.X = obj.SYSTEM.slideFrontLeft{1}-2;
                 obj.FrontLeft.Y = obj.SYSTEM.slideFrontLeft{2}-2;
+
+                %and the default Y start point
+                obj.CuttingStartPoint.Y = obj.SLICER.defaultYcutPos; % Set to value in settings file
             end %if inputArgs.Results.resume
 
 

@@ -320,7 +320,8 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
 
             % Move existing recipe to backup location so a new one is made
             obj.makeLoggingBackupDir
-            movefile('recipe_*.yml',fullfile(obj.sampleSavePath,obj.logFilePath,obj.backupDir))
+            movefile(fullfile(obj.sampleSavePath,'recipe_*.yml'), ...
+                fullfile(obj.sampleSavePath,obj.logFilePath,obj.backupDir))
         else
             fprintf('Applying scan settings\n')
         end

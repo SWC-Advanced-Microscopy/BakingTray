@@ -9,6 +9,25 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+7th November 2022
+- USER (Dev) - Fix regression that had caused the laser power to no longer be displayed in the laser GUI. 
+- USER (Dev) - Add a tooltip to explain what the Lock-Z checkbox does. 
+
+
+August 2022
+- USER (Dev) - Add routines that allow the user to display laser power in ScanImage. This will
+         require the current (as of this date) ScanImage to work at all. To display power in mW
+         in the BEAMS window, you will need to upgrade to the *next* release of ScanImage that is
+         currently not available.
+- USER (Dev) - Power at the sample is written to the acquisition log file.
+
+
+26th July 2022
+Various small bug fixes implemented over the last 7 months. 
+- USER (Dev) - Tested and made small fixes so BakingTray runs with SI 2021 and SI 2022.
+- USER (Dev) - Running "BakingTray" at the command line will now start ScanImage first if necessary. 
+
+
 December 6th 2021
 - USER (Dev) - Bugfix to ensure Front/Left is always viable. 
 - USER (Dev) - Do not display image box in Acq GUI axes if it's empty.

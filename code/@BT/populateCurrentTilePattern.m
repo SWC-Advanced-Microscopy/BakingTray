@@ -1,5 +1,5 @@
 function varargout=populateCurrentTilePattern(obj,varargin)
-    % populate obj.currentTilePattern and obj.positionArray
+    % populate the x/y tile pattern at obj.currentTilePattern and obj.positionArray
     %
     % Purpose
     % The positions sampled during an acquisition by a tile scan are stored in advance in
@@ -71,8 +71,19 @@ function varargout=populateCurrentTilePattern(obj,varargin)
             ~isempty(obj.autoROI) && ...
             isfield(obj.autoROI,'stats')
 
-        BB = obj.autoROI.stats.roiStats(end).BoundingBoxDetails;
-        [pos,indexes]=obj.recipe.tilePattern(false,false,BB);
+        if ~isfield(obj.autoROI.stats.roiStats, 'BoundingBoxDetails')
+            % To catch odd error that begin 12/10/2022. Issue #437
+            fprintf('\n\n *** obj.autoROI.stats.roiStats has no field BoundingBoxDetails:\n')
+            obj.autoROI.stats.roiStats % to just print to screen
+            
+            % Ensure that we bail out later. 
+            pos = [];
+            indexes = [];
+            
+        else
+            BB = obj.autoROI.stats.roiStats(end).BoundingBoxDetails;
+            [pos,indexes]=obj.recipe.tilePattern(false,false,BB);
+        end
 
     elseif strcmp(obj.recipe.mosaic.scanmode,'tiled: manual ROI')
         % Manual ROI

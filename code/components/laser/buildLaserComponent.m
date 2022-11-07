@@ -59,7 +59,7 @@ end
 if ~isa(component,validComponentSuperClassName)
     fprintf('ERROR: constructed component %s is not of class %s. SKIPPING BUILDING.\n', ...
      componentName, validComponentSuperClassName);
-    delete(component) %To clean up any open ports, etc
+    delete(component); %To clean up any open ports, etc
     component = [];
 end
 
@@ -68,7 +68,7 @@ end
 %If requested, we connect to the pockels cell
 % TODO -- for now we place this here. Later maybe move to the laeser classes
 if ~isempty(laserSettings.pockels)
-    fprintf('%s is connecting to Pockels cell power gating\n',mfilename)
+    fprintf('%s is connecting to Pockels cell power gating\n',mfilename);
     component.pockelsDAQ = laserSettings.pockels.pockelsDAQ;
     component.pockelsDigitalLine = laserSettings.pockels.pockelsDigitalLine;
     component.doPockelsPowerControl = laserSettings.pockels.doPockelsPowerControl;
