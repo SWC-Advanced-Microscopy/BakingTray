@@ -414,10 +414,12 @@ classdef acquisition_view < BakingTray.gui.child_view
             y = obj.parentView.view_prepare.lastYpos;
             obj.overlayStagePositionOnImage(x,y);
         end %updateStagePosOnImage
+
         function showSlide(obj,~,~)
             % Overlay slide on image and zoom out to ensure the whole thing is visible. 
             % This callback runs when the slide button is pressed
             obj.overlaySlideFrostedAreaOnImage
+            obj.overlayStageBoundariesOnImage % TODO - a bit of a hack, as we can not disable.
             obj.zoomOutToShowSlide
             obj.checkBoxShowSlide.Value = 1;
         end %showSlide

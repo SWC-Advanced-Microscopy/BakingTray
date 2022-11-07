@@ -9,10 +9,11 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
-7th November 2022
-- USER (Dev) - Fix regression that had caused the laser power to no longer be displayed in the laser GUI. 
-- USER (Dev) - Add a tooltip to explain what the Lock-Z checkbox does. 
 
+7th November 2022
+- USER (Dev -> Master) - Fix regression that had caused the laser power to no longer be displayed in the laser GUI. 
+- USER (Dev -> Master) - Add a tooltip to explain what the Lock-Z checkbox does. 
+- USER (Dev) - Overlay stage boundaries onto preview image.
 
 August 2022
 - USER (Dev) - Add routines that allow the user to display laser power in ScanImage. This will

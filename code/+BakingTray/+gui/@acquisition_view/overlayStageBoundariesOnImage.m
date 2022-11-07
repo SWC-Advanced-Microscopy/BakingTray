@@ -30,6 +30,16 @@ function overlayStageBoundariesOnImage(obj)
     % position of the tile is counted as the top/left corner. 
     y_lim(1) = y_lim(1) - obj.model.recipe.TileStepSize.Y;
     
+
+    % The positive X limit is way off the screen (up at the top) and this
+    % confuses users. So we will fake it and place it just beyond the edge 
+    % of the slide frosted area.
+    slideEdge = obj.model.recipe.SYSTEM.slideFrontLeft{1};
+    if ~isnan(slideEdge)
+        bufferMM = 7 * obj.model.recipe.SYSTEM.cutterSide;
+        x_lim(2) = slideEdge + bufferMM;
+    end
+
     % Top left pixel is maxPos for both axes and bottom right is minPos.
     % The line we will draw therefore will be:
     x = [x_lim(2),x_lim(1),x_lim(1),x_lim(2),x_lim(2)];
@@ -37,9 +47,10 @@ function overlayStageBoundariesOnImage(obj)
 
     pixPos=obj.model.convertStagePositionToImageCoords([x(:),y(:)]);
 
-    obj.plotOverlayHandles.(mfilename) = plot(pixPos(:,1),pixPos(:,2),'-y','Parent',obj.imageAxes,'LineWidth',2);
-    
-       
+    obj.plotOverlayHandles.(mfilename) = plot(pixPos(:,1),pixPos(:,2),'--r','Parent',obj.imageAxes,'LineWidth',2);
+    obj.plotOverlayHandles.(mfilename)(end+1) = text(pixPos(1,1),pixPos(1,2)-50,'Stage Boundaries','Color','r','parent',obj.imageAxes);
+    obj.plotOverlayHandles.(mfilename)(end+1) = text(mean(pixPos(:,1)),pixPos(2,2)-50,'Stage Boundaries','Color','r','parent',obj.imageAxes);
+
     hold(obj.imageAxes,'off')
 
     drawnow
