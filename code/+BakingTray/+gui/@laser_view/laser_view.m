@@ -11,6 +11,7 @@ classdef laser_view < BakingTray.gui.child_view
         modelockText
         connectionIndicator
         connectionText
+        laserPowerText
 
         buttonOnOff
         buttonShutter
@@ -118,6 +119,9 @@ classdef laser_view < BakingTray.gui.child_view
             obj.connectionIndicator = obj.makeRectangle(obj.statusPanel,[indicatorsLeftPos,50]);
             obj.connectionText = obj.makeTextLabel(obj.statusPanel,[0, 49, 110 20],'Connected: NO');
             set(obj.connectionText, 'HorizontalAlignment', 'Right');
+
+            % The text that reports the current laser power
+            obj.laserPowerText = obj.makeTextLabel(obj.statusPanel,[0, 29, 180 20],'Output Power: 0 mW');
 
             % Buttons
             obj.buttonOnOff=uicontrol(...
@@ -372,6 +376,15 @@ classdef laser_view < BakingTray.gui.child_view
             end
         end %updateLaserOnElements
 
+        function updatePowerText(obj)
+            if ~obj.model.laser.isControllerConnected
+                %TODO: make a check connection method and bring up a warning box
+                return
+            end
+            powerIn_mW = round(obj.model.laser.readPower);
+            set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
+        end %updatePowerText
+
         function updateGUI(obj,~,~)
             obj.updateShutterElements
             obj.updateModeLockElements
@@ -391,6 +404,7 @@ classdef laser_view < BakingTray.gui.child_view
 
             try
                 obj.updateModeLockElements
+                obj.updatePowerText
                 obj.updateCurrentWavelength
             catch ME 
                 fprintf('Failed to update laser GUI with error: %s\n', ME.message)
