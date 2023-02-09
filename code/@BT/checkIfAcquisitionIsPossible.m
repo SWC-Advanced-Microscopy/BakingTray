@@ -57,7 +57,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     end
 
     if obj.isScannerConnected && ~obj.scanner.isReady
-        msg=sprintf('%s%d) Scanner is not ready to acquire data\n', msg, msgNumber);
+        msg=sprintf('%s%d) Scanner is not ready to acquire data. Are you doing a "Focus"?\n', msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 
