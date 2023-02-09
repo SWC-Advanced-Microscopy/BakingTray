@@ -197,7 +197,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % If using ScanImage, did the user switch on all the PMTs for the channels being saved?
     if isa(obj.scanner,'SIBT') && ~isempty(obj.scanner.hC.hPmts.gains) && ...
         ~isequal(obj.scanner.getChannelsToAcquire,obj.scanner.getEnabledPMTs)
-        msg=sprintf('%s%d) Check you have enabled the correct PMTs and try again.\n', msg,msgNumber);
+        msg=sprintf('%s%d) The enabled PMTs do not match the channels you requested to save. Correct this and try again.\n', msg,msgNumber);
         msgNumber=msgNumber+1;
     end
 
