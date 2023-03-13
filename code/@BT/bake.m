@@ -48,6 +48,8 @@ function sectionInd = bake(obj,varargin)
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
+    % First record the current scanner settings. Just in case they are not up to date
+    obj.recipe.recordScannerSettings 
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
         obj.messageString = msg;
@@ -58,7 +60,6 @@ function sectionInd = bake(obj,varargin)
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
 
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
-
 
     % Remove any attached file logger objects. We will add one per physical section.
     % Reset properties in preparation for acquisition
