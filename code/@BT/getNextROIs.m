@@ -157,7 +157,7 @@ function success = getNextROIs(obj)
 
 
     % Update the current tile pattern so that we will image these ROIs
-    %  - currentTilePatern (where the stage will go)
+    %  - currentTilePattern (where the stage will go)
     %  - positionArray (where the tiles will go in the preview image matrix)
     obj.populateCurrentTilePattern
 
