@@ -48,8 +48,16 @@ function sectionInd = bake(obj,varargin)
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
-    % First record the current scanner settings. Just in case they are not up to date
-    obj.recipe.recordScannerSettings 
+    
+    % First record the current scanner settings. Just in case they are not up to date.
+    % TODO -- When the recipe is written (below in the main for loop) the recordScannerSettings
+    %    method is run anyway. So we should not need it here. There is a BUG that sometimes 
+    %    causes the Z voxel size to be wrong: to be what was used during the preview. But it's 
+    %    unclear how this is happening since the system is already running an acquisition with the
+    %    correct parameters by the time we end up in the for loop. We leave this line here for
+    %    now as it should not cause any problems, but it is unlikely to solve anything.
+    obj.recipe.recordScannerSettings
+
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
         obj.messageString = msg;

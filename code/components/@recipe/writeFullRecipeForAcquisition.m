@@ -50,8 +50,10 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
 
         recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd_HHMMSS'));
 
-        %We call tile pattern to ensure that the recipe parameters are up to date. This may no longer be needed.
-        obj.tilePattern; %TODO: ensure we no longer need this explicit call here. 
+        % We call tile pattern to ensure that the recipe parameters are up to date.
+        % The tilePattern method calls recordScannerSettings, so it it should update everything based 
+        % on what ScanImage is currently set to do.
+        obj.tilePattern;
 
         writePath = fullfile(dirName,recipeFname);
         fprintf('Writing recipe to %s\n',writePath);
