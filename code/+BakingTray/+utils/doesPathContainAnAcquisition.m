@@ -93,6 +93,10 @@ function details = doesPathContainAnAcquisition(thisPath)
         details.sections(f)=[];
     else
         % Otherwise no completed dirctories
+        details.sections.sectionNumber=1;
+        details.sections.completed=false;
+        details.sections.allPositionsImaged=false;
+        details.sections.sectionSliced=false;
     end
 
 
@@ -139,5 +143,3 @@ function out = scrapeRawDataDir(tDir)
     else
         out.sectionSliced=true;
     end
-
-

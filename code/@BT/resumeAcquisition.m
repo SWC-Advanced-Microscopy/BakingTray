@@ -223,8 +223,11 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
             fprintf('Deleting last section (# %d) directory: %s\n', ...
                 details.sections(end).sectionNumber, lastDirPath)
         else
-            rmdir(lastDirPath,'s')
+            if exist(lastDirPath)
+                rmdir(lastDirPath,'s')
+            end
         end
+
         details.sections(end) = [];
     end
 
@@ -232,7 +235,11 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
 
     % Set the section start number and num sections
     originalNumberOfRequestedSections = obj.recipe.mosaic.numSections;
-    lastImagedSectionNumber = details.sections(end).sectionNumber;
+    if length(details.sections)>1 % deals with situation where nothing was imaged
+        lastImagedSectionNumber = details.sections(end).sectionNumber;
+    else
+        lastImagedSectionNumber = 0;
+    end
 
 
     if strcmp(existing,'complete')
