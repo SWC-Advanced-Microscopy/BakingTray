@@ -34,6 +34,7 @@ function addLaserCalib
 
     if laserPower.wavelength_in_nm < 1
         fprintf('\n *** PLEASE OPEN BAKINGTRAY LASER GUI AND TRY AGAIN *** \n')
+        return
     end
 
     laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(1,2);
