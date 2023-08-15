@@ -198,6 +198,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     if simulate
         fprintf(msg)
     else
+        % Bring up a message window (not a notify box with a button)
         mWin = BakingTray.utils.messageWindow(msg);
         obj.moveZto(targetPosition, true); % execute blocking motion to last stage position
     end
@@ -288,18 +289,36 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     if details.autoROI
         autoROI_fname = fullfile(obj.pathToSectionDirs,obj.autoROIstats_fname);
         if ~exist(autoROI_fname,'file')
-            fprintf('BT.%s can not find file %s. Failing to resume auto-ROI\n', mfilename, autoROI_fname)
-            return
-        end
-        % Load the variable and place into the autoROI property
-        varsInFile = whos('-file',autoROI_fname);
-        tmp=load(autoROI_fname,varsInFile(1).name);
-        if ~simulate
-            obj.autoROI = tmp.(varsInFile(1).name);
+            % If the auto-ROI file is missing, we will warn the user that
+            % they need to re-do the auto-thresh before starting.
+            msg = sprintf(['BT.%s can not find auto-ROI file %s.\n', ...
+                'You will need to preview & auto-thresh before Baking!\n'], ...
+                mfilename, autoROI_fname);
+            fprintf(msg)
+            warndlg(msg)
+            
         else
-            fprintf('Apply autoROI stats from disk\n')
-        end
-    end
+            % Otherwise the file exists so try to load it
+
+            % Load the variable and place into the autoROI property
+            varsInFile = whos('-file',autoROI_fname);
+
+            if ~simulate && ~isempty(varsInFile)
+                tmp=load(autoROI_fname,varsInFile(1).name);
+                obj.autoROI = tmp.(varsInFile(1).name);
+            elseif ~simulate && isempty(varsInFile)
+                % If varsInFile is empty, the autoROI variable is corrupt
+                t_msg = sprintf(['autoROI data are corrupt in file %s\n', ...
+                     'You will need to preview & auto-thresho before Baking!'], ...
+                     autoROI_fname);
+                fprintf('\n\n* * * * * * * * *\n%s\n* * * * * * * *\n', t_msg)
+                warndlg(t_msg)
+                delete(autoROI_fname) % get rid of the corrupt file
+            else
+                fprintf('Simulated: Applying autoROI stats from disk\n')
+            end
+        end % if ~exist(autoROI_fname,'file')
+    end % if details.autoROI
 
     if ~simulate
         delete(mWin)
