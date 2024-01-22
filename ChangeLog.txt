@@ -8,8 +8,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+22nd January 2024
+- USER: A confirmation dialog pops up when the user tries to unlock the Z stage.
 
-XX August 2022
+August 2022
 - USER: Handle resume scenario where the acquisition has no completed sections.
 - USER: Handle resume scenario where the autoROI.mat file is missing or corrupt.
 - Minor bugfix to recipe saving: sometimes the wrong recipe settings were saved.
