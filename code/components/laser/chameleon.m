@@ -226,6 +226,7 @@ classdef chameleon < laser & loghandler
                 return
             end
 
+
             laserReady=true;
             obj.isLaserReady=laserReady;
         end
@@ -252,6 +253,9 @@ classdef chameleon < laser & loghandler
             if success
                 obj.isLaserShutterOpen=true;
             end
+
+            % Add this here just in case the turn off/turn on commands behaved weirdly and the Pockels cells is off
+            obj.switchPockelsCell %Gate Pockels mains power
         end
 
 
