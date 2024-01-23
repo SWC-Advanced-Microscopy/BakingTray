@@ -112,7 +112,7 @@ classdef prepare_view < BakingTray.gui.child_view
             else
                 obj.lockZ_checkbox.Value=1;
             end
-            obj.lockZ_callback;
+            obj.lockZ_callback([],[],true);
         end %Constructor
 
         function delete(obj)
