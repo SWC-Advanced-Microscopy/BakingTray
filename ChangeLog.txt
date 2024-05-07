@@ -8,6 +8,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+7th May 2024
+- USER: Bake is not possible if sample ID or sample folder contain non-alphanumeric (- and _ are OK)
+       The recipe class no longer corrects funny characters in file names.
+
 22nd January 2024
 - USER: A confirmation dialog pops up when the user tries to unlock the Z stage.
 
@@ -15,11 +19,11 @@ August 2022
 - USER: Handle resume scenario where the acquisition has no completed sections.
 - USER: Handle resume scenario where the autoROI.mat file is missing or corrupt.
 - Minor bugfix to recipe saving: sometimes the wrong recipe settings were saved.
-- Message telling user that the active PMTs and saved channels do match was confusing. It has been clarified. 
+- Message telling user that the active PMTs and saved channels do match was confusing. It has been clarified.
 
 7th November 2022
-- USER (Dev -> Master) - Fix regression that had caused the laser power to no longer be displayed in the laser GUI. 
-- USER (Dev -> Master) - Add a tooltip to explain what the Lock-Z checkbox does. 
+- USER (Dev -> Master) - Fix regression that had caused the laser power to no longer be displayed in the laser GUI.
+- USER (Dev -> Master) - Add a tooltip to explain what the Lock-Z checkbox does.
 - USER (Dev) - Overlay stage boundaries onto preview image.
 
 August 2022
@@ -31,13 +35,13 @@ August 2022
 
 
 26th July 2022
-Various small bug fixes implemented over the last 7 months. 
+Various small bug fixes implemented over the last 7 months.
 - USER (Dev) - Tested and made small fixes so BakingTray runs with SI 2021 and SI 2022.
-- USER (Dev) - Running "BakingTray" at the command line will now start ScanImage first if necessary. 
+- USER (Dev) - Running "BakingTray" at the command line will now start ScanImage first if necessary.
 
 
 December 6th 2021
-- USER (Dev) - Bugfix to ensure Front/Left is always viable. 
+- USER (Dev) - Bugfix to ensure Front/Left is always viable.
 - USER (Dev) - Do not display image box in Acq GUI axes if it's empty.
 - USER (Dev) - Minor bugfix to AMS SIN11
 
@@ -47,11 +51,11 @@ December 6th 2021
 
 
 11th October 2021
-- USER (Dev) - Do not write full recipe on Bake if one already exists (happens during a resume). This fixes a bug where the number 
-              of sections to acquire decreased each time an acquisition was resumed. 
-- POWERUSER (Dev) - Hidden feature to enable Pockels cell when laser is turned on or off. Uses an NI DAQ. 
-- USER (Dev) - Preview tile scan updates every other tile instead of every 10. 
-- USER (Dev) - Handle encoder with Faulhaber MCDC 
+- USER (Dev) - Do not write full recipe on Bake if one already exists (happens during a resume). This fixes a bug where the number
+              of sections to acquire decreased each time an acquisition was resumed.
+- POWERUSER (Dev) - Hidden feature to enable Pockels cell when laser is turned on or off. Uses an NI DAQ.
+- USER (Dev) - Preview tile scan updates every other tile instead of every 10.
+- USER (Dev) - Handle encoder with Faulhaber MCDC
 
 
 22nd to 30th September
@@ -60,12 +64,12 @@ December 6th 2021
 
 22nd September 2021
 - USER (Dev) - Cut size moved to Prepare GUI and is set automatically when "Set Blade Position" is pressed
-- USER (Dev) - Z-jack now locks after the first slice not when a cutting position is set. 
-- USER (Dev) - Overlaid stage boundaries no longer are limited by the blade on the x axis. 
+- USER (Dev) - Z-jack now locks after the first slice not when a cutting position is set.
+- USER (Dev) - Overlaid stage boundaries no longer are limited by the blade on the x axis.
 
 
 21th September
-- USER (Dev) - Auto-Trim now moves the sample to the correct side of the blade before starting if needed. 
+- USER (Dev) - Auto-Trim now moves the sample to the correct side of the blade before starting if needed.
 
 
 20th September
@@ -77,36 +81,36 @@ December 6th 2021
 
 
 14th September
-- USER (Dev) - Sample ID is set automatically after the user chooses a save directory 
+- USER (Dev) - Sample ID is set automatically after the user chooses a save directory
 - DEVELOPER (Dev) - Stages are no longer checked for reference on each move. Other minor motion-related changes.
 
 
 10th September 2021
-- USER (Dev) - When a cutting position is set the Z jack motions via the GUI are disabled using a checkbox. This can be over-ridden by the user. 
-- USER (Dev) - Slice last section is now removed from the acqusition view and is disabled by default. 
+- USER (Dev) - When a cutting position is set the Z jack motions via the GUI are disabled using a checkbox. This can be over-ridden by the user.
+- USER (Dev) - Slice last section is now removed from the acqusition view and is disabled by default.
 
 
 5th September 2021
 - USER (Dev) - Stages that need referencing no longer auto-ref when connected. Instead the user must manually select Tools > References Stages from the menu.
 - DEVELOPER (Dev) - Zaber linear stages can be used as X/Y. e.g. X-LRM100A-DE51 are verified to work.
-- DEVELOPER (Dev) - Option to set a wait time that scales with distance moved during tile scan instead of waiting for stage to report motion completion. To use this, set fixedStageMotionTimeConstant in SIBT_settings.yml to a positive number or tweak hBT.scanner.settings.hardware.fixedStageMotionTimeConstant on an instance of a BT class. The latter will not be saved for future sessions. Zero means that BakingTray will wait for the motion controller to indicate it has completed a motion. 0.05 means BakingTray will wait 0.05 s per mm. So for a 2 mm motion there would be a 0.1 s wait. Note that there is an additional fixed delay on top of this due to ScanImage buffering time between frames. This is a fixed offset and is about 75 to 100 ms. So it could be that for, say, 1 mm motions little additional delay is really needed. This is an EXPERIMENTAL feature and may need further development. **So might be better off in general to initiate a non-blocking motion then wait at the end of the callback for the motion to complete.** 
+- DEVELOPER (Dev) - Option to set a wait time that scales with distance moved during tile scan instead of waiting for stage to report motion completion. To use this, set fixedStageMotionTimeConstant in SIBT_settings.yml to a positive number or tweak hBT.scanner.settings.hardware.fixedStageMotionTimeConstant on an instance of a BT class. The latter will not be saved for future sessions. Zero means that BakingTray will wait for the motion controller to indicate it has completed a motion. 0.05 means BakingTray will wait 0.05 s per mm. So for a 2 mm motion there would be a 0.1 s wait. Note that there is an additional fixed delay on top of this due to ScanImage buffering time between frames. This is a fixed offset and is about 75 to 100 ms. So it could be that for, say, 1 mm motions little additional delay is really needed. This is an EXPERIMENTAL feature and may need further development. **So might be better off in general to initiate a non-blocking motion then wait at the end of the callback for the motion to complete.**
 
 24th August 2021
-- USER (Dev) - Cutting start point is set to NaN on startup and when a new sample created. System will not cut until it's set. 
-- USER (Dev) - Default sample name is now the microscope ID. 
+- USER (Dev) - Cutting start point is set to NaN on startup and when a new sample created. System will not cut until it's set.
+- USER (Dev) - Default sample name is now the microscope ID.
 - USER (Dev) - Warning issued if the tile size in BakingTray does not match that in ScanImage.
 - POWERUSER (Dev) - The new SYSTEM.defaultSavePath setting in the systemSettings.yml allows you to set the default path to which data should be saved. **It is suggested you set this!** It will reduce user errors and training time. <---
 
 11th August 2021
-- USER (Dev) - Add the ability move Z stage up and down with R and F in addition to Q and E. 
-6th August 
+- USER (Dev) - Add the ability move Z stage up and down with R and F in addition to Q and E.
+6th August
 Minor bug fixes and doc changes
 - USER (Dev) - Compatibility bug fixes for SI Basic 2021.
 
 
 1st July 2021
 - USER (Dev) - Improve behavior of zoom buttons and box buttons in acq view. Includes bug fixes.
-- USER (Dev) - The ROI that was last drawn by the user is painted temporarily onto the imaged area. 
+- USER (Dev) - The ROI that was last drawn by the user is painted temporarily onto the imaged area.
 
 21st June 2021
 - Show relative motion increment in slicing debug message and correctly display the current z depth (bugfix)

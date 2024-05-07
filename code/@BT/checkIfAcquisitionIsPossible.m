@@ -50,6 +50,22 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
+
+    %Check if the sample directory contains funny characters and, if not, check the sample name
+    %> regexp('sa35%!sdfds/', '[^0-9a-z_A-Z-]')
+    funnyCharacters = '[^0-9a-z_A-Z-]';
+    if ~isempty(obj.sampleSavePath)
+        [~,topSampleDir]=fileparts(obj.sampleSavePath);
+        if ~isempty(regexp(topSampleDir,funnyCharacters))
+            msg=sprintf('%s%d) Directory name can only contain alphanumeric characters, underscores, and hyphens.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        elseif ~isempty(regexp(obj.recipe.sample.ID,funnyCharacters))
+            msg=sprintf('%s%d) Sample name can only contain alphanumeric characters, underscores, and hyphens.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+
+
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
         msg=sprintf('%s%d) No scanner is connected.\n' ,msg, msgNumber);
