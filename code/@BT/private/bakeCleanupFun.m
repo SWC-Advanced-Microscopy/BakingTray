@@ -1,11 +1,11 @@
 function bakeCleanupFun(obj)
-    %Perform clean-up operations once bake completes. 
+    %Perform clean-up operations once bake completes.
 
-    %So we don't turn off laser if acqusition failed right away
+    %So we don't turn off laser if acquisition failed right away
     if obj.currentTilePosition==1
         fprintf(['Acquisition seems to have failed right away since BT.bake has finished with currentTilePosition==1.\n',...
             'Not turning off laser.\n'])
-        obj.leaveLaserOn=true; 
+        obj.leaveLaserOn=true;
     end
 
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
@@ -13,8 +13,8 @@ function bakeCleanupFun(obj)
     obj.scanner.disarmScanner;
     obj.scanner.averageSavedFrames=true; % Just in case a testing session was done before
     obj.acquisitionInProgress=false;
-    obj.acquisitionState='idle';    
-    obj.sectionCompletionTimes=[]; %clear the array of completion times. 
+    obj.acquisitionState='idle';
+    obj.sectionCompletionTimes=[]; %clear the array of completion times.
 
     obj.lastTilePos.X=0;
     obj.lastTilePos.Y=0;
@@ -23,7 +23,7 @@ function bakeCleanupFun(obj)
 
     if obj.isLaserConnected && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
-        % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message 
+        % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message
         % to indicate that acquisition is done.
         minSections=25;
         if obj.currentSectionNumber>minSections
@@ -50,9 +50,9 @@ function bakeCleanupFun(obj)
             end
             obj.acqLogWriteLine(laser_msg);
         end
-    else 
+    else
         % So we can report to screen if this is reset
-        % We do the reset otherwise a subsequent run will have the laser on when it completes 
+        % We do the reset otherwise a subsequent run will have the laser on when it completes
         % (but this means we have to set this each time)
         fprintf(['Acquisition finished and Laser will NOT be turned off.\n',...
             'BT.bake is setting the "leaveLaserOn" flag to false: laser will attempt to turn off next time.\n'])
@@ -62,7 +62,7 @@ function bakeCleanupFun(obj)
 
     % Send the Slack message with optional laser message (see laser_msg above)
     obj.slack(slack_msg)
-    
+
     %Reset these flags or the acquisition will not complete next time
     fprintf('resetting abort flags\n')
     obj.abortAfterSectionComplete=false;
@@ -73,7 +73,7 @@ function bakeCleanupFun(obj)
     fprintf('Tearing down scanner\n')
     obj.scanner.tearDown
 
-    % Move the X/Y stage to a nice finish postion, ready for next sample
+    % Move the X/Y stage to a nice finish position, ready for next sample
     obj.moveXYto(obj.recipe.FrontLeft.X,0)
 
     % In a crash we can sometimes still be indicating that the system is cutting. So stop this

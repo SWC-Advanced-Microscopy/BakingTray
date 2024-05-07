@@ -7,18 +7,18 @@ classdef recipe < handle
     % thickness of the sections, how many sections to take, the image resolution.
     % and so forth.
     %
-    % The recipe class is mainly used by the BT class, to which it is attached 
-    % at BT.recipe. 
+    % The recipe class is mainly used by the BT class, to which it is attached
+    % at BT.recipe.
     %
     %
     % Example Usage
-    % Standalone usage of the recipe class is not useful for much. Nonetheless, 
+    % Standalone usage of the recipe class is not useful for much. Nonetheless,
     % the following are valid command-line examples:
     %
     % ONE - read the default recipe from BakingTray/SETTINGS/default_recipe.yml
     % >> R=recipe
     %  Setting sample name to: sample_17-07-10_173116
-    %  R = 
+    %  R =
     %  recipe with properties:
     %               sample: [1x1 struct]
     %               mosaic: [1x1 struct]
@@ -40,8 +40,8 @@ classdef recipe < handle
     % THREE - read an existing recipe in order to resume an acquisition
     % >> R = recipe('Path/To/myRecipe.yml', 'resume', true);
     % The difference between this and TWO is that here we re-read whatever
-    % is stored in the FrontLeft and CuttingStartPoint fields (see below). 
-    % Normally this is discarded. 
+    % is stored in the FrontLeft and CuttingStartPoint fields (see below).
+    % Normally this is discarded.
     %
     %
     %
@@ -50,15 +50,15 @@ classdef recipe < handle
     % The following information is aimed mainly at developers.
     %
     % The recipe is composed of three sets of variables:
-    % 1) System-specific settings represented by upper case characters: 
+    % 1) System-specific settings represented by upper case characters:
     %    recipe.SYSTEM and recipe.SLICER
     %
     % 2) Derived properties that can't be edited by the user indicated by CamelCase
     %    e.g. recipe.NumTiles and recipe.TileStepSize
-    %    These derived properties are handled by external helper classes. 
+    %    These derived properties are handled by external helper classes.
     %
     % 3) Settings that can be edited by the user: lower case
-    %    recipe.sample and recipe.mosaic 
+    %    recipe.sample and recipe.mosaic
     %
     % If no input arguments are provided the class instantiates an object that is
     % populated by the defaults found in BakingTray/SETTINGS/default_recipe.yml
@@ -82,7 +82,7 @@ classdef recipe < handle
     % mosaic.scanmode: (string defining the scanning mode. e.g. "tile")
     %
     % Once the sample is set up, the method recipe.writeFullRecipeForAcquisition is used
-    % to record the acquisition settings as a "full" recipe file in the sample directory. 
+    % to record the acquisition settings as a "full" recipe file in the sample directory.
     % This contains the above fields and also the following additional fields:
     %
     % CuttingStartPoint.[XY] (The point at which blade is placed in X and Y before starting to cut)
@@ -105,15 +105,15 @@ classdef recipe < handle
     %
     % VoxelSize.[XY] (The nominal voxel size returned by the scanner)
     %
-    % The following are records of various parameters used for the acquisition. 
+    % The following are records of various parameters used for the acquisition.
     % ScannerSettings (A structure that stores a variety of information about how the scanner is configured. see recipe.recordScannerSettings)
     % SYSTEM and SLICER (Two structures contain the information found in the systemSettings.yml)
 
 
     properties (SetObservable, AbortSet)
         % Define legal default values for all parameters. This way it will be possible
-        % to use the recipe to do *something*, even if that something isn't especially 
-        % useful. 
+        % to use the recipe to do *something*, even if that something isn't especially
+        % useful.
 
         sample=struct('ID', '', ...           % String defining the sample name
                      'objectiveName', '16x')     % String defining the objective name
@@ -132,8 +132,8 @@ classdef recipe < handle
 
 
         % These properies are set via methods of BT, not directly by the user.
-        % They are used for determining where to image and where to cut and aren't 
-        % relevant beyond this. Cutting and imaging won't be possible until these are set to reasonable values. 
+        % They are used for determining where to image and where to cut and aren't
+        % relevant beyond this. Cutting and imaging won't be possible until these are set to reasonable values.
         CuttingStartPoint=struct('X',NaN, 'Y',0)   % Start location for cutting
         FrontLeft=struct('X',NaN, 'Y',0)           % Front/left position of the tile array
 
@@ -142,7 +142,7 @@ classdef recipe < handle
     end %close the main sample properties
 
     properties (SetAccess=protected)
-        %These properties are set by the recipe class. see: 
+        %These properties are set by the recipe class. see:
         %  - recipe.recordScannerSettings
         %  - recipe.tilePattern
         NumTiles % Number of tiles in the grid. Calculated with an external class of the same name
@@ -156,7 +156,7 @@ classdef recipe < handle
         VoxelSize=struct('X',0, 'Y', 0, 'Z',0);
         ScannerSettings=struct;
 
-        % These properties are populated by structures that can be set by the user only by editing 
+        % These properties are populated by structures that can be set by the user only by editing
         % SETTINGS/systemSettings.yml this yml is made by BakingTray.Settings.readSystemSettings
         SYSTEM
         SLACK
@@ -169,7 +169,7 @@ classdef recipe < handle
 
     properties (Hidden)
         % The acquisition property is set by other functions and isn't important to the user, so we hide it
-        % NOTE: hidden properties we want to write to the recipe YAML need to be listed explicitly in 
+        % NOTE: hidden properties we want to write to the recipe YAML need to be listed explicitly in
         % recipe.writeFullRecipeForAcquisition
         Acquisition=struct('acqStartTime','')
         verbose=0;
@@ -184,7 +184,7 @@ classdef recipe < handle
 
         % These are the valid possibilities for the scan mode. We place them here
         % as a property so the main GUI can query the valid values and use this to
-        % building a drop-down menu. 
+        % building a drop-down menu.
         valid_scanMode_values = {'tiled: manual ROI','tiled: auto-ROI'};
     end %close hidden properties
 
@@ -194,7 +194,7 @@ classdef recipe < handle
     end
 
 
-    % The following properties are for tasks such as GUI updating and broadasting the state of the 
+    % The following properties are for tasks such as GUI updating and broadasting the state of the
     % recipe to other components.
     properties (SetObservable, AbortSet, Hidden)
         acquisitionPossible=false % Set to true if all settings indicate an acquisition is likely possible (e.g. front/left is set and so forth)
@@ -236,16 +236,16 @@ classdef recipe < handle
             end % if nargin<1
 
 
-            % Build instances of TileStepSize and NumTiles classes that will calculate these properties 
+            % Build instances of TileStepSize and NumTiles classes that will calculate these properties
             % using dependent variables
-            obj.TileStepSize = TileStepSize(obj); 
-            obj.NumTiles = NumTiles(obj); 
+            obj.TileStepSize = TileStepSize(obj);
+            obj.NumTiles = NumTiles(obj);
 
             %Add these recipe parameters as properties
             obj.sample = []; % Declare only to maintain a nice order for the fields
             obj.mosaic = params.mosaic;
 
-            %Add the system settings from the settings file. 
+            %Add the system settings from the settings file.
             sysSettings = BakingTray.settings.readSystemSettings;
 
 
@@ -253,12 +253,12 @@ classdef recipe < handle
                 error('Reading of system settings by BakingTray.settings.readSystemSettings seems to have failed')
             end
 
-            % We do not want to ever read these settings from the recipe file. 
+            % We do not want to ever read these settings from the recipe file.
             obj.SYSTEM = sysSettings.SYSTEM;
             obj.SLICER = sysSettings.SLICER;
             obj.SLACK = sysSettings.SLACK;
 
-            obj.sample = params.sample; % Can now fill this in: it required the SYSTEM field to be present. 
+            obj.sample = params.sample; % Can now fill this in: it required the SYSTEM field to be present.
             obj.fname=recipeFname;
 
 
@@ -300,7 +300,7 @@ classdef recipe < handle
         end %destructor
 
 
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % Convenience methods
         function numTiles = numTilesInOpticalSection(obj)
             % Return the number of tiles to be imaged in one plane
@@ -309,8 +309,8 @@ classdef recipe < handle
             % tiles in X and Y. If this is an auto-ROI, the result is the number
             % of rows in BT.currentTilePattern. Of course that means one must have
             % have updated the current tile pattern before running this!
-            if strcmp(obj.mosaic.scanmode,'tiled: auto-ROI')                
-                numTiles = size(obj.parent.currentTilePattern,1);                
+            if strcmp(obj.mosaic.scanmode,'tiled: auto-ROI')
+                numTiles = size(obj.parent.currentTilePattern,1);
             elseif strcmp(obj.mosaic.scanmode,'tiled: manual ROI')
                 numTiles = obj.NumTiles.X * obj.NumTiles.Y ;
             end
@@ -327,11 +327,11 @@ classdef recipe < handle
 
 
 
-    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     %Getters and setters
     methods
 
-        % Setter for the recipe.sample structure. 
+        % Setter for the recipe.sample structure.
         % This is used to ensure that the values entered by the user are valid
         function obj = set.sample(obj,val)
             oldVal = obj.sample; % store the previous values
@@ -353,7 +353,7 @@ classdef recipe < handle
                 if isfield(val,field2check)
                     switch field2check
                         case 'ID'
-                            sampleNameStem = obj.SYSTEM.ID; %The sample name will always start with the system name; 
+                            sampleNameStem = obj.SYSTEM.ID; %The sample name will always start with the system name
                             if strcmp(sampleNameStem,'SYSTEM_NAME')
                                 sampleNameStem = 'BrainSawSample';
                             end
@@ -396,7 +396,7 @@ classdef recipe < handle
 
 
 
-        % Setter for the recipe.mosaic structure. 
+        % Setter for the recipe.mosaic structure.
         % This is used to ensure that the values entered by the user are valid
         function obj = set.mosaic(obj,val)
             oldVal = obj.mosaic; % store the previous values
@@ -426,7 +426,7 @@ classdef recipe < handle
                                 fieldValue=[]; %Will stop. the assignment from happening
                             end
 
-                            % TODO: temporary hack just in case. Remove once we have deployed a 
+                            % TODO: temporary hack just in case. Remove once we have deployed a
                             % a functioning auto-ROI
                             if strcmp(fieldValue,'tile')
                                 fieldValue = 'tiled: manual ROI';
@@ -488,9 +488,9 @@ classdef recipe < handle
                             % The minimum sample size in one tile step size
                             if ~isstruct(fieldValue)
                                 fieldValue=[];
-                            else 
+                            else
                                 % Do not allow the sample size to be smaller than the tile size.
-                                % This is a little weirdly written here, but it works. 
+                                % This is a little weirdly written here, but it works.
                                 tileX = obj.TileStepSize.X;
                                 if tileX==0
                                     minSampleSizeX=0.05;
@@ -527,7 +527,7 @@ classdef recipe < handle
         end % set.mosaic
 
 
-        % Setter for the recipe.FrontLeft structure. 
+        % Setter for the recipe.FrontLeft structure.
         % This is used to ensure that the values entered by the user are valid
         function obj = set.FrontLeft(obj,val)
 
@@ -561,7 +561,7 @@ classdef recipe < handle
         end % set.FrontLeft
 
 
-        % Setter for the recipe.CuttingStartPoint structure. 
+        % Setter for the recipe.CuttingStartPoint structure.
         % This is used to ensure that the values entered by the user are valid
         function obj = set.CuttingStartPoint(obj,val)
 
@@ -601,7 +601,7 @@ classdef recipe < handle
         % Convenience methods
         function value=checkInteger(~,value,allowZero)
             % Confirm that an input is a positive integer
-            % Returns empty if the input is not valid. 
+            % Returns empty if the input is not valid.
             % Empty values aren't assigned to a property by the setters
             if nargin<3
                 allowZero=false;
@@ -620,8 +620,8 @@ classdef recipe < handle
         end %checkInteger
 
         function value=checkFloat(~,value,minVal,maxVal)
-            % Confirm that an input is a positive float no smaller than minVal and 
-            % no larger than maxVal. Returns empty if the input is not valid. 
+            % Confirm that an input is a positive float no smaller than minVal and
+            % no larger than maxVal. Returns empty if the input is not valid.
             % Empty values aren't assigned to a property by the setters.
             % Store to acccuracy of five decimal places
             if nargin<3
