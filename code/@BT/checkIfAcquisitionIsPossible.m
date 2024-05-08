@@ -199,7 +199,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
         if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.stats.channelsToSave)
             msg=sprintf(['%s%d) You are trying to bake an auto-ROI with different channels to those used for obtaining the threshold. ', ...
-                'To use these channels you must repeat preview scan and Auto-Thresh'], msg, msgNumber);
+                'To use these channels you must repeat preview scan and Auto-Thresh.\n'], msg, msgNumber);
             msgNumber=msgNumber+1;
         end
     end
