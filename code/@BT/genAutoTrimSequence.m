@@ -5,7 +5,7 @@ function [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
     % Imaging cut thickness should be gradually approached from thicker sections. This
     % is to avoid the vibratome from alternately cutting thick and thin slices. This
     % method generates a list of increasingly thinner slices before taking three slices
-    % at the target slice thickness. This is obtained from the recipe. 
+    % at the target slice thickness. This is obtained from the recipe.
     %
     % Inputs [optional]
     % lastSliceThickness - the thickness of the last cut from which we will cut thinner.

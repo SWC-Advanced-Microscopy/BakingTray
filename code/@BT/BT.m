@@ -6,7 +6,7 @@ classdef BT < loghandler
 % happens. BT inherits loghandler. Unlike the component classes, BT does not inherit
 % an abstract class.
 %
-% Also see the bootstrap function "BakingTray.m", which starts an instance of BakingTray 
+% Also see the bootstrap function "BakingTray.m", which starts an instance of BakingTray
 % in a user-friendly manner.
 %
 % Examples
@@ -18,7 +18,7 @@ classdef BT < loghandler
 
     properties (Transient)
         scanner % The object that handles the scanning (e.g. SIBT, our scanImage wrapper)
-        cutter  % The vibrotome motor 
+        cutter  % The vibrotome motor
         laser   % An object providing control of the laser goes here. If present, BakingTray can
                 % can turn off the laser at the end of the experiment and stop acquisition if the
                 % laser fails. If it's missing, these features just aren't available.
@@ -29,7 +29,7 @@ classdef BT < loghandler
         yAxis
         zAxis
         buildFailed=true  % True if BT failed to build all components at startup
-        disabledAxisReadyCheckDuringAcq=true % If true, we don't check whether stages are ready to 
+        disabledAxisReadyCheckDuringAcq=true % If true, we don't check whether stages are ready to
                                              % move before each motion when we are in an acquisition
         previewTilePositions % Pixel locations defining where tiles will be placed in the lastPreviewImageStack.
                              % We take into account the overlap between tiles: BT.initialisemodel)
@@ -40,21 +40,21 @@ classdef BT < loghandler
     properties (Hidden)
         saveToDisk = 1 %By default we save to disk when running
         % By default a "FINISHED" is written to the acquisition directory when the sample completes.
-        % The user may wish to skip this if they stop the acquisition early for some reason (e.g. to 
+        % The user may wish to skip this if they stop the acquisition early for some reason (e.g. to
         % change a cutting parameter then re-start)
         completeAcquisitionOnBakeLoopExit = true
 
         logPreviewImageDataToDir = '' %If a valid path, any preview image in view_acquire is saved here during cutting
 
         % Cached/stored settings
-        % Log front/left position when the preview stack (BT.lastPreviewImageStack) is taken. 
-        % We need to do this because BT.convertImageCoordsToStagePosition calculates stage position 
+        % Log front/left position when the preview stack (BT.lastPreviewImageStack) is taken.
+        % We need to do this because BT.convertImageCoordsToStagePosition calculates stage position
         % based on this value. We can't use the recipe front/left position because then the stage coords
         % derived from the image would be wrong until the user re-acquires a preview stack.
         frontLeftWhenPreviewWasTaken = struct('X',[],'Y',[]);
 
         % Log files stored here. This is a new property (Dec 2021) so it will take a while to migrate
-        % everything as downstream processing will be affected by this change. 
+        % everything as downstream processing will be affected by this change.
         logFilePath = 'logfiles'
 
         % Directory to keep old, backup, log files generated during things like acquisition resumes
@@ -89,10 +89,10 @@ classdef BT < loghandler
     % for the GUI also monitor this same structure and display a dialog box if appropriate. Furthermore,
     % we can set up particular sorts of messages to be formatted differently depending on messageID.
     %
-    % The messageString property contains the text to be displayed. 
+    % The messageString property contains the text to be displayed.
     % The mesageID property is for internal use only and could contain flags so that messages are, say,
-    % skipped by the GUI. 
-    % IMPORTANT: functions wishing to write a message MUST write to messageID first then messageString. 
+    % skipped by the GUI.
+    % IMPORTANT: functions wishing to write a message MUST write to messageID first then messageString.
     % This is because BT.displayMessage listens to messageString and will read what is in messageID
     % immediately after the messageString is changed.
     % NOTE: only write messages to messageString that you would like to be displayed in the GUI too.
@@ -114,12 +114,12 @@ classdef BT < loghandler
                                          % This is used only for debugging so keepAllDownSampledTiles should generally be false.
 
         % The last acquired tiles go here. With ScanImage, all tiles from the last x/y position will be stored in
-        % scanner.tileBuffer should be 
-        downSampledTileBuffer = [] % A 4D array: [imageRows,imageCols,zDepths,channels]; 
+        % scanner.tileBuffer should be
+        downSampledTileBuffer = [] % A 4D array: [imageRows,imageCols,zDepths,channels];
         % The following parameter defines the number of microns per pixel of the downsampled image.
         % It is set to 20 microns/pixel by default. ** The autoROI feature is tested only at 20 mics/pix **
-        % If you change this value the autoROI might not work as expected. In addition, decreasing this value 
-        % will slow down the autoROI slightly. 
+        % If you change this value the autoROI might not work as expected. In addition, decreasing this value
+        % will slow down the autoROI slightly.
         downsampleMicronsPerPixel = 20;
         %i.e. 1,2,3,... not a position in mm)
         lastTilePos =  struct('X',0,'Y',0);  %The X and Y positions in the grid
@@ -141,9 +141,9 @@ classdef BT < loghandler
     % These properties are used by GUIs and general broadcasting
     properties (SetObservable, AbortSet)
         acquisitionState='idle'     % Can be "idle", "bake", or "preview"
-        acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring). 
-                                    % The acquisitionInProgress bool goes high when the acquisition begins and only returns low 
-                                    % once all sections have been acquired. 
+        acquisitionInProgress=false % This indicates that an acquisition is under way (distinct from scanner.isScannerAcquiring).
+                                    % The acquisitionInProgress bool goes high when the acquisition begins and only returns low
+                                    % once all sections have been acquired.
     end
 
     properties (Hidden, SetObservable, AbortSet)
@@ -170,7 +170,7 @@ classdef BT < loghandler
         runSuccess = runTileScan(obj,boundingBoxDetails) %is called by bake and takeRapidPreview
 
         % Acquisition-related helper functions
-        success = defineSavePath(obj) 
+        success = defineSavePath(obj)
         [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         [cuttingPossible,msg] = checkIfCuttingIsPossible(obj)
         [cutSeries,msg] = genAutoTrimSequence(obj,lastSliceThickness)
@@ -215,7 +215,7 @@ classdef BT < loghandler
             clc
             fprintf('Starting construction of BT object\n')
             % Check if an instance of BT already exists and return *that*.
-            % So it is never possible to have more than one instance of BT created. 
+            % So it is never possible to have more than one instance of BT created.
             W=evalin('base','whos');
             varClasses = {W.class};
             ind=strmatch('BT',varClasses);
@@ -233,9 +233,9 @@ classdef BT < loghandler
             params.addParameter('componentSettings',[], @(x) isstruct(x) || isempty(x))
             params.parse(varargin{:});
 
-            % Test read of the system settings file. It will be created if not present. 
-            % Nothing is done with the system settings at this point. The settings are 
-            % are read by the recipe file. 
+            % Test read of the system settings file. It will be created if not present.
+            % Nothing is done with the system settings at this point. The settings are
+            % are read by the recipe file.
             BakingTray.settings.readSystemSettings;
 
             %Read the component settings found by BakingTray.settings.readComponentSettings
@@ -287,7 +287,7 @@ classdef BT < loghandler
             fprintf('BT.BT is loading default recipe\n')
             obj.attachRecipe;
 
-            % Read the stage positions so they are stored in the stage objects. This ensures that any 
+            % Read the stage positions so they are stored in the stage objects. This ensures that any
             % methods that might rely on the stage currentPosition properties aren't fed an empty array.
             [x,y]=obj.getXYpos;
             z=obj.getZpos;
@@ -305,7 +305,7 @@ classdef BT < loghandler
         end %Constructor
 
         %Destructor
-        function obj=delete(obj) 
+        function obj=delete(obj)
             disp('Cleaning up BT object')
             if obj.isXaxisConnected
                 obj.xAxis.delete
@@ -389,7 +389,7 @@ classdef BT < loghandler
 
         function varargout=moveXYby(obj,xPos,yPos,blocking,extraSettlingTime,timeOut)
             % Relative move defined by xPos and yPos
-            % Wait for motion to complete before returning if blocking is true. 
+            % Wait for motion to complete before returning if blocking is true.
             % blocking is false by default.
             % extraSettlingTime is an additional waiting period after the end of a blockin motion.
             % This extra wait is used when tile scanning to ensure that vibration has ceased. zero by default.
@@ -426,14 +426,14 @@ classdef BT < loghandler
         function waitXYsettle(obj,extraSettlingTime,timeOut)
             % Purpose
             % Blocks whilst either of the stages is moving then, optionally,
-            % waits extraSettlingTime seconds then returns. There is also 
+            % waits extraSettlingTime seconds then returns. There is also
             % an option to time-out if the motion reports as incomplete.
             %
             % waitXYsettle(obj,extraSettlingTime,timeOut)
             %
             % By default, extraSettlingTime is zero and timeOut is
             % infinite. Currently this is implemented only for relative and
-            % absolute X/Y motions. 
+            % absolute X/Y motions.
             if nargin<2
                 extraSettlingTime=0;
             end
@@ -488,7 +488,7 @@ classdef BT < loghandler
         end
 
         function success = toFirstTilePosition(obj)
-            %Move stage to the first position in the tile grid. This may differ from the 
+            %Move stage to the first position in the tile grid. This may differ from the
             %Front/Left position if we are doing an auto-ROI acquisition
             success=false;
             if isempty(obj.recipe) || isempty(obj.positionArray)
@@ -501,12 +501,16 @@ classdef BT < loghandler
         % ----------------------------------------------------------------------
         % Public methods for moving the Z stage
         function success =  lowerZstage(obj)
-            %Lowers the Z stage to the bottom (zero mm) and performs a homing operation if 
+            % Lower the Z-stage
+            %
+            % function success =  lowerZstage(obj)
+            %
+            % Lowers the Z stage to the bottom (zero mm) and performs a homing operation if
             % necessary. The z-jack lowered position MUST also be the home position.
             % The homing motion is only performed if the recipe SYSTEM.homeZjackOnZeroMove
             % setting is true and we are approaching zero from a position greater than
             % 20 mm away (indicating a sample was likely imaged). Otherwise we simply lower
-            % the z-stage as normal to zero, 
+            % the z-stage as normal to zero,
 
             if obj.recipe.SYSTEM.homeZjackOnZeroMove && obj.zAxis.axisPosition>20
                 % Approach the home position with a regular non-blocking motion then home.
@@ -520,6 +524,37 @@ classdef BT < loghandler
             obj.zAxis.axisPosition; % To update the GUI
             success = true;
         end % lowerZstage
+
+        function success = raiseSample(obj)
+            % Raise the Z stage and move X to a safe position, relatively near the sample
+            %
+            % function success = raiseSample(obj)
+            %
+            % Running this command will raise the sample with the Z stage and translate
+            % the X stage such that the blade is in the correct general position. This
+            % command only runs if the "SYSTEM.raisedXposition" and "YSTEM.raisedZposition"
+            % settings are not empty. IT IS THE RESPONSIBILITY OF THE END SUPERUSER TO
+            % ENSURE THAT THOSE VALUES ARE SAFE. e.g. set them assume the largest possible
+            % sample.
+            %
+
+            if isempty(recipe) || ...
+                isempty(obj,recipe.SYSTEM.raisedXposition) || ...
+                 isempty(obj.recipe.SYSTEM.raisedZposition)
+
+                return
+            end % if
+
+            % Do not perform the operation if the Z stage is at or above the the
+            % raised sample position
+            if obj.getZpos >= obj.recipe.SYSTEM.raisedZposition
+                return
+            end
+
+            obj.moveXto(obj.recipe.SYSTEM.raisedXposition, true) % blocking motion
+            obj.moveZto(obj.recipe.SYSTEM.raisedZposition)
+
+        end % raiseSample
 
         function success = moveZto(obj,position,blocking)
             % Absolute z-stage motion
@@ -566,11 +601,11 @@ classdef BT < loghandler
             success = obj.zAxis.stopAxis;
         end
 
-        %TODO: all these methods feel like too much duplication. I don't like it. 
+        %TODO: all these methods feel like too much duplication. I don't like it.
         %If the objects are named properly then I feel it should be possible to do away with a lot of this
 
         % ----------------------------------------------------------------------
-        % Convenience methods to query axis position 
+        % Convenience methods to query axis position
         function pos = getXpos(obj)
             % Return the position of the X stage in mm
             pos=obj.xAxis.axisPosition;
@@ -659,11 +694,11 @@ classdef BT < loghandler
             %
             % Behavior
             % stagesReferenced is true of all axes are referenced
-            % stagesToRef is empty if all stages are referenced. 
+            % stagesToRef is empty if all stages are referenced.
             % If stages need referencing, returns a cell array of stage
             % names to reference. e.g. if x and y stages need referencing
             % then it returns {'xAxis','yAxis'}
-            
+
             stagesReferenced = true;
             stagesToRef = {};
             axesToTest = {'xAxis','yAxis','zAxis'};
@@ -680,15 +715,15 @@ classdef BT < loghandler
             % Reference all unreferenced axes or axes defined in cell array
             % stagesToRef.
             % BT.referenceRequiredAxes(obj,stagesToRef)
-            
+
             if nargin<2
                 [~,stagesToRef] = obj.allStagesReferenced;
             end
-            
+
             if isempty(stagesToRef)
                 return
             end
-            
+
             for ii=1:length(stagesToRef)
                 obj.(stagesToRef{ii}).referenceStage;
             end
@@ -714,8 +749,8 @@ classdef BT < loghandler
 
 
         function acqLogWriteLine(obj,msg,fname)
-            % Writes text to the acquisition log file that sits in the sample root directory. 
-            % Be careful not to overwrite this if it exists, since we may be resuming a 
+            % Writes text to the acquisition log file that sits in the sample root directory.
+            % Be careful not to overwrite this if it exists, since we may be resuming a
             % previously aborted acquisition. So we append a line text to the acquisition log file
             if nargin<3
                 fname=obj.acquisitionLogFileName;
@@ -737,7 +772,7 @@ classdef BT < loghandler
             % Make a directory into which logging files can be stored
             if ~exist(obj.sampleSavePath)
                 fprintf('Sample dir %s does not exist. Can not make log dir.\n')
-                return 
+                return
             end
 
             loggingDir = fullfile(obj.sampleSavePath,obj.logFilePath);
@@ -751,7 +786,7 @@ classdef BT < loghandler
             % Make a directory into which logging files can be stored
             if ~exist(obj.sampleSavePath)
                 fprintf('Sample dir %s does not exist. Can not make log dir.\n')
-                return 
+                return
             end
 
             obj.makeLoggingDir
@@ -771,9 +806,9 @@ classdef BT < loghandler
         % The following are convenience methods so we don't have to specify
         % the stage identity each time. This is just the price of having a more
         % flexible system and allowing for the possibility of multiple stages per
-        % controller, even though systems we work with don't have this. 
+        % controller, even though systems we work with don't have this.
 
-        % - - -  Absolute moves - - - 
+        % - - -  Absolute moves - - -
         function success = moveXto(obj,position,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.absoluteMove(position);
@@ -809,11 +844,11 @@ classdef BT < loghandler
             end
         end %moveYto
 
-        % - - -  Relative moves - - - 
+        % - - -  Relative moves - - -
         function success = moveXby(obj,distanceToMove,blocking)
             if nargin<3, blocking=0; end
             success=obj.xAxis.relativeMove(distanceToMove);
- 
+
             if ~success || isa(obj.xAxis,'dummy_linearcontroller')
                 return
             end
@@ -847,9 +882,9 @@ classdef BT < loghandler
 
         %House-keeping functions
         function msg = checkForPrepareComponentsThatAreNotConnected(obj)
-            %Returns empty if everything is connected. Otherwise returns 
+            %Returns empty if everything is connected. Otherwise returns
             %message string detailing what the problem is. This is used
-            %by view classes to display error messages. 
+            %by view classes to display error messages.
             msg=[];
             if ~obj.isRecipeConnected
                 msg =[msg,'No recipe connected\n'];
@@ -874,14 +909,14 @@ classdef BT < loghandler
 
         function isConnected=isScannerConnected(obj)
             % TODO: consider whether the hC check needs to be added to isComponentConnected, since all
-            % components but the recipe class could potentially benefit from it. 
+            % components but the recipe class could potentially benefit from it.
             isConnected=obj.isComponentConnected('scanner');
             if ~isConnected || isa(obj.scanner,'dummyScanner')
                 return
             else
                 %Further tests
                 isConnected = ~isempty(obj.scanner.hC) && isvalid(obj.scanner.hC);
-            end    
+            end
         end %isScannerConnected
 
         function isConnected=isRecipeConnected(obj)

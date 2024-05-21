@@ -1,16 +1,16 @@
 function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % Perform the cutting sequence
-    % 
+    %
     % function finished = BT.sliceSample(obj,sliceThickness,cuttingSpeed)
     %
     % Purpose
-    % This method moves to the cutting start point and initiates a cut. 
+    % This method moves to the cutting start point and initiates a cut.
     % It uses the following parameters to know how to cut:
     %
     % obj.recipe.CuttingStartPoint .X and .Y
     % obj.recipe.mosaic.cuttingSpeed = mm/s
     % obj.recipe.mosaic.cutSize = mm %how far to cut. Include "overhang" to beyond block
-    % obj.recipe.mosaic.sliceThickness = mm 
+    % obj.recipe.mosaic.sliceThickness = mm
     % obj.recipe.SLICER.approachSpeed = mm/s
     % obj.recipe.SLICER.postCutDelay= seconds %Time to wait for slice to settle (slice dance occurs during the middle of this period)
     % obj.recipe.SLICER.vibrateRate - the commanded vibrate speed
@@ -18,8 +18,8 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     %
     %
     % Inputs (optional)
-    % sliceThickness - if supplied, the value in recipe is not used and this is used instead. 
-    % cuttingSpeed - if supplied, the value in recipe is not used and this is used instead. 
+    % sliceThickness - if supplied, the value in recipe is not used and this is used instead.
+    % cuttingSpeed - if supplied, the value in recipe is not used and this is used instead.
     %
     %
     % Outputs
@@ -44,7 +44,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
 
     verbose=false; % Enable for debugging messages
 
-    %Record in the recipe what are the values we are going to cut at. See the main recipe class help text. 
+    %Record in the recipe what are the values we are going to cut at. See the main recipe class help text.
     obj.recipe.lastSliceThickness=sliceThickness;
     obj.recipe.lastCuttingSpeed=cuttingSpeed;
 
@@ -61,9 +61,9 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     end
 
 
-    % Ensure that the abort flag is false. If this is is ever true, 
-    % the slice sequence will not proceed, but go directly to the cleanup function. 
-    % The motion back to the start position will not be executed in the cleanup function. 
+    % Ensure that the abort flag is false. If this is is ever true,
+    % the slice sequence will not proceed, but go directly to the cleanup function.
+    % The motion back to the start position will not be executed in the cleanup function.
     obj.abortSlice=false;
 
 
@@ -77,7 +77,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     %Record the default move speed
     moveStepSpeed = obj.recipe.SYSTEM.xySpeed;
 
-    %Define a cleanup object in case the user does a ctrl-c and we end up with the 
+    %Define a cleanup object in case the user does a ctrl-c and we end up with the
     %stages having peculiar speed settings, etc
     tidyUp = onCleanup(@() cleanupSlicer(obj,state));
 
@@ -128,21 +128,21 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     % progress a distance of obj.recipe.mosaic.cutSize mm at a speed of obj.recipe.SLICER.cuttingSpeed
     obj.setXvelocity(cuttingSpeed);
     cuttingMove=abs(obj.recipe.mosaic.cutSize)*obj.recipe.SYSTEM.cutterSide;
- 
+
     targetPos = obj.getXpos + cuttingMove; % Where the cutting move should finish
-    
+
     if verbose
         fprintf('Moving X stage by %0.3f mm to target position %0.3f mm\n', cuttingMove, targetPos)
     end
 
     stopDistanceThreshMM = 0.05; %stop cutting if we are within this many mm of the target
     nTimesNearThresh = 0; %Counter indicating how many times the if statment looking for the X stage being near the final position was breached
- 
+
     obj.moveXby(cuttingMove); %Start cutting and return (don't block)
     pause(0.05)
 
-    
-    
+
+
     while 1 %Blocking loop until we have reached the cut end position
        if ~obj.xAxis.isMoving % Uses the controller API routine (if availble)
            if verbose
@@ -152,17 +152,17 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
        else
            %fprintf('.')
        end
-       
-       % Some stages are sensitive and the vibratome motion causes them to 
+
+       % Some stages are sensitive and the vibratome motion causes them to
        % think the stage has not settled. So we add the following
        % statements to catch this: stopping the motion if we are within
        % 50 microns of the target position on more than two passes through
        % the loop.
-       
+
        if obj.recipe.SYSTEM.cutterSide==1 && (targetPos-obj.getXpos)<=stopDistanceThreshMM
-           nTimesNearThresh = nTimesNearThresh+1;           
+           nTimesNearThresh = nTimesNearThresh+1;
        elseif obj.recipe.SYSTEM.cutterSide==-1 && (obj.getXpos-targetPos)<=stopDistanceThreshMM
-           nTimesNearThresh = nTimesNearThresh+1;           
+           nTimesNearThresh = nTimesNearThresh+1;
        end
 
        if nTimesNearThresh >= 2
@@ -186,7 +186,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.logMessage(inputname(1),dbstack,4,'Waiting for slice to settle')
 
     %Vibrate slower. The stop vibrate command is in the cleanup function
-    obj.cutter.startVibrate(obj.recipe.SLICER.postCutVibrate); 
+    obj.cutter.startVibrate(obj.recipe.SLICER.postCutVibrate);
 
     % Optionally push away the slice in X (can rip agar block off slide if blade isn't through)
     if obj.cutter.kickOffSection
@@ -219,13 +219,13 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
         obj.moveXYby(0,swipeSize*2, 1, 0.3, 1); %swipe (with 1 second time-out)
         if obj.abortSlice
             return
-        end        
+        end
     end
 
     if verbose
         fprintf('Tidy up after slicing\n')
     end
-    %Reset speeds of stages to what they were originally    
+    %Reset speeds of stages to what they were originally
     obj.setYvelocity(moveStepSpeed);
     obj.setXvelocity(moveStepSpeed);
 
@@ -250,7 +250,7 @@ function cleanupSlicer(obj,state)
 
     obj.stopXY; %Stop in case the cutting motion is currently taking place. Nothing happens otherwise.
 
-    % Return slowly to initial position 
+    % Return slowly to initial position
     if ~obj.abortSlice
         obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
         obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
@@ -271,8 +271,8 @@ function cleanupSlicer(obj,state)
     obj.getXYpos; %Refreshes the currentPosition properties on the stages
     obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
 
-    % Read all axis positions. This is to force any GUI listeners on stage position properties to update. 
-    % This slightly breaks the model/view paradignm, but does so totally silentlt. 
+    % Read all axis positions. This is to force any GUI listeners on stage position properties to update.
+    % This slightly breaks the model/view paradignm, but does so totally silentlt.
     obj.getXpos;
     obj.getYpos;
     obj.getZpos;
