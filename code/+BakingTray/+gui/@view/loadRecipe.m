@@ -2,8 +2,8 @@ function loadRecipe(obj,~,~,fullPath)
     % Loads a new recipe and initiates resumption of a previous acquisition if necessary
     %
     % Behavior
-    % If a fourth argument is provided and it is a path to a file, this is treated, 
-    % as a recipe to be loaded. If the fourth argument is a directory, it is treated as 
+    % If a fourth argument is provided and it is a path to a file, this is treated,
+    % as a recipe to be loaded. If the fourth argument is a directory, it is treated as
     % the path which uigetfile opens. If the fourth argument is not supplied, we start
     % uigetfile in the BakingTray settings directory
     %
@@ -17,7 +17,7 @@ function loadRecipe(obj,~,~,fullPath)
 
     if ~isempty(fullPath) && ischar(fullPath) && exist(fullPath,'file')
     	% Then fullpath is a path to a file and we want the absolute path to it
-    	% This is potentially accident prone, but the user can not call this method this way. 
+    	% This is potentially accident prone, but the user can not call this method this way.
   		absPath = fileparts(fullPath);
     end
 
@@ -28,7 +28,7 @@ function loadRecipe(obj,~,~,fullPath)
     	pathForUIgetFile = BakingTray.settings.settingsLocation;
     end
 
-    
+
     if ~isempty(pathForUIgetFile)
         [fname,absPath] = uigetfile('*.yml','Choose a recipe',pathForUIgetFile);
 
@@ -48,12 +48,12 @@ function loadRecipe(obj,~,~,fullPath)
     %Does this path already contain an acquisition?
     obj.button_recipe.String='LOADING';
     obj.button_recipe.ForegroundColor='r';
-    drawnow 
+    drawnow
     disp('Looking for acquisition')
     details = BakingTray.utils.doesPathContainAnAcquisition(absPath);
     obj.button_recipe.String='Recipe';
     obj.button_recipe.ForegroundColor='k';
-    
+
     doResume=false;
     if isstruct(details)
         reply=questdlg(sprintf('Resume acquisition in %s?',absPath),'');
@@ -71,7 +71,7 @@ function loadRecipe(obj,~,~,fullPath)
     % NOTE - if the recipe is attached using the API (the model) then it will not trigger
     % detach and attach of the listeners and so the GUI will stop updating:
     % https://github.com/SainsburyWellcomeCentre/BakingTray/issues/268
-    % This is never going to happen in normal use. 
+    % This is never going to happen in normal use.
     obj.detachRecipeListeners;
     if ~doResume
         % Just load as normal
@@ -79,12 +79,12 @@ function loadRecipe(obj,~,~,fullPath)
     else
         % Resumption is slow at first so indicate to the user that stuff is happening
 
-        % Attempt to resume the acquisition 
-        % First we set the tile size in the GUI to what is in the recipe. 
+        % Attempt to resume the acquisition
+        % First we set the tile size in the GUI to what is in the recipe.
         thisRecipe=BakingTray.settings.readRecipe(fullPath);
 
         if isempty(thisRecipe.StitchingParameters) || ~isfield(thisRecipe.StitchingParameters,'scannerSettingsIndex')
-        	% This can happen if we load a recipe from an acquisition that did not have an entry in 
+        	% This can happen if we load a recipe from an acquisition that did not have an entry in
         	% frame settings YAML
         	fprintf('WARNING: stitching parameters empty. Skipping\n')
         else
@@ -92,7 +92,7 @@ function loadRecipe(obj,~,~,fullPath)
 	    end
 
         obj.updateStatusText
-        
+
         % Now we do the resumption
         [success,msg] = obj.model.resumeAcquisition(fullPath);
         if ~isempty(msg)
@@ -104,7 +104,7 @@ function loadRecipe(obj,~,~,fullPath)
 
     if success
         % The following will run even if the scanner settings did not
-        % set correctly. 
+        % set correctly.
         obj.connectRecipeListeners
         obj.updateAllRecipeEditBoxesAndStatusText
         obj.updateRecipeFname
