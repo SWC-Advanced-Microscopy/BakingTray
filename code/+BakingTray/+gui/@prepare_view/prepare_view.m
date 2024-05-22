@@ -6,6 +6,8 @@ classdef prepare_view < BakingTray.gui.child_view
 
     properties
         %Buttons
+        lowerZstage_button
+        raiseSample_button
         largeStep=struct
         smallStep=struct
         stopMotion_button
@@ -54,7 +56,7 @@ classdef prepare_view < BakingTray.gui.child_view
         defaultSmallStep = 0.1;
         defaultLargeStep = 0.5;
     end
-    
+
     properties (SetObservable,Hidden)
         lastXpos=0
         lastYpos=0
@@ -77,7 +79,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 fprintf('Not starting BakingTray.gui.prepare_view:\n%s\n',msg)
                 obj.delete
             end
-            
+
             %Force user to reference stages before carrying on.
             if hBT.allStagesReferenced == false
                 hBTview.referenceStages
@@ -104,7 +106,7 @@ classdef prepare_view < BakingTray.gui.child_view
             % Read all stage positions to be extra sure the GUI is up to date
             obj.model.getXpos;
             obj.model.getYpos;
-            obj.model.getZpos;    
+            obj.model.getZpos;
 
             % If a cutting position has been set we lock the Z axis
             if isnan(str2num(obj.editBox.cut_X.String))
@@ -165,21 +167,21 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function lockZ(obj)
             % Locks the Z jack
-            obj.lockZ_checkbox.Value=1; 
+            obj.lockZ_checkbox.Value=1;
             obj.lockZ_callback;
-        end 
+        end
 
 
         function unLockZ(obj)
             % unlocks the Z jack
             obj.lockZ_checkbox.Value=0;
             obj.lockZ_callback([],[],true);
-        end 
+        end
 
 
         function updateJogProperties(obj,src,~)
             %This callback function ensures that the jog properties are kept up to date when the user
-            %edits one of the step size values. 
+            %edits one of the step size values.
 
             thisValue=str2double(src.String);
 
@@ -298,7 +300,7 @@ classdef prepare_view < BakingTray.gui.child_view
         function updateCuttingConfigurationText(obj,~,~)
             % Updates the cutting config edit boxes. This method is run once in the
             % constructor, whenever one of the buttons in the plan panel
-            % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
+            % are pressed, by BakingTray.gui.view whenever the recipe is updated.
             % It's also a callback function run if the user edits the F/L or cut points.
             R = obj.model.recipe;
             if isempty(R)
@@ -317,11 +319,11 @@ classdef prepare_view < BakingTray.gui.child_view
             % BakingTray.gui.view.executeAbsoluteMotion
             %
             % This callback is run when the user edits one of the absolute
-            % motion text entry boxes. It executes motion on the axis object 
+            % motion text entry boxes. It executes motion on the axis object
             % that we determine from the tag of the absolute motion edit box
-            % itself. 
-            
-             
+            % itself.
+
+
             motionAxisString=src.Tag;
             axisToMove=obj.model.(motionAxisString);
             if ~obj.isSafeToMove(axisToMove)
@@ -329,7 +331,7 @@ classdef prepare_view < BakingTray.gui.child_view
             end
 
             % If any axis is not referenced we ask the user to refence the
-            % stages. 
+            % stages.
             if obj.model.allStagesReferenced == false
                 obj.parentView.referenceStages;
                 axisToMove.axisPosition; %Ensure current position is displayed in GUI
@@ -356,8 +358,8 @@ classdef prepare_view < BakingTray.gui.child_view
                 src.ForegroundColor='r'; %The number will briefly flash red
             end
 
-            %Now read back the axis position. This will correct cases where, say, the axis did not move but the 
-            %text label doesn't reflect this. 
+            %Now read back the axis position. This will correct cases where, say, the axis did not move but the
+            %text label doesn't reflect this.
             pause(0.1)
             pos=axisToMove.axisPosition;
             if success==false %if there was no motion the box won't update so we have to force it=
@@ -377,8 +379,11 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function lockZ_callback(obj,~,~,byPassQuestDlg)
             % Run every time the lock-z checkbox changes state.
-            % 
+            %
             %    function lockZ_callback(obj,~,~,byPassQuestDlg)
+            %
+            % Used to bring up a confirmation dialog and also toggle the state of the
+            % Z and raise/lower elements.
 
             if nargin<4
                 byPassQuestDlg = false;
@@ -403,6 +408,8 @@ classdef prepare_view < BakingTray.gui.child_view
                 obj.lockZ_checkbox.ForegroundColor = 'r';
                 obj.lockZ_checkbox.String='Unlock Z';
 
+                obj.lowerZstage_button.Enable='off';
+                obj.raiseSample_button.Enable='off';
                 obj.editBox.zPos.Enable='off';
                 obj.smallStep.up.Enable='off';
                 obj.smallStep.down.Enable='off';
@@ -412,6 +419,8 @@ classdef prepare_view < BakingTray.gui.child_view
                 obj.lockZ_checkbox.ForegroundColor = 'g';
                 obj.lockZ_checkbox.String='Lock Z';
 
+                obj.lowerZstage_button.Enable='on';
+                obj.raiseSample_button.Enable='on';
                 obj.editBox.zPos.Enable='on';
                 obj.smallStep.up.Enable='on';
                 obj.smallStep.down.Enable='on';
@@ -473,7 +482,7 @@ classdef prepare_view < BakingTray.gui.child_view
             if pos==0
                 pos = abs(pos);
             end
-                
+
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);

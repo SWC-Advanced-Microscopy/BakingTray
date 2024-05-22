@@ -8,6 +8,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+22nd May 2024
+- USER: add convenience buttons to raise sample and lower Z stage
+
+
 7th May 2024
 - USER: Bake is not possible if sample ID or sample folder contain non-alphanumeric (- and _ are OK)
        The recipe class no longer corrects funny characters in file names.

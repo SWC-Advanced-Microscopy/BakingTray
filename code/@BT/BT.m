@@ -500,7 +500,7 @@ classdef BT < loghandler
 
         % ----------------------------------------------------------------------
         % Public methods for moving the Z stage
-        function success =  lowerZstage(obj)
+        function success = lowerZstage(obj)
             % Lower the Z-stage
             %
             % function success =  lowerZstage(obj)
@@ -521,7 +521,7 @@ classdef BT < loghandler
 
             % Now go to zero (should already be there if we homed)
             obj.moveZto(0,1);
-            obj.zAxis.axisPosition; % To update the GUI
+            obj.getZpos; % To update the GUI
             success = true;
         end % lowerZstage
 
