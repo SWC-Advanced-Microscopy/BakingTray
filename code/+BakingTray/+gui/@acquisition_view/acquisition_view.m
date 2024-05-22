@@ -7,7 +7,7 @@ classdef acquisition_view < BakingTray.gui.child_view
     properties
         imageAxes   % The preview image sits here
         compassAxes % The compass-like indicator showing near/far and blade/away from blade
-        
+
         sectionImage % Reference to the Image object (the image axis child which displays the image)
 
         doSectionImageUpdate=true   % If false we don't update the image
@@ -36,7 +36,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         % The pause buttons and its settings (for enable/disable)
         button_Pause
-        buttonSettings_Pause 
+        buttonSettings_Pause
 
         depthSelectPopup
         channelSelectPopup
@@ -120,7 +120,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
             obj.statusText.Color = 'w';
             obj.updateStatusText;
-            
+
             % Ensure have empty tiles in hBT.downSampledTileBuffer since
             % this tells us how many pixels across is a tile in the
             % acq view.
@@ -144,7 +144,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
 
-    % Short hidden methods 
+    % Short hidden methods
     methods (Hidden)
         function addBlankImageToImageAxes(obj)
             % Add a blank images to the image axes
@@ -154,7 +154,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             obj.sectionImage=imagesc(blankImage,'parent',obj.imageAxes);
 
-            set(obj.imageAxes,... 
+            set(obj.imageAxes,...
                 'DataAspectRatio',[1,1,1],...
                 'Color', 'k', ...
                 'XTick',[],...
@@ -172,10 +172,10 @@ classdef acquisition_view < BakingTray.gui.child_view
         function populateDepthPopup(obj)
             % BakingTray.gui.acquisition_view.populateDepthPopup
             %
-            % This callback runs when the user changes the number of depths to be 
-            % acquired. It is called via recipeListener. 
-            % It is also called in obj.buildFigure and obj.bake_callback. It adds the correct 
-            % number of optical planes (depths) to the depths popup so the user 
+            % This callback runs when the user changes the number of depths to be
+            % acquired. It is called via recipeListener.
+            % It is also called in obj.buildFigure and obj.bake_callback. It adds the correct
+            % number of optical planes (depths) to the depths popup so the user
             % can select which plane they want to view.
 
             opticalPlanes_str = {};
@@ -240,7 +240,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             if obj.model.isSlicing
                 obj.statusText.String=' ** CUTTING SAMPLE **';
 
-                % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back. 
+                % TODO: I think these don't work. bake/stop isn't affected and pause doesn't come back.
                 %obj.button_BakeStop.Enable='off';
                 %obj.button_Pause.Enable='off';
             else
@@ -253,7 +253,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
         function updateStatusText(obj,src,~)
 
-            % Set to empty variables: handles case where the callback is not called 
+            % Set to empty variables: handles case where the callback is not called
             % by a listener
             if nargin<2
                 src=[];
@@ -299,7 +299,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
             if obj.model.isSlicing
                 % If we enter this callback because of slicing then disable the button
-                % We will re-enter again once slicing and finished and then the above will 
+                % We will re-enter again once slicing and finished and then the above will
                 % hold true and we just won't disable here.
                 set(obj.button_Pause, obj.buttonSettings_Pause.disabled{:})
             end
@@ -323,7 +323,7 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function closeAcqGUI(obj,~,~)
-            %Confirm whether to really quit the GUI. Don't allow it during acquisition 
+            %Confirm whether to really quit the GUI. Don't allow it during acquisition
             if obj.model.acquisitionInProgress
                 warndlg('An acquisition is in progress. Stop acquisition before closing GUI.','')
                 return
@@ -408,7 +408,7 @@ classdef acquisition_view < BakingTray.gui.child_view
             end
         end %updateChannelsPopup
 
-        
+
         function updateStagePosOnImage(obj,~,~)
             x = obj.parentView.view_prepare.lastXpos;
             y = obj.parentView.view_prepare.lastYpos;
@@ -416,7 +416,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         end %updateStagePosOnImage
 
         function showSlide(obj,~,~)
-            % Overlay slide on image and zoom out to ensure the whole thing is visible. 
+            % Overlay slide on image and zoom out to ensure the whole thing is visible.
             % This callback runs when the slide button is pressed
             obj.overlaySlideFrostedAreaOnImage
             obj.overlayStageBoundariesOnImage % TODO - a bit of a hack, as we can not disable.
@@ -436,11 +436,11 @@ classdef acquisition_view < BakingTray.gui.child_view
 
 
         function pointerReporter(obj,~,~)
-            % Runs when the mouse is moved over the axis to report its position in stage coordinates. 
+            % Runs when the mouse is moved over the axis to report its position in stage coordinates.
             % This is printed as text to the top left of the plot. The callback does not run if an
             % acquisition is in progress or if the plotted image contains only zeros.
 
-            % Report stage position to screen. The reported position is the 
+            % Report stage position to screen. The reported position is the
             % top/left tile position.
             if obj.model.acquisitionInProgress
                 return
@@ -456,21 +456,21 @@ classdef acquisition_view < BakingTray.gui.child_view
         end % pointerReporter
 
         function previewMoveToPosition(obj,~,sourceHandle)
-            % Initiates movement to clicked position in image preview (middle mouse button). 
+            % Initiates movement to clicked position in image preview (middle mouse button).
             % The callback does not run if an
             % acquisition is in progress or if the plotted image contains only zeros.
-            
+
             if obj.model.acquisitionInProgress || obj.model.isSlicing
                 return
             end
-            
+
             % Check for click-type, execute only on middle click
             if strcmp(get(sourceHandle.Source.Number,'SelectionType'),'extend')
                 % Get current position
                 pos=get(obj.imageAxes, 'CurrentPoint');
                 xAxisCoord=pos(1,1);
                 yAxisCoord=pos(1,2);
-                
+
                 stagePos = obj.model.convertImageCoordsToStagePosition([xAxisCoord,yAxisCoord]);
                 %Get current FOV and move FOV in middle of mouse click
                 stagePos(1) = stagePos(1)+obj.model.recipe.ScannerSettings.FOV_alongColsinMicrons/2/1000;
@@ -484,7 +484,7 @@ classdef acquisition_view < BakingTray.gui.child_view
                 obj.model.yAxis.axisPosition();
             end
         end   % previewMoveToPosition
-        
+
         function updateLeaveLaserOn(obj,~,~)
             % Set the leave laser on flag in the model.
             % Responds to checkbox
