@@ -539,7 +539,7 @@ classdef BT < loghandler
             %
 
             if isempty(recipe) || ...
-                isempty(obj,recipe.SYSTEM.raisedXposition) || ...
+                isempty(obj.recipe.SYSTEM.raisedXposition) || ...
                  isempty(obj.recipe.SYSTEM.raisedZposition)
 
                 return
@@ -552,7 +552,9 @@ classdef BT < loghandler
             end
 
             obj.moveXto(obj.recipe.SYSTEM.raisedXposition, true) % blocking motion
-            obj.moveZto(obj.recipe.SYSTEM.raisedZposition)
+            obj.getXpos;
+            obj.moveZto(obj.recipe.SYSTEM.raisedZposition,true)
+            obj.getZpos;
 
         end % raiseSample
 
