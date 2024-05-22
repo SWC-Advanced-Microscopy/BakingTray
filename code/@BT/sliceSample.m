@@ -107,6 +107,7 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     obj.setXvelocity(obj.recipe.SLICER.approachSpeed);
     obj.setYvelocity(obj.recipe.SLICER.approachSpeed);
     obj.moveXYto(cuttingStartPoint.X, cuttingStartPoint.Y,true);
+    obj.getXYpos;
 
     if obj.abortSlice
         return
@@ -272,7 +273,7 @@ function cleanupSlicer(obj,state)
     obj.logMessage(inputname(1),dbstack,5,'Finished cutting cycle');
 
     % Read all axis positions. This is to force any GUI listeners on stage position properties to update.
-    % This slightly breaks the model/view paradignm, but does so totally silentlt.
+    % This slightly breaks the model/view paradigm, but does so totally silently.
     obj.getXpos;
     obj.getYpos;
     obj.getZpos;
