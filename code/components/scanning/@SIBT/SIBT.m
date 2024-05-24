@@ -605,7 +605,7 @@ classdef SIBT < scanner
                 end
 
             else % Report no frameSize file found
-                docURL = 'https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Calibrating-the-number-of-microns-per-pixel-with-ScanImage';
+                docURL = 'https://bakingtray.mouse.vision/getting-started/installation/calibration/calibrating-the-number-of-microns-per-pixel-with-scanimage';
                 fprintf('\n\n SIBT finds no frame size file found at %s\n\nPlease see:\n%s\n', ...
                     frameSizeFname, docURL)
 
