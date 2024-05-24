@@ -59,23 +59,13 @@ classdef SIBT < scanner
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = connect(obj,API)
-            %TODO: why the hell isn't this in the constructor?
             success=false;
 
             if nargin<2 || isempty(API)
-                scanimageObjectName='hSI';
-                W = evalin('base','whos');
-                SIexists = ismember(scanimageObjectName,{W.name});
-                if ~SIexists
-                    obj.logMessage(inputname(1),dbstack,7,'ScanImage not started. Can not connect to scanner.')
-                    return
-                end
-
-                API = evalin('base',scanimageObjectName); % get hSI from the base workspace
+               API = SIBT.get_hSI_from_base;
             end
 
-            if ~isa(API,'scanimage.SI')
-                obj.logMessage(inputname(1) ,dbstack,7,'hSI is not a ScanImage object.')
+            if isempty(API)
                 return
             end
 
