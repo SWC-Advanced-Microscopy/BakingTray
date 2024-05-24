@@ -10,7 +10,7 @@ For more information on major releases merged into master from pre-release.
 
 22nd May 2024
 - USER: add convenience buttons to raise sample and lower Z stage
-
+- USER: close the new persistent histogram windows when tile saving is set up. likely this results in a small speedup.
 
 7th May 2024
 - USER: Bake is not possible if sample ID or sample folder contain non-alphanumeric (- and _ are OK)

@@ -267,6 +267,9 @@ classdef SIBT < scanner
             obj.hC.hScan2D.logFileStem = obj.returnTileFname;
 
             obj.hC.hChannels.loggingEnable = true;
+
+            % Close all histogram windows in case this slows down acquisition
+            SIBT.closeAllHistogramWindows
         end %setUpTileSaving
 
 
