@@ -26,3 +26,5 @@ function hSICtl = get_hSICtl_from_base
         fprintf('%s -- hSICtl is not a scanimage.SIController object.\n', mfilename)
         hSICtl = [];
     end
+
+end

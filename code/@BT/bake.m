@@ -425,9 +425,6 @@ function sectionInd = bake(obj,varargin)
             break
         end
 
-
-        %%disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause
-
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
 
