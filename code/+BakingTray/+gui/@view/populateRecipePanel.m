@@ -1,4 +1,9 @@
 function populateRecipePanel(obj)
+    % Builds the recipe panel
+    %
+    % function BakingTray.gui.view.populateRecipePanel
+    %
+    %
     % Called once during the construction of the view class to build the recipe panel.
     % This method is called by the buildWindow method, which in turn is called by
     % the view constructor.
@@ -9,7 +14,7 @@ function populateRecipePanel(obj)
 
 
     % The recipeFieldLabels and recipeProperty properties are used by the
-    % later for loop to build the text and edit boxes associated with the 
+    % later for loop to build the text and edit boxes associated with the
     % recipe.
 
 
@@ -55,7 +60,7 @@ function populateRecipePanel(obj)
 
 
     % Flip because the following loop populates from the bottom up
-    %obj.recipeFieldLabels=fliplr(obj.recipeFieldLabels); 
+    %obj.recipeFieldLabels=fliplr(obj.recipeFieldLabels);
     %obj.recipePropertyNames=fliplr(obj.recipePropertyNames);
     %obj.recipeToolTips=fliplr(obj.recipeToolTips);
 
@@ -80,7 +85,7 @@ function populateRecipePanel(obj)
         %Add a text entry box
 
         % Certain recipe fields need unusual things done, so we handle those first in the following if statement
-        if strcmp(thisProp{2},'sampleSize') 
+        if strcmp(thisProp{2},'sampleSize')
             %Because sample size is a structure that describes both X and Y
             obj.recipeTextLabels.(thisProp{1}).([thisProp{2},'X']) = obj.makeRecipeLabel([152,iH+7,10,18],'X=');
             obj.recipeTextLabels.(thisProp{1}).([thisProp{2},'Y']) = obj.makeRecipeLabel([215,iH+7,10,18],'Y=');
@@ -107,13 +112,13 @@ function populateRecipePanel(obj)
                 'String', obj.model.recipe.valid_scanMode_values, ...
                 'Position', [140, iH+6, textEditWidth, 17], ...
                 'TooltipString', obj.recipeToolTips{ii}, ...
-                'Tag', obj.recipePropertyNames{ii}); 
+                'Tag', obj.recipePropertyNames{ii});
         else
             % Now deal with the remaining recipe fields
             % Numeric boxes can be smaller than text boxes, so figure out which is which and set the length:
             if ~isempty(regexp(obj.recipeFieldLabels{ii},'\(mm', 'once')) || ...
                 ~isempty(regexp(obj.recipeFieldLabels{ii},'Prop\.', 'once')) || ...
-                ~isempty(regexp(obj.recipeFieldLabels{ii},'Num\.', 'once')) 
+                ~isempty(regexp(obj.recipeFieldLabels{ii},'Num\.', 'once'))
                 textEditWidth=45;
             else
                 textEditWidth=145;

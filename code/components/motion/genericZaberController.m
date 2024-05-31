@@ -25,13 +25,13 @@ classdef genericZaberController < linearcontroller
 
 %
 % NOTE:
-% This class currently connects to a single X-MX[ABC] device and assumes control of 
-% the first axis. The class does not handle multiple axes. 
+% This class currently connects to a single X-MX[ABC] device and assumes control of
+% the first axis. The class does not handle multiple axes.
 %
-% IMPORTANT: if using native units, you must set controllerUnitsInMM to the correct 
+% IMPORTANT: if using native units, you must set controllerUnitsInMM to the correct
 %            value. If you are not using native units, this property must be 1. If
 %            controllerUnitsInMM are set to a value other than 1 when the stage
-%            connects, then the units of the stage are set to native automatically. 
+%            connects, then the units of the stage are set to native automatically.
 %            Otherwise they are se to mm.
 
     properties
@@ -104,7 +104,7 @@ classdef genericZaberController < linearcontroller
               import zaber.motion.ascii.Connection;
               import zaber.motion.Units;
               Library.enableDeviceDbStore();
-            catch ME 
+            catch ME
               fprintf('\n\n ** Failed to connect to the Zaber Motion Library. Is it installed?\n\n **')
               rethrow(ME)
             end
@@ -125,9 +125,9 @@ classdef genericZaberController < linearcontroller
               return
             end
 
-            % Look for a controller device in the list of available devices. 
+            % Look for a controller device in the list of available devices.
             % We have to search, because if the user has a joytick configured it
-            % will appear as a device too but it won't have a motor connected to it. 
+            % will appear as a device too but it won't have a motor connected to it.
             controllerInd = [];
             for ii=1:length(deviceList)
               if contains(char(deviceList(ii)),'X-MC')
@@ -135,16 +135,17 @@ classdef genericZaberController < linearcontroller
               end
             end
 
-            % If the above failed and there is just one device in the list and it matches 
+            % If the above failed and there is just one device in the list and it matches
             % on of the following known working devices, then we will try to connect to that
             if isempty(controllerInd) && length(deviceList)==1
-              if contains(char(deviceList(ii)),'X-LRM')
+              if contains(char(deviceList(ii)),'X-LRM') || ...  % Lead-screw based stages
+                  contains(char(deviceList(ii)),'X-LDA')  % Small direct drive stages
                 controllerInd = 1;
               end
             end
 
             if isempty(controllerInd)
-              fprintf('\n\nFailed to find a Zaber controller in devices list:\n')
+              fprintf('\n\nFailed to find a known working Zaber controller in devices list:\n')
               arrayfun(@(x) fprintf('%s\n',x), deviceList)
               fprintf('\n')
               obj.tConnection.close();
@@ -178,8 +179,8 @@ classdef genericZaberController < linearcontroller
               return
             end
 
-            try 
-              reply = obj.hC.getPeripheralName; 
+            try
+              reply = obj.hC.getPeripheralName;
               if isempty(reply)
                 fprintf('No reply from Zaber controller\n')
               else
@@ -211,7 +212,7 @@ classdef genericZaberController < linearcontroller
             pos = pos*obj.attachedStage.controllerUnitsInMM;
             % Correctly return axis position if it is inverted
             pos = obj.attachedStage.invertDistance * (pos-obj.attachedStage.positionOffset);
-            
+
             obj.attachedStage.currentPosition=pos;
         end %axisPosition
 
@@ -420,7 +421,7 @@ classdef genericZaberController < linearcontroller
           import zaber.motion.ascii.Warnings
           import zaber.motion.ascii.WarningFlags
           W = Warnings.getFlags(obj.hC.getWarnings);
-          
+
           if isempty(W)
               % No warnings so must be homed
               isReferenced = true;
@@ -432,7 +433,7 @@ classdef genericZaberController < linearcontroller
           else
               isReferenced = true;
           end
-    
+
         end
 
         function printAxisStatus(obj)

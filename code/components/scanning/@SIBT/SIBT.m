@@ -1,21 +1,21 @@
 classdef SIBT < scanner
 %% SIBT
 % BakingTray does not call ScanImage directly but goes through this glue
-% object that inherits the abstract class, scanner. The SIBT concrete class 
-% as a glue or bridge between ScanImage and BakingTray. This class 
-% implements all the methods needed to trigger image acquisition, set the 
+% object that inherits the abstract class, scanner. The SIBT concrete class
+% as a glue or bridge between ScanImage and BakingTray. This class
+% implements all the methods needed to trigger image acquisition, set the
 % power at the sample, and save images, etc. The reason for doing this is
-% to provide the possibility of using a different piece of acquisition 
+% to provide the possibility of using a different piece of acquisition
 % software without changing any of the methods in the core BakingTray
 % class or any of the GUIs. It also makes it possible to create a dummy
-% scanner that serves up previously acquired data. This can be used to 
+% scanner that serves up previously acquired data. This can be used to
 % prototype different acquisition scenarios requiring a live acquisition
-% to be taking place. 
+% to be taking place.
 %
 %
 % NOTE ON TRIGGERS:
-% NI linear scanners tigger on PFI0, reso NI on PFI1, and vDAQ on D0.0 
-% Therefore do not use those ports for other stuff. 
+% NI linear scanners tigger on PFI0, reso NI on PFI1, and vDAQ on D0.0
+% Therefore do not use those ports for other stuff.
 %
 % TODO: what does  hSI.hScan2D.scannerToRefTransform do?
 
@@ -57,25 +57,15 @@ classdef SIBT < scanner
         end %destructor
 
 
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = connect(obj,API)
-            %TODO: why the hell isn't this in the constructor?
             success=false;
 
             if nargin<2 || isempty(API)
-                scanimageObjectName='hSI';
-                W = evalin('base','whos');
-                SIexists = ismember(scanimageObjectName,{W.name});
-                if ~SIexists
-                    obj.logMessage(inputname(1),dbstack,7,'ScanImage not started. Can not connect to scanner.')
-                    return
-                end
-
-                API = evalin('base',scanimageObjectName); % get hSI from the base workspace
+               API = SIBT.get_hSI_from_base;
             end
 
-            if ~isa(API,'scanimage.SI')
-                obj.logMessage(inputname(1) ,dbstack,7,'hSI is not a ScanImage object.')
+            if isempty(API)
                 return
             end
 
@@ -95,7 +85,7 @@ classdef SIBT < scanner
 
             % obj.enforceSquarePixels
             %Set listeners on properties we don't want the user to change. Hitting any of these
-            %will call a single method that resets all of the properties to the values we desire. 
+            %will call a single method that resets all of the properties to the values we desire.
             obj.listeners{end+1} = addlistener(obj.hC.hRoiManager, 'forceSquarePixels', 'PostSet', @obj.enforceSquarePixels);
 
             obj.LUTchanged
@@ -107,7 +97,7 @@ classdef SIBT < scanner
 
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.rollingAverageChanged(src,evt));
 
             % Watch the pixel bin factor and sample rate if we have linear scanners
             if strcmp('linear',obj.scannerType)
@@ -201,7 +191,7 @@ classdef SIBT < scanner
             % Resets the trip state on P2100 series.
             % If resetAll is false (which it is by default) we only
             % poll the PMTs corresponding to channels currently being saved.
-            % We skip the rest. 
+            % We skip the rest.
 
             if nargin<2
                 resetAll=false;
@@ -240,7 +230,7 @@ classdef SIBT < scanner
             enabledPMTs = find(obj.hC.hPmts.powersOn);
             enabledPMTs = enabledPMTs(:);
         end
-        
+
         function success = disablePMTautoPower(obj)
             % function success = disablePMTautoPower(obj)
             %
@@ -270,13 +260,16 @@ classdef SIBT < scanner
             end
 
             obj.hC.hScan2D.logFilePath = obj.parent.currentTileSavePath;
-            % TODO: oddly, the file counter automatically adjusts so as not to over-write existing data but 
+            % TODO: oddly, the file counter automatically adjusts so as not to over-write existing data but
             % I can't see where it does this in my code and ScanImage doesn't do this if I use it interactively.
-            obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1. 
+            obj.hC.hScan2D.logFileCounter = 1; % Start each section with the index at 1.
 
             obj.hC.hScan2D.logFileStem = obj.returnTileFname;
 
             obj.hC.hChannels.loggingEnable = true;
+
+            % Close all histogram windows in case this slows down acquisition
+            SIBT.closeAllHistogramWindows
         end %setUpTileSaving
 
 
@@ -351,7 +344,7 @@ classdef SIBT < scanner
                 obj.flipScanSettingsChanged
                 obj.channelsToSave = theseChans; %store the currently selected channels to save
             end
-            
+
             obj.hC.hChannels.channelSave = chans;
         end % setChannelsToAcquire
 
@@ -370,11 +363,11 @@ classdef SIBT < scanner
             % Since SI 5.6, scanner type "resonant" is returned as "rg"
             % This method returns either "resonant" or "linear"
             scannerType = lower(obj.hC.hScan2D.scannerType);
-            if strcmpi('RG',scannerType) || strcmpi('resonant',scannerType) 
+            if strcmpi('RG',scannerType) || strcmpi('resonant',scannerType)
                 scannerType = 'resonant';
             elseif strcmpi('GG',scannerType)
                 scannerType='linear';
-            end 
+            end
         end % scannerType
 
 
@@ -453,7 +446,7 @@ classdef SIBT < scanner
 
         function isGreater = versionGreaterThan(obj,verToTest)
             % Return true if the current ScanImage version is newer than that defined by string verToTest
-            % 
+            %
             % SIBT.versionGreaterThan(obj,verToTest)
             %
             % Inputs
@@ -461,9 +454,9 @@ classdef SIBT < scanner
             % '2020.0'
             %
             % Note: this method does not know what to do with the update
-            % mumber from SI Basic. So 2020.1 is OK but 2020.1.4 won't 
+            % mumber from SI Basic. So 2020.1 is OK but 2020.1.4 won't
             % produce correct results
- 
+
             isGreater = nan;
             if ~ischar(verToTest)
                 return
@@ -492,7 +485,7 @@ classdef SIBT < scanner
 
 
         function st = generateSettingsReport(obj)
-            % TODO -- this method is not used by anything and seems 
+            % TODO -- this method is not used by anything and seems
             % unfinished. Delete?
             % Bidirectional scanning
             n=1;
@@ -507,8 +500,8 @@ classdef SIBT < scanner
             st(n).currentValue = obj.hC.hBeams.pzAdjust;
             if hC.hStackManager.numSlices>1
                 suggested = true;
-            elseif hC.hStackManager.numSlices==1 
-                % Because then it doesn't matter what this is set to and we don't want to 
+            elseif hC.hStackManager.numSlices==1
+                % Because then it doesn't matter what this is set to and we don't want to
                 % distract the user with stuff that doesn't matter;
                 suggested = obj.hC.hBeams.pzAdjust;
             end
@@ -518,7 +511,7 @@ classdef SIBT < scanner
 
         function showFastZCalib(obj)
             %Conduct fast-z calibration and plot results
-            %This will simply run through the Z selected depths 
+            %This will simply run through the Z selected depths
             [t,expected,~,~,measured] = obj.hC.hFastZ.testActuator;
             f=findobj('name','fastZCalib');
             if isempty(f)
@@ -605,7 +598,7 @@ classdef SIBT < scanner
                 end
 
             else % Report no frameSize file found
-                docURL = 'https://github.com/SainsburyWellcomeCentre/BakingTray/wiki/Calibrating-the-number-of-microns-per-pixel-with-ScanImage';
+                docURL = 'https://bakingtray.mouse.vision/getting-started/installation/calibration/calibrating-the-number-of-microns-per-pixel-with-scanimage';
                 fprintf('\n\n SIBT finds no frame size file found at %s\n\nPlease see:\n%s\n', ...
                     frameSizeFname, docURL)
 
@@ -640,7 +633,7 @@ classdef SIBT < scanner
 
 
         function out = is_vDAQ(obj)
-            % Retrun tru if this is a vDAQ            
+            % Return true if the system is running on a vDAQ
             out = isa(obj.hC.hScan2D,'scanimage.components.scan2d.RggScan');
         end %is_vDAQ
 
@@ -662,7 +655,7 @@ classdef SIBT < scanner
 
         function lastFrameNumber = getLastFrameNumber(obj)
             % Returns the number of frames acquired by the scanner.
-            % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI. 
+            % In this case it returns the value of "Acqs Done" from the ScanImage main window GUI.
             lastFrameNumber = obj.hC.hDisplay.lastFrameNumber;
             %TODO: does it return zero if there are no data yet?
             %TODO: turn into a listener that watches lastFrameNumber
@@ -688,7 +681,7 @@ classdef SIBT < scanner
         %Listener callback methods
         function enforceSquarePixels(obj,~,~)
             %Ensure that a few key settings are maintained at the correct values
-            if obj.allowNonSquarePixels %TODO: this is a bit shit. Should disable the listener. 
+            if obj.allowNonSquarePixels %TODO: this is a bit shit. Should disable the listener.
                 return
             end
             if obj.verbose
@@ -711,7 +704,7 @@ classdef SIBT < scanner
                     obj.cachedChanLUT{ii} = obj.getChannelLUT(ii);
                 end
                 % Flip bit so listeners on other classes notice the change
-                obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1; 
+                obj.channelLookUpTablesChanged=obj.channelLookUpTablesChanged*-1;
             else
                 for ii=1:length(obj.cachedChanLUT)
                     if ~isequal(obj.cachedChanLUT{ii},obj.getChannelLUT(ii))
@@ -727,6 +720,20 @@ classdef SIBT < scanner
         end %LUTchanged
 
 
+        function rollingAverageChanged(obj,s,e)
+            % Runs when the rolling average factor is changed. The purpose
+            % of this callback is to have the system apply the user's averaging
+            % choice when a "Grab" acquisition is done.
+
+            % Run the changeChecker
+            obj.changeChecker(s,e)
+
+            % Set the frames per slice to match that of the display rolling average
+            nFrames = obj.hC.hDisplay.displayRollingAverageFactor;
+            obj.hC.hStackManager.framesPerSlice = nFrames;
+        end %rollingAverageChanged
+
+
         function tileAcqDone_minimal(obj,~,~)
             % Minimal acq done for testing and de-bugging
             obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
@@ -735,6 +742,13 @@ classdef SIBT < scanner
 
 
         function changeChecker(obj,s,e)
+            % Callback that caches changes to scanimage settings in a property called
+            % SIBT.lastSeenScanSettings the callback also runs flipScanSettingsChanged
+            % which runs the superclass method flipScanSettingsChanged which the sign of
+            % the property scanSettingsChanged. This is used by downstream functions
+            % to update GUIs and so on. The structure that lists what was last change
+            % (i.e. that which resides in lastSeenSettings) is used to not trigger the
+            % scanSettingsChangedProperty if the property was unchanged. 
 
             variableName = s.Name;  % The name of the variable that might have changed
             variableValue = e.AffectedObject.(variableName); % The current value of the variable
@@ -749,7 +763,7 @@ classdef SIBT < scanner
                 return
             end
 
-            %If the current value doesn't equal the previous value, update the previous value and 
+            %If the current value doesn't equal the previous value, update the previous value and
             %trigger the change flag
             if ~isequal(obj.lastSeenScanSettings.(variableName), variableValue)
                 obj.lastSeenScanSettings.(variableName) = variableValue;

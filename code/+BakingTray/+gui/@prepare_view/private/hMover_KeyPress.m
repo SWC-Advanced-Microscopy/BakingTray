@@ -1,14 +1,16 @@
 function hMover_KeyPress(~, eventdata, obj)
+    % Handles WASD keys for stage moves
+
     key=eventdata.Key;
     ctrlMod=ismember('shift', eventdata.Modifier);
-   
+
     if ctrlMod
         stepSize = 'largeStep';
     else
         stepSize = 'smallStep';
     end
     switch key
-        case 'a' 
+        case 'a'
             runCallBack(obj.(stepSize).left)
         case 'd'
             runCallBack(obj.(stepSize).right)

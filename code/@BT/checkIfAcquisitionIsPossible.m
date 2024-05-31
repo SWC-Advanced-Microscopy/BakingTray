@@ -1,26 +1,26 @@
 function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
-    % Check if acquisition is possible 
+    % Check if acquisition is possible
     %
     % [acquisitionPossible,msg] = BT.checkIfAcquisitionIsPossible(obj,isBake)
     %
     % Purpose
-    % This method determines whether it is possible to begin an acquisiton. 
+    % This method determines whether it is possible to begin an acquisiton.
     % e.g. does the cutting position seem plausible, is the scanner ready
-    % and conncted, are the axes connected, is there a recipe, is there 
-    % enough disk space, etc. 
+    % and conncted, are the axes connected, is there a recipe, is there
+    % enough disk space, etc.
     %
     % Inputs
     % isBake - The method is run when the user initiates a bake or a previewScan.
     %       The isBake input is false by default. If true, more extensive checks
-    %       are taken. 
-    % 
+    %       are taken.
     %
-    % 
+    %
+    %
     % Behavior
     % The method returns true if acquisition is possible and false otherwise.
-    % If it returns false and a second output argument is requested then 
-    % this is a string that decribes why acquisition can not proceed. This 
-    % string can be sent to a warning dialog box, etc, if there is a GUI. 
+    % If it returns false and a second output argument is requested then
+    % this is a string that describes why acquisition can not proceed. This
+    % string can be sent to a warning dialog box, etc, if there is a GUI.
 
 
     if nargin<2
@@ -50,6 +50,22 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
+
+    %Check if the sample directory contains funny characters and, if not, check the sample name
+    %> regexp('sa35%!sdfds/', '[^0-9a-z_A-Z-]')
+    funnyCharacters = '[^0-9a-z_A-Z-]';
+    if ~isempty(obj.sampleSavePath)
+        [~,topSampleDir]=fileparts(obj.sampleSavePath);
+        if ~isempty(regexp(topSampleDir,funnyCharacters))
+            msg=sprintf('%s%d) Directory name can only contain alphanumeric characters, underscores, and hyphens.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        elseif ~isempty(regexp(obj.recipe.sample.ID,funnyCharacters))
+            msg=sprintf('%s%d) Sample name can only contain alphanumeric characters, underscores, and hyphens.\n', msg, msgNumber);
+            msgNumber=msgNumber+1;
+        end
+    end
+
+
     % We need a scanner connected and it must be ready to acquire data
     if ~obj.isScannerConnected
         msg=sprintf('%s%d) No scanner is connected.\n' ,msg, msgNumber);
@@ -57,7 +73,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     end
 
     if obj.isScannerConnected && ~obj.scanner.isReady
-        msg=sprintf('%s%d) Scanner is not ready to acquire data\n', msg, msgNumber);
+        msg=sprintf('%s%d) Scanner is not ready to acquire data. Are you doing a "Focus"?\n', msg, msgNumber);
         msgNumber=msgNumber+1;
     end
 
@@ -68,13 +84,13 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     end
 
     % Check if PMT auto power on is selected. Try to turn it off but if
-    % this fails we make the user do it. 
+    % this fails we make the user do it.
     if obj.scanner.disablePMTautoPower == false
         msgPMT = 'Uncheck PMT auto-on. PMTs will be turned off automatically when Bake completes.';
         msg = sprintf('%s%d) %s\n', msg, msgNumber, msgPMT);
         msgNumber=msgNumber+1;
     end
-    
+
     %If a laser is connected, check it is ready
     if obj.isLaserConnected
         obj.laser.isPoweredOn %Sometimes laser claims it is off when it is not. This sesms to reset it.
@@ -85,7 +101,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         end
     end
 
-    %Check the axes are conncted
+    %Check the axes are connected
     if ~obj.isXaxisConnected
         msg=sprintf('%s%d) No xAxis is connected.\n', msg, msgNumber);
         msgNumber=msgNumber+1;
@@ -95,7 +111,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
-    %Only raise an error about the z axis and cutter if we have more than one section    
+    %Only raise an error about the z axis and cutter if we have more than one section
     if ~obj.isZaxisConnected
         if obj.isRecipeConnected && obj.recipe.mosaic.numSections>1
             msg=sprintf('%s%d) No zAxis is connected.\n', msg, msgNumber);
@@ -118,14 +134,14 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         end
     end
     % END HACK
-    
+
 
     % Ensure we have enough travel on the Z-stage to acquire all the sections. If not, just set to the maximum possible
     % This is also checked in the recipe. The only way this could happen is if:
     % 1) The user entrered the number of sections required whilst the z-stage was lowered then raised the z-stage.
     %    This could well happen.
-    % 2 The z-stage was not connected when the recipe value was set, because then the distance available would not 
-    %   have been checked in the recipe. This is wildly improbable, however. 
+    % 2 The z-stage was not connected when the recipe value was set, because then the distance available would not
+    %   have been checked in the recipe. This is wildly improbable, however.
     % So the following will not stop anything from proceeding
     if obj.isRecipeConnected && obj.isZaxisConnected
         distanceAvailable = obj.zAxis.getMaxPos - obj.zAxis.axisPosition;  %more positive is a more raised Z platform
@@ -146,7 +162,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         containedFinished=true;
     else
         containedFinished=false;
-    end 
+    end
 
     % Check if we will end up writing into existing directories
     if obj.isRecipeConnected && isBake && ~containedFinished
@@ -183,7 +199,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI') && isBake && ~isempty(obj.autoROI) && isfield(obj.autoROI,'stats')
         if ~isequal(obj.scanner.getChannelsToAcquire, obj.autoROI.stats.channelsToSave)
             msg=sprintf(['%s%d) You are trying to bake an auto-ROI with different channels to those used for obtaining the threshold. ', ...
-                'To use these channels you must repeat preview scan and Auto-Thresh'], msg, msgNumber);
+                'To use these channels you must repeat preview scan and Auto-Thresh.\n'], msg, msgNumber);
             msgNumber=msgNumber+1;
         end
     end
@@ -197,7 +213,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
     % If using ScanImage, did the user switch on all the PMTs for the channels being saved?
     if isa(obj.scanner,'SIBT') && ~isempty(obj.scanner.hC.hPmts.gains) && ...
         ~isequal(obj.scanner.getChannelsToAcquire,obj.scanner.getEnabledPMTs)
-        msg=sprintf('%s%d) Check you have enabled the correct PMTs and try again.\n', msg,msgNumber);
+        msg=sprintf('%s%d) The enabled PMTs do not match the channels you requested to save. Correct this and try again.\n', msg,msgNumber);
         msgNumber=msgNumber+1;
     end
 
@@ -217,7 +233,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
 
 
 
-    % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+    % -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
     %Set the acquisitionPossible boolean based on whether a message exists
     if isempty(msg)
         acquisitionPossible=true;
@@ -226,7 +242,7 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         acquisitionPossible=false;
     end
 
-    %Print the message to screen if the user requested no output arguments. 
+    %Print the message to screen if the user requested no output arguments.
     if acquisitionPossible==false && nargout<2
         fprintf(msg)
     end

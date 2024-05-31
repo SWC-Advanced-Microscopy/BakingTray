@@ -6,6 +6,8 @@ classdef prepare_view < BakingTray.gui.child_view
 
     properties
         %Buttons
+        lowerZstage_button
+        raiseSample_button
         largeStep=struct
         smallStep=struct
         stopMotion_button
@@ -54,7 +56,7 @@ classdef prepare_view < BakingTray.gui.child_view
         defaultSmallStep = 0.1;
         defaultLargeStep = 0.5;
     end
-    
+
     properties (SetObservable,Hidden)
         lastXpos=0
         lastYpos=0
@@ -77,7 +79,7 @@ classdef prepare_view < BakingTray.gui.child_view
                 fprintf('Not starting BakingTray.gui.prepare_view:\n%s\n',msg)
                 obj.delete
             end
-            
+
             %Force user to reference stages before carrying on.
             if hBT.allStagesReferenced == false
                 hBTview.referenceStages
@@ -104,7 +106,7 @@ classdef prepare_view < BakingTray.gui.child_view
             % Read all stage positions to be extra sure the GUI is up to date
             obj.model.getXpos;
             obj.model.getYpos;
-            obj.model.getZpos;    
+            obj.model.getZpos;
 
             % If a cutting position has been set we lock the Z axis
             if isnan(str2num(obj.editBox.cut_X.String))
@@ -112,7 +114,7 @@ classdef prepare_view < BakingTray.gui.child_view
             else
                 obj.lockZ_checkbox.Value=1;
             end
-            obj.lockZ_callback;
+            obj.lockZ_callback([],[],true);
         end %Constructor
 
         function delete(obj)
@@ -132,7 +134,7 @@ classdef prepare_view < BakingTray.gui.child_view
     %Declare function signatures for methods in external files
     methods
         [isSafeToMove,msg]=isSafeToMove(obj,axisToCheckIfMoving)
-        executeJogMotion(obj,event,~)
+        executeJogMotion(obj,src,~)
         positionNextToBakingTrayView(obj)
         takeOneSlice(obj,~,~)
         takeNslices(obj,~,~)
@@ -165,26 +167,26 @@ classdef prepare_view < BakingTray.gui.child_view
 
         function lockZ(obj)
             % Locks the Z jack
-            obj.lockZ_checkbox.Value=1; 
+            obj.lockZ_checkbox.Value=1;
             obj.lockZ_callback;
-        end 
+        end
 
 
         function unLockZ(obj)
             % unlocks the Z jack
             obj.lockZ_checkbox.Value=0;
-            obj.lockZ_callback;
-        end 
+            obj.lockZ_callback([],[],true);
+        end
 
 
-        function updateJogProperties(obj,event,~)
+        function updateJogProperties(obj,src,~)
             %This callback function ensures that the jog properties are kept up to date when the user
-            %edits one of the step size values. 
+            %edits one of the step size values.
 
-            thisValue=str2double(event.String);
+            thisValue=str2double(src.String);
 
             % Find which axis (XY or Z) and step size (small or large)
-            jogType = strsplit(event.Tag,'||');
+            jogType = strsplit(src.Tag,'||');
             jogAxis = jogType{1};
             jogSmallOrLarge = jogType{2};
 
@@ -193,14 +195,14 @@ classdef prepare_view < BakingTray.gui.child_view
                     % Check the value we have extracted is numeric (since this the box itself accepts strings)
                     % Reset the value if it was not a number
                     if isnan(thisValue) || thisValue==0
-                        set(event, 'String', obj.xyJogSizes.(jogSmallOrLarge) );
+                        set(src, 'String', obj.xyJogSizes.(jogSmallOrLarge) );
                     else
                         obj.xyJogSizes.(jogSmallOrLarge)=thisValue;
                     end
                 case 'Z'
                     % Reset the value if it was not a number
                     if isnan(thisValue) || thisValue==0
-                        set(event, 'String', obj.zJogSizes.(jogSmallOrLarge) )
+                        set(src, 'String', obj.zJogSizes.(jogSmallOrLarge) )
                     else
                         obj.zJogSizes.(jogSmallOrLarge)=thisValue;
                     end
@@ -298,7 +300,7 @@ classdef prepare_view < BakingTray.gui.child_view
         function updateCuttingConfigurationText(obj,~,~)
             % Updates the cutting config edit boxes. This method is run once in the
             % constructor, whenever one of the buttons in the plan panel
-            % are pressed, by BakingTray.gui.view whenever the recipe is updated. 
+            % are pressed, by BakingTray.gui.view whenever the recipe is updated.
             % It's also a callback function run if the user edits the F/L or cut points.
             R = obj.model.recipe;
             if isempty(R)
@@ -313,23 +315,23 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.editBox.cutSize_X.String = sprintf('%0.2f', round(CS,2));
         end %updateCuttingConfigurationText
 
-        function executeAbsoluteMotion(obj,event,~)
+        function executeAbsoluteMotion(obj,src,~)
             % BakingTray.gui.view.executeAbsoluteMotion
             %
             % This callback is run when the user edits one of the absolute
-            % motion text entry boxes. It executes motion on the axis object 
+            % motion text entry boxes. It executes motion on the axis object
             % that we determine from the tag of the absolute motion edit box
-            % itself. 
-            
-             
-            motionAxisString=event.Tag;
+            % itself.
+
+
+            motionAxisString=src.Tag;
             axisToMove=obj.model.(motionAxisString);
             if ~obj.isSafeToMove(axisToMove)
                 return
             end
 
             % If any axis is not referenced we ask the user to refence the
-            % stages. 
+            % stages.
             if obj.model.allStagesReferenced == false
                 obj.parentView.referenceStages;
                 axisToMove.axisPosition; %Ensure current position is displayed in GUI
@@ -337,9 +339,9 @@ classdef prepare_view < BakingTray.gui.child_view
             end
 
             %Strip problematic non-numeric characters
-            moveString=event.String;
+            moveString=src.String;
             moveString=regexprep(moveString,'-+','-'); %Don't allow multiple minus signs
-            event.String=moveString;
+            src.String=moveString;
             moveTo=str2double(moveString);
             %if it's not a number, then do nothing
             if isnan(moveTo)
@@ -353,16 +355,16 @@ classdef prepare_view < BakingTray.gui.child_view
             end
 
             if success==false
-                event.ForegroundColor='r'; %The number will briefly flash red
+                src.ForegroundColor='r'; %The number will briefly flash red
             end
 
-            %Now read back the axis position. This will correct cases where, say, the axis did not move but the 
-            %text label doesn't reflect this. 
+            %Now read back the axis position. This will correct cases where, say, the axis did not move but the
+            %text label doesn't reflect this.
             pause(0.1)
             pos=axisToMove.axisPosition;
             if success==false %if there was no motion the box won't update so we have to force it=
-                event.String=sprintf('%0.3f',round(pos,3));
-                event.ForegroundColor='k';
+                src.String=sprintf('%0.3f',round(pos,3));
+                src.ForegroundColor='k';
             end
             if strcmp(obj.prepareViewUpdateTimer.Running, 'off')
                 start(obj.prepareViewUpdateTimer)
@@ -375,13 +377,39 @@ classdef prepare_view < BakingTray.gui.child_view
             obj.updateCuttingConfigurationText;
         end % setCuttingPos_callback
 
-        function lockZ_callback(obj,~,~)
+        function lockZ_callback(obj,~,~,byPassQuestDlg)
+            % Run every time the lock-z checkbox changes state.
+            %
+            %    function lockZ_callback(obj,~,~,byPassQuestDlg)
+            %
+            % Used to bring up a confirmation dialog and also toggle the state of the
+            % Z and raise/lower elements.
+
+            if nargin<4
+                byPassQuestDlg = false;
+            end
+
+            % Query whether the user really wants to unlock
+            if byPassQuestDlg==false && obj.lockZ_checkbox.Value == 0
+                obj.lockZ_checkbox.Value=1;
+                q_reply = questdlg(['You must not use the sample z-stage to focus since moving ', ...
+                    'the z-stage will alter cutting thickness. Are you sure you know what you ', ...
+                    'are doing and want to unlock Z?'],...
+                    'Are you sure?','Yes','No','No');
+
+                if strcmp(q_reply,'Yes')
+                    obj.lockZ_checkbox.Value=0;
+                end
+            end
+
             % Runs when the checkbox is checked
             if obj.lockZ_checkbox.Value == 1
                 % Stage is locked
                 obj.lockZ_checkbox.ForegroundColor = 'r';
                 obj.lockZ_checkbox.String='Unlock Z';
 
+                obj.lowerZstage_button.Enable='off';
+                obj.raiseSample_button.Enable='off';
                 obj.editBox.zPos.Enable='off';
                 obj.smallStep.up.Enable='off';
                 obj.smallStep.down.Enable='off';
@@ -391,6 +419,8 @@ classdef prepare_view < BakingTray.gui.child_view
                 obj.lockZ_checkbox.ForegroundColor = 'g';
                 obj.lockZ_checkbox.String='Lock Z';
 
+                obj.lowerZstage_button.Enable='on';
+                obj.raiseSample_button.Enable='on';
                 obj.editBox.zPos.Enable='on';
                 obj.smallStep.up.Enable='on';
                 obj.smallStep.down.Enable='on';
@@ -452,7 +482,7 @@ classdef prepare_view < BakingTray.gui.child_view
             if pos==0
                 pos = abs(pos);
             end
-                
+
             if obj.lastZpos ~= pos || obj.model.zAxis.isMoving
                 obj.lastZpos=pos;
                 obj.editBox.zPos.String=sprintf('%0.3f',pos);

@@ -1,7 +1,7 @@
 function areaSelector(obj,~,~)
     % Draw a box on the preview image and use this as a basis for a ROI
     %
-    % The box is scaled to the nearest whole tile. 
+    % The box is scaled to the nearest whole tile.
 
     % Disable draw box button so a second box can't be drawn
     obj.button_drawBox.Enable='off';
@@ -85,7 +85,7 @@ function areaSelector(obj,~,~)
         % Remove any old threshold borders from the image as these
         % confuse users.
         obj.removeOverlays('overlayThreshBorderOnImage'); %see obj.overlayThreshBorderOnImage
-        
+
         % Overlay a box indicating the area we will image next time
         x = [leftPos,leftPos-extentAlongX, leftPos-extentAlongX, leftPos, leftPos];
         y = [frontPos, frontPos, frontPos-extentAlongY, frontPos-extentAlongY, frontPos];
@@ -109,7 +109,7 @@ function snapToTiles(src,~)
     stepSize = src.UserData.stepSize;
     overlap = src.UserData.overlap;
 
-    % Round to nearest number of steps and then 
+    % Round to nearest number of steps and then
     % return ROI to the original central position
     if pos(3)<stepSize.Ymics
         pos(3)=stepSize.Ymics * (1+overlap);

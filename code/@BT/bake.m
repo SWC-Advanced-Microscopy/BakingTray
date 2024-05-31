@@ -5,13 +5,13 @@ function sectionInd = bake(obj,varargin)
     %
     %
     % Inputs (optional param/val pairs)
-    % 'leaveLaserOn' - If true, the laser is not switched off when acquisition finishes. 
-    %                  This setting can also be supplied by setting BT.leaveLaserOn. If 
-    %                  not supplied, this built-in value is used. 
+    % 'leaveLaserOn' - If true, the laser is not switched off when acquisition finishes.
+    %                  This setting can also be supplied by setting BT.leaveLaserOn. If
+    %                  not supplied, this built-in value is used.
     %
-    % 'sliceLastSection' - If false, the last section of the whole acquisition is not cut 
-    %                      off the block. This setting can also be supplied by setting 
-    %                      BT.leaveLaserOn. If not supplied, this built-in value is used. 
+    % 'sliceLastSection' - If false, the last section of the whole acquisition is not cut
+    %                      off the block. This setting can also be supplied by setting
+    %                      BT.leaveLaserOn. If not supplied, this built-in value is used.
     %
     %
     % Outputs
@@ -22,16 +22,16 @@ function sectionInd = bake(obj,varargin)
     % See also BT.runTileScan
 
 
-    sectionInd = 0; 
+    sectionInd = 0;
     obj.currentTilePosition=1; % so if there is an error before the main loop we don't turn off the laser.
-    
+
     % If we are completely not ready to proceed, bail out right away
-    if ~obj.isScannerConnected 
+    if ~obj.isScannerConnected
         fprintf('No scanner connected.\n')
         return
     end
-    
-    
+
+
 
 
     %Parse the optional input arguments
@@ -48,6 +48,16 @@ function sectionInd = bake(obj,varargin)
 
     % ----------------------------------------------------------------------------
     %Check whether the acquisition is likely to fail in some way
+
+    % First record the current scanner settings. Just in case they are not up to date.
+    % TODO -- When the recipe is written (below in the main for loop) the recordScannerSettings
+    %    method is run anyway. So we should not need it here. There is a BUG that sometimes
+    %    causes the Z voxel size to be wrong: to be what was used during the preview. But it's
+    %    unclear how this is happening since the system is already running an acquisition with the
+    %    correct parameters by the time we end up in the for loop. We leave this line here for
+    %    now as it should not cause any problems, but it is unlikely to solve anything.
+    obj.recipe.recordScannerSettings
+
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
         obj.messageString = msg;
@@ -59,7 +69,6 @@ function sectionInd = bake(obj,varargin)
 
     fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
 
-
     % Remove any attached file logger objects. We will add one per physical section.
     % Reset properties in preparation for acquisition
     obj.detachLogObject
@@ -68,10 +77,10 @@ function sectionInd = bake(obj,varargin)
     obj.acquisitionInProgress=true;
     obj.acquisitionState='bake';
     obj.abortAcqNow=false; % This and the following property can't be on before we've even started
-    obj.abortAfterSectionComplete=false; 
+    obj.abortAfterSectionComplete=false;
 
     % Assign cleanup function, which is in private directory
-    tidy = onCleanup(@() bakeCleanupFun(obj)); 
+    tidy = onCleanup(@() bakeCleanupFun(obj));
 
     %----------------------------------------------------------------------------------------
 
@@ -90,7 +99,7 @@ function sectionInd = bake(obj,varargin)
         obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
     end
 
-    % Print the version number and name of the scanning software 
+    % Print the version number and name of the scanning software
     obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
 
     try
@@ -110,8 +119,8 @@ function sectionInd = bake(obj,varargin)
     end
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
-    % will switch off after this time if it heard nothing back from bake. 
-    % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later. 
+    % will switch off after this time if it heard nothing back from bake.
+    % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later.
     if ~isempty(obj.laser)
         wDogSeconds = 40*60;
         obj.laser.setWatchDogTimer(wDogSeconds);
@@ -124,8 +133,8 @@ function sectionInd = bake(obj,varargin)
 
 
     % auto-ROI stuff if the user has selected this. Note that after the following if statement
-    % we have populated obj.currentTilePattern. This myuste be done before arming the scanner, as scanner arming 
-    % requires us to know how many tiles will be imaged. 
+    % we have populated obj.currentTilePattern. This myuste be done before arming the scanner, as scanner arming
+    % requires us to know how many tiles will be imaged.
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
         fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
@@ -139,7 +148,7 @@ function sectionInd = bake(obj,varargin)
         obj.populateCurrentTilePattern;
     end
 
-    % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise). 
+    % Reset flag to true, so FINISHED file is made when the loop exits (unless user chooses otherwise).
     obj.completeAcquisitionOnBakeLoopExit=true;
 
 
@@ -171,7 +180,7 @@ function sectionInd = bake(obj,varargin)
 
         if ~isempty(obj.laser)
             % Record laser status before section
-            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats)) 
+            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats))
         end
 
 
@@ -183,14 +192,9 @@ function sectionInd = bake(obj,varargin)
             obj.attachLogObject(bkFileLogger(logFilePath))
         end % if obj.saveToDisk
 
-        % Now the recipe has been modified (at the start of BakingTray.bake) we can write the full thing to disk
-        if sectionInd==1
-            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
-        end
-
         % If we are in auto-ROI mode, ensure that only the desired channel is being displayed
         % This is also done in obj.getThreshold, but repeating it here ensures the user can't
-        % alter the channel during acquisition. 
+        % alter the channel during acquisition.
         if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
             obj.scanner.setChannelsToDisplay(obj.autoROI.channel);
         end
@@ -207,14 +211,19 @@ function sectionInd = bake(obj,varargin)
         end
 
 
-
-        %  ===> Now the scanning runs <===
         if ~obj.scanner.armScanner
             disp('FAILED TO START -- COULD NOT ARM SCANNER')
             return
         end
 
+        % Write the full recipe to disk
+        if sectionInd==1
+            obj.recipe.writeFullRecipeForAcquisition(obj.sampleSavePath);
+        end
+
+        %  ===> Now the scanning runs <===
         runTileScanSuccess = obj.runTileScan;
+
         if  runTileScanSuccess.success == false % if runTileScan failed, we quit
             if isempty(runTileScanSuccess.msg)
                 fprintf('\n--> BT.runTileScan returned false. QUITTING BT.bake\n\n')
@@ -227,7 +236,7 @@ function sectionInd = bake(obj,varargin)
             end
         end
 
-        % We will use this later to decide whether to cut. This test asks if the positionArray is complete 
+        % We will use this later to decide whether to cut. This test asks if the positionArray is complete
         % so we don't cut if tiles are missing. We test here because the position array is modified before
         % cutting can happen.
         if obj.tilesRemaining==0
@@ -261,11 +270,11 @@ function sectionInd = bake(obj,varargin)
             cacheFname = fullfile(obj.currentTileSavePath,'tileCache.mat');
             save(cacheFname,'tileCache')
         end
-    
+
         % Now we save to full scan settings by stripping data from a tiff file.
         % If this is the first pass through the loop and we're using ScanImage, dump
         % the settings to a file. TODO: eventually we need to decide what to do with other
-        % scan systems and abstract this code. 
+        % scan systems and abstract this code.
 
         if sectionInd==1 && strcmp(obj.scanner.scannerID,'ScanImage via SIBT')
             d=dir(fullfile(obj.currentTileSavePath,'*.tif'));
@@ -351,7 +360,7 @@ function sectionInd = bake(obj,varargin)
                 obj.slack(msg)
 
                 % Assume the acquisition is supposed to have finished this way
-                % TODO -- this could be a setting                
+                % TODO -- this could be a setting
                 makeFinished(obj.sampleSavePath)
                 return
             end
@@ -364,7 +373,7 @@ function sectionInd = bake(obj,varargin)
                 save(autoROI_fname,'autoROI_stats')
             end
         else
-            % Wipe the last two columns of the position array. These save the actual stage 
+            % Wipe the last two columns of the position array. These save the actual stage
             % positions. This is necessary for the acquisition resume to work properly.
             obj.positionArray(:,end-1:end)=nan;
         end
@@ -400,7 +409,7 @@ function sectionInd = bake(obj,varargin)
 
         if ~isempty(obj.laser)
             % Record laser status after section
-            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats)) 
+            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats))
         end
 
         elapsedTimeInSeconds=(now-startAcq)*24*60^2;
@@ -415,9 +424,6 @@ function sectionInd = bake(obj,varargin)
             obj.leaveLaserOn=true;
             break
         end
-
-
-        %%disp(' *** PRESS RETURN FOR NEXT SECTION *** '); pause
 
     end % for sectionInd=1:obj.recipe.mosaic.numSections
 
@@ -434,7 +440,7 @@ function sectionInd = bake(obj,varargin)
         obj.scanner.abortScanning;
     end
 
-    % Create an empty "FINISHED" file, which will trigger stitching from syncAndCrunch. 
+    % Create an empty "FINISHED" file, which will trigger stitching from syncAndCrunch.
     % It is the default to create the file. The only likely way it will not be created is if the user
     % chooses not to when the stop the acquisition early.
     if obj.completeAcquisitionOnBakeLoopExit
@@ -445,7 +451,7 @@ function sectionInd = bake(obj,varargin)
 end %close of bake
 
 
-% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function makeFinished(sampleSavePath)
     %Create an empty finished file
     fid=fopen(fullfile(sampleSavePath,'FINISHED'), 'w');

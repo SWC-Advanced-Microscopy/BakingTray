@@ -74,23 +74,30 @@ function details = doesPathContainAnAcquisition(thisPath)
     % Loop through all raw data directories and determine the state of each
     rDataDirs = dir(fullfile(thisPath,'rawData','*-*')); % all will have one hyphen
 
-    for ii = 1:length(rDataDirs)
-        tmp=scrapeRawDataDir(fullfile(rDataDirs(ii).folder,rDataDirs(ii).name));
+    if ~isempty(rDataDirs)
+        for ii = 1:length(rDataDirs)
+            tmp=scrapeRawDataDir(fullfile(rDataDirs(ii).folder,rDataDirs(ii).name));
 
-        %add these into the details structure
-        f=find([details.sections.sectionNumber] == tmp.sectionNumber);
+            %add these into the details structure
+            f=find([details.sections.sectionNumber] == tmp.sectionNumber);
 
-        tF=fields(tmp);
-        for kk=1:length(tF)
-            details.sections(f).(tF{kk}) = tmp.(tF{kk});
+            tF=fields(tmp);
+            for kk=1:length(tF)
+                details.sections(f).(tF{kk}) = tmp.(tF{kk});
+            end
         end
+
+        % sections that are listed in the acquisition log file but were later deleted will 
+        % have a lot of empty fields. Use the "completed" field to delete these from the array.
+        f = arrayfun(@(x) isempty(x.completed), details.sections);
+        details.sections(f)=[];
+    else
+        % Otherwise no completed dirctories
+        details.sections.sectionNumber=1;
+        details.sections.completed=false;
+        details.sections.allPositionsImaged=false;
+        details.sections.sectionSliced=false;
     end
-
-    % sections that are listed in the acquisition log file but were later deleted will 
-    % have a lot of empty fields. Use the "completed" field to delete these from the array.
-    f = arrayfun(@(x) isempty(x.completed), details.sections);
-    details.sections(f)=[];
-
 
 
 function out = scrapeRawDataDir(tDir)
@@ -136,5 +143,3 @@ function out = scrapeRawDataDir(tDir)
     else
         out.sectionSliced=true;
     end
-
-
