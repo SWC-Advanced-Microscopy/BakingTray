@@ -97,7 +97,7 @@ classdef SIBT < scanner
 
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanZoomFactor', 'PostSet', @(src,evt) obj.changeChecker(src,evt));
             obj.listeners{end+1}=addlistener(obj.hC.hRoiManager, 'scanFrameRate',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
-            obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.changeChecker(src,evt));
+            obj.listeners{end+1}=addlistener(obj.hC.hDisplay, 'displayRollingAverageFactor',  'PostSet', @(src,evt) obj.rollingAverageChanged(src,evt));
 
             % Watch the pixel bin factor and sample rate if we have linear scanners
             if strcmp('linear',obj.scannerType)
@@ -633,7 +633,7 @@ classdef SIBT < scanner
 
 
         function out = is_vDAQ(obj)
-            % Retrun tru if this is a vDAQ
+            % Return true if the system is running on a vDAQ
             out = isa(obj.hC.hScan2D,'scanimage.components.scan2d.RggScan');
         end %is_vDAQ
 
@@ -720,6 +720,20 @@ classdef SIBT < scanner
         end %LUTchanged
 
 
+        function rollingAverageChanged(obj,s,e)
+            % Runs when the rolling average factor is changed. The purpose
+            % of this callback is to have the system apply the user's averaging
+            % choice when a "Grab" acquisition is done.
+
+            % Run the changeChecker
+            obj.changeChecker(s,e)
+
+            % Set the frames per slice to match that of the display rolling average
+            nFrames = obj.hC.hDisplay.displayRollingAverageFactor;
+            obj.hC.hStackManager.framesPerSlice = nFrames;
+        end %rollingAverageChanged
+
+
         function tileAcqDone_minimal(obj,~,~)
             % Minimal acq done for testing and de-bugging
             obj.parent.currentTilePosition = obj.parent.currentTilePosition+1;
@@ -728,6 +742,13 @@ classdef SIBT < scanner
 
 
         function changeChecker(obj,s,e)
+            % Callback that caches changes to scanimage settings in a property called
+            % SIBT.lastSeenScanSettings the callback also runs flipScanSettingsChanged
+            % which runs the superclass method flipScanSettingsChanged which the sign of
+            % the property scanSettingsChanged. This is used by downstream functions
+            % to update GUIs and so on. The structure that lists what was last change
+            % (i.e. that which resides in lastSeenSettings) is used to not trigger the
+            % scanSettingsChangedProperty if the property was unchanged. 
 
             variableName = s.Name;  % The name of the variable that might have changed
             variableValue = e.AffectedObject.(variableName); % The current value of the variable

@@ -8,16 +8,19 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
-22nd May 2024
+31nd May 2024
+- USER: Histogram windows close when acquisition saving is initiated. 
+- USER: added buttons that raise and lower the stage. 
+- USER: remove "zoom" from the drop-down for resolution and convert "u" to Greek "mu".  
 - USER: add convenience buttons to raise sample and lower Z stage
 - USER: close the new persistent histogram windows when tile saving is set up. likely this results in a small speedup.
+- USER: Bake is not possible if sample ID or sample folder contain non-alphanumeric (- and _ are OK) The recipe class no longer corrects funny characters in file names.
+- USER: A confirmation dialog pops up when the user tries to unlock the Z stage.\
+- USER: The error message that tells users to have the same PMTs on as channels saved is now worded more clearly.
+- BUGFIX: fixed a bug that was causing voxel size to be incorrectly written now and then. 
+- Minor bugfixes to acquisition resume
+- Zaber class now works with Zaber X-LDA stages.
 
-7th May 2024
-- USER: Bake is not possible if sample ID or sample folder contain non-alphanumeric (- and _ are OK)
-       The recipe class no longer corrects funny characters in file names.
-
-22nd January 2024
-- USER: A confirmation dialog pops up when the user tries to unlock the Z stage.
 
 August 2022
 - USER: Handle resume scenario where the acquisition has no completed sections.
