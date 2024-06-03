@@ -8,7 +8,7 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
-31nd May 2024
+3rd June 2024
 The following changes have been made over the last few months. There may be other minor changes too.
 - USER: Histogram windows close when acquisition saving is initiated.
 - USER: remove "zoom" from the drop-down for resolution and convert "u" to Greek "mu".
@@ -18,6 +18,8 @@ The following changes have been made over the last few months. There may be othe
 - USER: A confirmation dialog pops up when the user tries to unlock the Z stage.
 - USER: The error message that tells users to have the same PMTs on as channels saved is now worded more clearly.
 - BUGFIX: fixed a bug that was causing voxel size to be incorrectly written now and then.
+- BUGFIX: addLaserCalib fails gracefully if BakingTray is not started.
+- POWERUSER: Update example settings files
 - Minor bugfixes to acquisition resume
 - Zaber class now works with Zaber X-LDA stages.
 
