@@ -1,34 +1,29 @@
 classdef FaulhaberMCDC < cutter & loghandler
-    % Faulhaber motor controller. Before use, set up your controller with the 
-    % motor you have and the encoder. 
+    % Faulhaber motor controller. Before use, set up your controller with the
+    % motor you have and the encoder.
     %
-    % This class was written for a MCDC 3006 S
-    % 
-    % BEFORE RUNNING:
-    % Run the IXRMOD command if you have no encoder. Save the settings to the 
-    % controller's EEPROM with EEPSAV. That way you do not need to supply 
-    % additional settings every time you connect to the motor.
-    % You can do the above at the command line as follows:
-    % >> F=FaulhaberMCDC('COMXX');
-    % >> F.sendReceiveSerial('IXRMOD')
-    % >> F.sendReceiveSerial('EEPSAV')
+    % This class was written for a Faulhaber MCDC 3006 S
+    %
+    % This class can drive the vibratome too hard if not properly configured. Therefore,
+    % **BEFORE RUNNING IT**, first see the instructions for setting up the vibratome:
+    % https://bakingtray.mouse.vision/getting-started/hardware-setup/setting_up_vt1000
     %
     %
-    % For more information on the cutter, see the abstract class.
+    % For more information, see also the abstract class (cutter).
     %
-    % Rob Campbell - Basel, 2016
+    % Rob Campbell - Basel, 2016; SWC, 2023
 
 
-    properties 
+    properties
 
-        %controllerID should be a cell array of strings that can be fed to the serial port command. 
+        %controllerID should be a cell array of strings that can be fed to the serial port command.
         %e.g. controllerID = {'COM1','BaudRate',4800};
 
-        motorMaxSpeed = 60; %max motor speed in cycles per second. NOTE: we later normalise by this 
-                            %number so it's a bad idea to change it. 
-        maxControlValue=30000; %TODO: find the max control value. e.g. when motor 
+        motorMaxSpeed = 60; %max motor speed in cycles per second. NOTE: we later normalise by this
+                            %number so it's a bad idea to change it.
+        maxControlValue=30000; %TODO: find the max control value. e.g. when motor
                                 %commanded to this setting it should produdce motorMaxSpeed cycles/sec
-        
+
         modeMap % dictionary to return mode state
     end %close public properties
 
@@ -60,13 +55,13 @@ classdef FaulhaberMCDC < cutter & loghandler
                 delete(obj.hC)
                 return
             end
-            
+
             obj.stopVibrate; % Because rarely on some systems the vibramtome starts on connect
             if strcmp(obj.readMode,'IXRMOD')
                 fprintf(['Setting up Faulhaber MCDC3006 DC motor controller.\n',...
                     'Motor max speed: %d revs per second.\n'], obj.motorMaxSpeed);
             else
-                % TODO -- report tru max speed in RPM if in CONTMOD 
+                % TODO -- report tru max speed in RPM if in CONTMOD
             end
         end %constructor
 
@@ -165,25 +160,25 @@ classdef FaulhaberMCDC < cutter & loghandler
             cyclesPerSec = false;
         end %readVibrationSpeed
 
-        
+
         function cyclesPerSec = readTargetVelocity(obj)
             [~,reply] = obj.sendReceiveSerial('GV');
             cyclesPerSec = str2double(reply);
         end %readVibrationSpeed
-        
+
 
         function set2IXRMOD(obj)
             % Set device to IXRMOD mode, which does not use the encoder
             obj.genericModeSet('IXRMOD');
         end %set2IXRMOD
 
- 
+
         function set2CONTMOD(obj)
             % Set device to CONTMOD mode, which uses the encoder
             obj.genericModeSet('CONTMOD');
         end %set2CONTMOD
 
-        
+
         function genericModeSet(obj,mode)
             obj.sendReceiveSerial(mode);
             if strcmp(obj.readMode,mode)
@@ -215,7 +210,7 @@ classdef FaulhaberMCDC < cutter & loghandler
             reply(end)=[];
             if strfind(reply,'Unknown command')
                 success=false;
-            else 
+            else
                 success=true;
             end
         end %sendReceiveSerial

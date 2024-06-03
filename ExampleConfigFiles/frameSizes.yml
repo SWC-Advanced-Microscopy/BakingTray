@@ -1,103 +1,60 @@
 setA:
   objective: nikon16x
-  pixelsPerLine: 512
-  linesPerFrame: 512
+  pixelsPerLine: 300
+  linesPerFrame: 300
   zoomFactor: 1.0
-  nominalMicronsPerPixel: 2.5
+  nominalMicronsPerPixel: 4.25
   fastMult: 1
   slowMult: 1
-  objRes: 54.7
+  objRes: 51.7
   lensDistort: {rows: 0, cols: 0.03}
-  affineMat: 
+  affineMat:
     - [1, -0.011,   0]
     - [0.0,    1,   0]
     - [0,      0,   1]
-  stitchingVoxelSize: {X: 2.41, Y: 2.37}
+  stitchingVoxelSize: {X: 4.1, Y: 4.39}
 setB:
+  objective: nikon16x
+  pixelsPerLine: 562
+  linesPerFrame: 562
+  zoomFactor: 1.0
+  nominalMicronsPerPixel: 2.2
+  fastMult: 1
+  slowMult: 1
+  objRes: 54.7
+  lensDistort: {rows: 0, cols: 0.0}
+  affineMat:
+    - [1, -0.011,   0]
+    - [0.0,    1,   0]
+    - [0,      0,   1]
+  stitchingVoxelSize: {X: 2.23, Y: 2.335}
+setC:
   objective: nikon16x
   pixelsPerLine: 750
   linesPerFrame: 750
   zoomFactor: 1.0
-  nominalMicronsPerPixel: 1.667
+  nominalMicronsPerPixel: 1.7
   fastMult: 1
   slowMult: 1
   objRes: 53.44
-  lensDistort: {rows: 0, cols: 0.03}
-  affineMat: 
+  lensDistort: {rows: 0, cols: 0.01}
+  affineMat:
     - [1, -0.013,   0]
     - [0.0,    1,   0]
     - [0,      0,   1]
-  stitchingVoxelSize: {X: 1.654, Y: 1.615}
-setC:
-  objective: nikon16x
-  pixelsPerLine: 1024
-  linesPerFrame: 1024
-  zoomFactor: 1.2
-  nominalMicronsPerPixel: 1.0
-  fastMult: 1
-  slowMult: 1
-  objRes: 52.46
-  lensDistort: {rows: 0, cols: 0.02}
-  affineMat: 
-    - [1, -0.013,   0]
-    - [0.0,    1,   0]
-    - [0,      0,   1]
-  stitchingVoxelSize: {X: 1.0125, Y: 0.988}
+  stitchingVoxelSize: {X: 1.66, Y: 1.755}
 setD:
   objective: nikon16x
   pixelsPerLine: 1024
   linesPerFrame: 1024
   zoomFactor: 1.0
-  nominalMicronsPerPixel: 1.19
+  nominalMicronsPerPixel: 1.25
   fastMult: 1
   slowMult: 1
-  objRes: 52.09
-  lensDistort: {rows: 0, cols: 0.03}
-  affineMat: 
-    - [1, -0.013,   0]
+  objRes: 55.5
+  lensDistort: {rows: 0, cols: 0.0}
+  affineMat:
+    - [1, -0.01,   0]
     - [0.0,    1,   0]
     - [0,      0,   1]
-  stitchingVoxelSize: {X: 1.21, Y: 1.19}
-setE:
-  objective: nikon16x
-  pixelsPerLine: 1680
-  linesPerFrame: 1680
-  zoomFactor: 1.0
-  nominalMicronsPerPixel: 0.735
-  fastMult: 1
-  slowMult: 1
-  objRes: 52.8
-  lensDistort: {rows: 0, cols: 0.03}
-  affineMat: 
-    - [1, -0.014,   0]
-    - [0.0,    1,   0]
-    - [0,      0,   1]
-  stitchingVoxelSize: {X: 0.737, Y: 0.724}
-setF:
-  objective: nikon16x
-  pixelsPerLine: 2048
-  linesPerFrame: 2048
-  zoomFactor: 1.0
-  nominalMicronsPerPixel: 0.595
-  fastMult: 1
-  slowMult: 1
-  objRes: 52.1
-  lensDistort: {rows: 0, cols: 0.03}
-  affineMat: 
-    - [1, -0.014,   0]
-    - [0.0,    1,   0]
-    - [0,      0,   1]
-setG:
-  objective: nikon16x
-  pixelsPerLine: 2048
-  linesPerFrame: 2048
-  zoomFactor: 1.2
-  nominalMicronsPerPixel: 0.5
-  fastMult: 1
-  slowMult: 1
-  objRes: 52.5
-  lensDistort: {rows: 0, cols: 0.02}
-  affineMat: 
-    - [1, -0.014,   0]
-    - [0.0,    1,   0]
-    - [0,      0,   1]
+  stitchingVoxelSize: {X: 1.225, Y: 1.29}

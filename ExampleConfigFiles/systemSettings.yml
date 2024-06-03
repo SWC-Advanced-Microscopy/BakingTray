@@ -1,0 +1,16 @@
+SYSTEM:
+  ID: slicerscope
+  xySpeed: 35.0
+  cutterSide: 1.0
+  defaultFrontLeft: [12.5, 10.0]
+  homeZjackOnZeroMove: 1.0
+  dominantTilingDirection: y
+  defaultSavePath: D:\
+  autoROIchannelOrder: [red, green, blue]
+  bladeXposAtSlideEnd: 59.0
+  slideFrontLeft: [24.0, 16.2]
+  raisedZposition: 13.0
+  raisedXposition: 20.5
+SLACK: {user: '@slicer', hook: 'https://hooks.slack.com/services/H7SFDSBG1/KLSSST595W/VXFgcYfdzW1Q3CPghHxRGpr6'}
+SLICER: {approachSpeed: 25.0, vibrateRate: 3200, postCutDelay: 6.0, postCutVibrate: 3.0,
+  defaultYcutPos: 2.0}
