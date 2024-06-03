@@ -23,6 +23,12 @@ function addLaserCalib
     % Rob Campbell - SWC 2022
 
     hBT=BakingTray.getObject;
+
+    if isempty(hBT)
+        fprintf('Please start BakingTray\n')
+        return
+    end
+
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
 
     if exist(pathToFiles,'dir') == 0

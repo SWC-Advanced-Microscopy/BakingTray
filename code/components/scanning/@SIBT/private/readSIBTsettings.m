@@ -1,5 +1,5 @@
 function settings = readSIBTsettings
-    % Read SIBT settings from SETTINGS/SIBT_settings.yml 
+    % Read SIBT settings from SETTINGS/SIBT_settings.yml
     %
     % function settings = readSIBTsettings
     %
@@ -8,11 +8,11 @@ function settings = readSIBTsettings
     % This function parses SETTINGS/SIBT_settings.yml and creates it if does not already exist.
     %
     % The "SIBT settings" are those that describe parameters of the ScanImage scanner that are
-    % unlikely to change between sessions. If no settings have been created then a default settings 
+    % unlikely to change between sessions. If no settings have been created then a default settings
     % file is created. The settings file is then read and returned as a
     % structure. This file checks that the settings it reads are valid.
     %
-    % This function in addition creats a default frameSizes.yml file if
+    % This function in addition creates a default frameSizes.yml file if
     % none exists in the SETTINGS dir.
     %
     % Rob Campbell - SWC 2019
@@ -20,7 +20,7 @@ function settings = readSIBTsettings
     settings=[];
 
     settingsDir = BakingTray.settings.settingsLocation;
-    
+
     % Create frameSizes.yml if this does not exist
     if ~exist(fullfile(settingsDir,'frameSizes.yml'),'file')
         fprintf('No frameSizes.yml found in %s. Creating a template file\n', ...
