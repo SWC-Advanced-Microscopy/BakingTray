@@ -29,6 +29,11 @@ function newSample(obj,~,~)
         obj.view_prepare.resetStepSizesToDefaults;
     end
 
+    % A bit of a horrible hack to re-set the pixel size
+    obj.recipeEntryBoxes.other{1}.Value=1; % Sets the drop-down to entry 1
+    obj.model.scanner.setImageSize(obj.recipeEntryBoxes.other{1}) % apply this to ScanImage
+
+
     % Wipe the sample save path
     obj.text_sampleDir.String='';
     obj.model.sampleSavePath='';

@@ -9,6 +9,9 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+10th July 2024
+- USER: Image size resets when user select new sample
+
 3rd June 2024
 The following changes have been made over the last few months. There may be other minor changes too.
 For information on adding new settings to the settings file(s) see: https://bakingtray.mouse.vision/getting-started/finishing-the-install/the-settings-files
