@@ -365,7 +365,15 @@ classdef laser_view < BakingTray.gui.child_view
 
 
         function updateLaserOnElements(obj,~,~)
-            %Better to look at the property as there is a lag between 
+            % If the laser is reported as being off but is also reported as being
+            % mode-locked, then double-check whether or not it is on. Sometimes we
+            % have had a laser report it is off when really it is on. Maybe this check
+            % will suppress the problem.
+            if obj.model.laser.isLaserOn==false && obj.model.laser.isModeLocked==true
+                obj.model.laser.isPoweredOn; % forces update of obj.model.laser.isLaserOn
+            end
+
+            %Better to look at the property as there is a lag between
             %hitting the button and the power going up
             if obj.model.laser.isLaserOn==true
                 set(obj.buttonOnOff, 'String', 'Turn Off')
