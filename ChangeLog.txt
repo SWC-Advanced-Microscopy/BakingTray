@@ -11,6 +11,7 @@ For more information on major releases merged into master from pre-release.
 
 10th July 2024
 - USER: Image size resets when user select new sample
+- USER: Reset ScanImage on new sample
 
 3rd June 2024
 The following changes have been made over the last few months. There may be other minor changes too.

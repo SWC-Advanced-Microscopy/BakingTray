@@ -41,4 +41,7 @@ function newSample(obj,~,~)
     % Close the prepare GUI to reset it. (Hack but it's OK)
     delete(obj.view_prepare)
 
+    % Re-load the user settings file so PMTs and so on are back to where they were before
+    obj.scanner.reset
+
 end %newSample
