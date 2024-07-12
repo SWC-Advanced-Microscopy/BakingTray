@@ -5,11 +5,11 @@ classdef maitai < laser & loghandler
 % Example
 % M = maitai('COM1');
 %
-% Laser control component for MaiTai lasers from SpectraPhysics. 
+% Laser control component for MaiTai lasers from SpectraPhysics.
 % IMPORTANT: In the SpectraPhysics GUI you should set the baudrate
 % switch to "9600".
 %
-% For docs, please see the laser abstract class. 
+% For docs, please see the laser abstract class.
 %
 %
 % Rob Campbell - Basel 2016
@@ -52,7 +52,7 @@ classdef maitai < laser & loghandler
             fprintf('Connected to SpectraPhysics laser on %s, laser humidity is %0.2f%%\n\n', ...
              serialComms, obj.readHumidity)
 
-            
+
             % Must call these here to make sure Pockels is turned on
             obj.isPoweredOn;
             obj.isModeLocked;
@@ -70,13 +70,13 @@ classdef maitai < laser & loghandler
                 fclose(obj.hC);
                 delete(obj.hC);
                 delete(obj.hDO)
-            end  
+            end
         end %destructor
 
 
         function success = connect(obj)
             obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
-            try 
+            try
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
                 fprintf(' * ERROR: Failed to connect to MaiTai:\n%s\n\n', ME.message)
@@ -85,7 +85,7 @@ classdef maitai < laser & loghandler
             end
 
             flushinput(obj.hC) % Just in case
-            if isempty(obj.hC) 
+            if isempty(obj.hC)
                 success=false;
             else
                 [~,s] = obj.isShutterOpen;
@@ -124,7 +124,7 @@ classdef maitai < laser & loghandler
 
 
         function success = turnOff(obj)
-            obj.closeShutter; % Older MaiTai lasers seem not to do this by default 
+            obj.closeShutter; % Older MaiTai lasers seem not to do this by default
             success=obj.sendAndReceiveSerial('OFF',false);
             pause(0.1)
             obj.isLaserModeLocked; % Because otherwise the modelock flag sometimes stays on
@@ -135,6 +135,15 @@ classdef maitai < laser & loghandler
         end
 
         function [powerOnState,details] = isPoweredOn(obj)
+            % Is the laser powered on?
+            %
+            % Outputs
+            % powerOnState - true if powered on, false otherwise
+            % details - string that reflects pump power
+            %
+            % Behavior
+            % When run this method sets the isLaserOn property
+
             pPower=obj.readPumpPower;
             details=num2str(pPower);
             if pPower>10
@@ -193,7 +202,7 @@ classdef maitai < laser & loghandler
             bits = fliplr(dec2bin(str2double(reply),8));
             if strcmp(bits(2),'1')
                 modelockState=1;
-            else 
+            else
                 modelockState=0;
             end
             obj.isLaserModeLocked=modelockState;
@@ -232,8 +241,8 @@ classdef maitai < laser & loghandler
         end
 
 
-        function wavelength = readWavelength(obj) 
-            [success,wavelength]=obj.sendAndReceiveSerial('READ:WAVELENGTH??'); 
+        function wavelength = readWavelength(obj)
+            [success,wavelength]=obj.sendAndReceiveSerial('READ:WAVELENGTH??');
             if ~success
                 wavelength=[];
                 return
@@ -261,7 +270,7 @@ classdef maitai < laser & loghandler
             obj.targetWavelength=wavelengthInNM;
 
         end
-   
+
 
         function tuning = isTuning(obj)
             %First get the desired (setpoint) wavelength
@@ -332,7 +341,7 @@ classdef maitai < laser & loghandler
                 success=false;
             end
         end
-        
+
 
         % MaiTai specific
         function laserPower = readPumpPower(obj)
@@ -386,7 +395,7 @@ classdef maitai < laser & loghandler
             bits = fliplr(dec2bin(str2double(reply),8));
             if strcmp(bits(1),'1')
                 emission=1;
-            else 
+            else
                 emission=0;
             end
         end
@@ -395,14 +404,14 @@ classdef maitai < laser & loghandler
             % Print to screen Mai Tai error codes
             [success,reply]=obj.sendAndReceiveSerial('PLAS:AHIS?');
             disp(reply)
-            
+
         end
-        
+
         function readLastErrorCode(obj)
             % Print to screen Mai Tai error codes
             [success,reply]=obj.sendAndReceiveSerial('PLAS:ERRC?');
             disp(reply)
-            
+
         end
 
 
@@ -432,7 +441,7 @@ classdef maitai < laser & loghandler
             end
 
             reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do. 
+            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
             if obj.hC.BytesAvailable>0
                 if doFlush
                     fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
@@ -458,4 +467,4 @@ classdef maitai < laser & loghandler
 
     end %close methods
 
-end %close classdef 
+end %close classdef
