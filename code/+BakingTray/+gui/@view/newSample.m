@@ -42,6 +42,6 @@ function newSample(obj,~,~)
     delete(obj.view_prepare)
 
     % Re-load the user settings file so PMTs and so on are back to where they were before
-    obj.scanner.reset
+    obj.model.scanner.reset
 
 end %newSample
