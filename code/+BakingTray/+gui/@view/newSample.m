@@ -16,6 +16,10 @@ function newSample(obj,~,~)
     end
 
 
+
+    % Re-load the user settings file so PMTs and so on are back to where they were before
+    obj.model.scanner.reset
+
     obj.loadRecipe([],[],fullfile(BakingTray.settings.settingsLocation,'default_recipe.yml'))
 
     % Resonant scanner is turned on if necessary. This gives it the most time possible to warm up
@@ -40,8 +44,5 @@ function newSample(obj,~,~)
 
     % Close the prepare GUI to reset it. (Hack but it's OK)
     delete(obj.view_prepare)
-
-    % Re-load the user settings file so PMTs and so on are back to where they were before
-    obj.model.scanner.reset
 
 end %newSample
