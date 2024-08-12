@@ -49,7 +49,7 @@ classdef (Abstract) laser < handle
     % appropriate by classes which inherit laser. e.g. If the shutter is opened then the shutterOpen
     % property must be set to true. Failing to do this will cause the GUI to fail to update. All
     % properties in this section should be updated in the constructor once the laser is connected
-    properties (Hidden, SetObservable, AbortSet)
+    properties (SetObservable, AbortSet)
         isLaserOn=false  % Must be updated by turnOn, turnOff, and isLaserOn
         isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpen
         isLaserConnected=false % Set by isControllerConnected
@@ -58,7 +58,6 @@ classdef (Abstract) laser < handle
         currentWavelength=-1 % This must be updated whenever readWavelength runs
         targetWavelength=0 % Must be updated by setWavelength
     end %close GUI-related properties
-
 
 
     % The following are all critical methods that your class should define
@@ -348,7 +347,7 @@ classdef (Abstract) laser < handle
         end % connectToPockelsControlDAQ
 
         function switchPockelsCell(obj)
-            % Gate pockels cell based on the reported power state of the laser
+            % Turn pockels cell on or off based on the reported power state of the laser
             % This method should be called from methods that turn on or turn off the
             % laser and also at the end of the constructor. It is not a callback.
 
@@ -360,12 +359,48 @@ classdef (Abstract) laser < handle
                 return
             end
 
+            obj.isPoweredOn;
             if obj.isLaserOn
                 obj.hDO.writeDigitalData(1)
             else
                 obj.hDO.writeDigitalData(0)
             end
         end % switchPockelsCell
+
+        function turnOffPockelsCell(obj)
+            % Send DIO signal to turn pockels cell off.
+            % This method should be called from methods that turn on or turn off the
+            % laser and also at the end of the constructor. It is not a callback.
+
+            if obj.doPockelsPowerControl && isempty(obj.hDO)
+                fprintf('\nSwitch on of Pockels cell requested by DAQ not connected!\n')
+            end
+
+            if isempty(obj.hDO) || ~obj.doPockelsPowerControl
+                return
+            end
+
+            %Set line low to turn off Pockels cell
+            obj.hDO.writeDigitalData(0);
+        end % turnOffPockelsCell        
+
+
+        function turnOnPockelsCell(obj)
+            % Send DIO signal to turn pockels cell n.
+            % This method should be called from methods that turn on or turn off the
+            % laser and also at the end of the constructor. It is not a callback.
+
+            if obj.doPockelsPowerControl && isempty(obj.hDO)
+                fprintf('\nSwitch on of Pockels cell requested by DAQ not connected!\n')
+            end
+
+            if isempty(obj.hDO) || ~obj.doPockelsPowerControl
+                return
+            end
+
+            %Set line high to turn on Pockels cell
+            obj.hDO.writeDigitalData(1);
+        end % turnOnPockelsCell        
 
 
     end %close methods

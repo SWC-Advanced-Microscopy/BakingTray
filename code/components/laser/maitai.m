@@ -115,24 +115,40 @@ classdef maitai < laser & loghandler
                 fprintf('Laser is not warmed up. Current warm up state: %0.2f\n',obj.readWarmedUp)
                 return
             end
-            successA=obj.sendAndReceiveSerial('ON',false);
-            successB=obj.setWatchDogTimer(0); %otherwise it will turn off again
-            success=successA & successB;
-            obj.isLaserOn=success;
-            obj.switchPockelsCell %Gate Pockels mains power
+            successA = obj.sendAndReceiveSerial('ON',false);
+            successB = obj.setWatchDogTimer(0);  %otherwise it will turn off again
+            success = successA & successB;
+            if success
+                obj.isLaserOn=true;
+                obj.turnOnPockelsCell %Gate Pockels mains power
+            end
+ 
         end
 
 
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default
-            success=obj.sendAndReceiveSerial('OFF',false);
+            % Sometimes it seems the laser turns off but reports that it failed to do so. 
+            maxTries=8;
+            for ii=1:maxTries
+                success=obj.sendAndReceiveSerial('OFF',false);
+                if success == true
+                    break
+                end
+                pause(0.5)
+            end
+
             pause(0.1)
+    
             obj.isLaserModeLocked; % Because otherwise the modelock flag sometimes stays on
             if success
+                obj.turnOffPockelsCell;
                 obj.isLaserOn=false;
+            else
+                fprintf('Reported laser still on after %d tries\n', maxTries)
             end
-            obj.switchPockelsCell %Gate Pockels mains power
-        end
+                
+        end %turnOff
 
         function [powerOnState,details] = isPoweredOn(obj)
             % Is the laser powered on?
@@ -145,13 +161,34 @@ classdef maitai < laser & loghandler
             % When run this method sets the isLaserOn property
 
             pPower=obj.readPumpPower;
-            details=num2str(pPower);
-            if pPower>10
+
+            % Sometimes a serial port read failure seems to cause the 
+            % laser to report it has low pump power, when in fact it is
+            % fine. We try to cover for this here.
+            powerOnThresh = 15;
+            isModeLocked = obj.isModeLocked;
+            if islogical(isModeLocked) 
+                if isModeLocked & pPower<powerOnThresh
+                    nTries = 5;
+                    for ii = 1:nTries
+                         pPower=obj.readPumpPower;
+                         if pPower>powerOnThresh
+                             break
+                         end
+                         pause(0.5)
+                    end
+                end
+            end
+
+            if pPower>powerOnThresh
                 powerOnState=true;
             else
                 powerOnState=false;
             end
             obj.isLaserOn=powerOnState;
+
+            details=num2str(pPower);
+
         end
 
 
@@ -201,9 +238,9 @@ classdef maitai < laser & loghandler
             %extract modelock state
             bits = fliplr(dec2bin(str2double(reply),8));
             if strcmp(bits(2),'1')
-                modelockState=1;
+                modelockState=true;
             else
-                modelockState=0;
+                modelockState=false;
             end
             obj.isLaserModeLocked=modelockState;
         end

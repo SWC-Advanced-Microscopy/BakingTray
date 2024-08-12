@@ -295,16 +295,20 @@ classdef laser_view < BakingTray.gui.child_view
 
         %The following methods are used to update GUI elements upon certain events happening
         function onOffButtonCallBack(obj,~,~)
+            % Turns the laser on or off. Which it does depends on the current state of the laser. 
+            % GUI elements are updated via callbacks.
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
                 return
             end
-            if obj.model.laser.isPoweredOn==true
+
+            isPoweredOn = obj.model.laser.isPoweredOn;
+            if isPoweredOn
                 obj.model.laser.turnOff;
-            elseif obj.model.laser.isPoweredOn==false
+            else
                 obj.model.laser.turnOn;
             end
-            obj.updateGUI
+
         end % onOffButtonCallBack
 
 
@@ -364,17 +368,19 @@ classdef laser_view < BakingTray.gui.child_view
         end %updateLaserConnectedElements
 
 
-        function updateLaserOnElements(obj,~,~)
+        function updateLaserOnElements(obj)
+            % Update laser on or off elements
+            %
+            % laser_view.updateLaserOnElements
+            %
+            % NOTES 
             % If the laser is reported as being off but is also reported as being
-            % mode-locked, then double-check whether or not it is on. Sometimes we
-            % have had a laser report it is off when really it is on. Maybe this check
-            % will suppress the problem.
-            if obj.model.laser.isLaserOn==false && obj.model.laser.isModeLocked==true
-                obj.model.laser.isPoweredOn; % forces update of obj.model.laser.isLaserOn
-            end
+            % mode-locked, then double-check whether or not it is on. This
+            % function is called via callbacks that are triggered by the
+            % laser on or off state from the laser object in the model.
+            % DO NOT read the stat of the laser here: it can cause
+            % problems.
 
-            %Better to look at the property as there is a lag between
-            %hitting the button and the power going up
             if obj.model.laser.isLaserOn==true
                 set(obj.buttonOnOff, 'String', 'Turn Off')
                 set(obj.powerIndicator, 'FaceColor', 'g')
@@ -398,10 +404,10 @@ classdef laser_view < BakingTray.gui.child_view
 
 
         function updateGUI(obj,~,~)
-            obj.updateShutterElements
-            obj.updateModeLockElements
-            obj.updateLaserConnectedElements
-            obj.updateLaserOnElements
+            obj.updateShutterElements;
+            obj.updateModeLockElements;
+            obj.updateLaserConnectedElements;
+            obj.updateLaserOnElements;
         end %updateGUI
 
 
@@ -415,6 +421,7 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
+            
             try
                 obj.updateModeLockElements
                 obj.updatePowerText
