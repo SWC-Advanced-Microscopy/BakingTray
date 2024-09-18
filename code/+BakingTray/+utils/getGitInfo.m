@@ -1,6 +1,6 @@
 function gitInfo=getGitInfo()
-% Get information about the Git repository in the current directory, including: 
-%          - branch name of the current Git Repo 
+% Get information about the Git repository in the current directory, including:
+%          - branch name of the current Git Repo
 %          -Git SHA1 HASH of the most recent commit
 %          -url of corresponding remote repository, if one exists
 %
@@ -11,8 +11,8 @@ function gitInfo=getGitInfo()
 % It then reads the .git/config file to find out the url of the
 % corresponding remote repository. This is all stored in a gitInfo struct.
 %
-% Note this uses only file information, it makes no external program 
-% calls at all. 
+% Note this uses only file information, it makes no external program
+% calls at all.
 %
 % This function must be in the base directory of the git repository
 %
@@ -21,7 +21,7 @@ function gitInfo=getGitInfo()
 %
 % Andrew Leifer
 % Harvard University
-% Program in Biophysics, Center for Brain Science, 
+% Program in Biophysics, Center for Brain Science,
 % and Department of Physics
 % leifer@fas.harvard.edu
 % http://www.andrewleifer.com
@@ -37,11 +37,11 @@ function gitInfo=getGitInfo()
 %
 %    1. Redistributions of source code must retain the above copyright notice, this list of
 %       conditions and the following disclaimer.
-% 
+%
 %    2. Redistributions in binary form must reproduce the above copyright notice, this list
 %       of conditions and the following disclaimer in the documentation and/or other materials
 %       provided with the distribution.
-% 
+%
 % THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ''AS IS'' AND ANY EXPRESS OR IMPLIED
 % WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 % FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR
@@ -51,7 +51,7 @@ function gitInfo=getGitInfo()
 % ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 % NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 % ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-% 
+%
 % The views and conclusions contained in the software and documentation are those of the
 % authors and should not be interpreted as representing official policies, either expressed
 % or implied, of the copyright holder.
@@ -73,7 +73,13 @@ gitInfo.url='UNKNOWN';
 
 % Descend dir path until we find the the .git directory
 pathToFile=mfilename('fullpath');
-while length(pathToFile)>1
+if ispc
+    minPathToFile=3;
+else
+    minPathToFile=1;
+end
+
+while length(pathToFile)>minPathToFile
     pathToFile = fileparts(pathToFile);
     pathToDotGit = fullfile(pathToFile,'.git');
     if exist(pathToDotGit,'dir')
@@ -82,7 +88,7 @@ while length(pathToFile)>1
 end
 
 % In case nothing was found
-if length(pathToFile)==1
+if length(pathToFile)==minPathToFile
     fprintf('%s failed to find a .git directory in project.\n', mfilename);
     return
 end
@@ -163,11 +169,11 @@ for k=1:length(lines)
             temp=textscan(lines{m},'%s');
             if length(temp{1})>=3
                 if strcmp(temp{1}{1},'remote') && strcmp(temp{1}{2},'=')
-                    %This is the line that tells us the name of the remote 
+                    %This is the line that tells us the name of the remote
                     remote=temp{1}{3};
                 end
             end
-            
+
             m=m+1;
         end
     end
@@ -190,11 +196,11 @@ for k=1:length(lines)
             temp=textscan(lines{m},'%s');
             if length(temp{1})>=3
                 if strcmp(temp{1}{1},'url') && strcmp(temp{1}{2},'=')
-                    %This is the line that tells us the name of the remote 
+                    %This is the line that tells us the name of the remote
                     url=temp{1}{3};
                 end
             end
-            
+
             m=m+1;
         end
     end

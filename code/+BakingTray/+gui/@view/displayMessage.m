@@ -8,7 +8,7 @@ function displayMessage(obj,~,~)
     % directly from methods of BT is also fine. However, this method
     % provides greater flexibility.
     %
-    % See also main BT class properties. 
+    % See also main BT class properties.
 
     if isempty(obj.model.messageString)
         return

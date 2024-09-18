@@ -1,5 +1,6 @@
 function varargout = updateStatusText(obj,~,~)
     % Update the status text in the main BakingTray GUI window
+
     if obj.model.isRecipeConnected
         R=obj.model.recipe;
 
@@ -29,7 +30,7 @@ function varargout = updateStatusText(obj,~,~)
             endTime = obj.model.estimateTimeRemaining(scnSet, tilesPlane.total);
             %Strip seconds off total time as they take up space and
             %mean nothing
-            endTime.timeForSampleString = ... 
+            endTime.timeForSampleString = ...
                 regexprep(endTime.timeForSampleString, ...
                         ' \d+ secs', '');
             if length(obj.model.scanner.getChannelsToAcquire)>1
