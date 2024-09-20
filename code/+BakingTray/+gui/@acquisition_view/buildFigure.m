@@ -274,6 +274,7 @@ function buildFigure(obj)
     obj.listeners{end+1}=addlistener(obj.parentView.view_prepare, 'lastYpos', 'PostSet', @obj.updateStagePosOnImage);
     
 
-    % By default we show the slide. 
+    % By default we show the slide and the objective position. 
     obj.showSlide
+    obj.updateStagePosOnImage
 end %close buildFigure

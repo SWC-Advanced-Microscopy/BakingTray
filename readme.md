@@ -1,13 +1,13 @@
 # BakingTray #
 
-<a href="https://raw.githubusercontent.com/wiki/BaselLaserMouse/BakingTray/images/example_acq.jpg">
+<a href="https://raw.githubusercontent.com/wiki/SWC-Advanced-Microscopy/images/example_acq.jpg">
 <img src="https://raw.githubusercontent.com/wiki/BaselLaserMouse/BakingTray/images/example_acq_thumb.jpg">
 </a>
 
 ### What is it?
 BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) ([Economo, et al](https://elifesciences.org/articles/10566)) and [MouseLight](https://github.com/MouseLightPipeline) ([Winnubst, et al](https://www.sciencedirect.com/science/article/pii/S0092867419308426?via%3Dihub)) projects.
 The software is for research and development purposes. 
-BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://vidriotechnologies.com/) [API](https://github.com/tenss/ScanImageAPI_Examples).
+BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://www.mbfbioscience.com/products/scanimage/) [API](https://github.com/SWC-Advanced-Microscopy/ScanImageAPI_Examples).
 
 ### Who is it for?
 This software is aimed at technically-minded people who want to experiment with serial-section imaging and have full control over all aspects of the process. 
@@ -16,7 +16,7 @@ _This is not a turn-key solution_.
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
 
 ### How does it work?
-BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/BaselLaserMouse/ScanImageTileScan).
+BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/SWC-Advanced-Microscopy/ScanImageTileScan).
 BakingTray simply slices off the top of the sample after each tile-scan is complete, exposing fresh tissue for imaging. 
 Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes. 
 
@@ -32,7 +32,7 @@ The current feature set is as follows:
 * PMTs and laser automatically switched off at the end of the acquisition.
 * Support for multiple lasers via Scanimage.
 * Easy control of illumination as a function of depth via ScanImage. 
-* Integrates with our [StitchIt](https://github.com/SainsburyWellcomeCentre/StitchIt) software for assembling the stitched images from raw tiles. 
+* Integrates with our [StitchIt](https://github.com/SWC-Advanced-Microscopy/StitchIt) software for assembling the stitched images from raw tiles. 
 * Easily resume a previously halted acquisition.
 * Modular API allows developers to easily extend the software or adapt it to different hardware.
 * Slack messages on acquisition completion.

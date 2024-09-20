@@ -6,15 +6,15 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     %
     % Purpose
     % Calculate the position grid needed to tile a sample of a given size, with a given
-    % field of view, and a given overlap between adjacent tiles. TileStepSize and 
+    % field of view, and a given overlap between adjacent tiles. TileStepSize and
     % NumTiles are dependent properties of recipe and are based on external helper classes.
     %
     %
     % Inputs
     % quiet - false by default
     % returnEvenIfOutOfBounds - false by default
-    % ROIparams - empty by default. If present, it should be a structure defining the 
-    %             ROI front/left position and size in tiles. The structure can have a 
+    % ROIparams - empty by default. If present, it should be a structure defining the
+    %             ROI front/left position and size in tiles. The structure can have a
     %             length of more than 1. example:
     % ROIparams.numTiles.X - an integer number of tiles
     % ROIparams.numTiles.Y - an integer number of tiles
@@ -25,7 +25,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     %
     %
     % Outputs
-    % tilePosArray   - One row per position. first column is X stage positions 
+    % tilePosArray   - One row per position. first column is X stage positions
     %                  second Y stage positions. These are in mm.
     % tileIndexArray - The index of each tile on the grid. Columns as in tilePosArray.
     %
@@ -33,9 +33,9 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     % Note:
     % We define X and Y (e.g. obj.NumTiles.Y and obj.NumTiles.X) with respect to the user's
     % view standing in front of the scope. So X is the stage that translates left/right and
-    % Y is the stage that translated toward and away from the user. 
+    % Y is the stage that translated toward and away from the user.
     %
-    % 
+    %
     % Rob Campbell - Basel
 
 
@@ -57,7 +57,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
     tilePosArray=[];
     tileIndexArray=[];
 
-    % Call recipe.recordScannerSettings to populate the imaging parameter fields such as 
+    % Call recipe.recordScannerSettings to populate the imaging parameter fields such as
     % recipe.ScannerSettings, recipe.VoxelSize, etc. We then use these values
     % to build up the tile scan pattern.
     success = obj.recordScannerSettings;
@@ -173,8 +173,8 @@ end % tilePattern
         end
 
         % Pre-allocate the array of tile positions. Initially this will contain the index of each tile in the
-        % grid. i.e. how many tile positions away from the origin in X and Y each tile should be. Later this 
-        % will be converted to a location in mm. 
+        % grid. i.e. how many tile positions away from the origin in X and Y each tile should be. Later this
+        % will be converted to a location in mm.
         tilePosArray = zeros(ROIparams.numTiles.Y*ROIparams.numTiles.X, 2);
 
 
@@ -200,7 +200,7 @@ end % tilePattern
                 for ii=1:ROIparams.numTiles.Y:size(tilePosArray,1)
                     tilePosArray(ii:ii+ROIparams.numTiles.Y-1,2)=theseCols; %Insert X stage positions into the array
                     theseCols=fliplr(theseCols); %Flip the X locations so the stage will "S" over the sample
-                end 
+                end
         end
 
         % Subtract 1 because we want offsets from zero (i.e. how much to move)

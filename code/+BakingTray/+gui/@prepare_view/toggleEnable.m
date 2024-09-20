@@ -1,6 +1,6 @@
 function toggleEnable(obj,toggleState)
-    % Enables/disables all UI elements. This method is triggered by the callback prepare_view.updateGUIduringAcq so 
-    % that it automatically disables the GUI during preview scans and bakes. 
+    % Enables/disables all UI elements. This method is triggered by the callback prepare_view.updateGUIduringAcq so
+    % that it automatically disables the GUI during preview scans and bakes.
     %
     % toggleEnable(obj,toggleState)
     %

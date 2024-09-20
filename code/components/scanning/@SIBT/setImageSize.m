@@ -4,18 +4,18 @@ function setImageSize(obj,pixelsPerLine)
     % SIBT.setImageSize(obj,pixelsPerLine)
     %
     % Purpose
-    % Change the number of pixels per line and ensure that the number of lines per frame changes 
-    % accordingly to maintain the FOV and ensure pixels are square. This is a bit harder than it 
-    % needs to be because we allow for non-square images and the way ScanImage deals with this is 
-    % clunky. 
-    % 
+    % Change the number of pixels per line and ensure that the number of lines per frame changes
+    % accordingly to maintain the FOV and ensure pixels are square. This is a bit harder than it
+    % needs to be because we allow for non-square images and the way ScanImage deals with this is
+    % clunky.
+    %
     % Inputs
     % If pixelsPerLine is an integer, this method applies it to ScanImage and ensures that the
     % scan angle multipliers remain the same after the setting was applied. It doesn't alter
     % the objective resolution value.
     %
     % This method can also be run as a callback function, in which case pixelsPerLine is the
-    % source structure (matlab.ui.container.Menu) and should contain a field called 
+    % source structure (matlab.ui.container.Menu) and should contain a field called
     % "UserData" which is a structure that looks like this:
     %
     %              objective: 'nikon16x'
@@ -26,7 +26,7 @@ function setImageSize(obj,pixelsPerLine)
     %               slowMult: 2
     %                 objRes: 59.5500
     %
-    % This information is then used to apply the scan settings. 
+    % This information is then used to apply the scan settings.
     % See BakingTray.gui.view.applyScanSettings callback for more info
 
     % Assign some defaults that we will re-assign if the folling if statement is true
@@ -86,7 +86,7 @@ function setImageSize(obj,pixelsPerLine)
     end
 
     if pixEqLin % is the user asking for square tiles?
-        % It's pretty easy to change the image size if we have square images. 
+        % It's pretty easy to change the image size if we have square images.
         if ~pixEqLinCheckBox
             fprintf('Setting Pix=Lin check box in ScanImage CONFIGURATION window to true\n')
             obj.hC.hRoiManager.forceSquarePixelation=true;
@@ -114,7 +114,7 @@ function setImageSize(obj,pixelsPerLine)
             obj.hC.hRoiManager.scanAngleMultiplierSlow=slowMult;
 
     end
-    
+
     if ~isempty(zoomFact)
         obj.hC.hRoiManager.scanZoomFactor = zoomFact;
     end
@@ -127,8 +127,8 @@ function setImageSize(obj,pixelsPerLine)
         obj.hC.hScan2D.sampleRate = sampRate;
     end
 
-    
-    % If present, set the slow and fast shifts and the spatial fill fraction           
+
+    % If present, set the slow and fast shifts and the spatial fill fraction
     if ~isempty(spatialFillFrac)
         obj.hC.hScan2D.fillFractionSpatial = spatialFillFrac;
     end
@@ -136,7 +136,7 @@ function setImageSize(obj,pixelsPerLine)
     if ~isempty(objRes)
         obj.hC.objectiveResolution = objRes;
     end
-    
+
     if ~isempty(shiftSlow)
         obj.hC.hRoiManager.scanAngleShiftSlow = shiftSlow;
     end
@@ -149,7 +149,7 @@ function setImageSize(obj,pixelsPerLine)
     after = obj.returnScanSettings;
 
     if isempty(objRes)
-        % Don't issue the warning if we might change the objective resolution 
+        % Don't issue the warning if we might change the objective resolution
         if after.FOV_alongRowsinMicrons ~= orig.FOV_alongRowsinMicrons
             fprintf('WARNING: FOV along rows changed from %0.3f microns to %0.3f microns\n',...
                 orig.FOV_alongRowsinMicrons, after.FOV_alongRowsinMicrons)

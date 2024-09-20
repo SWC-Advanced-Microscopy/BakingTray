@@ -16,7 +16,7 @@ classdef laser_view < BakingTray.gui.child_view
         buttonOnOff
         buttonShutter
         editWavelength
-        currentWavelengthText        
+        currentWavelengthText
     end
 
     properties(Hidden)
@@ -98,10 +98,7 @@ classdef laser_view < BakingTray.gui.child_view
 
 
 
-            %TODO: add a status panel that reports the string from laser.isReady
-
             % Make the status panel
-            fprintf('Building GUI elements\n')
             obj.statusPanel = BakingTray.gui.newGenericGUIPanel([7.6 8.5 206.8 137.5], obj.hFig);
             indicatorsLeftPos=115;
             obj.powerIndicator = obj.makeRectangle(obj.statusPanel,[indicatorsLeftPos,110]);
@@ -166,7 +163,6 @@ classdef laser_view < BakingTray.gui.child_view
 
 
             %Set the GUI elements to reflect the current state of the laser
-            fprintf('Finalising laser GUI state\n')
             obj.model.laser.isPoweredOn; %Not pretty, but we run this to ensure the properties are set correctly
             obj.updateGUI;
             obj.updateAcqMode; %Ensure buttons are in the right state (enabled/disabled)
@@ -184,7 +180,7 @@ classdef laser_view < BakingTray.gui.child_view
             if isa(obj.model.laser.hC,'serial')
                 flushinput(obj.model.laser.hC)
             end
-            
+
             if isa(obj.laserViewUpdateTimer,'timer')
                 stop(obj.laserViewUpdateTimer)
                 delete(obj.laserViewUpdateTimer)
@@ -246,8 +242,8 @@ classdef laser_view < BakingTray.gui.child_view
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(obj.model.laser.readWavelength)))
             %Now start a timer that will keep updating the wavelength text box until the laser has settled
             %It does this because readWavelength updates the property that fires this callback.
-            %This callback then calls readWavelength with a delay via the timer and so there is a 
-            %while loop.             
+            %This callback then calls readWavelength with a delay via the timer and so there is a
+            %while loop.
             if isa(obj.currentWavelengthTimer,'timer') && ...
                 strcmp(obj.currentWavelengthTimer.Running,'off')
                 start(obj.currentWavelengthTimer)
@@ -278,6 +274,7 @@ classdef laser_view < BakingTray.gui.child_view
 
     end
 
+
     methods (Hidden)
         %This function restarts the timer and updates the GUI until the wavelength has settled
         %see also: obj.setReadWavelengthTextPanel
@@ -293,22 +290,27 @@ classdef laser_view < BakingTray.gui.child_view
 
             W=obj.model.laser.readWavelength; %updates obj.model.laser.currentWavelength
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
-        end
+        end % updateCurrentWavelength
 
 
-        %The following methods are used to update GUI elements upon certain events happening 
+        %The following methods are used to update GUI elements upon certain events happening
         function onOffButtonCallBack(obj,~,~)
+            % Turns the laser on or off. Which it does depends on the current state of the laser. 
+            % GUI elements are updated via callbacks.
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
                 return
             end
-            if obj.model.laser.isPoweredOn==true
+
+            isPoweredOn = obj.model.laser.isPoweredOn;
+            if isPoweredOn
                 obj.model.laser.turnOff;
-            elseif obj.model.laser.isPoweredOn==false
+            else
                 obj.model.laser.turnOn;
             end
-            obj.updateGUI
-        end
+
+        end % onOffButtonCallBack
+
 
         function shutterButtonCallBack(obj,~,~)
             if ~obj.model.laser.isControllerConnected
@@ -321,6 +323,7 @@ classdef laser_view < BakingTray.gui.child_view
                 obj.model.laser.openShutter;
             end
         end
+
 
         function updateShutterElements(obj,~,~)
             if ~obj.model.laser.isControllerConnected
@@ -338,6 +341,7 @@ classdef laser_view < BakingTray.gui.child_view
             end
         end %updateShutterElements
 
+
         function updateModeLockElements(obj,~,~)
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
@@ -352,6 +356,7 @@ classdef laser_view < BakingTray.gui.child_view
             end
         end %updateModeLockElements
 
+
         function updateLaserConnectedElements(obj,~,~)
             if obj.model.laser.isLaserConnected==true
                 set(obj.connectionIndicator, 'FaceColor', 'g')
@@ -362,9 +367,20 @@ classdef laser_view < BakingTray.gui.child_view
             end
         end %updateLaserConnectedElements
 
-        function updateLaserOnElements(obj,~,~)
-            %Better to look at the property as there is a lag between 
-            %hitting the button and the power going up
+
+        function updateLaserOnElements(obj)
+            % Update laser on or off elements
+            %
+            % laser_view.updateLaserOnElements
+            %
+            % NOTES 
+            % If the laser is reported as being off but is also reported as being
+            % mode-locked, then double-check whether or not it is on. This
+            % function is called via callbacks that are triggered by the
+            % laser on or off state from the laser object in the model.
+            % DO NOT read the stat of the laser here: it can cause
+            % problems.
+
             if obj.model.laser.isLaserOn==true
                 set(obj.buttonOnOff, 'String', 'Turn Off')
                 set(obj.powerIndicator, 'FaceColor', 'g')
@@ -376,6 +392,7 @@ classdef laser_view < BakingTray.gui.child_view
             end
         end %updateLaserOnElements
 
+
         function updatePowerText(obj)
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
@@ -385,12 +402,14 @@ classdef laser_view < BakingTray.gui.child_view
             set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
         end %updatePowerText
 
+
         function updateGUI(obj,~,~)
-            obj.updateShutterElements
-            obj.updateModeLockElements
-            obj.updateLaserConnectedElements
-            obj.updateLaserOnElements
+            obj.updateShutterElements;
+            obj.updateModeLockElements;
+            obj.updateLaserConnectedElements;
+            obj.updateLaserOnElements;
         end %updateGUI
+
 
         function regularGUIupdater(obj,~,~)
             if ~isvalid(obj.model.laser)
@@ -402,14 +421,16 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
+            
             try
                 obj.updateModeLockElements
                 obj.updatePowerText
                 obj.updateCurrentWavelength
-            catch ME 
+            catch ME
                 fprintf('Failed to update laser GUI with error: %s\n', ME.message)
             end
-        end
+        end % regularGUIupdater
+
 
         function updateAcqMode(obj,~,~)
             %Disable shutter and on buttons during acquisition

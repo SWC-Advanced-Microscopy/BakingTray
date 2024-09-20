@@ -1,8 +1,8 @@
 classdef view < handle
 
-    % BakingTray.gui.view is the main GUI window: that which first appears when the 
-    % user starts the software. It's goal is to house the "recipe" parameters which 
-    % set out the acquisition will proceed. It also allows the opening of GUI 
+    % BakingTray.gui.view is the main GUI window: that which first appears when the
+    % user starts the software. It's goal is to house the "recipe" parameters which
+    % set out the acquisition will proceed. It also allows the opening of GUI
     % windows for control of stages, previewing the sample, etc. Closing the main
     % GUI window quits BakingTray.
 
@@ -55,9 +55,9 @@ classdef view < handle
         recipeToolTips
 
         %Panels
-        basicSetupPanel %house dir and recipe buttons 
+        basicSetupPanel %house dir and recipe buttons
         hardwarePanel %houses buttons that will do stuff to hardware
-        statusPanel  %For now this will house a general purpose display box - just dump a big text string into it 
+        statusPanel  %For now this will house a general purpose display box - just dump a big text string into it
         recipePanel %recipe editing goes here
 
         suppressToolTips=false
@@ -129,7 +129,7 @@ classdef view < handle
             if obj.model.isScannerConnected
                 obj.connectScannerListeners
             end
-            
+
             % Finally we make sure that the scanner is set to the default
             % resolution displayed in BakingTrau
             obj.applyScanSettings(obj.recipeEntryBoxes.other{1});
@@ -159,7 +159,7 @@ classdef view < handle
 
         function closeBakingTray(obj,~,~)
             %Confirm and quit BakingTray (also closing the model and so disconnecting from hardware)
-            %This method runs when the user presses the close 
+            %This method runs when the user presses the close
             choice = questdlg('Are you sure you want to quit BakingTray?', '', 'Yes', 'No', 'No');
 
             switch choice
@@ -246,7 +246,7 @@ classdef view < handle
 
 
         function changeDir(obj,~,~)
-            % The dir selector should open at the system default save path by default otherwise it uses the 
+            % The dir selector should open at the system default save path by default otherwise it uses the
             % last model.sampleSavePath and failing that the current directory
             thisDir = uigetdir(obj.getDefaultSavePath,'choose dirctory');
 
@@ -266,7 +266,7 @@ classdef view < handle
 
         function savePath = getDefaultSavePath(obj)
             % Get the default save path. If it is available in the system settings file and
-            % is valid, use that. 
+            % is valid, use that.
             if ~isempty(obj.model.recipe.SYSTEM.defaultSavePath) &&  exist(obj.model.recipe.SYSTEM.defaultSavePath,'dir')
                 savePath = obj.model.recipe.SYSTEM.defaultSavePath;
             elseif ~isempty(obj.model.sampleSavePath) && exist(obj.model.sampleSavePath,'dir')
@@ -303,7 +303,7 @@ classdef view < handle
 
 
         function updateReadyToAcquireElements(obj,~,~)
-            % If acquisition is possible, the "Preview" button turns green. 
+            % If acquisition is possible, the "Preview" button turns green.
             if obj.model.recipe.acquisitionPossible
                 obj.button_start.ForegroundColor=[0,0.75,0];
             else
@@ -316,7 +316,7 @@ classdef view < handle
             % Callback to disable the view when an acquisition is in progress
             if obj.model.acquisitionInProgress
                 obj.enableDisableThisView('off')
-            else 
+            else
                 obj.enableDisableThisView('on')
             end
         end % disableDuringAcquisition
@@ -324,7 +324,7 @@ classdef view < handle
 
         function applyScanSettings(obj,src,~)
             % Apply the chosen scan settings to ScanImage and send the current stitching settings
-            % to the recipe. TODO: This method performs critical tasks that should not be done by a view class. 
+            % to the recipe. TODO: This method performs critical tasks that should not be done by a view class.
             %                      To maintain the model/view separation the recipe operation should be done
             %                      elsewhere. Maybe in BT or the recipe class itself.
 
@@ -332,9 +332,9 @@ classdef view < handle
                 return
             end
 
-            % Disable the listeners on the scanner temporarily otherwise 
+            % Disable the listeners on the scanner temporarily otherwise
             % we get things that look like error messages
-            obj.scannerListeners{1}.Enabled=false; 
+            obj.scannerListeners{1}.Enabled=false;
 
             %Set the scanner settings
             obj.model.scanner.setImageSize(src)

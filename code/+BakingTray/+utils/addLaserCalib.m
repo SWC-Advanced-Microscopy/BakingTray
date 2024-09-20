@@ -23,6 +23,12 @@ function addLaserCalib
     % Rob Campbell - SWC 2022
 
     hBT=BakingTray.getObject;
+
+    if isempty(hBT)
+        fprintf('Please start BakingTray\n')
+        return
+    end
+
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
 
     if exist(pathToFiles,'dir') == 0
@@ -34,6 +40,7 @@ function addLaserCalib
 
     if laserPower.wavelength_in_nm < 1
         fprintf('\n *** PLEASE OPEN BAKINGTRAY LASER GUI AND TRY AGAIN *** \n')
+        return
     end
 
     laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut(1,2);

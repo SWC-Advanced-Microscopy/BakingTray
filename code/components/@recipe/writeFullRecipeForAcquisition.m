@@ -1,6 +1,6 @@
 function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
     % Write recipe to disk and name it according to the sample ID and today's date
-    % 
+    %
     % recipe.writeFullRecipeForAcquisition(dirName,forceWrite)
     %
     % Purpose
@@ -11,19 +11,19 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
     % was performed. The purpose of this method is to create a recipe file that can be
     % used to run, re-run, or re-start a specific acquisition.
     %
-    % 
+    %
     % Inputs
     % dirName - By default the recipe is written to the current directory. If dirName
-    %           is defined, the recipe is written here instead. 
+    %           is defined, the recipe is written here instead.
     % forceWrite - by default we do not write if a recipe already exists in the same
-    %           path. To override this behavior, set this optional input to true. 
+    %           path. To override this behavior, set this optional input to true.
     %
     % Outputs
     % Optionally return the full path to the file location
     %
     %
     % Also see:
-    %  recipe.saveRecipe 
+    %  recipe.saveRecipe
 
     if nargin<2
         dirName=pwd;
@@ -41,7 +41,7 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
     else tRecipes
         recipeInPath = true;
     end
-    
+
     if recipeInPath && ~forceWrite
         writePath = [];
     else
@@ -50,8 +50,10 @@ function varargout=writeFullRecipeForAcquisition(obj,dirName,forceWrite)
 
         recipeFname = sprintf('recipe_%s_%s.yml',obj.sample.ID,datestr(now,'yymmdd_HHMMSS'));
 
-        %We call tile pattern to ensure that the recipe parameters are up to date. This may no longer be needed.
-        obj.tilePattern; %TODO: ensure we no longer need this explicit call here. 
+        % We call tile pattern to ensure that the recipe parameters are up to date.
+        % The tilePattern method calls recordScannerSettings, so it it should update everything based
+        % on what ScanImage is currently set to do.
+        obj.tilePattern;
 
         writePath = fullfile(dirName,recipeFname);
         fprintf('Writing recipe to %s\n',writePath);

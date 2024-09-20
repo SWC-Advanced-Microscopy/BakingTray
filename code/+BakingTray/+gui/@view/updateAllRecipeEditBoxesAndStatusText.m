@@ -1,7 +1,13 @@
 function updateAllRecipeEditBoxesAndStatusText(obj,~,~)
+    % Update all recipe edit boxes if any recipe property is altered
+    %
+    % function BakingTray.gui.view.updateAllRecipeEditBoxesAndStatusText
+    %
     %If any recipe property is updated in model.recipe we update all the edit boxes
     %and any relevant GUI elements. We also modify elements in other attached GUIs
     %if this is needed
+
+
     if ~obj.model.isRecipeConnected
         return
     end
@@ -33,10 +39,5 @@ function updateAllRecipeEditBoxesAndStatusText(obj,~,~)
         obj.view_prepare.checkSliceThicknessEditBoxValue
         obj.view_prepare.checkCuttingSpeedEditBoxValue
     end
-
-    %Set the current section number to be equal to the start number
-    %TODO: this may be creating a problem. I notice that the current section number is not updating 
-    %      and is stuck at 1. This might be why.
-    % obj.model.currentSectionNumber=obj.model.recipe.mosaic.sectionStartNum;
 
 end %updateAllRecipeEditBoxesAndStatusText

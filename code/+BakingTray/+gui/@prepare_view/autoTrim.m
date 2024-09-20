@@ -23,22 +23,24 @@ function autoTrim(obj,~,~)
         return
     end
 
-    % Set the cutting speed
-    obj.editBox.cuttingSpeed.String = num2str(obj.model.recipe.mosaic.cuttingSpeed);
-    obj.lastCuttingSpeed = obj.model.recipe.mosaic.cuttingSpeed;
-    obj.checkCuttingSpeedEditBoxValue
-
     % Ensure we start on the correct side of the blade always. 
     obj.resetBladeIfNeeded
 
     % Loop through all and cut
     wF = waitbar(0,'Preparing to cut');
     for n = 1:length(cutSeq)
+
         tCut = cutSeq(n);
 
         waitbar(n/length(cutSeq), wF, sprintf('Cutting %d micron section',round(tCut*1000)))
 
 
+        % Set the cutting speed (do each time in case the user decides to alter it)
+        obj.editBox.cuttingSpeed.String = num2str(obj.model.recipe.mosaic.cuttingSpeed);
+        obj.lastCuttingSpeed = obj.model.recipe.mosaic.cuttingSpeed;
+        obj.checkCuttingSpeedEditBoxValue
+
+        % Set the slice thickness
         obj.editBox.sliceThickness.String = num2str(tCut);
         obj.lastSliceThickness = tCut;
         obj.checkSliceThicknessEditBoxValue

@@ -5,10 +5,10 @@ function hBT = getObject(quiet)
 % Used by methods to import BakingTray without requiring it to be passed as an input argument.
 %
 % Inputs
-% quiet - false by default. If true, print no messages to screen. 
+% quiet - false by default. If true, print no messages to screen.
 %
 % Outputs
-% hBT - the BakingTray object. Returns empty if BT could not be found. 
+% hBT - the BakingTray object. Returns empty if BT could not be found.
 %
 %
 % Rob Campbell - Basel 2016
