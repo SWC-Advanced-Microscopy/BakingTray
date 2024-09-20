@@ -9,7 +9,6 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 20th September 2024
-- New Sample resets the image size and also re-loads ScanImage config files.
 - Some tweaks to MaiTai laser modelock check
 - Minor bugfix affecting installs that are not done via Git
 
