@@ -16,6 +16,10 @@ function newSample(obj,~,~)
     end
 
 
+
+    % Re-load the user settings file so PMTs and so on are back to where they were before
+    obj.model.scanner.reset
+
     obj.loadRecipe([],[],fullfile(BakingTray.settings.settingsLocation,'default_recipe.yml'))
 
     % Resonant scanner is turned on if necessary. This gives it the most time possible to warm up
@@ -28,6 +32,11 @@ function newSample(obj,~,~)
     if ~isempty(obj.view_prepare) && isvalid(obj.view_prepare)
         obj.view_prepare.resetStepSizesToDefaults;
     end
+
+    % A bit of a horrible hack to re-set the pixel size
+    obj.recipeEntryBoxes.other{1}.Value=1; % Sets the drop-down to entry 1
+    obj.model.scanner.setImageSize(obj.recipeEntryBoxes.other{1}) % apply this to ScanImage
+
 
     % Wipe the sample save path
     obj.text_sampleDir.String='';

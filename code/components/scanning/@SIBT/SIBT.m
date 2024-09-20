@@ -433,10 +433,24 @@ classdef SIBT < scanner
             % Turn off PMTs
             obj.hC.hPmts.powersOn(:) = 0;
 
-            % Reset averging to 1 at the end of acquision
+            % Reset averaging to 1 at the end of acquision
             obj.hC.hDisplay.displayRollingAverageFactor=1;
-        end
+        end %
 
+
+        function reset(obj)
+            % Resets the scanner to the default state.
+            %
+            % SIBT.reset
+            %
+            % Purpose
+            % Re-loads the user config file
+
+            fname = obj.hC.hConfigurationSaver.usrFilename;
+            if exist(fname,'file')
+                obj.hC.hConfigurationSaver.usrLoadUsr(fname)
+            end
+        end % reset
 
         function verStr = getVersion(obj)
             % Return a string listing the current version of ScanImage and current version of MATLAB
@@ -748,7 +762,7 @@ classdef SIBT < scanner
             % the property scanSettingsChanged. This is used by downstream functions
             % to update GUIs and so on. The structure that lists what was last change
             % (i.e. that which resides in lastSeenSettings) is used to not trigger the
-            % scanSettingsChangedProperty if the property was unchanged. 
+            % scanSettingsChangedProperty if the property was unchanged.
 
             variableName = s.Name;  % The name of the variable that might have changed
             variableValue = e.AffectedObject.(variableName); % The current value of the variable
