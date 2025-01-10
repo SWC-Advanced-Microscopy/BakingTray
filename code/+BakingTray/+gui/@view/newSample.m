@@ -17,7 +17,7 @@ function newSample(obj,~,~)
 
 
 
-    % Re-load the user settings file so PMTs and so on are back to where they were before
+    % Re-load the user settings file so PMT gains and so on are back to where they were before
     obj.model.scanner.reset
 
     obj.loadRecipe([],[],fullfile(BakingTray.settings.settingsLocation,'default_recipe.yml'))

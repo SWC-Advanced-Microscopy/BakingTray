@@ -254,6 +254,7 @@ classdef SIBT < scanner
 
 
         function setUpTileSaving(obj)
+            % Set up saving of data
             if isempty(obj.parent)
                 fprintf('SIBT is not attached to BakingTray. Skipping tile saving setup\n')
                 return
@@ -274,6 +275,7 @@ classdef SIBT < scanner
 
 
         function disableTileSaving(obj)
+            % Disable saving of data. i.e. uncheck the save flag
             obj.hC.hChannels.loggingEnable=false;
         end
 
@@ -439,7 +441,10 @@ classdef SIBT < scanner
 
 
         function reset(obj)
-            % Resets the scanner to the default state.
+            % Resets the scanner to the default state by loading the user settings files.
+            %
+            % Purpose
+            % Sets up ScanImage as needed for a new sample.  
             %
             % SIBT.reset
             %
@@ -450,6 +455,10 @@ classdef SIBT < scanner
             if exist(fname,'file')
                 obj.hC.hConfigurationSaver.usrLoadUsr(fname)
             end
+
+            % Ensure tile saving is not enabled. We only want it activated
+            % right before it is time to acquire data.
+            obj.disableTileSaving;
         end % reset
 
         function verStr = getVersion(obj)
