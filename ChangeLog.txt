@@ -8,6 +8,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+10th January 2025
+- Selecting new sample now ensures the Save checkbox in ScanImage is not enabled. This fixes a rare user problem. 
+
+
 20th September 2024
 - New Sample resets the image size and also re-loads ScanImage config files.
 - Some tweaks to MaiTai laser modelock check
