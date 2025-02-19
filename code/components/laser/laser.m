@@ -30,10 +30,12 @@ classdef (Abstract) laser < handle
         minWavelength=0 %The longest wavelength the laser can be tuned to in nm
 
         % A cell array of wavelengths that are not allowed. Use if the laser has problems
-        % in certain ranges. Can be defined in the bt_settings file. Each cell defines the
-        % minimum and maximum the wavelengths that are not allowed. Implemented in
-        % laser.isTargetWavelengthInRange
+        % in certain ranges. Can be defined in the startup_bt.m file which you can place in your
+        % BakingTray SETTINGS folder.
+        % Each cell defines the minimum and maximum the wavelengths that are not allowed.
+        % The property is used in laser.isTargetWavelengthInRange
         % e.g. = {[916,925],[775,790]}
+        % See the laser hardware setup in the on-line docs for more information.
         bannedWavelengths = {};
 
         friendlyName = '' % This string is displayed in the GUI window title. Shouldn't be too long. e.g. could be "MaiTai"
