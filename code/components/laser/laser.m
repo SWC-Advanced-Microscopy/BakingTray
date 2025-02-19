@@ -28,6 +28,14 @@ classdef (Abstract) laser < handle
                      % e.g. COM port ID string
         maxWavelength=0 %The longest wavelength the laser can be tuned to in nm
         minWavelength=0 %The longest wavelength the laser can be tuned to in nm
+
+        % A cell array of wavelengths that are not allowed. Use if the laser has problems
+        % in certain ranges. Can be defined in the bt_settings file. Each cell defines the
+        % minimum and maximum the wavelengths that are not allowed. Implemented in
+        % laser.isTargetWavelengthInRange
+        % e.g. = {[916,925],[775,790]}
+        bannedWavelengths = {};
+
         friendlyName = '' % This string is displayed in the GUI window title. Shouldn't be too long. e.g. could be "MaiTai"
 
         % The following is used for optional Pockels cell control. An external device
@@ -318,10 +326,21 @@ classdef (Abstract) laser < handle
             if targetWavelength<obj.minWavelength || targetWavelength>obj.maxWavelength
                 msg=sprintf('Wavelength %d nm is out of range -- max=%d nm, min=%d nm\n', ...
                     targetWavelength, obj.maxWavelength, obj.minWavelength);
-                sprintf(msg);
+                fprintf(msg);
                 inRange=false;
                 return
             end
+
+            for ii=1:length(obj.bannedWavelengths)
+                t_nm = obj.bannedWavelengths{ii};
+                targetWavelength>=t_nm(1) && targetWavelength<=t_nm(2)
+                msg=sprintf('The wavelength range %d to %d nm is currently not functional.\n', ...
+                    t_nm);
+                fprintf(msg);
+                inRange=false;
+                return
+            end
+
             msg='';
             inRange=true;
         end
@@ -382,7 +401,7 @@ classdef (Abstract) laser < handle
 
             %Set line low to turn off Pockels cell
             obj.hDO.writeDigitalData(0);
-        end % turnOffPockelsCell        
+        end % turnOffPockelsCell
 
 
         function turnOnPockelsCell(obj)
@@ -400,7 +419,7 @@ classdef (Abstract) laser < handle
 
             %Set line high to turn on Pockels cell
             obj.hDO.writeDigitalData(1);
-        end % turnOnPockelsCell        
+        end % turnOnPockelsCell
 
 
     end %close methods

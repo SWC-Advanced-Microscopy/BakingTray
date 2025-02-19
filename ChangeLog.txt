@@ -8,8 +8,14 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+
+19th February 2025
+- POWERUSER: Add `bannedWavelengths` property to laser class to block user from choosing wavelengths that are not working well.
+  See `laser.m` properties for more information.
+
+
 10th January 2025
-- Selecting new sample now ensures the Save checkbox in ScanImage is not enabled. This fixes a rare user problem. 
+- Selecting new sample now ensures the Save checkbox in ScanImage is not enabled. This fixes a rare user problem.
 
 
 20th September 2024

@@ -122,13 +122,13 @@ classdef maitai < laser & loghandler
                 obj.isLaserOn=true;
                 obj.turnOnPockelsCell %Gate Pockels mains power
             end
- 
+
         end
 
 
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default
-            % Sometimes it seems the laser turns off but reports that it failed to do so. 
+            % Sometimes it seems the laser turns off but reports that it failed to do so.
             maxTries=8;
             for ii=1:maxTries
                 success=obj.sendAndReceiveSerial('OFF',false);
@@ -139,7 +139,7 @@ classdef maitai < laser & loghandler
             end
 
             pause(0.1)
-    
+
             obj.isLaserModeLocked; % Because otherwise the modelock flag sometimes stays on
             if success
                 obj.turnOffPockelsCell;
@@ -147,7 +147,7 @@ classdef maitai < laser & loghandler
             else
                 fprintf('Reported laser still on after %d tries\n', maxTries)
             end
-                
+
         end %turnOff
 
         function [powerOnState,details] = isPoweredOn(obj)
@@ -162,12 +162,12 @@ classdef maitai < laser & loghandler
 
             pPower=obj.readPumpPower;
 
-            % Sometimes a serial port read failure seems to cause the 
+            % Sometimes a serial port read failure seems to cause the
             % laser to report it has low pump power, when in fact it is
             % fine. We try to cover for this here.
             powerOnThresh = 15;
             isModeLocked = obj.isModeLocked;
-            if islogical(isModeLocked) 
+            if islogical(isModeLocked)
                 if isModeLocked & pPower<powerOnThresh
                     nTries = 5;
                     for ii = 1:nTries
