@@ -1,5 +1,5 @@
 classdef (Abstract) laser < handle
-%%  laser
+%%  laser 
 %
 % The laser abstract class is a software entity that represents the physical
 % laser that is used to scan the sample.
@@ -335,17 +335,18 @@ classdef (Abstract) laser < handle
 
             for ii=1:length(obj.bannedWavelengths)
                 t_nm = obj.bannedWavelengths{ii};
-                targetWavelength>=t_nm(1) && targetWavelength<=t_nm(2)
-                msg=sprintf('The wavelength range %d to %d nm is currently not functional.\n', ...
-                    t_nm);
-                fprintf(msg);
-                inRange=false;
-                return
+                if targetWavelength>=t_nm(1) && targetWavelength<=t_nm(2)
+                    msg=sprintf('The wavelength range %d to %d nm is currently not functional.\n', ...
+                        t_nm);
+                    fprintf(msg);
+                    inRange=false;
+                    return
+                end
             end
 
             msg='';
             inRange=true;
-        end
+        end % isTargetWavelengthInRange
 
         function connectToPockelsControlDAQ(obj)
             % Connect to NI DAQ that will control Pockels power
