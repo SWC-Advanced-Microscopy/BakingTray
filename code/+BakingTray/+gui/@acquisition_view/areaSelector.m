@@ -37,14 +37,21 @@ function areaSelector(obj,~,~)
     roi.UserData.overlap = obj.model.recipe.mosaic.overlapProportion;
 
 
-    M=addlistener(roi,'MovingROI',@snapToTiles);
-    L=addlistener(roi,'ROIClicked',@clickCallback);
-
-    uiwait;
-
-    rect_pos = (roi.Position);
-    delete(M)
-    delete(L)
+    M_listener =addlistener(roi,'MovingROI',@snapToTiles);
+    R_listener =addlistener(roi,'ROIClicked',@clickCallback);
+    try
+        uiwait;
+        rect_pos = (roi.Position);
+    catch ME
+        fprintf('Error drawing ROI\n')
+        delete(M_listener)
+        delete(R_listener)
+        delete(roi)
+        disp(ME.message)
+        return
+    end
+    delete(M_listener)
+    delete(R_listener)
     delete(roi)
 
 

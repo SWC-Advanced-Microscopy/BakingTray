@@ -326,6 +326,7 @@ classdef BT < loghandler
                 obj.scanner.delete
             end
 
+            cellfun(@delete,obj.listeners)
         end  %Destructor
 
 

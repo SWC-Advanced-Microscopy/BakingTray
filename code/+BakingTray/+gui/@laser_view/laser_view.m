@@ -190,6 +190,7 @@ classdef laser_view < BakingTray.gui.child_view
                 delete(obj.currentWavelengthTimer)
             end
 
+            cellfun(@delete,obj.listeners)
             delete@BakingTray.gui.child_view(obj);
         end
 

@@ -137,6 +137,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         function delete(obj)
             %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
             obj.parentView.updateStatusText; %Resets the approx time for sample indicator
+            cellfun(@delete,obj.listeners)            
             delete@BakingTray.gui.child_view(obj);
         end
 
