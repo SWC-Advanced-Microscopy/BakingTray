@@ -250,11 +250,15 @@ classdef maitai < laser & loghandler
             success=obj.sendAndReceiveSerial('SHUTTER 1',false);
             pause(0.75) %Because it takes the laser about a second to register the change
             if success
-                obj.isLaserShutterOpen=true;
+                obj.isLaserShutterOpen=obj.isShutterOpen;
             end
 
-            % Add this here just in case the turn off/turn on commands behaved weirdly and the Pockels cells is off
-            obj.switchPockelsCell %Gate Pockels mains power
+            % Add this here just in case the turn off/turn on commands behaved weirdly 
+            % and the Pockels cells is off
+            pause(0.25)
+            if obj.isLaserShutterOpen
+                obj.switchPockelsCell %Gate Pockels mains power
+            end
         end
 
 
