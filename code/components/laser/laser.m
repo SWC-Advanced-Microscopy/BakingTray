@@ -1,5 +1,5 @@
 classdef (Abstract) laser < handle
-%%  laser 
+%%  laser
 %
 % The laser abstract class is a software entity that represents the physical
 % laser that is used to scan the sample.
@@ -335,6 +335,7 @@ classdef (Abstract) laser < handle
 
             for ii=1:length(obj.bannedWavelengths)
                 t_nm = obj.bannedWavelengths{ii};
+
                 if targetWavelength>=t_nm(1) && targetWavelength<=t_nm(2)
                     msg=sprintf('The wavelength range %d to %d nm is currently not functional.\n', ...
                         t_nm);
@@ -342,6 +343,7 @@ classdef (Abstract) laser < handle
                     inRange=false;
                     return
                 end
+
             end
 
             msg='';
