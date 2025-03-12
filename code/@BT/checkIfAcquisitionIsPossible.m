@@ -93,7 +93,8 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
 
     %If a laser is connected, check it is ready
     if obj.isLaserConnected
-        obj.laser.isPoweredOn %Sometimes laser claims it is off when it is not. This seems to reset it.
+        obj.laser.isPoweredOn   %Sometimes laser claims it is off when it is not. This seems to reset it.
+        obj.laser.isShutterOpen %Sometimes laser shutter is closed but claims to be open. Let's ping it to be sure.
         [isReady,msgLaser]=obj.laser.isReady;
         if ~isReady
             msg = sprintf('%s%d) The laser is not ready: %s\n', msg, msgNumber, msgLaser);

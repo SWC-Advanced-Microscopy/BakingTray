@@ -59,10 +59,13 @@ classdef (Abstract) laser < handle
     % appropriate by classes which inherit laser. e.g. If the shutter is opened then the shutterOpen
     % property must be set to true. Failing to do this will cause the GUI to fail to update. All
     % properties in this section should be updated in the constructor once the laser is connected
-    properties (SetObservable, AbortSet)
+    properties (SetObservable)
         isLaserOn=false  % Must be updated by turnOn, turnOff, and isLaserOn
-        isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpen
+        isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpenerOpen
         isLaserConnected=false % Set by isControllerConnected
+    end
+
+    properties (SetObservable, AbortSet)
         isLaserModeLocked=false  % Set by isModelocked
         isLaserReady=false % Must be updated by isReady
         currentWavelength=-1 % This must be updated whenever readWavelength runs
