@@ -35,9 +35,6 @@ classdef genericZaberController < linearcontroller
 %            Otherwise they are se to mm.
 
     properties
-      % The following are inherited properties from linearcontroller
-      % controllerID - the information necessary to build a connected PI_GCS_Controller object
-      %
       % This property is filled in if needed during genericZaberController.connect
       tConnection % The COM connection is made here. The axis will be on hC
       velocityUnits % We store here how speeds are defined (mm/s or um/s)

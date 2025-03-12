@@ -1,26 +1,26 @@
 classdef (Abstract) linearcontroller < handle & loghandler
-%%  linearcontroller 
+%%  linearcontroller
 %
-% The linearcontroller abstract class is a software entity that represents the 
-% physical linear stage controller object. 
+% The linearcontroller abstract class is a software entity that represents the
+% physical linear stage controller object.
 %
 % The linearcontroller abstract class declares methods that are used by the BakingTray class
 % to move linear actuators, linear stages, PIFOCs, etc. A small number of methods are
 % defined within this abstract class. Most methods are defined in concrete classes
-% that must inherit linearcontroller. Examples of these include C891 and BSC201. 
+% that must inherit linearcontroller. Examples of these include C891 and BSC201.
 %
-% Classes that inherit linearcontroller serve as a "glue" or "bridge" between the 
+% Classes that inherit linearcontroller serve as a "glue" or "bridge" between the
 % hardware manufacturer's API and BakingTray. These classes provide a consistent
 % interface, so that any hardware can be used with the BakingTray class.
 %
 %
 % NOTE!
-% When setting up your system, always ensure that it is not possible for hardware to 
-% move to a position that might cause damage. Use the minPos and maxPos properties 
-% of linearstage to define soft limits that methods moving the stage will respect. 
+% When setting up your system, always ensure that it is not possible for hardware to
+% move to a position that might cause damage. Use the minPos and maxPos properties
+% of linearstage to define soft limits that methods moving the stage will respect.
 % Use a safe environment to ensure these are respected before deploying any new classes
-% or significant changes to the code. You might also want to set up limit switches or, 
-% better yet, position the hardware such that it is not possible for collisions to 
+% or significant changes to the code. You might also want to set up limit switches or,
+% better yet, position the hardware such that it is not possible for collisions to
 % occur.
 %
 % Rob Campbell - Basel 2016
@@ -36,15 +36,15 @@ classdef (Abstract) linearcontroller < handle & loghandler
                     % Systems with multiple stages in one physical controller should
                     % have multiple copies of the controller object, each with a different
                     % stage attached. This system isn't tested yet, as no such hardware
-                    % is available to us. 
+                    % is available to us.
 
-        controllerID % The information required by the method that connects to the 
+        controllerID % The information required by the method that connects to the
                      % the controller at connect-time. This can be specified in whatever
                      % way is most suitable for the hardware at hand. e.g. see how this is
-                     % used in genericPIcontroller. This property may not be needed. 
+                     % used in genericPIcontroller. This property may not be needed.
 
-        maxStages   % A scalar indicating what is the maximum number of stages a controller 
-                    % can handle. 
+        maxStages   % A scalar indicating what is the maximum number of stages a controller
+                    % can handle.
 
     end %close public properties
 
@@ -53,9 +53,9 @@ classdef (Abstract) linearcontroller < handle & loghandler
         parent  %A reference of the parent object (likely BakingTray) to which this component is attached
     end
 
-    % These are GUI-related properties. The view class that comproses the GUIi listens to changes in 
-    % these properties to know when to update the GUI. It is therefore necessary for these to be updated 
-    % as appropriate by classes which inherit linearcontroller. 
+    % These are GUI-related properties. The view class that comprises the GUIi listens to changes in
+    % these properties to know when to update the GUI. It is therefore necessary for these to be updated
+    % as appropriate by classes which inherit linearcontroller.
     properties (Hidden, SetObservable, AbortSet)
 
     end %close GUI-related properties
@@ -70,7 +70,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
         %
         % Behavior
         % This method establishes a connection between the physical controller device
-        % and the host PC. The method uses the controllerID  property to establish the 
+        % and the host PC. The method uses the controllerID  property to establish the
         % connection.
         %
         % Outputs
@@ -82,26 +82,26 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % Behavior
         %
         % Outputs
-        % success - true or false depending on whether a working connection is present 
-        %           with the physical stage controller device. i.e. it is not sufficient 
+        % success - true or false depending on whether a working connection is present
+        %           with the physical stage controller device. i.e. it is not sufficient
         %           that, say, a COM port is open. For success to be true, the device must
-        %           prove that it can interact in some way with the host PC. 
+        %           prove that it can interact in some way with the host PC.
 
         pos = axisPosition(obj)
         % Get the position of a given axis
         %
         % Behavior
-        % - First check if controller is connected with isControllerConnected. 
+        % - First check if controller is connected with isControllerConnected.
         % - Only proceed if this is true.
         % - Reads the current position in the current units.
         % - transform position so it behaves as expected (see notes on wiki)
-        % - Write it to the axis currentPosition property and return it as an output argument. 
+        % - Write it to the axis currentPosition property and return it as an output argument.
         % The method should therefor be something like this:
-        % 
+        %
         %   check all is good
         %   POS = obj.hC.getPosition; %Somehow get stage postion
         %   POS = obj.attachedStage.invertDistance * (POS-obj.attachedStage.positionOffset) * obj.attachedStage.controllerUnitsInMM;
-        %   obj.attachedStage.currentPosition=POS; 
+        %   obj.attachedStage.currentPosition=POS;
         %
         % See genericPIcontroller.n for an example
         % - Returns empty if a stage is not connected and so it failed to read the position.
@@ -117,11 +117,11 @@ classdef (Abstract) linearcontroller < handle & loghandler
         %
         % Behavior
         % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Reads the motion state of a given axis and reports it. 
-        % If the controller does not support this feature and there is 
+        % Reads the motion state of a given axis and reports it.
+        % If the controller does not support this feature and there is
         % no way to implement such a feature in software, then isMoving
         % should return []. Otherwise, it should return true or false.
-        % This function can, for instance, be used to build a blocking motion call. 
+        % This function can, for instance, be used to build a blocking motion call.
         %
         % Inputs
         % None
@@ -131,14 +131,14 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % false - axis is not currently moving
 
         success = relativeMove(obj, distanceToMove)
-        % relativeMove 
+        % relativeMove
         %
         % Behavior
-        % - First check if controller is connected with isControllerConnected. 
+        % - First check if controller is connected with isControllerConnected.
         % - Only proceed if above is true.
-        % - Convert distanceToMove: 
+        % - Convert distanceToMove:
         %   distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
-        % - Execute motion command with controller API, RS232 call or whatever. 
+        % - Execute motion command with controller API, RS232 call or whatever.
         %
         % For example see genericPIcontroller
         %
@@ -151,12 +151,12 @@ classdef (Abstract) linearcontroller < handle & loghandler
         success = absoluteMove(obj, targetPosition)
         % absoluteMove
         %
-        % Behavior 
-        % - First check if controller is connected with isControllerConnected. 
+        % Behavior
+        % - First check if controller is connected with isControllerConnected.
         % - Only proceed if above is true.
-        % - Convert distanceToMove: 
+        % - Convert distanceToMove:
         %  targetPosition = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
-        % - Execute motion command with controller API, RS232 call or whatever. 
+        % - Execute motion command with controller API, RS232 call or whatever.
         %
         % For example see genericPIcontroller
         %
@@ -171,9 +171,9 @@ classdef (Abstract) linearcontroller < handle & loghandler
         success = stopAxis(obj)
         % stopAxis
         %
-        % Behavior 
+        % Behavior
         % First check if controller is connected with isControllerConnected. Only proceed if this is true.
-        % Issue stop command (a graceful one if availble) to the named axis.
+        % Issue stop command (a graceful one if available) to the named axis.
         %
         %
         % Inputs
@@ -269,19 +269,19 @@ classdef (Abstract) linearcontroller < handle & loghandler
 
         success = enableAxis(obj)
         % enableAxis
-        % enable or powerup a given axis
+        % enable or power up a given axis
         %
         % Purpose
-        % Some controllers require that an axis is enabled in some way before it can moved. 
-        % This method performs this. Exactly what it does will depend on the hardware. 
+        % Some controllers require that an axis is enabled in some way before it can moved.
+        % This method performs this. Exactly what it does will depend on the hardware.
         % Returns true if the enable command succeeded. Returns false otherwise.
 
         success = disableAxis(obj)
         % enableAxis
-        % disable/powerdown/whatever a given axis
+        % disable/power down/whatever a given axis
         % The exact behavior of this method will depend on the hardware.
         % e.g. when disabled, some stages will remain locked in place whereas
-        % others will become free to move. 
+        % others will become free to move.
     end %non-critical abstract methods
 
 
@@ -323,9 +323,9 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % Behavior
             % Returns true if a stage has been attached to the controller object.
             %
-            % 
+            %
             % Inputs
-            % none 
+            % none
             %
             % Outputs
             % success - true or false depending on whether a stage is present
@@ -349,29 +349,29 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % Report whether the controller is ready to execute a command on an axis
             %
             % Behavior
-            % Before performing tasks such as getting an axis position or moving an axis we 
-            % want to first check whether the controller is correctly set up to do this. 
+            % Before performing tasks such as getting an axis position or moving an axis we
+            % want to first check whether the controller is correctly set up to do this.
             % i.e. is the connection to the controller working and is the stage connected?
-            % This method's first output argument must return true if everything is set up correctly. 
+            % This method's first output argument must return true if everything is set up correctly.
             % You may define extra output arguments specific for your purposes.
             %
             % Inputs
-            % none 
+            % none
             %
             % Outputs
             % ready - true/false
-            %   ready is true if the object is set up and ready to perform axis motions or 
+            %   ready is true if the object is set up and ready to perform axis motions or
             %   query the axis, etc. false otherwise.
             ready=false;
 
-            if ~isempty(obj.parent) & obj.parent.disabledAxisReadyCheckDuringAcq & obj.parent.acquisitionInProgress 
+            if ~isempty(obj.parent) & obj.parent.disabledAxisReadyCheckDuringAcq & obj.parent.acquisitionInProgress
                 ready=true;
                 return
             end
 
 
             % Is a connection established to the hardare and is at least one linearstage connected?
-            if ~obj.isControllerConnected || ~obj.isStageConnected 
+            if ~obj.isControllerConnected || ~obj.isStageConnected
                 obj.logMessage(inputname(1),dbstack,6,'Controller or stages not connected.')
                 return
             end
@@ -400,7 +400,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
             end
 
             if (~isempty(obj.getMaxPos) && targetPosition>obj.getMaxPos) || ...
-                (~isempty(obj.getMinPos) && targetPosition<obj.getMinPos) 
+                (~isempty(obj.getMinPos) && targetPosition<obj.getMinPos)
                 msg = sprintf('target position %0.2f is out of bounds',targetPosition);
                 obj.logMessage(inputname(1),dbstack,6,msg)
               return
@@ -414,14 +414,14 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % Determine the minimum allowable position of an axis
             %
             % Purpose/Behavior
-            % This abstract class determines if the attached stage has its minPos property 
+            % This abstract class determines if the attached stage has its minPos property
             % defined, if so this is returned. Child classes that inherit linearcontroller
-            % should call this super-class method and, if appropriate, determine from the 
+            % should call this super-class method and, if appropriate, determine from the
             % controller the minumum stage position using the API. This should only be done
-            % if linearcontroller.getMinPos returns empty. 
+            % if linearcontroller.getMinPos returns empty.
             %
             % Motion functions will honour the value of getMinPos if it is not empty. If
-            % an out range motion was requested, the controller will fail to move and return 
+            % an out range motion was requested, the controller will fail to move and return
             % false.
             %
             % Outputs
@@ -464,12 +464,12 @@ classdef (Abstract) linearcontroller < handle & loghandler
             %Returns true if distanceToMove is a numeric scalar
             success=false;
 
-            if ~isnumeric(thisValue) 
+            if ~isnumeric(thisValue)
                 msg=sprintf('Desired move location must be a number, it was a %s',class(thisValue));
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
-            if isempty(thisValue) 
+            if isempty(thisValue)
                 msg=sprintf('Desired move location is empty');
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
@@ -513,9 +513,9 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % Prints to screen information related to this axis
             %
             % Behavior
-            % The command can return whatever is most appropriate for the stage/controller. 
-            % The idea is to provide debugging information so that the user does not have to 
-            % quit BakingTray and start manufacturer-provided software in order to get 
+            % The command can return whatever is most appropriate for the stage/controller.
+            % The idea is to provide debugging information so that the user does not have to
+            % quit BakingTray and start manufacturer-provided software in order to get
             % basic information. Classes that inherit linearcontroller should first run
             % this superclass method before appending behavior of their own. This means they are
             % also free to define no additional behavior if that is appropriate.
