@@ -25,7 +25,7 @@ classdef singleAxisPriorController < linearcontroller
 % tStage.maxPos=25;
 %
 % P=singleAxisPriorController(tStage);
-% P.connect('com5')
+% P.connect(5) % to connect to com port 5
 %
 %
 % IMPORTANT NOTES
@@ -116,14 +116,14 @@ classdef singleAxisPriorController < linearcontroller
             %
             % Inputs
             % connectionDetails - a structure containing the com port identify. e.g.
-            %     connectionDetails.COM = 'COM2' (The method can also cope with
-            %     connectionDetails being a string, such as 'COM4', but this may not be
+            %     connectionDetails.COM = 4 (The method can also cope with
+            %     connectionDetails being a scalar, such as 4, but this may not be
             %     future proof).
             %
             %
 
 
-            if ischar(connectionDetails)
+            if isnumeric(connectionDetails)
               tmp=connectionDetails;
               connectionDetails=struct;
               connectionDetails.COM = tmp;
@@ -168,9 +168,8 @@ classdef singleAxisPriorController < linearcontroller
             obj.session = calllib('Prior','PriorScientificSDK_OpenNewSession');
 
             %% Connect to the COM port
-            fprintf('Connecting to COM %d.\n', comport)
-            obj.com = comport;
-            cmd = sprintf('controller.connect %d',obj.com);
+            fprintf('Connecting to COM %d.\n', connectionDetails.COM)
+            cmd = sprintf('controller.connect %d', connectionDetails.COM);
             obj.sendCommand(cmd)
             obj.checkAPIstatus
 
@@ -221,10 +220,10 @@ classdef singleAxisPriorController < linearcontroller
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function moving = isMoving(obj,~)
-            isBusy = [];
+            moving = [];
             obj.sendCommand('controller.z.busy.get');
             if obj.lastAPIstatus==0
-                isBusy = str2num(obj.lastResponse)>0;
+                moving = str2num(obj.lastResponse)>0;
             end
         end %isMoving
 
@@ -281,7 +280,7 @@ classdef singleAxisPriorController < linearcontroller
           % </redundant>
 
           obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-          stageUnits = obj.attachedStage.invertDistance * distanceToMove*obj.attachedStage.controllerUnitsInMM;
+          stageUnits = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
           stageUnits = round(stageUnits);
 
           cmd = sprintf('controller.z.move-relative %d', stageUnits);
@@ -309,7 +308,7 @@ classdef singleAxisPriorController < linearcontroller
             end
 
             obj.logMessage(inputname(1),dbstack,1,sprintf('moving to %0.f',targetPosition));
-            stageUnits = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)*obj.attachedStage.controllerUnitsInMM;
+            stageUnits = obj.attachedStage.invertDistance * (targetPosition-obj.attachedStage.positionOffset)/obj.attachedStage.controllerUnitsInMM;
             stageUnits = round(stageUnits);
             cmd = sprintf('controller.z.goto-position %d', stageUnits);
             obj.sendCommand(cmd);
@@ -369,7 +368,7 @@ classdef singleAxisPriorController < linearcontroller
               return
             end
 
-            cmd = sprintf('controller.z.speed.set %d', round(speed*1E3));
+            cmd = sprintf('controller.z.speed.set %d', round(velocity*1E3));
             obj.sendCommand(cmd)
 
             if obj.lastAPIstatus==0
@@ -489,7 +488,7 @@ classdef singleAxisPriorController < linearcontroller
                 'INVALID_PARAMETERS', 'UNRECOGNISED_DEVICE', 'APP_DATA_PATH_ERROR', ...
                 'LOAD_ERROR', 'CONTROLLER_ERROR', 'NOT_IMPLEMENTED', 'UNEXPECTED_ERROR', ...
                 'SDK_NOT_INITIALISED', 'SDK_INVALID_SESSION', 'SDK_NO_MORE_SESSIONS'};
-            obj.errorCodes = containers.Map(CODES,NAMES)
+            obj.errorCodes = containers.Map(CODES,NAMES);
         end % genErrorCodeContainer
 
 

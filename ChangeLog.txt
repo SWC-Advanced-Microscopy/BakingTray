@@ -9,6 +9,9 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+17th March 2025
+- POWERUSER: Add `singleAxisPriorController` class for controlling a prior stage.
+
 19th February 2025
 - POWERUSER: Add `bannedWavelengths` property to laser class to block user from choosing wavelengths that are not working well.
   See `laser.m` properties for more information.
