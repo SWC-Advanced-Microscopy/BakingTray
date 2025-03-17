@@ -44,9 +44,11 @@ classdef singleAxisPriorController < linearcontroller
     % The following hidden properties are used for sending and receiving messages from
     % the controller.
     properties (Hidden)
-        session      % Prior SDK session ID. Not user-settable
-        errorCodes   % Dictionary mapping API status codes to what they mean
-        messagePointer % empty string the is needed by the Prior DLL to return a message
+      session      % Prior SDK session ID. Not user-settable
+      errorCodes   % Dictionary mapping API status codes to what they mean
+      messagePointer % empty string the is needed by the Prior DLL to return a message
+      lastAPIstatus % The status code returned by the last run command
+      lastResponse  % The last response from the controller is kept here
     end % hidden properties
 
 
