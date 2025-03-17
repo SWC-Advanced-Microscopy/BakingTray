@@ -19,10 +19,10 @@ classdef singleAxisPriorController < linearcontroller
 %
 %
 % Example (connecting to a 100 mm travel range linear stage)
-% tStage = genericStage;
+% tStage = genericPriorstage;
 % tStage.axisName='zaxis'
 % tStage.minPos=0;
-% tStage.maxPos=30;
+% tStage.maxPos=25;
 %
 % P=singleAxisPriorController(tStage);
 % P.connect('com5')

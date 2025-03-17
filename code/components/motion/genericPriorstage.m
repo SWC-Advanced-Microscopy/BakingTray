@@ -1,4 +1,4 @@
-classdef genericPIstage < linearstage
+classdef genericPriorstage < linearstage
 %%
 % Generic Prior stage class
 %
