@@ -1,5 +1,5 @@
 classdef genericStage < linearstage
-%% 
+%%
 % genericStage stage class
 %
 %
@@ -10,7 +10,7 @@ classdef genericStage < linearstage
     end
 
     methods
-        
+
         %Constructor
         function obj = genericStage(obj)
 

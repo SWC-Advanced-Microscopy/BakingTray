@@ -3,6 +3,13 @@ classdef Prior_Basic < handle
     %
     % A simple class for interacting with a Prior single axis (Z) stage controller.
     %
+    % INSTALLATION:
+    % To use this class you will need to download the Prior SDK:
+    % https://www.prior.com/technical-support/downloads/softwareall/matlab/
+    % Then add the x64 directory containing the DLL to the MATLAB path.
+    %
+    % API documentation
+    % The Prior SDK documentation is in the above archive you will download.
     %
     % Example
     % P = Prior_Basic(5)
@@ -77,7 +84,7 @@ classdef Prior_Basic < handle
             % to a string explaining what they mean.
             obj.genErrorCodeContainer
 
-            %% Initialise PriorSDK
+            %% Initialize PriorSDK
             % This needs to be done before calling any other commands the API needs to
             % configure its internal data structures.
             fprintf('Initialising SDK.\n')
@@ -279,7 +286,7 @@ classdef Prior_Basic < handle
 
             obj.sendCommand('controller.stop.smoothly');
 
-        end % getIsBusy
+        end % stop
 
 
         function isBusy = getIsBusy(obj)
@@ -347,7 +354,7 @@ classdef Prior_Basic < handle
             end
 
             if speed<=0
-                fprintf('speed should be a positive numvber\n')
+                fprintf('speed should be a positive number\n')
                 return
             end
 

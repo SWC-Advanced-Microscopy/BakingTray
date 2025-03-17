@@ -1,6 +1,6 @@
 classdef genericPIstage < linearstage
 %%
-% Generic PI stage class
+% Generic Prior stage class
 %
 %
 % All abstract methods should have doc text only in the abstract method class file.
@@ -12,8 +12,8 @@ classdef genericPIstage < linearstage
     methods
 
         %Constructor
-        function obj = genericPIstage(obj)
-            obj.axisID = '1'; %This is the default for PI controllers with one axis only
+        function obj = genericPriorstage(obj)
+            obj.controllerUnitsInMM = 1E-4; % We multiply by this number to ensure units are in mm
         end %Constructor
 
 

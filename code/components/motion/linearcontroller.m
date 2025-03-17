@@ -247,16 +247,43 @@ classdef (Abstract) linearcontroller < handle & loghandler
         % false - stage is not referenced
 
 
+        velocity = getMaxVelocity(obj)
+        %Return the target (maximum) speed of the stage
+        %
+        % Behavior
+        % Return the maximum speed of the stage in its position units. BakingTray expects
+        % the position units to be mm/s, so the stage and/or the controller need to be
+        % configured so as to achieve this. This method is called in the BT class.
+        %
+        % Inputs
+        % none
+        %
+        % Outputs
+        % velocity - this should be returned in mm/s
+
+
+        success = setMaxVelocity(obj,velocity)
+        %Set the stage's target (maximum) speed
+        %
+        % Behavior
+        % The target (maximum) speed of the stage should be returned in position units.
+        % the position units to be mm/s, so the stage and/or the controller need to be
+        % configured so as to achieve this.
+        %
+        % Inputs
+        % velocity - this should be in mm/s
+        %
+        % Outputs
+        % success -true/false
+
+
+
     end %Critical abstract methods
 
 
 
     methods %These are non-critical abstract methods (TODO: check this is true)
 
-        %As positionUnits, but for the stage's target, or maximum, velocity
-        velocity = getMaxVelocity(obj) %The target speed not stage absolute max
-        success = setMaxVelocity(obj,velocity)
-        %true/false
 
         %As positionUnits, but for the stage's initial velocity
         velocity = getInitialVelocity(obj)
@@ -362,6 +389,7 @@ classdef (Abstract) linearcontroller < handle & loghandler
             % ready - true/false
             %   ready is true if the object is set up and ready to perform axis motions or
             %   query the axis, etc. false otherwise.
+
             ready=false;
 
             if ~isempty(obj.parent) & obj.parent.disabledAxisReadyCheckDuringAcq & obj.parent.acquisitionInProgress

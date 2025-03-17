@@ -33,6 +33,10 @@ classdef genericZaberController < linearcontroller
 %            controllerUnitsInMM are set to a value other than 1 when the stage
 %            connects, then the units of the stage are set to native automatically.
 %            Otherwise they are se to mm.
+%
+%
+% Rob Campbell - SWC AMF
+
 
     properties
       % This property is filled in if needed during genericZaberController.connect
@@ -75,8 +79,20 @@ classdef genericZaberController < linearcontroller
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = connect(obj,connectionDetails)
-            % connectionDetails should supply the serial params in this form:
-            % connectionDetails.COM = 'COM2'
+            % Connect to Zaber stage
+            %
+            % success = genericZaberController.connect(connectionDetails)
+            %
+            % Purpose
+            % Connect to the Zaber controller at a defined COM port.
+            %
+            % Inputs
+            % connectionDetails - a structure containing the com port identify. e.g.
+            %     connectionDetails.COM = 'COM2' (The method can also cope with
+            %     connectionDetails being a string, such as 'COM4', but this may not be
+            %     future proof).
+            %
+            %
 
             if ischar(connectionDetails)
               tmp=connectionDetails;
@@ -223,27 +239,27 @@ classdef genericZaberController < linearcontroller
           %      genericZaberController just needs to pass these to the API
 
           % <redundant>
-            success=obj.isAxisReady;
-            if ~success
-              return
-            end
+          success=obj.isAxisReady;
+          if ~success
+            return
+          end
 
-            if ~obj.checkDistanceToMove(distanceToMove)
-              return
-            end
+          if ~obj.checkDistanceToMove(distanceToMove)
+            return
+          end
 
 
           %Check that it's OK to move here
-            willMoveTo = distanceToMove+obj.axisPosition;
-            if ~obj.isMoveInBounds(willMoveTo)
-              success = false;
-              return
-            end
+          willMoveTo = distanceToMove+obj.axisPosition;
+          if ~obj.isMoveInBounds(willMoveTo)
+            success = false;
+            return
+          end
           % </redundant>
 
-            obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
-            distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
-            obj.hC.moveRelative(distanceToMove,obj.attachedStage.positionUnits,false)
+          obj.logMessage(inputname(1),dbstack,1,sprintf('moving by %0.f',distanceToMove));
+          distanceToMove = obj.attachedStage.invertDistance * distanceToMove/obj.attachedStage.controllerUnitsInMM;
+          obj.hC.moveRelative(distanceToMove,obj.attachedStage.positionUnits,false)
         end %relativeMove
 
 
@@ -313,12 +329,11 @@ classdef genericZaberController < linearcontroller
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function minPos=getMinPos(obj)
             minPos=getMinPos@linearcontroller(obj);
-        end
+        end % getMinPos
 
         function maxPos=getMaxPos(obj)
             maxPos=getMaxPos@linearcontroller(obj);
-
-        end
+        end % getMaxPos
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -329,7 +344,7 @@ classdef genericZaberController < linearcontroller
               return
             end
             velocity = obj.hC.getSettings.get('maxspeed', obj.velocityUnits);
-        end
+        end % getMaxVelocity
 
         function success = setMaxVelocity(obj, velocity)
             ready=obj.isAxisReady;
@@ -350,16 +365,16 @@ classdef genericZaberController < linearcontroller
             end
 
             success = currentVelocity==velocity;
-        end
+        end % setMaxVelocity
 
         function velocity = getInitialVelocity(obj)
             velocity=0;
-        end
+        end % getInitialVelocity
 
         function success = setInitialVelocity(obj, velocity)
           %This can't be set
           success = false;
-        end
+        end % setInitialVelocity
 
         function accel = getAcceleration(obj)
             ready=obj.isAxisReady;
@@ -368,7 +383,7 @@ classdef genericZaberController < linearcontroller
               return
             end
             accel = obj.hC.getSettings.get('accel', obj.accelerationUnits);
-        end
+        end % getAcceleration
 
         function success = setAcceleration(obj, acceleration)
             success=obj.isAxisReady;
@@ -390,7 +405,7 @@ classdef genericZaberController < linearcontroller
             end
 
             success = currentAccel==acceleration;
-        end
+        end % setAcceleration
 
 
         function success=enableAxis(obj)
@@ -411,7 +426,7 @@ classdef genericZaberController < linearcontroller
           catch
             success = false;
           end
-        end
+        end % referenceStage
 
 
         function isReferenced = isStageReferenced(obj)
@@ -431,12 +446,12 @@ classdef genericZaberController < linearcontroller
               isReferenced = true;
           end
 
-        end
+        end % isStageReferenced
 
         function printAxisStatus(obj)
           printAxisStatus@linearcontroller(obj); %call the superclass
           % TODO : ADD MAX AND MIN POS REPORTING
-        end
+        end % printAxisStatus
 
 
     end %close methods
