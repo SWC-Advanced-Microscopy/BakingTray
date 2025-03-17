@@ -24,8 +24,8 @@ classdef singleAxisPriorController < linearcontroller
 % tStage.minPos=0;
 % tStage.maxPos=30;
 %
-% Z=singleAxisPriorController(tStage);
-% Z.connect('com5')
+% P=singleAxisPriorController(tStage);
+% P.connect('com5')
 %
 %
 % IMPORTANT NOTES
