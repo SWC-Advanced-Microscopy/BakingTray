@@ -21,6 +21,20 @@ function Z = Zaber_Build_Example(comport)
     % Z.axisPosition
     % delete(PI)
 	%
+	%
+	% Using a rotary controller
+	% The encoder wheel has a button that, when long-pressed, will switch between 
+	% position and speed modes. This can be avoided (keeping it position mode)
+	% by running the following commands in Zaber Launcher:
+	%  
+	% /1 trigger 1 when 1 knob.mode == 0
+	% /1 trigger 1 action a 1 knob.mode = 1
+	% /1 trigger 1 enable
+	% 
+	% This assumes your controller is set to device 1, so if not, just replace the first 
+	% 1 in each command with the actual device number.
+	%
+	%
 	% Rob Campbell - SWC 2023
 	%
 	% See also: buildMotionComponent, genericPIcontroller, and linearcontroller
