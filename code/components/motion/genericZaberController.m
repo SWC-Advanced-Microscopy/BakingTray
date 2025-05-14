@@ -32,7 +32,7 @@ classdef genericZaberController < linearcontroller
 %            value. If you are not using native units, this property must be 1. If
 %            controllerUnitsInMM are set to a value other than 1 when the stage
 %            connects, then the units of the stage are set to native automatically.
-%            Otherwise they are se to mm.
+%            Otherwise they are set to mm.
 %
 %
 % Rob Campbell - SWC AMF

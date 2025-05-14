@@ -413,7 +413,7 @@ classdef singleAxisPriorController < linearcontroller
           % NOTE -- this is fairly hard-coded and assumes the stage is being used as a
           % Z-jack
 
-          obj.absoluteMove(0)
+          obj.absoluteMove(0);
           success = false;
         end % referenceStage
 

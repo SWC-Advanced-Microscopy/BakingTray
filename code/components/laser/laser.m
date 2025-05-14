@@ -33,7 +33,7 @@ classdef (Abstract) laser < handle
         % in certain ranges. Can be defined in the startup_bt.m file which you can place in your
         % BakingTray SETTINGS folder.
         % Each cell defines the minimum and maximum the wavelengths that are not allowed.
-        % The property is used in laser.isTargetWavelengthInRange
+        % The property is used in laser.bannedWavelengths
         % e.g. = {[916,925],[775,790]}
         % See the laser hardware setup in the on-line docs for more information.
         bannedWavelengths = {};
