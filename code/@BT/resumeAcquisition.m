@@ -4,18 +4,18 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % function success=resumeAcquisition(obj,recipeFname,simulate)
     %
     % Purpose
-    % Attempts to resume an existing acquisition, by appropriately setting the section start number, 
-    % end number, and so forth. If resumption fails the default recipe is loaded instead and the 
-    % acquisition path is set to an empty string. This is a safety feature to ensure that the user 
-    % *has* to consciously decide what to do next. 
+    % Attempts to resume an existing acquisition, by appropriately setting the section start number,
+    % end number, and so forth. If resumption fails the default recipe is loaded instead and the
+    % acquisition path is set to an empty string. This is a safety feature to ensure that the user
+    % *has* to consciously decide what to do next.
     %
     % By default, a helper GUI is presented to allow the user to select the exact way the resumption
     % should occur. There are multiple options depending on why we are resuming. If 'helpergui' is
-    % false, then this method by default starts imaging the sample at the last z-position, does not cut, 
+    % false, then this method by default starts imaging the sample at the last z-position, does not cut,
     % and increments the section counter by one. Often this will not be what is needed, which is a choice
     % the user must make. The optional 'slicenow' and 'existing' input arguments allow us to specify
     % how the function will handle the resumption. These can be defined at the command line by
-    % super-users, for debugging, or for novel applications. Normal users should use the GUI. 
+    % super-users, for debugging, or for novel applications. Normal users should use the GUI.
     %
     % There is a simulated option for debugging.
     %
@@ -26,15 +26,15 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % Inputs (param/val pairs)
     % 'helpergui' [true by default] - If true, a GUI allowing the user to choose the best resumption
     %             option is presented. This option over-rides 'slicenow' and 'existing'.
-    % 'slicenow' [false by default] - Once at last section depth, moves up one section thickness 
+    % 'slicenow' [false by default] - Once at last section depth, moves up one section thickness
     %         then slices.
     % 'existing' ['nothing' by default] - What do with data in the last section if the system
-    %           did not cut: 
+    %           did not cut:
     %              a) 'nothing' - ignore the data. don't delete.
     %              b) 'reimage' - delete the data in the last section directory and re-image
     %              c) 'complete' - carry on from the last imaged tile position. [TODO- this option is functional yet]
-    %   Note that if we sliced the last section, options (b) and (c) aren't possible. 
-    % 'simulate' [false by default] - If true, report to screen what steps would have happened 
+    %   Note that if we sliced the last section, options (b) and (c) aren't possible.
+    % 'simulate' [false by default] - If true, report to screen what steps would have happened
     %         but do not modify the state of BakingTray or move any stages.
     %
     % Outputs
@@ -94,7 +94,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     % Hack to ensure we have a path to the file if it's in the current directory
     pathToRecipe = fileparts(recipeFname);
 
-    % If pathToRecipe is empty then that must mean the user supplied only the file name with no path. 
+    % If pathToRecipe is empty then that must mean the user supplied only the file name with no path.
     % Since recipeFname was found, that must mean it's in the current directory. Therefore:
     if isempty(pathToRecipe)
         pathToRecipe=pwd;
@@ -105,7 +105,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
 
     % Bail out gracefully if this isn't an acquisition directory
     if ~isstruct(details) && details == false
-         % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly 
+         % NOTE: the square bracket in the following string concatenation was missing and MATLAB oddly
          % didn't spot the syntax error. When this methd was run it would hard-crash due to this.
         fprintf(['No existing acquisition found in in directory %s. ', ...
             'BT.resumeAcquisition will just load the recipe as normal\n'], pathToRecipe)
@@ -162,7 +162,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     if ~success
         fprintf('Failed to resume recipe %s. Loading default.\n', recipeFname)
         if ~simulate
-            obj.sampleSavePath=''; % So the user is forced to enter this before proceeding 
+            obj.sampleSavePath=''; % So the user is forced to enter this before proceeding
             obj.attachRecipe; % To load the default
         else
             fprintf('Wiping sample save path and loading default recipe\n')
@@ -204,7 +204,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
     end
 
 
-    % Slicing and then re-imaging makes no sense, but we have checked at the top for this and 
+    % Slicing and then re-imaging makes no sense, but we have checked at the top for this and
     % so everything that follows is safe.
     if slicenow
         msg = sprintf('Slicing sample\n');
@@ -224,7 +224,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
             fprintf('Deleting last section (# %d) directory: %s\n', ...
                 details.sections(end).sectionNumber, lastDirPath)
         else
-            if exist(lastDirPath)
+            if exist(lastDirPath,'dir')
                 rmdir(lastDirPath,'s')
             end
         end
@@ -296,7 +296,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
                 mfilename, autoROI_fname);
             fprintf(msg)
             warndlg(msg)
-            
+
         else
             % Otherwise the file exists so try to load it
 

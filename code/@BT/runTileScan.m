@@ -1,5 +1,5 @@
 function runSuccess = runTileScan(obj)
-    % This method inititiates the acquisition of a tile scan for one section
+    % This method initiates the acquisition of a tile scan for one section
     %
     % function runSuccess = BT.runTileScan(obj)
     %
