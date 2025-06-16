@@ -11,13 +11,21 @@ classdef Prior_Basic < handle
     % API documentation
     % The Prior SDK documentation is in the above archive you will download.
     %
+    % Before use
+    % You will need to install a compiler (the MinGW is fine) to compile the DLL. 
+    % You will get an error message about this if the compiler is not installed.
+    % The error message provides information on what to install. Briefly, see:
+    % https://uk.mathworks.com/matlabcentral/fileexchange/52848-matlab-support-for-mingw-w64-c-c-fortran-compiler
+    % After installing that, restart MATLAB. 
+    %
+    %
     % Example
     % P = Prior_Basic(5)
     % P.getStagePos
     % P.getSpeed % Get speed of the stage in mm/s
     % P.setSpeed(1) % Set speed of the stage in mm/s
     % P.getStagePos % Get stage position in mm
-    % P.setStagePos(5.5) % Go to the 5.5 mm position
+    % P.gotoPos(5.5) % Go to the 5.5 mm position
     %
     %
     % Rob Campbell, SWC AMF, initial commit Q1 2025
