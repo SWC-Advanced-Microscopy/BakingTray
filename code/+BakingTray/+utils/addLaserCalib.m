@@ -90,6 +90,7 @@ function addLaserCalib(beamName)
 
 
     if ~okToStart
+        fprintf('\n *** CALIBRATION NOT SAVED! *** \n\n')
         return
     end
 

@@ -379,13 +379,17 @@ classdef (Abstract) scanner < handle & loghandler
         returnLaserPowerInmW(obj)
         % returnLaserPowerInmW
         %
-        % Return laser power in mW. Returns nan if power is unavailable.
+        % Return laser power in mW in a sturcture that has separate values for each
+        % laser line. If laser power is not available for a line it returns nan for that 
+        % line.  
+        % 
         %
         % Inputs
         % None
         %
         % Outputs
-        % laserPower - laser power in mW. numeric scalar
+        % laserPower - struct array with fields .powerIn_mW (nan if power can not be read) .beamName 
+        % powerString - a nicely formatted string listing the power of each line
 
 
      end % close abstract methods

@@ -110,12 +110,12 @@ function sectionInd = bake(obj,varargin)
     end
 
     % Report laser settings and power in mW (if this is possible to do)
-    obj.acqLogWriteLine(sprintf('Acquiring sample at a laser wavelength of %d nm ', obj.laser.readWavelength))
-    laserPowerInmw = obj.scanner.returnLaserPowerInmW;
-    if isnan(laserPowerInmw)
-        obj.acqLogWriteLine(sprintf('(power in mW is not calibrated in ScanImage)\n\n'))
+    obj.acqLogWriteLine(sprintf('Acquiring sample with laser tuned to %d nm\n', obj.laser.readWavelength))
+    [laserPowerStruct,laserPowerStr] = obj.scanner.returnLaserPowerInmW;
+    if isempty(laserPowerStruct)
+        obj.acqLogWriteLine(sprintf('Unable to get laser power value in mW from ScanImage.\n\n'))
     else
-        obj.acqLogWriteLine(sprintf('with %d mW at the sample\n\n', laserPowerInmw))
+        obj.acqLogWriteLine(sprintf('LASER POWERS: %s\n\n', laserPowerStr))
     end
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
