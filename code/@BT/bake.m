@@ -110,7 +110,7 @@ function sectionInd = bake(obj,varargin)
     end
 
     % Report laser settings and power in mW (if this is possible to do)
-    obj.acqLogWriteLine(sprintf('Acquiring sample at a laser power of %d nm ', obj.laser.readWavelength))
+    obj.acqLogWriteLine(sprintf('Acquiring sample at a laser wavelength of %d nm ', obj.laser.readWavelength))
     laserPowerInmw = obj.scanner.returnLaserPowerInmW;
     if isnan(laserPowerInmw)
         obj.acqLogWriteLine(sprintf('(power in mW is not calibrated in ScanImage)\n\n'))
