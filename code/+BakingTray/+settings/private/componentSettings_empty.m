@@ -29,7 +29,7 @@ function settings=componentSettings
     % and to turn off the laser at the end of acquisition.
     laser.type=''; % One of: 'maitai', 'chameleon', or 'dummyLaser'
     laser.COM=[];  % COM port number on which the laser is attached. e.g. the scalar 1
-
+    laser.beamName='' % Enter the name of the "Beam" in ScanImage. This is the string that appears in the widget title. Only needed if you have multiple beams
 
 
 

@@ -39,6 +39,10 @@ classdef (Abstract) laser < handle
         bannedWavelengths = {};
 
         friendlyName = '' % This string is displayed in the GUI window title. Shouldn't be too long. e.g. could be "MaiTai"
+                          % This property is generally filled in by the class which inherits laser.
+        beamName = '' % This string must correspond to the beam name in ScanImage. This is the string in the widget toolbar.
+                      % The beamName property is only necessary if there are multiple beams in the system. This property
+                      % needs to be set via the component settings file as it will differ between rigs. 
 
         % The following is used for optional Pockels cell control. An external device
         % may be connected to Pockels cell power to turn the mains power on and off

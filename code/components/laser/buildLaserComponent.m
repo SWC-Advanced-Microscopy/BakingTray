@@ -65,8 +65,11 @@ end
 
 
 
+% Fill in the beamName value used to associate the laser with a beam line ScanImage. 
+component.beamName = laserSettings.beamName;
+
 %If requested, we connect to the pockels cell
-% TODO -- for now we place this here. Later maybe move to the laeser classes
+% TODO -- for now we place this here. Later maybe move to the laser classes
 if ~isempty(laserSettings.pockels)
     fprintf('%s is connecting to Pockels cell power gating\n',mfilename);
     component.pockelsDAQ = laserSettings.pockels.pockelsDAQ;
@@ -74,3 +77,4 @@ if ~isempty(laserSettings.pockels)
     component.doPockelsPowerControl = laserSettings.pockels.doPockelsPowerControl;
     component.connectToPockelsControlDAQ;
 end
+
