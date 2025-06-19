@@ -4,19 +4,29 @@ function applyLaserCalibration(obj,laserPower)
     % SIBT.applyLaserCalibration(obj,laserPower)
     %
     % Purpose
-    % Apply a previously measured laser calibration to ScanImage.
+    % The relationship between "percent power" and power at the sample varies across 
+    % wavelength as tunable lasers emit different peak power across wavelength. BakingTray
+    % uses its laser control class to set wavelength. Based on this and cached power 
+    % calibrations taken with BakingTray.utils.addLaserCalib this method applies a 
+    % wavelength-specific laser calibration when wavelength is changed. 
+    %
     % 
     % Inputs
     % laserPower - A laser calibration structure or a path to a laser calibration structure
     %    saved to disk. If an empty array is provided, the calibration in ScanImage is wiped.
+    %
+    % Outputs
+    % none
+    %
+    % Rob Campbell, SWC
+    %
+    % See also:
+    % BT.applyLaserCalibrationToScanner (which calls this method)
+    % BakingTray.utils.addLaserCalib
+    % BakingTray.utils.listLaserCalib
 
 
     if nargin<2
-        return
-    end
-
-    if length(obj.hC.hBeams.hBeams)>1
-        fprintf('SIBT.applyLaserCalibration expects just one laser. Can not proceed.\n')
         return
     end
 

@@ -630,6 +630,7 @@ classdef SIBT < scanner
         end % readFrameSizeSettings
 
         function laserPower = returnLaserPowerInmW(obj)
+            % TODO -- returns only the first beam
             if obj.versionGreaterThan('2021')
                 currentPower = obj.hC.hBeams.powers;
                 laserPower = obj.hC.hBeams.hBeams{1}.convertPowerFraction2PowerWatt(currentPower/100)*1000;
@@ -639,12 +640,27 @@ classdef SIBT < scanner
             laserPower = round(laserPower);
         end % returnLaserPowerInmW
 
+        function availableBeamNames = returnAvailableBeamNames(obj)
+            % Returns the names of the available beams as a cell array if there
+            % are multiple beams. As a character array otherwise.
+            availableBeamNames = cellfun(@(x) x.name, obj.hC.hBeams.hBeams, 'UniformOutput', false);
+            if length(availableBeamNames)==1
+                availableBeamNames = availableBeamNames{1};
+            end
+        end % availableBeamNames
+
+        function numberOfAvailableBeams = returnNumberOfAvailableBeams(obj)
+            % Returns the number of available beams as a scalar
+            numberOfAvailableBeams = length(obj.hC.hBeams.hBeams);
+        end % numberOfAvailableBeams
+
         function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
         end % getNumAverageFrames
 
 
         function setNumAverageFrames(obj,nFrames)
+            % Set the number of frames over which to average
             if ~isscalar(nFrames)
                 return
             end

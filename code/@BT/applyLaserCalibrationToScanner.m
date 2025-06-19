@@ -1,26 +1,45 @@
 function applyLaserCalibrationToScanner(obj)
     % Looks for a suitable laser calibration file and applies to the scanner
     %
+    % BT.applyLaserCalibrationToScanner()
     %
+    % Purpose
+    % The relationship between "percent power" and power at the sample varies across 
+    % wavelength as tunable lasers emit different peak power across wavelength. BakingTray
+    % uses its laser control class to set wavelength. Based on this and cached power 
+    % calibrations taken with BakingTray.utils.addLaserCalib this method applies a 
+    % wavelength-specific laser calibration when wavelength is changed. 
+
+
+    % If there is only one beam and the laser class does not have a beamName we add it now
+    if isempty(obj.laser.beamName) && obj.scanner.returnNumberOfAvailableBeams == 1
+        obj.laser.beamName = obj.scanner.returnAvailableBeamNames;
+    end
+
+
+    % This is the name of the ScanImage beam the laser GUI is controlling
+    beamName = obj.laser.beamName;
 
 
 
     targetWavelength = round(obj.laser.targetWavelength);
 
+    % Path to the laser calibration files
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
 
     if exist(pathToFiles,'dir') == 0
         return
     end
 
-
-    files = dir(fullfile(pathToFiles,'laserPower_*.mat'));
+    % Find all files associated with this beam
+    fileNameGlob = sprintf('laserPower_%s_*.mat',strrep(beamName,' ', '') );
+    files = dir(fullfile(pathToFiles, fileNameGlob));
 
     if length(files)==0
         return
     end
 
-    % See if a file matches the current wavelength to within a reasonable amount
+    % See if a file matches the current wavelength to a reasonable tollerance
     wavelengthDelta = ones(1,length(files))*inf;
     for ii=1:length(files)
         tok=regexp(files(ii).name, '_(\d+)\.', 'tokens');

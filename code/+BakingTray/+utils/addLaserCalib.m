@@ -54,13 +54,16 @@ function addLaserCalib(beamName)
 
     hBT=BakingTray.getObject;
     okToStart = false;
+
+    % Available beam names as cell array if >1 beam otherwise a character array
+    availableBeamNames = hBT.scanner.returnAvailableBeamNames;
+
     if length(hBT.scanner.hC.hBeams.hBeams)==1
         beamIndex = 1;
-        beamName = hBT.scanner.hC.hBeams.hBeams{beamIndex}.beamName;
+        beamName = availableBeamNames; % is a character array if only one beam
         okToStart = true;
     else
-        % Available beam names
-        availableBeamNames = cellfun(@(x) x.name, hBT.scanner.hC.hBeams.hBeams, 'UniformOutput', false);
+        % More than one beam
         if nargin==0
             fprintf('\nYou supplied no beam name but the system has multiple beams\n')
         else
@@ -117,7 +120,9 @@ function addLaserCalib(beamName)
     laserPower.beamName = beamName;
 
 
-    fname = sprintf('laserPower_%d.mat', laserPower.wavelength_in_nm);
+    % Build the file name ensuring the beam name has no spaces
+
+    fname = sprintf('laserPower_%s_%d.mat', strrep(beamName,' ', ''), laserPower.wavelength_in_nm);
 
     fprintf('Saving calibration data to %s\n',fullfile(pathToFiles,fname))
     save(fullfile(pathToFiles,fname),'laserPower')
