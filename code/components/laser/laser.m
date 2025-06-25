@@ -71,9 +71,9 @@ classdef (Abstract) laser < handle
 
     properties (SetObservable, AbortSet)
         isLaserModeLocked=false  % Set by isModelocked
-        isLaserReady=false % Must be updated by isReady
-        currentWavelength=-1 % This must be updated whenever readWavelength runs
-        targetWavelength=0 % Must be updated by setWavelength
+        isLaserReady=false       % Must be updated by isReady
+        currentWavelength=-1     % This must be updated whenever readWavelength runs
+        targetWavelength=0       % Must be updated by setWavelength
     end %close GUI-related properties
 
 
@@ -394,7 +394,6 @@ classdef (Abstract) laser < handle
             if obj.isLaserOn
                 obj.hDO.writeDigitalData(1)
             else
-                obj.hDO.writeDigitalData(0)
             end
         end % switchPockelsCell
 

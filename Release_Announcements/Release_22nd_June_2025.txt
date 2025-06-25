@@ -21,6 +21,8 @@ BakingTray acquisitions DO NOT yet know about multiple beams. They will not be a
 and you can only acquire with multiple beams if they are all on simultaneously. You can  set this up in ScanImage. 
 The logs that this was done will be present in the TIF metadata but not in the BakingTray metadata. 
 
+NOTE: YOU WILL NEED TO RE-GENERATE YOUR LASER CALIBRATIONS WHEN YOU UPDATE TO THIS RELEASE
 
+* Reports power values from multiple lasers
 
 Other small changes: see Changelog file
