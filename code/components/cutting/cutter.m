@@ -2,38 +2,38 @@ classdef (Abstract) cutter < handle
 %%  cutter
 %
 % The cutter abstract class is a software entity that represents the physical
-% vibrotome that removes slices from the tissue block being imaged. 
+% vibrotome that removes slices from the tissue block being imaged.
 %
-% The cutter abstract class declares methods and properties that are used by the 
+% The cutter abstract class declares methods and properties that are used by the
 % BakingTray class to start and stop the vibrotome. Classes the control the vibrotome
-% must inherit cutter. Objects that inherit cutter are "attached" to instances of 
+% must inherit cutter. Objects that inherit cutter are "attached" to instances of
 % BakingTray using BakingTray.attachCutter. This method adds an instance of a class
-% that inherits cutter to the BakingTray.cutter property. 
+% that inherits cutter to the BakingTray.cutter property.
 %
 % An example of a class that inherits cutter is FaulhaberMCDC.
 %
 % Rob Campbell - Basel 2016
 
 
-    properties 
+    properties
 
-        hC  %A handle to the hardware object or port (e.g. COM port) used to 
+        hC  %A handle to the hardware object or port (e.g. COM port) used to
             %control the cutter.
 
-        controllerID % The information required by the method that connects to the 
+        controllerID % The information required by the method that connects to the
                      % the controller at connect-time. This can be specified in whatever
-                     % way is most suitable for the hardware at hand. 
+                     % way is most suitable for the hardware at hand.
                      % e.g. COM port ID string
     end %close public properties
 
     properties (Hidden, SetObservable, AbortSet)
         isCutterConnected=false  % Must be updated by connect and isControllerConnected
-        kickOffSection=false     % If true, the slicing code will execute a sharp forward 
+        kickOffSection=false     % If true, the slicing code will execute a sharp forward
                                  % motion of the blade once it's cut through the block.
     end
     properties (Hidden)
         parent  %A reference of the parent object (likely BakingTray) to which this component is attached
-    end 
+    end
 
 
     % These are GUI-related properties. The view classes listen to changes in these properties
@@ -49,8 +49,8 @@ classdef (Abstract) cutter < handle
         % connect
         %
         % Behavior
-        % Establishes a connection between the hardware device and the host PC. 
-        % The method uses the controllerID property to establish the connection. 
+        % Establishes a connection between the hardware device and the host PC.
+        % The method uses the controllerID property to establish the connection.
         %
         % Outputs
         % success - true or false depending on whether a connection was established
@@ -61,14 +61,14 @@ classdef (Abstract) cutter < handle
         %
         % Behavior
         % Reports whether the link to the cutter controller is functional. This method
-        % must update the hidden property isCutterConnected. If the interface, e.g. 
-        % the COM port closed, the function must return false. 
+        % must update the hidden property isCutterConnected. If the interface, e.g.
+        % the COM port closed, the function must return false.
         %
         % Outputs
-        % success - true or false depending on whether a working connection is present 
-        %           with the physical vibrotome control device. i.e. it is not sufficient 
+        % success - true or false depending on whether a working connection is present
+        %           with the physical vibrotome control device. i.e. it is not sufficient
         %           that, say, a COM port is open. For success to be true, the device must
-        %           prove that it can interact in some way with the host PC. 
+        %           prove that it can interact in some way with the host PC.
 
 
         success = enable(obj)
@@ -76,7 +76,7 @@ classdef (Abstract) cutter < handle
         %
         % Behavior
         % This is a general-purpose "arm" command. Some hardware or controllers will need
-        % need to be enabled before they move. This ensures that this happens. If the 
+        % need to be enabled before they move. This ensures that this happens. If the
         % controller or motor does not support or require this, this method should simply
         % return true.
         %
@@ -88,10 +88,10 @@ classdef (Abstract) cutter < handle
         % disable
         %
         % Behavior
-        % This is a general-purpose "disarm" command. Some hardware or controllers have 
-        % the option to be disabled. This is distinct from stopping of motion. e.g. 
-        % disabling may power down the device. If the controller or motor does not 
-        % support or require this, this method should simply return true. 
+        % This is a general-purpose "disarm" command. Some hardware or controllers have
+        % the option to be disabled. This is distinct from stopping of motion. e.g.
+        % disabling may power down the device. If the controller or motor does not
+        % support or require this, this method should simply return true.
         %
         %
         % Outputs
@@ -103,11 +103,11 @@ classdef (Abstract) cutter < handle
         % startVibrate
         %
         % Behavior
-        % Vibrate blade at cyclesPerSec rate. i.e. cyclesPerSec = RPM * 60 
+        % Vibrate blade at cyclesPerSec rate. i.e. cyclesPerSec = RPM * 60
         % Begins vibration and returns true if vibration command was sent
         % successfully. Returns false otherwise. Non-blocking. If blade is already
         % vibrating when the method is called then this function should update vibration
-        % frequency. 
+        % frequency.
         %
         %
         % Inputs
@@ -135,9 +135,9 @@ classdef (Abstract) cutter < handle
         %
         % Behavior
         % Returns the vibration speed of the blade as read from a sensor, such as an
-        % encoder. Not all hardware support this. Returns false if such a reading 
+        % encoder. Not all hardware support this. Returns false if such a reading
         % can not be obtained.
-        % 
+        %
         % Output
         % cyclesPerSec - Measured vibration speed in cycles per second. False if no such
         %                reading can be made. i.e. this method never simply returns the
@@ -145,4 +145,4 @@ classdef (Abstract) cutter < handle
 
     end %close methods
 
-end %close classdef 
+end %close classdef

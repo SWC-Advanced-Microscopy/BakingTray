@@ -2,7 +2,8 @@ classdef FaulhaberMCDC < cutter & loghandler
     % Faulhaber motor controller. Before use, set up your controller with the
     % motor you have and the encoder.
     %
-    % This class was written for a Faulhaber MCDC 3006 S
+    % This class was written for a Faulhaber MCDC 3006 S. It will NOT work with the
+    % newer MC 5005.
     %
     % This class can drive the vibratome too hard if not properly configured. Therefore,
     % **BEFORE RUNNING IT**, first see the instructions for setting up the vibratome:
@@ -61,7 +62,7 @@ classdef FaulhaberMCDC < cutter & loghandler
                 fprintf(['Setting up Faulhaber MCDC3006 DC motor controller.\n',...
                     'Motor max speed: %d revs per second.\n'], obj.motorMaxSpeed);
             else
-                % TODO -- report tru max speed in RPM if in CONTMOD
+                % TODO -- report true max speed in RPM if in CONTMOD
             end
         end %constructor
 
