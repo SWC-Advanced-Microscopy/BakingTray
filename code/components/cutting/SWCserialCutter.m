@@ -19,7 +19,7 @@ classdef SWCserialCutter< cutter & loghandler
 
 
     methods
-k
+
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %constructor
         function obj = SWCserialCutter(serialComms,logObject)
@@ -32,14 +32,15 @@ k
 
             BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
+            
             success = obj.connect;
 
 
             if ~success
                 fprintf(['\n\nWARNING!\nComponent SWCserialCutter failed to connect to vibrotome controller.\n',...
                     'Closing serial port\n'])
-                fclose(obj.hC)
-                delete(obj.hC)
+                fclose(obj.hC);
+                delete(obj.hC);
                 return
             end
 
@@ -94,17 +95,17 @@ k
             end
 
             [success,reply] = obj.sendReceiveSerial('V0');
-            success = success &  contains(reply,'V0');
+            success = success &  contains(reply,'Speed set to:0');
             obj.isCutterConnected=success;
         end %isControllerConnected
 
 
-        function success = enable(obj)
-            success=true
+        function success = enable(~)
+            success=true;
         end %enable
 
 
-        function success = disable(obj)
+        function success = disable(~)
             success=true;
         end %disable
 
@@ -114,7 +115,7 @@ k
             if ~isscalar(targetSpeed) || targetSpeed>obj.maxMotorRPM
                 return
             end
-            success = obj.sendReceiveSerial(sprintf('V%d',commandedSpeed));
+            success = obj.sendReceiveSerial(sprintf('V%d',targetSpeed));
         end %startVibrate
 
 
@@ -124,7 +125,7 @@ k
         end %stopVibrate
 
 
-        function cyclesPerSec = readVibrationSpeed(obj)
+        function cyclesPerSec = readVibrationSpeed(~)
             cyclesPerSec = false;
         end %readVibrationSpeed
 
@@ -141,8 +142,8 @@ k
             end
             fprintf(obj.hC,commandString);
             reply=fgetl(obj.hC);
-            reply(end)=[];
-            if strfind(reply,'Unknown command')
+            reply(end)=[]; %strip newline
+            if isempty(reply)
                 success=false;
             else
                 success=true;

@@ -52,8 +52,8 @@ classdef FaulhaberMCDC < cutter & loghandler
             if ~success
                 fprintf(['\n\nWARNING!\nComponent FaulhaberMCDC failed to connect to vibrotome controller.\n',...
                     'Closing serial port\n'])
-                fclose(obj.hC)
-                delete(obj.hC)
+                fclose(obj.hC);
+                delete(obj.hC);
                 return
             end
 
