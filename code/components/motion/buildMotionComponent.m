@@ -7,20 +7,20 @@ function component = buildMotionComponent(controllerName,controllerParams,vararg
 % Purpose
 % Construct a motion hardware component object from one of the available classes,
 % feeding in whatever input arguments are necessary. Returns the constructed
-% motion object incorporating both a linearcontroller and one or more linearstages. 
+% motion object incorporating both a linearcontroller and one or more linearstages.
 % This function used during setup of BakingTray.
 %
 % Inputs
 % controllerName    - string defining the name of the class to build
-% controllerParams  - a structure containing the settings to be applied to the controller 
+% controllerParams  - a structure containing the settings to be applied to the controller
 % stageName         - a string defining the name of the stage class to attach to the controller
 % stageParams       - a structure containing the settings to be applied to the stage
-% 
+%
 % multiple stage/params can be added to a single controller
 %
 %
 % Outputs
-% component - A composite motion component object comprised of a stage controller 
+% component - A composite motion component object comprised of a stage controller
 %             with attached stages. This object has class "linearcontroller"
 %
 %
@@ -58,7 +58,7 @@ end
 stages = reshape(varargin,2,[])'; %so each row is one stage .
 
 
-% The available controller components 
+% The available controller components
 controllerSuperClassName = 'linearcontroller'; %The name of the abstract class that all controller components must inherit
 
 
@@ -103,14 +103,14 @@ switch controllerName
         end
         component = AMS_SIN11(stageComponents);
         component.connect(controllerParams.connectAt);
-        
+
     % TODO -- ideally all should look like this
-    case {'ensemble', 'soloist','genericZaberController'}
+    case {'ensemble', 'soloist','genericZaberController', 'singleAxisPriorController'}
         stageComponents = BUILD_GENERIC_STAGE(stages);
         if isempty(stageComponents)
             return
         end
-        
+
         component = eval([controllerName,'(stageComponents)']);
         controllerID = controllerParams.connectAt;
         component.connect(controllerID);
@@ -132,7 +132,7 @@ switch controllerName
 end
 
 
-% Do not return component if it's not of the correct class. 
+% Do not return component if it's not of the correct class.
 % e.g. this can happen if the class doesn't inherit the correct abstract class
 if ~isa(component,controllerSuperClassName)
     fprintf('ERROR in %s:\n constructed component %s is not of class %s. It is a %s. SKIPPING BUILDING.\n', ...
@@ -145,11 +145,11 @@ end
 
 %----------------------------------------------------------------------------------------------------
 function stageComponents = BUILD_GENERIC_STAGE(stages)
-    % This function is used to create a stage component that can be attached to a linearController. 
-    % This generic function is designed to work with most stages. If you need something very 
-    % specific then you might need to write a new build sub-function for your particular device. 
+    % This function is used to create a stage component that can be attached to a linearController.
+    % This generic function is designed to work with most stages. If you need something very
+    % specific then you might need to write a new build sub-function for your particular device.
     % Hopefully, however, all customisation can be done within the stage and controller classes
-    % and in the componentSettings script. 
+    % and in the componentSettings script.
 
     if size(stages,1)>1
         error('BUILD_GENERIC_STAGE can not yet handle multiple stages per controller')
@@ -165,7 +165,7 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
 
     stageComponents = eval(stageComponentName);
 
-    %User settings 
+    %User settings
     % TODO - deal with multiple stages
     settingsFields = fields(stageSettings);
     for ii=1:length(settingsFields)
@@ -188,7 +188,7 @@ function stageComponents = BUILD_GENERIC_STAGE(stages)
     end
 
 function success = checkArgs(stageComponentName,stageSettings)
-    % Check whether the stageComponent name and stageSettings structure are correct. 
+    % Check whether the stageComponent name and stageSettings structure are correct.
     % i.e. are they the right type and do they look like they contain plausible contents
     if ~ischar(stageComponentName)
         fprintf('Can not build stage. Stage component name is a %s. Expected a string\n', class(stageComponentName))
@@ -208,7 +208,7 @@ function success = checkArgs(stageComponentName,stageSettings)
         return
     end
 
-    if ~isfield(stageSettings,'axisName') || ~isfield(stageSettings,'minPos') || ~isfield(stageSettings,'maxPos') 
+    if ~isfield(stageSettings,'axisName') || ~isfield(stageSettings,'minPos') || ~isfield(stageSettings,'maxPos')
         fprintf('%s - stageSettings of %s do not appear valid: \n',mfilename,stageComponentName)
         disp(stageSettings)
         fprintf('Settings must at least have fields: axisName, minPos, and maxPos\n')
