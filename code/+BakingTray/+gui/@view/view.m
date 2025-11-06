@@ -39,7 +39,6 @@ classdef view < handle
 
 
     properties(Hidden)
-        timerUpdateInterval=0.33 %Any timers will update the GUI every so many seconds
         fSize=12;
 
         listeners={}
