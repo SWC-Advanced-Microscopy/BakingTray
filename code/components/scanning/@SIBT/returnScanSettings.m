@@ -5,8 +5,8 @@ function scanSettings = returnScanSettings(obj)
     %
     % Purpose
     % Read scanner settings from ScanImage and returns as a structure.
-    % This needs to be sufficiently detailed to allow acquisitions to be 
-    % resumed. 
+    % This needs to be sufficiently detailed to allow acquisitions to be
+    % resumed.
     %
     % See also: SIBT.doScanSettingsMatchRecipe
     %
@@ -14,6 +14,7 @@ function scanSettings = returnScanSettings(obj)
     %    SIBT.doScanSettingsMatchRecipe
     %    SIBT.applyScanSettings
     %    recipe.recordScannerSettings (possibly)
+
 
     % Tile size, zoom, and the number of optical planes
     scanSettings.pixelsPerLine = obj.hC.hRoiManager.pixelsPerLine;
@@ -29,7 +30,7 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.scanAngleShiftFast = obj.hC.hRoiManager.scanAngleShiftFast;
     scanSettings.scanAngleShiftSlow = obj.hC.hRoiManager.scanAngleShiftSlow;
     scanSettings.slowMult = obj.hC.hRoiManager.scanAngleMultiplierSlow;
-    scanSettings.fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast; 
+    scanSettings.fastMult = obj.hC.hRoiManager.scanAngleMultiplierFast;
     scanSettings.bidirectionalScan = obj.hC.hScan2D.bidirectional;
     scanSettings.pixelBinFactor = obj.hC.hScan2D.pixelBinFactor;
     scanSettings.sampleRate = obj.hC.hScan2D.sampleRate;
@@ -55,8 +56,11 @@ function scanSettings = returnScanSettings(obj)
     scanSettings.beamPowerLengthConstant = obj.hC.hBeams.lengthConstants; % The length constant used for ramping power
 
     if obj.versionGreaterThan('2020.1')
-        scanSettings.powerZAdjust = ~strcmp(char(obj.hC.hBeams.pzAdjust),'None');
-        scanSettings.powerZAdjustType = char(obj.hC.hBeams.pzAdjust);
+        for ii=1:length(scanSettings.beamPower)
+            adjTypeStr = char(obj.hC.hBeams.pzAdjust(ii));
+            scanSettings.powerZAdjust(ii) = ~strcmp(adjTypeStr,'None');
+            scanSettings.powerZAdjustType{ii} = adjTypeStr;
+        end
     else
         scanSettings.powerZAdjust = obj.hC.hBeams.pzAdjust; % Bool. If true, we ramped power with depth
         scanSettings.powerZAdjustType = obj.hC.hBeams.pzCustom; % What sort of adjustment (if empty it's default exponential)
