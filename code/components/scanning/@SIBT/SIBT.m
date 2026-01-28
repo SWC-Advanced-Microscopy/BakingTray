@@ -642,13 +642,14 @@ classdef SIBT < scanner
                     if isempty(obj.hC.hBeams.hBeams{ii}.powerFraction2PowerWattLut)
                         % The beam is not calibrated
                         out(ii).powerIn_mW = nan;
-                        powerString = sprintf('%sUNCALIBRATED (%d%% power), ', powerString, currentPower(ii));
+                        powerString = sprintf('%sUNCALIBRATED (%d percent power), ', powerString, currentPower(ii));
                     else
                         out(ii).powerIn_mW = obj.hC.hBeams.hBeams{ii}.convertPowerFraction2PowerWatt(currentPower(ii)/100)*1000;
                         powerString = sprintf('%s%0.1f mW, ', powerString, out(ii).powerIn_mW);
                     end
                 end
                 powerString(end-1:end)=[];
+
             else
                 % TODO -- no power is returned from older versions of ScanImage
                 laserPower = [];

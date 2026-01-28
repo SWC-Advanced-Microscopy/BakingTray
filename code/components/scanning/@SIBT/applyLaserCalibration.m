@@ -44,14 +44,19 @@ function applyLaserCalibration(obj,laserPower)
         return
     end
 
+    beamIndex = 1;
 
     % Apply the LUT calibration curve
-    obj.hC.hBeams.hBeams{1}.powerFraction2ModulationVoltLut = laserPower.powerFraction2ModulationVoltLut;
+    obj.hC.hBeams.hBeams{beamIndex}.powerFraction2ModulationVoltLut = laserPower.powerFraction2ModulationVoltLut;
 
     % Minimum and maximum power in Watts
     powerFraction2PowerWattLut = [0, laserPower.minPower; ...
                                   1, laserPower.maxPower];
-    obj.hC.hBeams.hBeams{1}.powerFraction2PowerWattLut = powerFraction2PowerWattLut;
+    obj.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut = powerFraction2PowerWattLut;
 
 
-    % Force update of the GUI
+    % If the outputRange was saved too (prior to October 3rd 2025 they were not, we apply)
+    if isfield(laserPower,'outputRange_V')
+        obj.hC.hBeams.hBeams{beamIndex}.outputRange_V = laserPower.outputRange_V;
+    end
+

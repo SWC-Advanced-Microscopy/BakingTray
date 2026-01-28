@@ -47,6 +47,8 @@ function addLaserCalib(beamName)
     %
     % You may list existing calibrations with BakingTray.utils.listLaserCalib
     %
+    % Calibrations are applied by SIBT.applyLaserCalibration
+    %
     % Rob Campbell - SWC 2022
 
 
@@ -117,6 +119,7 @@ function addLaserCalib(beamName)
     laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(1,2);
     laserPower.maxPower = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(2,2);
     laserPower.powerFraction2ModulationVoltLut = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2ModulationVoltLut;
+    laserPower.outputRange_V = hBT.scanner.hC.hBeams.hBeams{beamIndex}.outputRange_V;
     laserPower.dateMeasured = now;
     laserPower.beamName = beamName;
 
