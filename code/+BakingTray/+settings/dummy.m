@@ -4,12 +4,13 @@ function settings=componentSettings_dummy
     % function settings=componentSettings_dummy
     %
     % This settings file sets up the dummy stages, laser, and scanner to allow
-    % for testing the BakingTray system without hardware present. 
+    % for testing the BakingTray system without hardware present.
 
     %-------------------------------------------------------------------------------------------
     % Laser
     laser.type='dummyLaser';
     laser.COM=[];
+    laser.beamName='';
 
     %-------------------------------------------------------------------------------------------
     % Cutter
@@ -18,8 +19,8 @@ function settings=componentSettings_dummy
 
     %-------------------------------------------------------------------------------------------
     % Scanner
-    scanner.type='dummyScanner'; 
-    scanner.settings=[]; 
+    scanner.type='dummyScanner';
+    scanner.settings=[];
 
     %-------------------------------------------------------------------------------------------
     % Motion axes definitions
@@ -29,7 +30,7 @@ function settings=componentSettings_dummy
     motionAxis(nC).type='dummy_linearcontroller';
     motionAxis(nC).settings.connectAt='';
     nS=1;
-    motionAxis(nC).stage(nS).type='dummy_linearstage'; 
+    motionAxis(nC).stage(nS).type='dummy_linearstage';
     motionAxis(nC).stage(nS).settings.invertDistance=1;
     motionAxis(nC).stage(nS).settings.axisName='xAxis';
     motionAxis(nC).stage(nS).settings.minPos=-25;
@@ -40,9 +41,9 @@ function settings=componentSettings_dummy
     motionAxis(nC).type='dummy_linearcontroller';
     motionAxis(nC).settings.connectAt='';
     nS=1;
-    motionAxis(nC).stage(nS).type='dummy_linearstage'; 
+    motionAxis(nC).stage(nS).type='dummy_linearstage';
     motionAxis(nC).stage(nS).settings.invertDistance=1;
-    motionAxis(nC).stage(nS).settings.axisName='yAxis'; 
+    motionAxis(nC).stage(nS).settings.axisName='yAxis';
     motionAxis(nC).stage(nS).settings.minPos=-25;
     motionAxis(nC).stage(nS).settings.maxPos=25;
 

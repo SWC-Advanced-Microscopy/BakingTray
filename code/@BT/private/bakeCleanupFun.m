@@ -25,7 +25,7 @@ function bakeCleanupFun(obj)
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message
         % to indicate that acquisition is done.
-        minSections=25;
+        minSections=25; %TODO: hard-coded
         if obj.currentSectionNumber>minSections
             %The message we will build to send to Slack
             slack_msg = sprintf('Acquisition of %s finished after %d sections.\n', ...
@@ -60,8 +60,12 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=false;
     end
 
-    % Send the Slack message with optional laser message (see laser_msg above)
-    obj.slack(slack_msg)
+    % Send the Slack message with optional laser message (see laser_msg above) only if the
+    % user asked for all messages or if less than 85% of sections were acquired.
+    if obj.recipe.SLACK.failureOnly == false || ...
+        (obj.currentSectionNumber/obj.recipe.mosaic.numSections) < 0.85
+        obj.slack(slack_msg)
+    end
 
     %Reset these flags or the acquisition will not complete next time
     fprintf('resetting abort flags\n')

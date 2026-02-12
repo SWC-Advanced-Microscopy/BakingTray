@@ -43,6 +43,9 @@ function settings=default_BT_Settings
     % This is the Slack hook for sending messages
     settings.SLACK.hook=[];
 
+    % If this is true we send to Slack only messages associated with failures.
+    settings.SLACK.failureOnly=true;
+
     % Speed with which the blade approaches the agar block
     settings.SLICER.approachSpeed=25.0;
 

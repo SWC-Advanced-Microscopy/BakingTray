@@ -357,7 +357,17 @@ function sectionInd = bake(obj,varargin)
                     obj.currentSectionNumber);
                 obj.acqLogWriteLine(sprintf('%s -- %s\n', currentTimeStr(), msg))
                 fprintf('\n*** %s ***\n\n',msg)
-                obj.slack(msg)
+
+                % We send a Slack message only if the acquisition failed to get >85% of
+                % the way through the brain (TODO -- hard-coded) unless the user set
+                % SLACK.failureOnly to false in the systemSettings.yml
+                if obj.recipe.SLACK.failureOnly == false || ...
+                    (sectionInd/obj.recipe.mosaic.numSections) < 0.85
+
+                        obj.slack(msg)
+
+                end
+
 
                 % Assume the acquisition is supposed to have finished this way
                 % TODO -- this could be a setting
