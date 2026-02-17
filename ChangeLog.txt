@@ -8,6 +8,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 
 For more information on major releases merged into master from pre-release.
 
+
+12th Feb 2026
+- USER: by default Slack messages are now errors only
+
+Q4 2025
+USER/POWERUSER: Multi-laser works, in BakingTray. You must add the empty field `laser.beamName='';` to your component settings file even if you don't use this feature. 
+
 19th June 2025
 - USER: Reports power values from multiple lasers (ScanImage beams).
 - USER: Correct typo in acquisition log file that called wavelength "power"
