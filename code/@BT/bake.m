@@ -361,6 +361,7 @@ function sectionInd = bake(obj,varargin)
                 % We send a Slack message only if the acquisition failed to get >85% of
                 % the way through the brain (TODO -- hard-coded) unless the user set
                 % SLACK.failureOnly to false in the systemSettings.yml
+                % See also bakeCleanupFun in the private folder
                 if obj.recipe.SLACK.failureOnly == false || ...
                     (sectionInd/obj.recipe.mosaic.numSections) < 0.85
 
