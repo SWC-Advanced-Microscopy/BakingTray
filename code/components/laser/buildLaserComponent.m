@@ -67,7 +67,6 @@ end
 
 % Fill in the beamName value used to associate the laser with a beam line
 % ScanImage.
-laserSettings
 component.beamName = laserSettings.beamName;
 
 %If requested, we connect to the pockels cell
