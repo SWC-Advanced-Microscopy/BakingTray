@@ -120,7 +120,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         if ~quiet
             fprintf('\n** ERROR:\n%sNot returning any tile positions. Try repositioning your sample.\n',msg)
             fprintf('Attempted to make a tile pattern from %0.2f to %0.2f in X and %0.2f to %0.2f in Y\n',...
-                 min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) )
+                 min(tilePosArray(:,1)), max(tilePosArray(:,1)), min(tilePosArray(:,2)), max(tilePosArray(:,2)) );
         end
         % Make certain the outputs are empty
         if ~returnEvenIfOutOfBounds
@@ -162,7 +162,7 @@ end % tilePattern
 
             if verbose
                 fprintf('recipe.tilePattern > generateTileGrid produces a ROI with a front/left stage coord: x=%0.2f, y=%0.2f\n', ...
-                    ROIparams.frontLeftMM.X, ROIparams.frontLeftMM.Y)
+                    ROIparams.frontLeftMM.X, ROIparams.frontLeftMM.Y);
             end
         end
 

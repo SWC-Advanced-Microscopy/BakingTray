@@ -56,7 +56,7 @@ function sectionInd = bake(obj,varargin)
     %    unclear how this is happening since the system is already running an acquisition with the
     %    correct parameters by the time we end up in the for loop. We leave this line here for
     %    now as it should not cause any problems, but it is unlikely to solve anything.
-    obj.recipe.recordScannerSettings
+    obj.recipe.recordScannerSettings;
 
     [acqPossible,msg]=obj.checkIfAcquisitionIsPossible(true); %true to indicate this is a bake
     if ~acqPossible
@@ -67,11 +67,11 @@ function sectionInd = bake(obj,varargin)
     %Define an anonymous function to nicely print the current time
     currentTimeStr = @() datestr(now,'yyyy/mm/dd HH:MM:SS');
 
-    fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID)
+    fprintf('Setting up acquisition of sample %s\n',obj.recipe.sample.ID);
 
     % Remove any attached file logger objects. We will add one per physical section.
     % Reset properties in preparation for acquisition
-    obj.detachLogObject
+    obj.detachLogObject;
     obj.currentTileSavePath=[];
     obj.sectionCompletionTimes=[];
     obj.acquisitionInProgress=true;
@@ -89,33 +89,33 @@ function sectionInd = bake(obj,varargin)
 
 
 
-    obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) )
+    obj.acqLogWriteLine( sprintf('%s -- STARTING NEW ACQUISITION\n',currentTimeStr() ) );
 
     % Report to screen and the log file how much disk space is currently available
     msg = obj.reportAcquisitionSize;
-    obj.acqLogWriteLine(msg)
+    obj.acqLogWriteLine(msg);
 
     if ~isempty(obj.laser)
-        obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID))
+        obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID));
     end
 
     % Print the version number and name of the scanning software
-    obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion))
+    obj.acqLogWriteLine(sprintf('Acquiring with: %s\n', obj.scanner.getVersion));
 
     try
         G=BakingTray.utils.getGitInfo;
-        obj.acqLogWriteLine(sprintf('Using BakingTray version %s from branch %s\n', G.hash, G.branch))
+        obj.acqLogWriteLine(sprintf('Using BakingTray version %s from branch %s\n', G.hash, G.branch));
     catch
-        obj.acqLogWriteLine('Failed to extract git commit info for logging\n')
+        obj.acqLogWriteLine('Failed to extract git commit info for logging\n');
     end
 
     % Report laser settings and power in mW (if this is possible to do)
-    obj.acqLogWriteLine(sprintf('Acquiring sample with laser tuned to %d nm\n', obj.laser.readWavelength))
+    obj.acqLogWriteLine(sprintf('Acquiring sample with laser tuned to %d nm\n', obj.laser.readWavelength));
     [laserPowerStruct,laserPowerStr] = obj.scanner.returnLaserPowerInmW;
     if isempty(laserPowerStruct)
         obj.acqLogWriteLine(sprintf('Unable to get laser power value in mW from ScanImage.\n\n'))
     else
-        obj.acqLogWriteLine(sprintf('LASER POWERS: %s\n\n', laserPowerStr))
+        obj.acqLogWriteLine(sprintf('LASER POWERS: %s\n\n', laserPowerStr));
     end
 
     % Set the watchdog timer on the laser to 40 minutes. The laser
@@ -137,10 +137,10 @@ function sectionInd = bake(obj,varargin)
     % requires us to know how many tiles will be imaged.
     if strcmp(obj.recipe.mosaic.scanmode,'tiled: auto-ROI')
         obj.currentSectionNumber = obj.recipe.mosaic.sectionStartNum;  % TODO -- not tested with auto-ROI resume
-        fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n')
+        fprintf('Bake is in auto-ROI mode. Setting currentSectionNumber to 1 and getting first ROIs:\n');
         obj.populateCurrentTilePattern;
         fprintf('Starting auto-ROI acquisition with a grid of %d tiles\n', ...
-            length(obj.currentTilePattern))
+            length(obj.currentTilePattern));
         % Write the auto-ROI parameters as a yaml file in the sample directory
         BakingTray.yaml.WriteYaml(fullfile(obj.sampleSavePath,'autoROI_settings.yml'), autoROI.readSettings);
 

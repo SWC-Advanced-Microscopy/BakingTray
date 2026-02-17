@@ -10,7 +10,7 @@ function success=recordScannerSettings(obj)
     if ~isempty(obj.parent.scanner)
         obj.ScannerSettings = obj.parent.scanner.returnScanSettings;
 
-        % Update properties related to the scanner. 
+        % Update properties related to the scanner.
         % Some stuff will be duplicated, but is stored in a nicer format.
         % Other stuff is calculated from the scanner and recipe information
         obj.VoxelSize.X = obj.ScannerSettings.micronsPerPixel_cols;
@@ -38,7 +38,7 @@ function success=recordScannerSettings(obj)
 
         ind = ([tileOptions.pixelsPerLine]==obj.Tile.nColumns) .* ...
             ([tileOptions.linesPerFrame]==obj.Tile.nRows) .* ...
-            ([tileOptions.zoomFactor]==obj.ScannerSettings.zoomFactor); 
+            ([tileOptions.zoomFactor]==obj.ScannerSettings.zoomFactor);
         ind = find(ind);
 
         if ~isempty(ind) && length(ind)==1
@@ -52,7 +52,7 @@ function success=recordScannerSettings(obj)
 
         if isstruct(FrameData) && ...
             (~isfield(FrameData,'stitchingVoxelSize') || isempty(FrameData.stitchingVoxelSize))
-            % Just take nominal values. It doesn't matter too much. 
+            % Just take nominal values. It doesn't matter too much.
             mu = mean([obj.ScannerSettings.micronsPerPixel_rows, obj.ScannerSettings.micronsPerPixel_cols]);
             obj.StitchingParameters.VoxelSize.X=mu;
             obj.StitchingParameters.VoxelSize.Y=mu;
@@ -64,7 +64,7 @@ function success=recordScannerSettings(obj)
             end
         end
 
-        if isstruct(FrameData) 
+        if isstruct(FrameData)
             if ~isempty(FrameData.lensDistort)
                 obj.StitchingParameters.lensDistort = FrameData.lensDistort;
             else

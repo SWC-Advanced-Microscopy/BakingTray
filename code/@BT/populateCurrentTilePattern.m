@@ -22,15 +22,15 @@ function varargout=populateCurrentTilePattern(obj,varargin)
     % 'keepTiles' - empty by default. If provided, the current tile pattern is calculated
     %               and only these tile indexes are kept. (supply a vector to use)
     % 'removeTiles' - empty by default. If provided, the current tile pattern is calculated
-    %               and these tiles index values are removed. The argument is supplied as a 
-    %               vector so to remove the first and last tiles of a tile pattern having 
+    %               and these tiles index values are removed. The argument is supplied as a
+    %               vector so to remove the first and last tiles of a tile pattern having
     %               length 256 you would supply [1,256] as the value for this parameter.
     %
     % Outputs
     % pos - The tile pattern. This is returned to make it easier to confirm
-    %       what was generated. 
+    %       what was generated.
     % NOTE:
-    % a) You can not supply both keepTiles and removeTiles. 
+    % a) You can not supply both keepTiles and removeTiles.
     % b) The keepTiles and removeTiles arguments are currently not used for anything and are
     %    present for possible future use only.
     % c) see also recipe.mosaic.tilesToRemove, which is honoured in recipe.tilePattern
@@ -45,11 +45,11 @@ function varargout=populateCurrentTilePattern(obj,varargin)
     % Parse optional inputs
     P = inputParser;
     P.CaseSensitive = false;
-    P.addParameter('isFullPreview',false)
-    P.addParameter('removeTiles',[])
-    P.addParameter('keepTiles', [])
+    P.addParameter('isFullPreview',false);
+    P.addParameter('removeTiles',[]);
+    P.addParameter('keepTiles', []);
 
-    P.parse(varargin{:})
+    P.parse(varargin{:});
 
     isFullPreview = P.Results.isFullPreview;
     removeTiles = P.Results.removeTiles;
@@ -75,11 +75,11 @@ function varargout=populateCurrentTilePattern(obj,varargin)
             % To catch odd error that begin 12/10/2022. Issue #437
             fprintf('\n\n *** obj.autoROI.stats.roiStats has no field BoundingBoxDetails:\n')
             obj.autoROI.stats.roiStats % to just print to screen
-            
-            % Ensure that we bail out later. 
+
+            % Ensure that we bail out later.
             pos = [];
             indexes = [];
-            
+
         else
             BB = obj.autoROI.stats.roiStats(end).BoundingBoxDetails;
             [pos,indexes]=obj.recipe.tilePattern(false,false,BB);
@@ -116,8 +116,8 @@ function varargout=populateCurrentTilePattern(obj,varargin)
 
     % Report to screen what's just been made
     fprintf('BT.%s populated BT.positionArray with a tile pattern of length %d\n', ...
-     mfilename, size(obj.positionArray,1))
-    
+     mfilename, size(obj.positionArray,1));
+
     if nargout>0
         varargout=pos;
     end
