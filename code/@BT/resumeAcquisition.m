@@ -281,7 +281,7 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
             fprintf('Resuming acquisition at tile position %d section %d\n', ...
                 details.sections(end).lastImagedPosition+1, details.sections(end).sectionNumber)
         else
-            hBT.currentTilePosition = details.sections(end).lastImagedPosition+1;
+            disp('NOTHING HAPPENS')
         end
     end
 

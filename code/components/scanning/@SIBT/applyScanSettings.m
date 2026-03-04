@@ -22,7 +22,6 @@ function applyScanSettings(obj,scanSettings)
         return
     end
 
-
     % Which channels to acquire
     if iscell(scanSettings.activeChannels)
         scanSettings.activeChannels = cell2mat(scanSettings.activeChannels);
