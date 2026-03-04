@@ -27,7 +27,7 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
         return
     end
 
-    if isstr(thisRecipe)
+    if ischar(thisRecipe)
         fname = thisRecipe;
         if exist(fname,'file')
             thisRecipe = BakingTray.yaml.ReadYaml(fname);
@@ -64,7 +64,11 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     % Whether to average
     msg = [msg, checkSetting(sSet.averageEveryNframes, obj.hC.hDisplay.displayRollingAverageFactor, ' ')];
 
-    % Beam power
+    % Beam power (convert cell arrays to matrices
+    sSet.beamPower = cell2mat(sSet.beamPower);
+    sSet.powerZAdjust = cell2mat(sSet.powerZAdjust);
+    sSet.beamPowerLengthConstant = cell2mat(sSet.beamPowerLengthConstant);
+
     msg = [msg, checkSetting(sSet.beamPower, obj.hC.hBeams.powers, 'Laser powers')];
     msg = [msg, checkSetting(sSet.powerZAdjust, obj.hC.hBeams.pzAdjust, 'Adjust with depth')]; % Bool. If true, we ramped power with depth
     msg = [msg, checkSetting(sSet.beamPowerLengthConstant, obj.hC.hBeams.lengthConstants, 'Length constant')]; % The length constant used for ramping power

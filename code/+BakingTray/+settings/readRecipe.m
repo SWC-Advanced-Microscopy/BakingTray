@@ -117,7 +117,7 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
 
     % Convert some choice cell arrays to matrices
     tRecipe.ScannerSettings.activeChannels = cell2mat(tRecipe.ScannerSettings.activeChannels);
-    tRecipe.ScannerSettings.beamPower = cell2mat(tRecipe.ScannerSettings.activeChannels);
+    tRecipe.ScannerSettings.beamPower = cell2mat(tRecipe.ScannerSettings.beamPower);
     tRecipe.ScannerSettings.beamPowerLengthConstant = cell2mat(tRecipe.ScannerSettings.beamPowerLengthConstant);
     tRecipe.ScannerSettings.powerZAdjust = cell2mat(tRecipe.ScannerSettings.powerZAdjust);
 
