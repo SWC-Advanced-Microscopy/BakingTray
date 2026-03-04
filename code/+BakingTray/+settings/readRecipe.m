@@ -4,13 +4,13 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     % function thisRecipe = BakingTray.settings.readRecipe(recipeFname)
     %
     % Purpose
-    % Read a recipe YAML file and return as a structure. 
+    % Read a recipe YAML file and return as a structure.
     % Checks that the recipe file has the correct field names, that these
     % fields have the correct data types and that the values are reasonable.
     % If the fields or data types are wrong, an empty matrix is returned.
-    % If the values are not reasonable, a default value is provided and the 
-    % user is warned. 
-    % 
+    % If the values are not reasonable, a default value is provided and the
+    % user is warned.
+    %
     % Inputs
     % recipeFname - relative or absolute path to a recipe YAML
     %
@@ -73,8 +73,8 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         return
     end
 
-    %Ensure that an empty sample ID is treated as a string not an empty numeric array
-    %The setter in the recipe class will create a sample ID from this.
+    % Ensure that an empty sample ID is treated as a string not an empty numeric array
+    % The setter in the recipe class will create a sample ID from this.
     if isempty(tRecipe.sample.ID)
         tRecipe.sample.ID='';
     end
@@ -83,7 +83,7 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     if ~isfield(tRecipe.mosaic,'tilesToRemove')
         fprintf('Adding missing field: recipe.mosaic.tilesToRemove and setting to an empty array')
             tRecipe.mosaic.tilesToRemove=-1;
-   end
+    end
 
     for tF = theseFields'
         if ~isfield(tRecipe,tF{1})
@@ -114,6 +114,12 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
 
     end %for tF
 
+
+    % Convert some choice cell arrays to matrices
+    tRecipe.ScannerSettings.activeChannels = cell2mat(tRecipe.ScannerSettings.activeChannels);
+    tRecipe.ScannerSettings.beamPower = cell2mat(tRecipe.ScannerSettings.activeChannels);
+    tRecipe.ScannerSettings.beamPowerLengthConstant = cell2mat(tRecipe.ScannerSettings.beamPowerLengthConstant);
+    tRecipe.ScannerSettings.powerZAdjust = cell2mat(tRecipe.ScannerSettings.powerZAdjust);
 
     thisRecipe = tRecipe;
 
@@ -166,6 +172,8 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         msg=sprintf('%smosaic.numOpticalPlanes was not an integer. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes);
         thisRecipe.mosaic.numOpticalPlanes = D.mosaic.numOpticalPlanes;
     end
+
+
     if thisRecipe.mosaic.numOpticalPlanes<1
         msg=sprintf('%smosaic.numOpticalPlanes was less than 1. Setting it to %d\n', msg, D.mosaic.numOpticalPlanes);
         thisRecipe.mosaic.numOpticalPlanes = D.mosaic.numOpticalPlanes;
@@ -178,7 +186,7 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     end
 
 
-    if isempty(thisRecipe.mosaic.sampleSize.X) || isempty(thisRecipe.mosaic.sampleSize.Y) 
+    if isempty(thisRecipe.mosaic.sampleSize.X) || isempty(thisRecipe.mosaic.sampleSize.Y)
         msg=sprintf('%smosaic.sampleSize was empty setting to %d by %d mm\n', msg, D.mosaic.sampleSize.X,D.mosaic.sampleSize.Y);
         thisRecipe.mosaic.sampleSize.X = D.mosaic.sampleSize.X;
         thisRecipe.mosaic.sampleSize.Y = D.mosaic.sampleSize.Y;
@@ -190,10 +198,12 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
         thisRecipe.mosaic.scanmode = 'tiled: manual ROI';
     end
 
+
     if ~strcmp(thisRecipe.mosaic.scanmode,'tiled: manual ROI') && ~strcmp(thisRecipe.mosaic.scanmode,'tiled: auto-ROI')
         msg=sprintf('%smosaic.scanmode can only take on the value "tiled: manual ROI" or "tiled: auto-ROI". Setting to "tiled: manual ROI"', msg);
         thisRecipe.mosaic.scanmode='tiled: manual ROI';
     end
+
 
     if ~isempty(msg)
         fprintf(msg)

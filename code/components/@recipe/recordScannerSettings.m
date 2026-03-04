@@ -1,6 +1,13 @@
 function success=recordScannerSettings(obj)
+    % Return scanner settings if scanner is attached
+    %
+    % success = recipe.recordScannerSettings
+    %
+    % Purpose
     % Checks if a scanner object is connected to the parent (BakingTray) object and if so runs
     % its scanner.returnScanSettings method and store the output in recipe.ScannerSettings
+
+
     if isempty(obj.parent)
         success=false;
         fprintf('ERROR: recipe class has nothing bound to property "parent". Can not access BT\n')
