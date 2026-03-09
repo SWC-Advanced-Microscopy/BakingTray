@@ -1,3 +1,4 @@
 *.stackdump
 *.asv
 *.DS_Store
+*.BAK
