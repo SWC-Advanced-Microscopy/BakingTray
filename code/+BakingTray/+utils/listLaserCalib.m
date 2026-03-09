@@ -31,6 +31,12 @@ function listLaserCalib
 
     for ii=1:length(files)
         load(fullfile(pathToFiles,files(ii).name))
+
+        % older laser calib files will lack this so we make it
+        if ~isfield(laserPower,'beamName')
+            laserPower.beamName = 'si_beam';
+        end
+
         fprintf('%d. %s, beam: %s, min power: %0.0f mW, max power: %0.0f mW, last updated: %s\n', ...
             ii, ...
             files(ii).name, ...
