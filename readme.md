@@ -47,10 +47,15 @@ Please do get in touch if use the software: especially if you are publishing wit
 
 
 ### Related work
-* Winnubst *et al*. Reconstruction of 1,000 Projection Neurons Reveals New Cell Types and Organization of Long-Range Connectivity in the Mouse Brain. Cell 2019
-* Economo *et al*. A New Platform for Brain-Wide Imaging and Reconstruction of Neurons. eLife 2016
-* Li *et al*. Micro-Optical Sectioning Tomography to Obtain a High-Resolution Atlas of the Mouse Brain. Science. 2010
-* Mayerich *et al*. Knife-edge scanning microscopy for imaging and reconstruction of three-dimensional anatomical structures… J. Microscopy. 2008
-* Ragan *et al*. Serial two-photon tomography for automated ex-vivo mouse brain imaging. Nat. Meth. 2012
-* Seiriki, *et al*. High-Speed and Scalable Whole-Brain Imaging in Rodents and Primates. Neuron 2017
-* Zheng *et al*. Visualization of brain circuits using two-photon fluorescence micro-optical sectioning tomography. Opt. Express. 2013
+Serial section optical microscopy traces its roots back to at least 1990, when [Odgaard and colleagues](https://onlinelibrary.wiley.com/doi/10.1111/j.1365-2818.1990.tb03038.x) used resin embedding and brightfield microscopy to image small bone samples. 
+Similar work was done by [Ewald in 2002](https://anatomypubs.onlinelibrary.wiley.com/doi/10.1002/dvdy.10169).
+In 2008, [Mayerich](https://onlinelibrary.wiley.com/doi/10.1111/j.1365-2818.2008.02024.x) conducted serial section imaging by acquiring line scan data on the knife edge itself.
+Serial block-face light microscopy over extended samples was performed 1996, with the publication of the "[Visible Human Male](https://academic.oup.com/jamia/article/3/2/118/708716?login=true)" project, where a single individual was cryo-sectioned every 100µm and imaged via tile-scanning. 
+[Chinese visible human](https://anatomypubs.onlinelibrary.wiley.com/doi/10.1002/ar.b.1003) data followed in 2003. 
+On the other end of the spectrum, in 2004, Denk used [serial section electron microscopy](https://pmc.ncbi.nlm.nih.gov/articles/PMC524270/) to study synaptic structure in 3D. 
+
+Large-scale fluorescence-based serial sectioning was first published in [2010 by Li and colleagues](https://www.science.org/doi/10.1126/science.1191776)).
+Two-photon-based serial sectioning followed soon after by [Ragan in 2012](https://pmc.ncbi.nlm.nih.gov/articles/PMC3297424/) and [Zheng in 2013](https://opg.optica.org/oe/fulltext.cfm?uri=oe-21-8-9839).
+A similar approach was also published by [Economo in 2019](https://elifesciences.org/articles/10566) who used their system [in a subsequent publication to reconstruct hundreds of labelled neurons in the mouse brain](https://pmc.ncbi.nlm.nih.gov/articles/PMC6754285/).
+Optical sectioning can also be acheived by other means, such as [Seiriki and colleagues](https://www.sciencedirect.com/science/article/pii/S0896627317304555) "FAST" system which employs a spinning disk confocal. 
+
