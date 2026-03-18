@@ -50,7 +50,7 @@ Please do get in touch if use the software: especially if you are publishing wit
 Serial section optical microscopy traces its roots back to at least 1990, when [Odgaard and colleagues](https://onlinelibrary.wiley.com/doi/10.1111/j.1365-2818.1990.tb03038.x) used resin embedding and brightfield microscopy to image small bone samples. 
 Similar work was done by [Ewald in 2002](https://anatomypubs.onlinelibrary.wiley.com/doi/10.1002/dvdy.10169).
 In 2008, [Mayerich](https://onlinelibrary.wiley.com/doi/10.1111/j.1365-2818.2008.02024.x) conducted serial section imaging by acquiring line scan data on the knife edge itself.
-Serial block-face light microscopy over extended samples was performed 1996, with the publication of the "[Visible Human Male](https://academic.oup.com/jamia/article/3/2/118/708716?login=true)" project, where a single individual was cryo-sectioned every 100µm and imaged via tile-scanning. 
+Serial block-face light microscopy over extended samples was performed in 1996, with the publication of the "[Visible Human Male](https://academic.oup.com/jamia/article/3/2/118/708716?login=true)" project, where a single individual was cryo-sectioned every 100µm and imaged via tile-scanning. 
 [Chinese visible human](https://anatomypubs.onlinelibrary.wiley.com/doi/10.1002/ar.b.10035) data followed in 2003. 
 On the other end of the spectrum, in 2004, Denk used [serial section electron microscopy](https://pmc.ncbi.nlm.nih.gov/articles/PMC524270/) to study synaptic structure in 3D. 
 
