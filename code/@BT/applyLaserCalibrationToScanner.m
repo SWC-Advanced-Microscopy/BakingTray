@@ -11,6 +11,12 @@ function applyLaserCalibrationToScanner(obj)
     % wavelength-specific laser calibration when wavelength is changed. 
 
 
+    verbose=false;
+
+    if verbose
+        fprintf('Entering BT.applyLaserCalibrationToScanner\n')
+    end
+    
     % If there is only one beam and the laser class does not have a beamName we add it now
     if isempty(obj.laser.beamName) && obj.scanner.returnNumberOfAvailableBeams == 1
         obj.laser.beamName = obj.scanner.returnAvailableBeamNames;
@@ -28,15 +34,42 @@ function applyLaserCalibrationToScanner(obj)
     pathToFiles = fullfile(BakingTray.settings.settingsLocation,'laser_calibration');
 
     if exist(pathToFiles,'dir') == 0
+        if verbose
+            fprintf('Found no laser calibration folder. Not setting laser power value.\n')
+        end
         return
     end
 
     % Find all files associated with this beam
+    % We first search for files that have the beam name in the file name
     fileNameGlob = sprintf('laserPower_%s_*.mat',strrep(beamName,' ', '') );
-    files = dir(fullfile(pathToFiles, fileNameGlob));
+    files_new_format = dir(fullfile(pathToFiles, fileNameGlob));
 
-    if length(files)==0
+    % If we don't find those, we look for files that have no laser beam name (this is the old format).
+    if isempty(files_new_format)
+        % Check whether we have laser calibration files in there at all,
+        % because if we do they could be the old naming format!
+        fileNameGlob = sprintf('laserPower_*.mat',strrep(beamName,' ', '') );
+        files = dir(fullfile(pathToFiles, fileNameGlob));
+        
+        if ~isempty(files)
+            fprintf('FOUND laser calibration files in the old naming format. Using them, but please update naming format!\n')
+            fprintf('Contact devs if you are unsure what this means.\n')
+        end
+    else
+        % But if we found the files with the beam name, we use those. 
+        files = files_new_format;
+    end
+
+    if isempty(files)
+        if verbose
+            fprintf('Found no laser calibration files. Not setting laser power value.\n')
+        end
         return
+    end
+
+    if verbose
+       fprintf('Found %d laser calibration files.\n', length(files))
     end
 
     % See if a file matches the current wavelength to a reasonable tollerance
@@ -58,4 +91,5 @@ function applyLaserCalibrationToScanner(obj)
         fprintf('Current laser wavelength of %d nm has no corresponding calibration file\n',targetWavelength)
         obj.scanner.applyLaserCalibration([]) % Wipe any existing calibration so user is not misled
     end
+
 
