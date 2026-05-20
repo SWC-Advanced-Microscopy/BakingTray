@@ -143,7 +143,9 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
     pause(0.05)
 
 
-
+    cutTimeOut = 60*5; % If we have been cutting for a ridiculous time we try disable/enable of the X stage
+                    % This is to test fix the issue on BRAINSAW X Stage
+    BS = tic;
     while 1 %Blocking loop until we have reached the cut end position
        if ~obj.xAxis.isMoving % Uses the controller API routine (if availble)
            if verbose
@@ -173,6 +175,18 @@ function finished = sliceSample(obj,sliceThickness,cuttingSpeed)
            obj.xAxis.stopAxis;
            break
        end
+
+       if toc(BS)>cutTimeOut
+            obj.logMessage(inputname(1),dbstack,4,'BRAINSAW_X: ENABLE/DISABLE X STAGE DURING SLICING')
+            obj.xAxis.disableAxis;
+            pause(1)
+            obj.xAxis.enableAxis;
+            pause(1)
+            obj.moveXto(targetPos);
+            BS = tic;
+            obj.logMessage(inputname(1),dbstack,4,'BRAINSAW_X: DONE DURING SLICING')
+       end
+
        % To honour abort command
        if obj.abortSlice
            return

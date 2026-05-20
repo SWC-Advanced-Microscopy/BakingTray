@@ -1,4 +1,4 @@
-classdef BT < loghandler
+    classdef BT < loghandler
 % BT - This is the master BakingTray class for control of automated serial-section 2p tomography
 %
 % Purpose
@@ -446,12 +446,26 @@ classdef BT < loghandler
 
             tic
 
+            % TEMP CODE: Let's see if we can trap the problem of the BrainSaw X stage getting stuck
+            % If we are still not at the target position within 10 seconds we will enable and disable the stage
+            XTIME = 20;
             while obj.isXYmoving
                 pause(0.01)
                 if toc>timeOut
                     obj.logMessage(inputname(1),dbstack,4,'Timed out waiting for motion to complete')
                     break
                 end
+
+                if toc>XTIME
+                    % This will bring the stage back to functionality but it will result in a tile that has peculiar data in it. 
+                    obj.logMessage(inputname(1),dbstack,4,'BRAINSAW_X: ENABLE/DISABLE X STAGE')
+                    obj.xAxis.disableAxis;
+                    pause(0.5)
+                    obj.xAxis.enableAxis;
+                    pause(0.5)
+                    obj.logMessage(inputname(1),dbstack,4,'BRAINSAW_X: DONE')
+                end
+
             end %while
             pause(extraSettlingTime)
         end %waitXYsettle
