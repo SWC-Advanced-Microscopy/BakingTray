@@ -128,19 +128,13 @@ classdef maitai < laser & loghandler
 
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default
-            % Sometimes it seems the laser turns off but reports that it failed to do so.
-            maxTries=8;
-            for ii=1:maxTries
-                success=obj.sendAndReceiveSerial('OFF',false);
-                if success == true
-                    break
-                end
-                pause(0.5)
-            end
-
+            success=obj.sendAndReceiveSerial('OFF',false);
+           
             pause(0.1)
 
-            obj.isLaserModeLocked; % Because otherwise the modelock flag sometimes stays on
+            % Force read of modelock state right away
+            obj.isLaserModeLocked;
+
             if success
                 obj.turnOffPockelsCell;
                 obj.isLaserOn=false;
@@ -162,23 +156,7 @@ classdef maitai < laser & loghandler
 
             pPower=obj.readPumpPower;
 
-            % Sometimes a serial port read failure seems to cause the
-            % laser to report it has low pump power, when in fact it is
-            % fine. We try to cover for this here.
             powerOnThresh = 15;
-            isModeLocked = obj.isModeLocked;
-            if islogical(isModeLocked)
-                if isModeLocked & pPower<powerOnThresh
-                    nTries = 5;
-                    for ii = 1:nTries
-                         pPower=obj.readPumpPower;
-                         if pPower>powerOnThresh
-                             break
-                         end
-                         pause(0.5)
-                    end
-                end
-            end
 
             if pPower>powerOnThresh
                 powerOnState=true;
@@ -450,7 +428,7 @@ classdef maitai < laser & loghandler
 
         function readLastErrorCode(obj)
             % Print to screen Mai Tai error codes
-            [success,reply]=obj.sendAndReceiveSerial('PLAS:ERRC?');
+            [~,reply]=obj.sendAndReceiveSerial('PLAS:ERRC?');
             disp(reply)
 
         end
@@ -463,11 +441,40 @@ classdef maitai < laser & loghandler
                 waitForReply=true;
             end
 
+            success = false;
+            reply = '';
+
+            if obj.portBusy==true
+                % retry a few times
+                nRetries = 4;
+                for ii=1:nRetries
+                    if obj.portBusy == false
+                        [success,reply] = obj.sendAndReceiveSerial(commandString,waitForReply);
+                        obj.portBusy=false;
+                        return
+                    else
+                        pause(0.125)
+                    end
+                end
+                
+                msg = sprintf('maitai.sendReceiveSerial was busy and %d retries failed.', nRetries);
+                disp(msg)
+                obj.logMessage(inputname(1),dbstack,6,msg)
+                return
+            end
+
             if isempty(commandString) || ~ischar(commandString)
-                reply='';
-                success=false;
                 obj.logMessage(inputname(1),dbstack,6,'maitai.sendReceiveSerial command string not valid.')
                 return
+            end
+
+
+            obj.portBusy=true;
+            % Flush before sending the command
+            if obj.hC.BytesAvailable>0
+               fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
+                     commandString, obj.hC.BytesAvailable)
+               flushinput(obj.hC)
             end
 
             fprintf(obj.hC,commandString);
@@ -475,24 +482,13 @@ classdef maitai < laser & loghandler
             if ~waitForReply
                 reply=[];
                 success=true;
-                if obj.hC.BytesAvailable>0
-                    fprintf('Not waiting for reply by there are %d BytesAvailable\n',obj.hC.BytesAvailable)
-                end
+                obj.portBusy=false;
                 return
             end
 
             reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
-            if obj.hC.BytesAvailable>0
-                if doFlush
-                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                    flushinput(obj.hC)
-                else
-                    fprintf('Read in from the MaiTai buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                end
-            end
+
+            obj.portBusy=false;
 
             if ~isempty(reply)
                 reply(end)=[];
@@ -504,7 +500,9 @@ classdef maitai < laser & loghandler
             end
 
             success=true;
-        end
+        end % sendAndReceiveSerial
+
+
 
     end %close methods
 

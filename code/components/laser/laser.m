@@ -21,6 +21,7 @@ classdef (Abstract) laser < handle
 
         hC  %A handle to the hardware object or port (e.g. COM port) used to
             %control the laser.
+        portBusy = false % Added 2026/06/11 to help avoid clashes at the serial port. 
 
         controllerID % The information required by the method that connects to the
                      % the controller at connect-time. This can be specified in whatever
