@@ -459,13 +459,13 @@ classdef maitai < laser & loghandler
 
             if obj.portBusy==true
                 % retry a few times
-                nRetries = 4;
+                nRetries = 10;
                 while obj.portBusy && nRetries > 0
-                    pause(0.125)
+                    pause(0.1)
                     nRetries = nRetries - 1;
                 end
                 if obj.portBusy
-                    msg = sprintf('maitai.sendReceiveSerial was busy and %d retries failed.', nRetries);
+                    msg = sprintf('maitai.sendReceiveSerial was busy and retries failed.');
                     disp(msg)
                     obj.logMessage(inputname(1),dbstack,6,msg)
                     return
