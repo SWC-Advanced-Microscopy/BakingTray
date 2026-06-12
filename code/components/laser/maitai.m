@@ -128,6 +128,7 @@ classdef maitai < laser & loghandler
 
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default
+            pause(0.1)
             success=obj.sendAndReceiveSerial('OFF',false);
 
             %TODO -- verify turn-off with a validated `readPumpPower` and report that.
@@ -457,19 +458,11 @@ classdef maitai < laser & loghandler
             success = false;
             reply = '';
 
-            if obj.portBusy==true
-                % retry a few times
-                nRetries = 10;
-                while obj.portBusy && nRetries > 0
-                    pause(0.1)
-                    nRetries = nRetries - 1;
-                end
-                if obj.portBusy
-                    msg = sprintf('maitai.sendReceiveSerial was busy and retries failed.');
-                    disp(msg)
-                    obj.logMessage(inputname(1),dbstack,6,msg)
-                    return
-                end
+            if obj.portBusy
+                msg = sprintf('maitai.sendReceiveSerial was busy and retries failed.');
+                disp(msg)
+                obj.logMessage(inputname(1),dbstack,6,msg)
+                return
             end
 
             if isempty(commandString) || ~ischar(commandString)

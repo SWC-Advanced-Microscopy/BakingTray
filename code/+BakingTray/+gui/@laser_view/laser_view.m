@@ -412,6 +412,10 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
+            if obj.model.portBusy
+                return
+            end
+
             try
                 obj.updateModeLockElements
                 obj.updatePowerText
