@@ -343,10 +343,10 @@ classdef laser_view < BakingTray.gui.child_view
                 %TODO: make a check connection method and bring up a warning box
                 return
             end
-            if obj.model.laser.isModeLocked==true
+            if obj.model.laser.isLaserModeLocked==true
                 set(obj.modelockIndicator, 'FaceColor', 'g')
                 set(obj.modelockText, 'String', 'Modelock: YES')
-            elseif obj.model.laser.isModeLocked==false
+            elseif obj.model.laser.isLaserModeLocked==false
                 set(obj.modelockIndicator, 'FaceColor', 'r')
                 set(obj.modelockText, 'String', 'Modelock: NO')
             end
@@ -412,12 +412,14 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
-            if obj.model.portBusy
+            if obj.model.laser.portBusy
                 return
             end
 
+            obj.model.laser.isModeLocked; % poll here
+
             try
-                obj.updateModeLockElements
+                obj.updateModeLockElements % read properties here not polling
                 obj.updatePowerText
                 obj.updateCurrentWavelength
             catch ME
