@@ -118,9 +118,18 @@ function [thisRecipe,msg] = readRecipe(recipeFname)
     % Convert some choice cell arrays to matrices
     if isfield(tRecipe,'ScannerSettings')
         tRecipe.ScannerSettings.activeChannels = cell2mat(tRecipe.ScannerSettings.activeChannels);
-        tRecipe.ScannerSettings.beamPower = cell2mat(tRecipe.ScannerSettings.beamPower);
-        tRecipe.ScannerSettings.beamPowerLengthConstant = cell2mat(tRecipe.ScannerSettings.beamPowerLengthConstant);
-        tRecipe.ScannerSettings.powerZAdjust = cell2mat(tRecipe.ScannerSettings.powerZAdjust);
+
+        if iscell(tRecipe.ScannerSettings.beamPower)
+            tRecipe.ScannerSettings.beamPower = cell2mat(tRecipe.ScannerSettings.beamPower);
+        end
+
+        if iscell(tRecipe.ScannerSettings.beamPowerLengthConstant)
+            tRecipe.ScannerSettings.beamPowerLengthConstant = cell2mat(tRecipe.ScannerSettings.beamPowerLengthConstant);
+        end
+
+        if iscell(tRecipe.ScannerSettings.powerZAdjust)
+            tRecipe.ScannerSettings.powerZAdjust = cell2mat(tRecipe.ScannerSettings.powerZAdjust);
+        end
     end
    
     thisRecipe = tRecipe;
