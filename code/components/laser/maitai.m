@@ -493,13 +493,10 @@ classdef maitai < laser & loghandler
             if ~waitForReply
                 reply=[];
                 success=true;
-                %obj.portBusy=false; %TODO -verify and remove
                 return
             end
 
             reply=fgets(obj.hC);
-
-            %obj.portBusy=false; %TODO -verify and remove
 
             if ~isempty(reply)
                 reply(end)=[];
@@ -517,7 +514,6 @@ classdef maitai < laser & loghandler
             % releases the serial port called by sendAndReceiveSerial
             % as a cleanup function
             obj.portBusy = false;
-            disp('Port marked as not busy') % TODO-- REMOVE SOON
         end
 
     end %close methods
