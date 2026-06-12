@@ -1,18 +1,18 @@
 classdef (Abstract) loghandler < handle
 
 
-    % The log handler class provides methods and properties for 
-    % integrating a bk_logger object into a concrete class. 
+    % The log handler class provides methods and properties for
+    % integrating a bk_logger object into a concrete class.
     % This must be inherited by a concrete class in order to function.
     %
     % For example, the linearcontroller class inherits loghandler
-    % so that linear stage controller concrete classes, such C891, 
+    % so that linear stage controller concrete classes, such C891,
     % have access to methods that will handle error logging. These
     % methods work on a bk_logger object attached to an instance
-    % of C891 as a property. The methods simplify the process of 
-    % choosing what to display to screen, error handling, etc. 
+    % of C891 as a property. The methods simplify the process of
+    % choosing what to display to screen, error handling, etc.
 
-    properties 
+    properties
         %There are 5 levels of log message (see bk_logger.bk_logger)
         %Setting the following to 1 would cause everything to be logged.
         %Setting to 5 would cause only the most serious errors to be logged.
@@ -30,14 +30,14 @@ classdef (Abstract) loghandler < handle
         %Define the strings associate with each message ID index.
         %progressively more serious events should be at higher indexes.
         MSGID={'MSG#5', 'MSG#4', 'MSG#3', 'MSG#2', 'MSG#1', 'ERR', 'FAILURE'}
-    
+
         % * First we have five granularities of message detail: MSG#5 to MSG#1
         %
         % * Errors are things that have gone wrong, but should not be fatal.
         %   Events that might cause very small quantities of data loss might
         %   classify as an error.
         %
-        % * Failure indicates a condition that is serious. Events that might 
+        % * Failure indicates a condition that is serious. Events that might
         %   cause cessation of acquisition, inability to start acquisition,
 
 
@@ -45,10 +45,10 @@ classdef (Abstract) loghandler < handle
 
 
 
-    methods 
+    methods
 
         function attachLogObject(obj,loggerObject)
-            %Attach log object 
+            %Attach log object
             if ~isa(loggerObject,obj.loggerObjectType)
                 fprintf('Can not attach object of class %s. Must be a %s object\n',...
                     class(loggerObject),obj.loggerObjectType)
@@ -89,7 +89,7 @@ classdef (Abstract) loghandler < handle
                 fprintf('Cleaning up partially removed logger object\n')
             end
 
-            try 
+            try
                 if ~keepLoggerOpen & isvalid(obj.loggerObject)
                     delete(obj.loggerObject);
                 end
@@ -104,12 +104,12 @@ classdef (Abstract) loghandler < handle
             %
             %  logMessage(callerObjectName, dbStackOutput, msgID, msg)
             %
-            % Inputs 
+            % Inputs
             % callerObjectName - a string defining the name of the caller object
             % dbStackOutput - the output of the dbstack command run from the caller method
-            % msgID - This is a scalar that is mapped to a short message ID string that can 
+            % msgID - This is a scalar that is mapped to a short message ID string that can
             %         be use to tag messages for easier searching. if msgID is -1, the nothing
-            %         is done. 
+            %         is done.
             % msg - an optional message string
             %
             % e.g.
@@ -170,8 +170,8 @@ classdef (Abstract) loghandler < handle
             %Log the message to one or more files as needed
             if msgID >= obj.logMessageThreshFile
 
-                msgString = sprintf('%s,%s,%s,%s,%s', ... 
-                    obj.returnMSGID(msgID), datestr(now,'yymmdd-HHMMSS'), ... 
+                msgString = sprintf('%s,%s,%s,%s,%s', ...
+                    obj.returnMSGID(msgID), datestr(now,'yymmdd-HHMMSS'), ...
                     callerObjectName, dbStackOutput.name, msg);
 
                 for ii=1:length(obj.loggerObject.fid)
@@ -180,7 +180,7 @@ classdef (Abstract) loghandler < handle
                         fprintf(H,'%s\n',msgString);
                     end
                 end %ii=1:length...
-            end 
+            end
 
         end %logMessage
 
