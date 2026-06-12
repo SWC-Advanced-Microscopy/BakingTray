@@ -291,7 +291,7 @@ classdef laser_view < BakingTray.gui.child_view
 
         %The following methods are used to update GUI elements upon certain events happening
         function onOffButtonCallBack(obj,~,~)
-            % Turns the laser on or off. Which it does depends on the current state of the laser. 
+            % Turns the laser on or off. Which it does depends on the current state of the laser.
             % GUI elements are updated via callbacks.
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
@@ -369,7 +369,7 @@ classdef laser_view < BakingTray.gui.child_view
             %
             % laser_view.updateLaserOnElements
             %
-            % NOTES 
+            % NOTES
             % If the laser is reported as being off but is also reported as being
             % mode-locked, then double-check whether or not it is on. This
             % function is called via callbacks that are triggered by the
@@ -412,12 +412,6 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
-            if obj.model.laser.hC.BytesAvailable>0
-                fprintf('Skipping regularGUIupdater timer callback due to bytes still present for reading in serial buffer\n')
-                return
-            end
-
-            
             try
                 obj.updateModeLockElements
                 obj.updatePowerText
