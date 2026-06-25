@@ -283,11 +283,6 @@ classdef laser_view < BakingTray.gui.child_view
             if ~obj.model.laser.isControllerConnected
                 return
             end
-            %TODO: let's see if this improves stability of the serial comms
-            if obj.model.laser.hC.BytesAvailable>0
-                fprintf('Skipping updateCurrentWavelength timer callback due to bytes still present for reading in serial buffer\n')
-                return
-            end
 
             W=obj.model.laser.readWavelength; %updates obj.model.laser.currentWavelength
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
@@ -296,7 +291,7 @@ classdef laser_view < BakingTray.gui.child_view
 
         %The following methods are used to update GUI elements upon certain events happening
         function onOffButtonCallBack(obj,~,~)
-            % Turns the laser on or off. Which it does depends on the current state of the laser. 
+            % Turns the laser on or off. Which it does depends on the current state of the laser.
             % GUI elements are updated via callbacks.
             if ~obj.model.laser.isControllerConnected
                 %TODO: make a check connection method and bring up a warning box
@@ -348,10 +343,10 @@ classdef laser_view < BakingTray.gui.child_view
                 %TODO: make a check connection method and bring up a warning box
                 return
             end
-            if obj.model.laser.isModeLocked==true
+            if obj.model.laser.isLaserModeLocked==true
                 set(obj.modelockIndicator, 'FaceColor', 'g')
                 set(obj.modelockText, 'String', 'Modelock: YES')
-            elseif obj.model.laser.isModeLocked==false
+            elseif obj.model.laser.isLaserModeLocked==false
                 set(obj.modelockIndicator, 'FaceColor', 'r')
                 set(obj.modelockText, 'String', 'Modelock: NO')
             end
@@ -374,7 +369,7 @@ classdef laser_view < BakingTray.gui.child_view
             %
             % laser_view.updateLaserOnElements
             %
-            % NOTES 
+            % NOTES
             % If the laser is reported as being off but is also reported as being
             % mode-locked, then double-check whether or not it is on. This
             % function is called via callbacks that are triggered by the
@@ -417,14 +412,14 @@ classdef laser_view < BakingTray.gui.child_view
                 return
             end
 
-            if obj.model.laser.hC.BytesAvailable>0
-                fprintf('Skipping regularGUIupdater timer callback due to bytes still present for reading in serial buffer\n')
+            if obj.model.laser.portBusy
                 return
             end
 
-            
+            obj.model.laser.isModeLocked; % poll here
+
             try
-                obj.updateModeLockElements
+                obj.updateModeLockElements % read properties here not polling
                 obj.updatePowerText
                 obj.updateCurrentWavelength
             catch ME

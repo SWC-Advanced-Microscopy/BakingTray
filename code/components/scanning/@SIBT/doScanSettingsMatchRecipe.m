@@ -64,10 +64,16 @@ function [success,msg] = doScanSettingsMatchRecipe(obj,thisRecipe)
     % Whether to average
     msg = [msg, checkSetting(sSet.averageEveryNframes, obj.hC.hDisplay.displayRollingAverageFactor, ' ')];
 
-    % Beam power (convert cell arrays to matrices
-    sSet.beamPower = cell2mat(sSet.beamPower);
-    sSet.powerZAdjust = cell2mat(sSet.powerZAdjust);
-    sSet.beamPowerLengthConstant = cell2mat(sSet.beamPowerLengthConstant);
+    % Beam power (convert cell arrays to matrices if needed
+    if iscell(sSet.beamPower)
+        sSet.beamPower = cell2mat(sSet.beamPower);
+    end
+    if iscell(sSet.powerZAdjust)
+        sSet.powerZAdjust = cell2mat(sSet.powerZAdjust);
+    end
+    if iscell(sSet.beamPowerLengthConstant)
+        sSet.beamPowerLengthConstant = cell2mat(sSet.beamPowerLengthConstant);
+    end
 
     msg = [msg, checkSetting(sSet.beamPower, obj.hC.hBeams.powers, 'Laser powers')];
     msg = [msg, checkSetting(sSet.powerZAdjust, obj.hC.hBeams.pzAdjust, 'Adjust with depth')]; % Bool. If true, we ramped power with depth
