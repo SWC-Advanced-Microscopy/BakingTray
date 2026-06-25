@@ -35,7 +35,6 @@ classdef maitai < laser & loghandler
             obj.friendlyName = 'MaiTai';
 
             fprintf('\nSetting up MaiTai laser communication on serial port %s\n', serialComms);
-            BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
             success = obj.connect;
 
@@ -64,10 +63,9 @@ classdef maitai < laser & loghandler
         %destructor
         function delete(obj)
             fprintf('Disconnecting from MaiTai laser\n')
-            if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
+            if ~isempty(obj.hC) && isvalid(obj.hC)
                 fprintf('Closing serial communications with MaiTai laser\n')
-                flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
-                fclose(obj.hC);
+                flush(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 delete(obj.hC);
                 delete(obj.hDO)
             end
@@ -75,16 +73,17 @@ classdef maitai < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',9600,'TimeOut',5);
             try
-                fopen(obj.hC);
+                obj.hC=serialport(obj.controllerID,9600,'Timeout',5);
             catch ME
                 fprintf(' * ERROR: Failed to connect to MaiTai:\n%s\n\n', ME.message)
                 success=false;
+                obj.isLaserConnected=success;
                 return
             end
+            configureTerminator(obj.hC,"LF")
 
-            flushinput(obj.hC) % Just in case
+            flush(obj.hC) % Just in case
             if isempty(obj.hC)
                 success=false;
             else
@@ -101,7 +100,7 @@ classdef maitai < laser & loghandler
 
 
         function success = isControllerConnected(obj)
-            if strcmp(obj.hC.Status,'closed')
+            if isempty(obj.hC) || ~isvalid(obj.hC)
                 success=false;
             else
                 [~,success] = obj.isShutterOpen;
@@ -459,14 +458,14 @@ classdef maitai < laser & loghandler
             reply = '';
 
             if obj.portBusy
-                msg = sprintf('maitai.sendReceiveSerial was busy and retries failed.');
+                msg = 'maitai.sendAndReceiveSerial found the port busy. Command skipped.';
                 disp(msg)
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
 
             if isempty(commandString) || ~ischar(commandString)
-                obj.logMessage(inputname(1),dbstack,6,'maitai.sendReceiveSerial command string not valid.')
+                obj.logMessage(inputname(1),dbstack,6,'maitai.sendAndReceiveSerial command string not valid.')
                 return
             end
 
@@ -474,14 +473,15 @@ classdef maitai < laser & loghandler
             obj.portBusy=true;
             portCleaner = onCleanup(@() obj.releasePort);
 
-            % Flush before sending the command
-            if obj.hC.BytesAvailable>0
+            % Flush any stale bytes before sending so the reply we read back is the
+            % reply to THIS command and not an orphan from a previous transaction.
+            if obj.hC.NumBytesAvailable>0
                fprintf('Flushing %d stale bytes before sending "%s"\n', ...
-                        obj.hC.BytesAvailable, commandString)
-               flushinput(obj.hC)
+                        obj.hC.NumBytesAvailable, commandString)
+               flush(obj.hC,"input")
             end
 
-            fprintf(obj.hC,commandString);
+            writeline(obj.hC,commandString);
 
             if ~waitForReply
                 reply=[];
@@ -489,16 +489,17 @@ classdef maitai < laser & loghandler
                 return
             end
 
-            reply=fgets(obj.hC);
+            % readline returns one complete line with the terminator already stripped,
+            % or an empty string if it times out before a terminator arrives.
+            reply = readline(obj.hC);
 
-            if ~isempty(reply)
-                reply(end)=[];
-            else
+            if strlength(reply)==0
                 msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
-                success=false;
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
+
+            reply = char(reply); % downstream parsing uses char-array indexing
 
             success=true;
         end % sendAndReceiveSerial

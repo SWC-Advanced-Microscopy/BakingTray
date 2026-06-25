@@ -177,8 +177,13 @@ classdef laser_view < BakingTray.gui.child_view
 
         function delete(obj)
             %Flush the buffer on the laser (just in case)
-            if isa(obj.model.laser.hC,'serial')
-                flushinput(obj.model.laser.hC)
+            hLaserComms = obj.model.laser.hC;
+            if ~isempty(hLaserComms) && isobject(hLaserComms) && isvalid(hLaserComms)
+                if isa(hLaserComms,'serial')
+                    flushinput(hLaserComms) % legacy serial (e.g. chameleon, tiberius)
+                else
+                    flush(hLaserComms) % serialport (e.g. maitai)
+                end
             end
 
             if isa(obj.laserViewUpdateTimer,'timer')

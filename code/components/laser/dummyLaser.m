@@ -49,7 +49,6 @@ classdef dummyLaser < laser %& loghandler
 
             %Set the target wavelength to equal the current wavelength
             obj.targetWavelength=obj.currentWavelength;
-            obj.hC.BytesAvailable=0; % Because the laser view checks this before deciding whether to run its timer function
             obj.friendlyName = 'Dummy Laser';
         end %constructor
 
