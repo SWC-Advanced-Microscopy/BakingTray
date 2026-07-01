@@ -285,10 +285,6 @@ classdef laser_view < BakingTray.gui.child_view
         %This function restarts the timer and updates the GUI until the wavelength has settled
         %see also: obj.setReadWavelengthTextPanel
         function updateCurrentWavelength(obj)
-            if ~obj.model.laser.isControllerConnected
-                return
-            end
-
             W=obj.model.laser.readWavelength; %updates obj.model.laser.currentWavelength
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
         end % updateCurrentWavelength
@@ -327,10 +323,6 @@ classdef laser_view < BakingTray.gui.child_view
 
 
         function updateShutterElements(obj,~,~)
-            if ~obj.model.laser.isControllerConnected
-                %TODO: make a check connection method and bring up a warning box
-                return
-            end
             if obj.model.laser.isShutterOpen==true
                 set(obj.buttonShutter, 'String', 'Close Shutter')
                 set(obj.shutterText, 'String', 'Shutter Opened')
