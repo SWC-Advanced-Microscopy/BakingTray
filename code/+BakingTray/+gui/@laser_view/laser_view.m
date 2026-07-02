@@ -294,12 +294,9 @@ classdef laser_view < BakingTray.gui.child_view
         function onOffButtonCallBack(obj,~,~)
             % Turns the laser on or off. Which it does depends on the current state of the laser.
             % GUI elements are updated via callbacks.
-            if ~obj.model.laser.isControllerConnected
-                %TODO: make a check connection method and bring up a warning box
-                return
-            end
-
+ 
             isPoweredOn = obj.model.laser.isPoweredOn;
+
             if isPoweredOn
                 obj.model.laser.turnOff;
             else
@@ -310,10 +307,6 @@ classdef laser_view < BakingTray.gui.child_view
 
 
         function shutterButtonCallBack(obj,~,~)
-            if ~obj.model.laser.isControllerConnected
-                %TODO: make a check connection method and bring up a warning box
-                return
-            end
             if obj.model.laser.isLaserShutterOpen==true
                 obj.model.laser.closeShutter;
             elseif obj.model.laser.isLaserShutterOpen==false

@@ -127,11 +127,11 @@ classdef maitai < laser & loghandler
 
         function success = turnOff(obj)
             obj.closeShutter; % Older MaiTai lasers seem not to do this by default
-            pause(0.1)
+            pause(0.25)
             success=obj.sendAndReceiveSerial('OFF',false);
 
             %TODO -- verify turn-off with a validated `readPumpPower` and report that.
-            pause(0.1)
+            pause(0.25)
 
             % Force read of modelock state right away
             obj.isLaserModeLocked;

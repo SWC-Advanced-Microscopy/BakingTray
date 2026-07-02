@@ -180,7 +180,11 @@ classdef chameleon < laser & loghandler
         function success = turnOff(obj)
             % Even the keyswitch is set to "ENABLE" the laser can be turned off remotely
             success=obj.sendAndReceiveSerial('L=0');
+            pause(0.25)
+
             obj.closeShutter; %Because it doesn't turn off the shutter automatically
+            pause(0.25)
+            
             if success
                 obj.isLaserOn=false;
             end
