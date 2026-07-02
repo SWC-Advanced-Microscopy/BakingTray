@@ -299,6 +299,10 @@ classdef laser_view < BakingTray.gui.child_view
 
             if isPoweredOn
                 obj.model.laser.turnOff;
+
+                % Because sometimes some elements get stick as on
+                pause(0.5)
+                obj.updateGUI
             else
                 obj.model.laser.turnOn;
             end
