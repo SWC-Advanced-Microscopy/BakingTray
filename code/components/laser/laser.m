@@ -21,7 +21,6 @@ classdef (Abstract) laser < handle
 
         hC  %A handle to the hardware object or port (e.g. COM port) used to
             %control the laser.
-        portBusy = false
 
         controllerID % The information required by the method that connects to the
                      % the controller at connect-time. This can be specified in whatever
@@ -61,6 +60,14 @@ classdef (Abstract) laser < handle
         pollTimer % Handles regular serial reads
         defaultPollPeriodInSeconds = 1.5 % Serial port polling interval
         pollPauseDepth = 0  % >0 while a command is running; pollSerial skips
+
+        % Async serial transport state (see setupAsyncSerial / sendAndReceiveSerial)
+        cmdQueue = {}                    % FIFO of pending command structs
+        serialReplies                    % containers.Map(id -> reply); made in setupAsyncSerial
+        serialInFlight = false           % true while a command awaits its reply
+        inFlightId = []                  % id of the in-flight command
+        nextCmdId = 1                    % monotonic command id
+        serialReplyTimeoutSeconds = 5    % bounded wait for a reply before resync
     end %close hidden properties
 
 
@@ -319,6 +326,13 @@ classdef (Abstract) laser < handle
             % laser superclass delete method
             obj.stopPollingSerialPort
             delete(obj.pollTimer)
+            % Detach the terminator callback before the port is closed by the subclass.
+            if ~isempty(obj.hC) && isvalid(obj.hC)
+                try
+                    configureCallback(obj.hC,"off")
+                catch
+                end
+            end
         end % delete
 
         function emission = emissionPossible(obj)
@@ -550,7 +564,9 @@ classdef (Abstract) laser < handle
         function pollSerial(obj)
             % Update all cached properties of the laser
 
-            if obj.portBusy || obj.pollPauseDepth > 0
+            % Skip if a command is holding the poller off, or the previous burst
+            % hasn't drained yet (don't pile reads onto the queue).
+            if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)
                 return
             end
 
@@ -566,9 +582,31 @@ classdef (Abstract) laser < handle
         end % pollSerial
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        % Async serial transport (shared by maitai, chameleon, tiberius)
+        %
+        % There is a single command queue and one terminator callback (onSerialData).
+        % sendAndReceiveSerial places a command on the queue rather than blocking on a
+        % readline. Replies arrive asynchronously and are matched, in order, to the
+        % oldest command awaiting a reply. Because nothing blocks the port while waiting,
+        % a command issued from a button press can no longer collide with an in-flight
+        % read and be dropped -- it simply queues behind it.
+
+        function setupAsyncSerial(obj)
+            % Initialise the command queue and attach the terminator callback.
+            % Call this from each subclass connect() AFTER configureTerminator, before
+            % any sendAndReceiveSerial call.
+            obj.cmdQueue = {};
+            obj.serialReplies = containers.Map('KeyType','double','ValueType','char');
+            obj.serialInFlight = false;
+            obj.inFlightId = [];
+            obj.nextCmdId = 1;
+            configureCallback(obj.hC,"terminator",@(~,~) obj.onSerialData);
+        end % setupAsyncSerial
+
         function [success,reply]=sendAndReceiveSerial(obj,commandString,waitForReply)
-            % Send a serial command and optionally read back the reply.
-            % Shared by all serialport-based laser subclasses (maitai, chameleon, tiberius).
+            % Queue a serial command and (optionally) wait for its reply.
+            % waitForReply=true spins (via pause, which lets the callback run) until
+            % THIS command's reply arrives or we time out; false returns immediately.
             if nargin<3
                 waitForReply=true;
             end
@@ -576,28 +614,17 @@ classdef (Abstract) laser < handle
             success = false;
             reply = '';
 
-            if obj.portBusy
-                msg = 'laser.sendAndReceiveSerial found the port busy. Command skipped.';
-                disp(msg)
-                obj.logMessage(inputname(1),dbstack,6,msg)
-                return
-            end
-
             if isempty(commandString) || ~ischar(commandString)
                 obj.logMessage(inputname(1),dbstack,6,sprintf('%s.sendAndReceiveSerial command string not valid.', class(obj)))
                 return
             end
 
-            obj.portBusy=true;
-            portCleaner = onCleanup(@() obj.releasePort);
+            % Enqueue with a unique id so a (possibly nested) waiter can find its reply.
+            id = obj.nextCmdId;
+            obj.nextCmdId = obj.nextCmdId + 1;
+            obj.cmdQueue{end+1} = struct('id',id, 'command',commandString, 'awaitReply',waitForReply);
 
-            % Flush any stale bytes before sending so the reply we read back is the
-            % reply to THIS command and not an orphan from a previous transaction.
-            if obj.hC.NumBytesAvailable>0
-               flush(obj.hC,"input")
-            end
-
-            writeline(obj.hC,commandString);
+            obj.pumpSerialQueue % send the head of the queue if the port is free
 
             if ~waitForReply
                 reply=[];
@@ -605,31 +632,83 @@ classdef (Abstract) laser < handle
                 return
             end
 
-            % readline returns one complete line with the terminator already stripped,
-            % or an empty string if it times out before a terminator arrives.
-            reply = readline(obj.hC);
+            % Wait for this command's reply. pause() yields so onSerialData can run.
+            t0 = tic;
+            while ~isKey(obj.serialReplies,id) && toc(t0) < obj.serialReplyTimeoutSeconds
+                pause(0.005)
+            end
 
-            if strlength(reply)==0
-                msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
+            if ~isKey(obj.serialReplies,id)
+                % Timed out. Drop the stuck transaction and resync the stream.
+                msg = sprintf('%s serial command %s did not return a reply\n', class(obj), commandString);
                 obj.logMessage(inputname(1),dbstack,6,msg)
+                obj.resyncSerial
                 return
             end
 
-            reply = char(reply); % downstream parsing uses char-array indexing
+            reply = obj.serialReplies(id);
+            remove(obj.serialReplies,id);
 
-            % If the laser echoes the command back, remove it. This is a no-op for
-            % lasers that don't echo: their replies never contain the command as a
-            % substring, and no-reply commands return above before reaching here.
-            % The chameleon class is known to echo. The maitai and tiberius do not.
+            % If the laser echoes the command back, remove it (no-op for non-echoers).
             reply = strrep(reply,commandString,'');
-
-            success=true;
+            success = true;
         end % sendAndReceiveSerial
 
-        function releasePort(obj)
-            % releases the serial port. Called by sendAndReceiveSerial as a cleanup function
-            obj.portBusy = false;
-        end
+        function pumpSerialQueue(obj)
+            % Send the next queued command if nothing is currently awaiting a reply.
+            if obj.serialInFlight || isempty(obj.cmdQueue)
+                return
+            end
+
+            item = obj.cmdQueue{1};
+            obj.cmdQueue(1) = [];
+
+            % Flush stale bytes so the next reply we read is the reply to THIS command.
+            if obj.hC.NumBytesAvailable>0
+                flush(obj.hC,"input")
+            end
+
+            writeline(obj.hC,item.command);
+
+            if item.awaitReply
+                obj.serialInFlight = true;
+                obj.inFlightId = item.id;
+            else
+                % No reply expected: command complete, send the next one.
+                obj.pumpSerialQueue
+            end
+        end % pumpSerialQueue
+
+        function onSerialData(obj)
+            % Terminator callback: a complete line has arrived. Match it to the
+            % in-flight command, hand it to the waiter, then send the next command.
+            if isempty(obj.hC) || ~isvalid(obj.hC) || obj.hC.NumBytesAvailable==0
+                return
+            end
+            line = readline(obj.hC);
+
+            if ~obj.serialInFlight || strlength(line)==0
+                % Orphan/late reply with nothing awaiting it, or empty line. Discard.
+                return
+            end
+
+            obj.serialReplies(obj.inFlightId) = char(line);
+            obj.serialInFlight = false;
+            obj.inFlightId = [];
+
+            obj.pumpSerialQueue % send the next queued command
+        end % onSerialData
+
+        function resyncSerial(obj)
+            % Recover from a desync (called on a reply timeout): drop the in-flight
+            % command, flush the input buffer, and continue with anything still queued.
+            obj.serialInFlight = false;
+            obj.inFlightId = [];
+            if ~isempty(obj.hC) && isvalid(obj.hC)
+                flush(obj.hC,"input")
+            end
+            obj.pumpSerialQueue
+        end % resyncSerial
 
     end %close methods
 

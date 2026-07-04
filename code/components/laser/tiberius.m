@@ -81,6 +81,7 @@ classdef tiberius < laser & loghandler
                 return
             end
             configureTerminator(obj.hC,"CR/LF")
+            obj.setupAsyncSerial % attach the terminator callback + init the command queue
 
             flush(obj.hC) % Just in case
             if isempty(obj.hC)
