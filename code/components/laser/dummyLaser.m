@@ -1,7 +1,7 @@
 classdef dummyLaser < laser %& loghandler
 %%  dummyLaser
 %
-% Dummy laser control class for debugging or running in, say, a simulated ScanImage session. 
+% Dummy laser control class for debugging or running in, say, a simulated ScanImage session.
 %
 % Rob Campbell - Basel 2016
 
@@ -11,13 +11,13 @@ classdef dummyLaser < laser %& loghandler
     end
 
     properties (Hidden)
-        %These properties are associated with a timer that simulates the tuning process of the 
-        %laser to a new wavelength. The purpose of this is for the laser GUI to update 
-        %realistically when the dummy laser is connected. 
+        %These properties are associated with a timer that simulates the tuning process of the
+        %laser to a new wavelength. The purpose of this is for the laser GUI to update
+        %realistically when the dummy laser is connected.
         nanoMetersPerSecond = 10    % Rate at which the wavelength changes
         wavelengthTimer             % To simulate slow wavelength changing
         updateInterval = 0.10      % Every 100 ms update the wavelength during wavelength change
-        hiddenCurrentWavelength=800 % This is the current laser wavelength that is incremented gradually when the user "tunes" the dummy laser 
+        hiddenCurrentWavelength=800 % This is the current laser wavelength that is incremented gradually when the user "tunes" the dummy laser
 
     end
 
@@ -114,7 +114,7 @@ classdef dummyLaser < laser %& loghandler
             success = true;
         end
 
-        function wavelength = readWavelength(obj) 
+        function wavelength = readWavelength(obj)
             %Get the wavelength from the dummy laser's "internal" state
             wavelength=obj.hiddenCurrentWavelength;
             obj.currentWavelength = wavelength;
@@ -128,7 +128,7 @@ classdef dummyLaser < laser %& loghandler
             end
             if ~isnumeric(wavelengthInNM) || ~isscalar(wavelengthInNM)
                 fprintf('ERROR: wavelength should be a numeric scalar\n')
-                return 
+                return
             end
             if ~obj.isTargetWavelengthInRange(wavelengthInNM)
                 return
@@ -195,4 +195,4 @@ classdef dummyLaser < laser %& loghandler
 
     end %close methods
 
-end %close classdef 
+end %close classdef

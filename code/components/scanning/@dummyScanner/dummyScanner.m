@@ -2,8 +2,8 @@ classdef dummyScanner < scanner
 %%
 % dummyScanner
 %
-% The dummy scanner class. 
-% Optional loading of data from disk to simulate acquisition 
+% The dummy scanner class.
+% Optional loading of data from disk to simulate acquisition
 
     properties
         logFilePath
@@ -12,8 +12,8 @@ classdef dummyScanner < scanner
         inAcquiringMode=false;
 
         % The following properties are highly specific to dummy_scanner
-        writeData=false % Only writes data to disk if this is true. 
-        existingDataDir %D irectory containing existing data set that we will use 
+        writeData=false % Only writes data to disk if this is true.
+        existingDataDir %D irectory containing existing data set that we will use
         metaData % meta data of already existin dataset
 
         displayAcquiredImages=true
@@ -39,7 +39,7 @@ classdef dummyScanner < scanner
     properties (Hidden)
         placeInDownSampledTileBuffer=false; %Changed by arm/disarm scanner
 
-        %NOTE: dummyScanner is only tested with the following three 
+        %NOTE: dummyScanner is only tested with the following three
         %      properties set to 1.
         numOpticalPlanes=1
         numChannels=1;
@@ -55,8 +55,8 @@ classdef dummyScanner < scanner
         hCurrentFrameAx
         hCurrentFramePlt
 
-        % These values are calculated by attachPreviewStack so that we don't see the padded 
-        % regions when displaying the section image. 
+        % These values are calculated by attachPreviewStack so that we don't see the padded
+        % regions when displaying the section image.
         sectionImage_ylim
         sectionImage_xlim
 
@@ -98,7 +98,7 @@ classdef dummyScanner < scanner
             obj.settings.tileAcq.tileFlipLR=false; % see initiateTileScan
             obj.settings.tileAcq.tileRotate=0;     % see initiateTileScan
 
-            obj.readFrameSizeSettings; % Populate the frame setings 
+            obj.readFrameSizeSettings; % Populate the frame setings
             obj.scannerSettings = obj.returnDefaultScanSettings;
         end %constructor
 
@@ -115,7 +115,7 @@ classdef dummyScanner < scanner
         end %destructor
 
 
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         function success = connect(obj,API)
             success=true;
         end %connect
@@ -136,7 +136,7 @@ classdef dummyScanner < scanner
                 return
             end
 
-            % Ensure we run as fast as possible 
+            % Ensure we run as fast as possible
             if isa(obj.parent.xAxis,'dummy_linearcontroller')
                 obj.parent.xAxis.instantMotions=true;
             end
@@ -173,8 +173,10 @@ classdef dummyScanner < scanner
         function abortScanning(obj)
         end
 
+
         function leaveResonantScannerOn(obj)
         end
+
 
         function showFastZCalib(~,~,~)
             % SIBT does this and so we also do here
@@ -183,7 +185,7 @@ classdef dummyScanner < scanner
 
         function setUpTileSaving(obj)
             obj.logFilePath = obj.parent.currentTileSavePath;
-            obj.logFileCounter = 1; % Start each section with the index at 1. 
+            obj.logFileCounter = 1; % Start each section with the index at 1.
             obj.logFileStem = obj.returnTileFname;
             obj.writeData = true;
         end
@@ -197,6 +199,48 @@ classdef dummyScanner < scanner
         function OUT = returnScanSettings(obj)
             OUT = obj.scannerSettings;
         end
+
+
+        function nBeams = returnNumberOfAvailableBeams(obj)
+            nBeams = 1;
+        end
+
+
+        function beamNames = returnAvailableBeamNames(obj)
+            beamNames = 'dummyBeam';
+        end
+
+
+        function minPower = beamMinPower(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            minPower = 0;
+        end % beamMinPower
+
+
+        function maxPower = beamMaxPower(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            maxPower = 1;
+        end % beamMaxPower
+
+
+        function beamLUT = returnBeamLUT(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            beamLUT = 0:0.01:1;
+        end % returnBeamLUT
+
+
+        function Vrange = returnBeamVrange(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            Vrange = [0,5];
+        end % returnBeamLUT
 
 
         function acquiring = isAcquiring(obj)
@@ -317,7 +361,7 @@ classdef dummyScanner < scanner
 
         %---------------------------------------------------------------
         % The following methods are specific to the dummy_scanner class. They allow the scanner
-        % to load images from an existing image stack using StitchIt, in order to simulate data acquisition. 
+        % to load images from an existing image stack using StitchIt, in order to simulate data acquisition.
         function getClim(obj)
             % Uses the loaded image stack to get a reasonable range for the look-up table
             tmp = single(obj.imageStackData(1:10:end));
@@ -376,7 +420,7 @@ classdef dummyScanner < scanner
 
             try
                 obj.acquireTile;
-            catch ME 
+            catch ME
                 disp(ME.message)
                 obj.stopFocus
             end
@@ -384,4 +428,4 @@ classdef dummyScanner < scanner
 
     end % Hidden methods
 
-end %close classdef 
+end %close classdef
