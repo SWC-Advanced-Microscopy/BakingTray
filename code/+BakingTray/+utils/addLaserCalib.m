@@ -8,18 +8,18 @@ function addLaserCalib(beamName)
     % This feature requires at least SI 2022.
     %
     % Inputs
-    % beamName - [string] Required only if you have multiple beams. Follow on-screen 
-    %         prompts as needed. 
+    % beamName - [string] Required only if you have multiple beams. Follow on-screen
+    %         prompts as needed.
     %
-    % 
+    %
     % ** Before starting
-    % Download and install the multi-photon QC repo from  
+    % Download and install the multi-photon QC repo from
     % https://github.com/SWC-Advanced-Microscopy/multiphoton-qc/
     % You will be using the mpqc.record.power function, which will make the following
     % process a lot easier.
     %
     % 1. Start BakingTray
-    % 2. Run "P=mpqc.record.power" to open the power GUI 
+    % 2. Run "P=mpqc.record.power" to open the power GUI
     %
     %
     % ** Instructions
@@ -27,9 +27,9 @@ function addLaserCalib(beamName)
     % 2. Turn on the laser and open the shutter.
     % 3. Set desired wavelength in the BakingTray laser GUI. This is copied automatically to the mpqc GUI.
     % 4. In ScanImage run the beam calibration function from the beams widget.
-    % 5. Run "Measure Power Curve" in the mpqc GUI. There may be a mismatch between expected and 
-    %    recorded curves. 
-    % 6. Press "Calibrate ScanImage" and re-run "Measure Power Curve". There should be very 
+    % 5. Run "Measure Power Curve" in the mpqc GUI. There may be a mismatch between expected and
+    %    recorded curves.
+    % 6. Press "Calibrate ScanImage" and re-run "Measure Power Curve". There should be very
     %    close correspondence between curves now.
     % 7. Run BakingTray.utils.addLaserCalib. This will over-write any existing calibration at
     %    the same wavelengths
@@ -41,7 +41,7 @@ function addLaserCalib(beamName)
     %
     %
     % NOTE:
-    % If you have multiple beams in ScanImage you must specify which beam you are working 
+    % If you have multiple beams in ScanImage you must specify which beam you are working
     % with as an input argument to addLaserCalib. You will be prompted what to do under this
     % circumstance.
     %
@@ -52,7 +52,7 @@ function addLaserCalib(beamName)
     % Rob Campbell - SWC 2022
 
 
- 
+
 
     hBT=BakingTray.getObject;
     okToStart = false;
@@ -60,7 +60,7 @@ function addLaserCalib(beamName)
     % Available beam names as cell array if >1 beam otherwise a character array
     availableBeamNames = hBT.scanner.returnAvailableBeamNames;
 
-    if length(hBT.scanner.hC.hBeams.hBeams)==1
+    if hBT.scanner.returnNumberOfAvailableBeams==1
         beamIndex = 1;
         beamName = availableBeamNames; % is a character array if only one beam
         okToStart = true;
@@ -69,6 +69,7 @@ function addLaserCalib(beamName)
         if nargin==0
             fprintf('\nYou supplied no beam name but the system has multiple beams\n')
         else
+            % Get beamIndex for this beam name
             beamIndex = strmatch(beamName,availableBeamNames);
             if isempty(beamIndex)
                 fprintf('\nSupplied beam name "%s" that does not exist.\n', beamName)
@@ -85,7 +86,6 @@ function addLaserCalib(beamName)
             end
 
             fprintf('\n')
-
         end
 
     end
@@ -116,10 +116,11 @@ function addLaserCalib(beamName)
         return
     end
 
-    laserPower.minPower = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(1,2);
-    laserPower.maxPower = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(2,2);
-    laserPower.powerFraction2ModulationVoltLut = hBT.scanner.hC.hBeams.hBeams{beamIndex}.powerFraction2ModulationVoltLut;
-    laserPower.outputRange_V = hBT.scanner.hC.hBeams.hBeams{beamIndex}.outputRange_V;
+    % Get beam parameters
+    laserPower.minPower = hBT.scanner.beamMinPower(beamIndex);
+    laserPower.maxPower = hBT.scanner.beamMaxPower(beamIndex);
+    laserPower.powerFraction2ModulationVoltLut = hBT.scanner.returnBeamLUT(beamIndex);
+    laserPower.outputRange_V = hBT.scanner.returnBeamVrange(beamIndex);
     laserPower.dateMeasured = now;
     laserPower.beamName = beamName;
 

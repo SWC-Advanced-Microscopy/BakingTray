@@ -444,7 +444,7 @@ classdef SIBT < scanner
             % Resets the scanner to the default state by loading the user settings files.
             %
             % Purpose
-            % Sets up ScanImage as needed for a new sample.  
+            % Sets up ScanImage as needed for a new sample.
             %
             % SIBT.reset
             %
@@ -656,6 +656,7 @@ classdef SIBT < scanner
             end
         end % returnLaserPowerInmW
 
+
         function availableBeamNames = returnAvailableBeamNames(obj)
             % Returns the names of the available beams as a cell array if there
             % are multiple beams. As a character array otherwise.
@@ -665,10 +666,44 @@ classdef SIBT < scanner
             end
         end % availableBeamNames
 
+
         function numberOfAvailableBeams = returnNumberOfAvailableBeams(obj)
             % Returns the number of available beams as a scalar
             numberOfAvailableBeams = length(obj.hC.hBeams.hBeams);
         end % numberOfAvailableBeams
+
+
+        function minPower = beamMinPower(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            minPower = obj.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(1,2);
+        end % beamMinPower
+
+
+        function maxPower = beamMaxPower(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            maxPower = obj.hC.hBeams.hBeams{beamIndex}.powerFraction2PowerWattLut(2,2);
+        end % beamMaxPower
+
+
+        function beamLUT = returnBeamLUT(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            beamLUT = obj.hC.hBeams.hBeams{beamIndex}.powerFraction2ModulationVoltLut;
+        end % returnBeamLUT
+
+
+        function Vrange = returnBeamVrange(obj,beamIndex)
+            if nargin<2
+                beamIndex = 1;
+            end
+            Vrange = obj.hC.hBeams.hBeams{beamIndex}.outputRange_V;
+        end % returnBeamVrange
+
 
         function nFrames = getNumAverageFrames(obj)
             nFrames=obj.hC.hDisplay.displayRollingAverageFactor;
