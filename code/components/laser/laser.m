@@ -546,7 +546,7 @@ classdef (Abstract) laser < handle
                 end
 
                 obj.pollTimer.Period = newPeriod;
-                if wasRunning
+                if wasRunning && strcmp(obj.pollTimer.Running,'off')
                     start(obj.pollTimer)
                 end
             end
