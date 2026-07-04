@@ -556,13 +556,12 @@ classdef (Abstract) laser < handle
                 return
             end
 
-
             try
-                obj.isShutterOpen
-                obj.isPoweredOn
-                obj.readPower
-                obj.readWavelength
-                obj.isModeLocked
+                obj.isShutterOpen;
+                obj.isPoweredOn;
+                obj.readPower;
+                obj.readWavelength;
+                obj.isModeLocked;
             catch
                 fprintf('laser.pollSerial failed to execute all laser status reads\n')
             end
