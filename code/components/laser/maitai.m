@@ -125,7 +125,9 @@ classdef maitai < laser & loghandler
             successB = obj.setWatchDogTimer(0);  %otherwise it will turn off again
             success = successA & successB;
             if success
-                obj.isLaserOn=true;
+                % isLaserOn is deliberately NOT set here. The poller's isPoweredOn
+                % (pump power) sets it once the laser is actually lasing, which avoids
+                % the on/off indicator flashing while pump power ramps past threshold.
                 obj.turnOnPockelsCell %Gate Pockels mains power
             end
 
@@ -149,7 +151,8 @@ classdef maitai < laser & loghandler
 
             if success
                 obj.turnOffPockelsCell;
-                obj.isLaserOn=false;
+                % isLaserOn is deliberately NOT set here (see turnOn): the poller
+                % updates it as pump power decays past threshold.
             else
                 fprintf('Reported laser still on\n')
             end
