@@ -64,7 +64,6 @@ classdef chameleon < laser & loghandler
             obj.friendlyName = 'Chameleon';
 
             fprintf('\nSetting up Chameleon laser communication on serial port %s\n', serialComms);
-            BakingTray.utils.clearSerial(serialComms);
             obj.controllerID=serialComms;
             success = obj.connect;
 
@@ -95,10 +94,9 @@ classdef chameleon < laser & loghandler
         function delete(obj)
             fprintf('Disconnecting from Chameleon laser\n')
             delete@laser(obj);
-            if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
+            if ~isempty(obj.hC) && isvalid(obj.hC)
                 fprintf('Closing serial communications with Chameleon laser\n')
-                flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
-                fclose(obj.hC);
+                flush(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 delete(obj.hC);
                 delete(obj.hDO)
             end
@@ -106,19 +104,17 @@ classdef chameleon < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,'BaudRate',19200, ...
-                        'TimeOut',5, ...
-                        'Terminator', 'CR/LF');
-
             try
-                fopen(obj.hC); %TODO: could test the output to determine if the port was opened
+                obj.hC=serialport(obj.controllerID,19200,'Timeout',5);
             catch ME
                 fprintf(' * ERROR: Failed to connect to Chameleon:\n%s\n\n', ME.message)
                 success=false;
+                obj.isLaserConnected=success;
                 return
             end
+            configureTerminator(obj.hC,"CR/LF")
 
-            flushinput(obj.hC) % Just in case
+            flush(obj.hC) % Just in case
             success = false;
             if ~isempty(obj.hC)
                 s1 = obj.sendAndReceiveSerial('ECHO=0');   % So we don't get back a copy of the command
@@ -145,7 +141,7 @@ classdef chameleon < laser & loghandler
 
 
         function success = isControllerConnected(obj)
-            if strcmp(obj.hC.Status,'closed')
+            if isempty(obj.hC) || ~isvalid(obj.hC)
                 success=false;
             else
                 [~,success] = obj.isShutterOpen;
@@ -480,59 +476,6 @@ classdef chameleon < laser & loghandler
 
             faultStateString = [faultMSG{:}]; % Output of this method
 
-        end
-
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        function [success,reply]=sendAndReceiveSerial(obj,commandString,waitForReply)
-            % Send a serial command and optionally read back the reply
-            if nargin<3
-                waitForReply=true;
-            end
-
-            if isempty(commandString) || ~ischar(commandString)
-                reply='';
-                success=false;
-                obj.logMessage(inputname(1),dbstack,6,'chameleon.sendReceiveSerial command string not valid.')
-                return
-            end
-
-            fprintf(obj.hC,commandString);
-
-            if ~waitForReply
-                reply=[];
-                success=true;
-                if obj.hC.BytesAvailable>0
-                    fprintf('Not waiting for reply by there are %d BytesAvailable\n',obj.hC.BytesAvailable)
-                end
-                return
-            end
-
-            reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
-            if obj.hC.BytesAvailable>0
-                if doFlush
-                    fprintf('Read in from the Chameleon buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                    flushinput(obj.hC)
-                else
-                    fprintf('Read in from the Chameleon buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                end
-            end
-
-            if ~isempty(reply)
-                reply(end)=[];
-            else
-                msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
-                success=false;
-                obj.logMessage(inputname(1),dbstack,6,msg)
-                return
-            end
-
-            % If the laser is echoing back the command string, remove it
-            reply = strrep(reply,commandString,'');
-
-            success=true;
         end
 
     end %close methods

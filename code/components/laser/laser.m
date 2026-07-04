@@ -539,6 +539,72 @@ classdef (Abstract) laser < handle
             end
         end % pollSerial
 
+        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        function [success,reply]=sendAndReceiveSerial(obj,commandString,waitForReply)
+            % Send a serial command and optionally read back the reply.
+            % Shared by all serialport-based laser subclasses (maitai, chameleon, tiberius).
+            if nargin<3
+                waitForReply=true;
+            end
+
+            success = false;
+            reply = '';
+
+            if obj.portBusy
+                msg = 'laser.sendAndReceiveSerial found the port busy. Command skipped.';
+                disp(msg)
+                obj.logMessage(inputname(1),dbstack,6,msg)
+                return
+            end
+
+            if isempty(commandString) || ~ischar(commandString)
+                obj.logMessage(inputname(1),dbstack,6,sprintf('%s.sendAndReceiveSerial command string not valid.', class(obj)))
+                return
+            end
+
+            obj.portBusy=true;
+            portCleaner = onCleanup(@() obj.releasePort);
+
+            % Flush any stale bytes before sending so the reply we read back is the
+            % reply to THIS command and not an orphan from a previous transaction.
+            if obj.hC.NumBytesAvailable>0
+               flush(obj.hC,"input")
+            end
+
+            writeline(obj.hC,commandString);
+
+            if ~waitForReply
+                reply=[];
+                success=true;
+                return
+            end
+
+            % readline returns one complete line with the terminator already stripped,
+            % or an empty string if it times out before a terminator arrives.
+            reply = readline(obj.hC);
+
+            if strlength(reply)==0
+                msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
+                obj.logMessage(inputname(1),dbstack,6,msg)
+                return
+            end
+
+            reply = char(reply); % downstream parsing uses char-array indexing
+
+            % If the laser echoes the command back, remove it. This is a no-op for
+            % lasers that don't echo: their replies never contain the command as a
+            % substring, and no-reply commands return above before reaching here.
+            % The chameleon class is known to echo. The maitai and tiberius do not.
+            reply = strrep(reply,commandString,'');
+
+            success=true;
+        end % sendAndReceiveSerial
+
+        function releasePort(obj)
+            % releases the serial port. Called by sendAndReceiveSerial as a cleanup function
+            obj.portBusy = false;
+        end
+
     end %close methods
 
 end %close classdef

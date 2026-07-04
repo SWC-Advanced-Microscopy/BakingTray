@@ -33,7 +33,6 @@ classdef tiberius < laser & loghandler
             obj.friendlyName = 'tiberius';
 
             fprintf('\nSetting up tiberius laser communication on serial port %s\n', serialComms);
-            BakingTray.utils.clearSerial(serialComms)
             obj.controllerID=serialComms;
             success = obj.connect;
 
@@ -63,10 +62,9 @@ classdef tiberius < laser & loghandler
         function delete(obj)
             fprintf('Disconnecting from tiberius laser\n')
             delete@laser(obj);
-            if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
+            if ~isempty(obj.hC) && isvalid(obj.hC)
                 fprintf('Closing serial communications with tiberius laser\n')
-                flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
-                fclose(obj.hC);
+                flush(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 delete(obj.hC);
                 delete(obj.hDO)
             end
@@ -74,20 +72,17 @@ classdef tiberius < laser & loghandler
 
 
         function success = connect(obj)
-            obj.hC=serial(obj.controllerID,...
-                'BaudRate', 19200, ...
-                'FlowControl','software',...
-                'Terminator','CR/LF', ...
-                'TimeOut',5);
             try
-                fopen(obj.hC); %TODO: could test the output to determine if the port was opened
+                obj.hC=serialport(obj.controllerID,19200,'FlowControl','software','Timeout',5);
             catch ME
                 fprintf(' * ERROR: Failed to connect to tiberius:\n%s\n\n', ME.message)
                 success=false;
+                obj.isLaserConnected=success;
                 return
             end
+            configureTerminator(obj.hC,"CR/LF")
 
-            flushinput(obj.hC) % Just in case
+            flush(obj.hC) % Just in case
             if isempty(obj.hC)
                 success=false;
             else
@@ -104,7 +99,7 @@ classdef tiberius < laser & loghandler
 
 
         function success = isControllerConnected(obj)
-            if strcmp(obj.hC.Status,'closed')
+            if isempty(obj.hC) || ~isvalid(obj.hC)
                 success=false;
             else
                 [~,success] = obj.isShutterOpen;
@@ -290,56 +285,6 @@ classdef tiberius < laser & loghandler
         end
 
 
-
-        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        function [success,reply]=sendAndReceiveSerial(obj,commandString,waitForReply)
-            % Send a serial command and optionally read back the reply
-            if nargin<3
-                waitForReply=true;
-            end
-
-            if isempty(commandString) || ~ischar(commandString)
-                reply='';
-                success=false;
-                obj.logMessage(inputname(1),dbstack,6,'tiberius.sendReceiveSerial command string not valid.')
-                return
-            end
-
-            fprintf(obj.hC,commandString);
-
-            if ~waitForReply
-                reply=[];
-                success=true;
-                if obj.hC.BytesAvailable>0
-                    fprintf('Not waiting for reply by there are %d BytesAvailable\n',obj.hC.BytesAvailable)
-                end
-                return
-            end
-
-            reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
-            if obj.hC.BytesAvailable>0
-                if doFlush
-                    fprintf('Read in from the tiberius buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                    flushinput(obj.hC)
-                else
-                    fprintf('Read in from the tiberius buffer using command "%s" but there are still %d BytesAvailable. NOT FLUSHING.\n', ...
-                        commandString, obj.hC.BytesAvailable)
-                end
-            end
-
-            if ~isempty(reply)
-                reply(end-1:end)=[];
-            else
-                msg=sprintf('Laser serial command %s did not return a reply\n',commandString);
-                success=false;
-                obj.logMessage(inputname(1),dbstack,6,msg)
-                return
-            end
-
-            success=true;
-        end
 
     end %close methods
 
