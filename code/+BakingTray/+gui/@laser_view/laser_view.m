@@ -236,6 +236,9 @@ classdef laser_view < BakingTray.gui.child_view
     methods (Hidden)
         function updateCurrentWavelength(obj,~,~)
             W=obj.model.laser.currentWavelength;
+            if isempty(W) || isnan(W)
+                return
+            end
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
         end % updateCurrentWavelength
 

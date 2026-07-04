@@ -284,14 +284,13 @@ classdef maitai < laser & loghandler
                 return
             end
             cmd = sprintf('WAVELENGTH %d', round(wavelengthInNM));
-            [success,wavelength]=obj.sendAndReceiveSerial(cmd,false);
+            success=obj.sendAndReceiveSerial(cmd,false);
             if ~success
                 return
             end
-            obj.currentWavelength=wavelength;
             obj.targetWavelength=wavelengthInNM;
 
-        end
+        end % setWavelength
 
 
         function tuning = isTuning(obj)
