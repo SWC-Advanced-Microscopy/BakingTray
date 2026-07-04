@@ -59,7 +59,7 @@ classdef (Abstract) laser < handle
     properties (Hidden)
         parent    %A reference of the parent object (likely BakingTray) to which this component is attached
         pollTimer % Handles regular serial reads
-        defaultPollPeriodInSeconds = 1.0 % Serial port polling interval
+        defaultPollPeriodInSeconds = 1.5 % Serial port polling interval
         pollPauseDepth = 0  % >0 while a command is running; pollSerial skips
     end %close hidden properties
 
@@ -501,7 +501,6 @@ classdef (Abstract) laser < handle
             end
 
             if isa(obj.pollTimer,'timer') && strcmp(obj.pollTimer.Running,'off')
-                disp('stopping laser timer') %TODO -- remove before merge to dev
                 start(obj.pollTimer)
             end
 
@@ -510,7 +509,6 @@ classdef (Abstract) laser < handle
         function stopPollingSerialPort(obj)
             % If timer exists and is running, stop it
             if isa(obj.pollTimer,'timer') && strcmp(obj.pollTimer.Running,'on')
-                disp('stopping laser timer') %TODO -- remove before merge to dev
                 stop(obj.pollTimer)
             end
         end % stopPollingSerialPort
@@ -520,8 +518,8 @@ classdef (Abstract) laser < handle
             % Setter for changing the polling period of the regular laser serial serial
             % port poller.
 
-            if newPeriod<0.1
-                newPeriod = 0.1;
+            if newPeriod<0.5
+                newPeriod = 0.5;
             end
 
             obj.pollPeriodInSeconds = newPeriod;   % store (does not recurse)
