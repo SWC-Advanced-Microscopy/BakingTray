@@ -21,7 +21,7 @@ classdef (Abstract) laser < handle
 
         hC  %A handle to the hardware object or port (e.g. COM port) used to
             %control the laser.
-        portBusy = false % Added 2026/06/11 to help avoid clashes at the serial port. 
+        portBusy = false
 
         controllerID % The information required by the method that connects to the
                      % the controller at connect-time. This can be specified in whatever
@@ -43,7 +43,7 @@ classdef (Abstract) laser < handle
                           % This property is generally filled in by the class which inherits laser.
         beamName = '' % This string must correspond to the beam name in ScanImage. This is the string in the widget toolbar.
                       % The beamName property is only necessary if there are multiple beams in the system. This property
-                      % needs to be set via the component settings file as it will differ between rigs. 
+                      % needs to be set via the component settings file as it will differ between rigs.
 
         % The following is used for optional Pockels cell control. An external device
         % may be connected to Pockels cell power to turn the mains power on and off
@@ -55,7 +55,10 @@ classdef (Abstract) laser < handle
     end %close public properties
 
     properties (Hidden)
-        parent  %A reference of the parent object (likely BakingTray) to which this component is attached
+        parent    %A reference of the parent object (likely BakingTray) to which this component is attached
+        pollTimer % Handles regular serial reads
+        pollPeriodInSeconds = 1.0 % Serial port polling interval
+        pollPauseDepth = 0  % >0 while a command is running; pollSerial skips
     end %close hidden properties
 
 
@@ -68,10 +71,9 @@ classdef (Abstract) laser < handle
         isLaserOn=false  % Must be updated by turnOn, turnOff, and isLaserOn
         isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpenerOpen
         isLaserConnected=false % Set by isControllerConnected
-    end
-
-    properties (SetObservable, AbortSet)
-        isLaserModeLocked=false  % Set by isModelocked
+        currentPower_mW = 0      % Must be updated by readPower last read output power in mW; set by the poller
+        currentPumpPower_mW = 0  % last read pump power. Not all lasers have this. Not critical.
+        isLaserModeLocked=false  % Muste be updated by isModelocked
         isLaserReady=false       % Must be updated by isReady
         currentWavelength=-1     % This must be updated whenever readWavelength runs
         targetWavelength=0       % Must be updated by setWavelength
@@ -153,25 +155,6 @@ classdef (Abstract) laser < handle
         % details - optional second argument containing a string with further information
 
 
-
-        [laserReady,msg] = isReady(obj)
-        % isReady
-        %
-        % Behavior
-        % Returns true if the laser is currently in a state in which it is able to
-        % excite the sample. So it should be, for example, turned on, modelocked,
-        % with the shutter open, etc, etc. This command will be called at least
-        % once per section. If it returns false the acquisition will stop and wait for
-        % user intervention. Updates the hidden property isLaserReady.
-        %
-        %
-        % Outputs
-        % laserReady - true/false depending on whether the laser is turned on and ready to go.
-        % msg- if the laser is not ready, it should return a string that indicates the
-        %      the reason for the failure. This will be logged or sent as a Slack or
-        %      e-mail message to the operator.
-
-
         modelockState = isModeLocked(obj)
         % isModeLocked
         %
@@ -250,7 +233,7 @@ classdef (Abstract) laser < handle
         % isTuning
         %
         % Behavior
-        % Returns true if the laser is currently tuning to a new wavelenth.
+        % Returns true if the laser is currently tuning to a new wavelength.
         % Returns false if the laser is at it's set wavelength.
         %
         %
@@ -264,7 +247,7 @@ classdef (Abstract) laser < handle
         % Behavior
         % Reads the current laser power and returns the value as a scalar integer in mW.
         % It should discard the decimal point. Returns zero if the laser is switched off.
-        % Returns empty if it fails.
+        % Returns empty if it fails. It should write to the observable property "currentPower_mW"
         %
         %
         % Outputs
@@ -329,6 +312,73 @@ classdef (Abstract) laser < handle
 
     %The following methods are common to all lasers
     methods
+
+        function delete(obj)
+            % laser superclass delete method
+            obj.stopPollingSerialPort
+            delete(obj.pollTimer)
+        end % delete
+
+        function emission = emissionPossible(obj)
+            % maitai returns this and it's needed for the readiness check but other lasers
+            % lack it. So they just inherit this method that returns true.
+            emission = true;
+        end % emissionPossible
+
+
+        function [laserReady,msg] = isReady(obj)
+            % laser.isReady
+            %
+            % Behavior
+            % Returns true if the laser is currently in a state in which it is able to
+            % excite the sample. So it should be, for example, turned on, modelocked,
+            % with the shutter open, etc, etc. This command will be called at least
+            % once per section. If it returns false the acquisition will stop and wait for
+            % user intervention. Updates the hidden property isLaserReady.
+            %
+            % Outputs
+            % laserReady - true/false depending on whether the laser is turned on and ready to go.
+            % msg- if the laser is not ready, it should return a string that indicates the
+            %      the reason for the failure. This will be logged or sent as a Slack.
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
+            laserReady = false;
+            msg='';
+
+            [shutterState,success] = obj.isShutterOpen;
+            if ~success
+                msg='No connection to laser';
+                obj.isLaserReady=false;
+                return
+            end
+            if ~obj.isLaserOn
+                msg='Laser seems not to be powered on. Pump power is very low';
+                obj.isLaserReady=false;
+                return
+            end
+            if ~obj.emissionPossible
+                msg='Laser is switched off and is not emitting';
+                obj.isLaserReady=false;
+                return
+            end
+            if shutterState==0
+                msg='Laser shutter is closed';
+                obj.isLaserReady=false;
+                return
+            end
+            if ~obj.isModeLocked
+                msg='Laser not modelocked';
+                obj.isLaserReady=false;
+                return
+            end
+
+            laserReady=true;
+            obj.isLaserReady=laserReady;
+        end % isReady
+
+
         function [inRange,msg] = isTargetWavelengthInRange(obj,targetWavelength)
             %Return false if the target wavelength supplied by the user is
             %out of the allowed range. True otherwise. targetWavelength is
@@ -433,6 +483,61 @@ classdef (Abstract) laser < handle
             obj.hDO.writeDigitalData(1);
         end % turnOnPockelsCell
 
+        function startPollingSerialPort(obj)
+            % Create timer if needed and start it.
+            % If already created and not running, start it
+
+            % If the timer does not exist we make it
+            if isempty(obj.pollTimer)
+                obj.pollTimer = timer;
+                obj.pollTimer.Name = 'Regular laser serial port poller';
+                obj.pollTimer.Period  = obj.pollPeriodInSeconds;
+                obj.pollTimer.TimerFcn = @(~,~) obj.pollSerial;
+                obj.pollTimer.StopFcn =  @(~,~) [];
+                obj.pollTimer.ExecutionMode = 'fixedDelay';
+            end
+
+            if isa(obj.pollTimer,'timer') && strcmp(obj.pollTimer.Running,'off')
+                disp('stopping laser timer') %TODO -- remove before merge to dev
+                start(obj.pollTimer)
+            end
+
+        end % startPollingSerialPort
+
+        function stopPollingSerialPort(obj)
+            % If timer exists and is running, stop it
+            if isa(obj.pollTimer,'timer') && strcmp(obj.pollTimer.Running,'on')
+                disp('stopping laser timer') %TODO -- remove before merge to dev
+                stop(obj.pollTimer)
+            end
+        end % stopPollingSerialPort
+
+        function pausePolling(obj)
+            obj.pollPauseDepth = obj.pollPauseDepth + 1;
+        end % pausePolling
+
+        function resumePolling(obj)
+            obj.pollPauseDepth = max(obj.pollPauseDepth - 1, 0);
+        end % resumePolling
+
+        function pollSerial(obj)
+            % Update all cached properties of the laser
+
+            if obj.portBusy || obj.pollPauseDepth > 0
+                return
+            end
+
+
+            try
+                obj.isShutterOpen
+                obj.isPoweredOn
+                obj.readPower
+                obj.readWavelength
+                obj.isModeLocked
+            catch
+                fprintf('laser.pollSerial failed to execute all laser status reads\n')
+            end
+        end % pollSerial
 
     end %close methods
 

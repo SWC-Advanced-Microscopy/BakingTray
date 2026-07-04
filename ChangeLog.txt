@@ -9,6 +9,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+4th July 2026
+- USER: The laser GUI no longer shows brief pauses or freezes (for example the current wavelength readout sticking during a large tune) and is much less likely to block the start of an acquisition because of serial port command clashes.
+- DEVELOPER: Reworked how the laser classes talk to the serial port. A single timer, owned by the laser class, now polls the hardware and stores the results in cached properties. The GUI and the acquisition readiness check (`isReady`) read these cached properties instead of each issuing their own serial reads. This removes the contention at the serial port that caused the pauses and command clashes.
+- DEVELOPER: Laser commands (turn on/off, shutter, set wavelength) pause the poller while they run so their multi-step serial exchanges cannot be interrupted by a poll.
+- DEVELOPER: `isReady` and the serial-port polling machinery are now defined once in the base `laser` class rather than being duplicated across maitai, chameleon and tiberius.
+- DEVELOPER: MaiTai laser migrated from the legacy `serial` interface to the modern `serialport` interface.
+
 12th Feb 2026
 - USER: by default Slack messages are now errors only
 

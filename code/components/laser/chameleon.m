@@ -8,13 +8,13 @@ classdef chameleon < laser & loghandler
 % Laser control component for Chameleon lasers from Coherent.
 % Tested with Chameleon Vision S
 %
-% For docs, please see the laser abstract class. 
+% For docs, please see the laser abstract class.
 %
 %
 % Rob Campbell - Basel 2017
 
     properties
-       % The following is a list of Chemeleon fault states taken from the 
+       % The following is a list of Chemeleon fault states taken from the
        % Chameleon Ultra and Chameleon Vision operatpr manual page 5-8.
        faultMessage = ...
             {'Laser head interlock', 'External interlock', ...
@@ -40,9 +40,9 @@ classdef chameleon < laser & loghandler
               'System lasing', 'PS-head EEPROM mismatch', ...
               'Modelock slit stepper motor homing', 'Chameleon-verdi EEPROM', ...
               'Chameleon precompensator homing', 'Chameleon curve EEPROM'};
-                
+
     end % close properties
-    
+
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -85,6 +85,8 @@ classdef chameleon < laser & loghandler
             obj.isPoweredOn;
             obj.isModeLocked;
             obj.switchPockelsCell;
+
+            obj.startPollingSerialPort
         end %constructor
 
 
@@ -92,13 +94,14 @@ classdef chameleon < laser & loghandler
         %destructor
         function delete(obj)
             fprintf('Disconnecting from Chameleon laser\n')
+            delete@laser(obj);
             if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
                 fprintf('Closing serial communications with Chameleon laser\n')
                 flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 fclose(obj.hC);
                 delete(obj.hC);
                 delete(obj.hDO)
-            end  
+            end
         end %destructor
 
 
@@ -106,8 +109,8 @@ classdef chameleon < laser & loghandler
             obj.hC=serial(obj.controllerID,'BaudRate',19200, ...
                         'TimeOut',5, ...
                         'Terminator', 'CR/LF');
-            
-            try 
+
+            try
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
                 fprintf(' * ERROR: Failed to connect to Chameleon:\n%s\n\n', ME.message)
@@ -133,9 +136,9 @@ classdef chameleon < laser & loghandler
                         fprintf('Failed to communicate with Chameleon laser\n')
                         success=false;
                     end
-                    
+
                 end
-            end 
+            end
 
             obj.isLaserConnected=success;
         end %connect
@@ -152,16 +155,19 @@ classdef chameleon < laser & loghandler
 
 
         function success = turnOn(obj)
-            % The Chameleon can't be turned on remotely unless the key 
+            % The Chameleon can't be turned on remotely unless the key
             % is set to the active position.
             success=false;
-            
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             if ~obj.readKeySwitch
                 fprintf('Key switch is set to "STANDBY". Can not turn on Chameleon laser.\n')
                 obj.isLaserOn=success;
                 return
             end
-            
+
             faultInd = obj.readFaultState;
             % If there is no fault state we attempt to turn on the laser
             if length(faultInd)==1 && faultInd==0
@@ -169,9 +175,9 @@ classdef chameleon < laser & loghandler
             else
                 % Otherwise the laser is not turned on and the
                 % readFaultState method will automatically have printed
-                % to screen the fault message. So nothing more to do. 
+                % to screen the fault message. So nothing more to do.
             end
-            
+
             obj.isLaserOn=success;
             obj.switchPockelsCell; %Gate Pockels mains power
         end
@@ -179,12 +185,15 @@ classdef chameleon < laser & loghandler
 
         function success = turnOff(obj)
             % Even the keyswitch is set to "ENABLE" the laser can be turned off remotely
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=obj.sendAndReceiveSerial('L=0');
             pause(0.25)
 
             obj.closeShutter; %Because it doesn't turn off the shutter automatically
-            pause(0.25)
-            
+
             if success
                 obj.isLaserOn=false;
             end
@@ -197,42 +206,10 @@ classdef chameleon < laser & loghandler
                 powerOnState=0;
                 return
             end
-            
+
             powerOnState = (str2double(reply)==1);
-            
+
             obj.isLaserOn=powerOnState;
-        end
-
-
-        function [laserReady,msg] = isReady(obj)
-            laserReady = false;
-            msg='';
-            [shutterState,success] = obj.isShutterOpen;
-
-            if ~success
-                msg='No connection to laser';
-                obj.isLaserReady=false;
-                return
-            end
-            if ~obj.isPoweredOn
-                msg='Laser not powered on';
-                obj.isLaserReady=false;
-                return
-            end
-            if shutterState==0
-                msg='Laser shutter is closed';
-                obj.isLaserReady=false;
-                return
-            end
-            if ~obj.isModeLocked
-                msg='Laser not modelocked';
-                obj.isLaserReady=false;
-                return
-            end
-
-
-            laserReady=true;
-            obj.isLaserReady=laserReady;
         end
 
 
@@ -252,6 +229,10 @@ classdef chameleon < laser & loghandler
 
 
         function success = openShutter(obj)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=obj.sendAndReceiveSerial('SHUTTER=1');
             pause(0.75) %Because it takes the laser about a second to register the change
             if success
@@ -264,6 +245,10 @@ classdef chameleon < laser & loghandler
 
 
         function success = closeShutter(obj)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=obj.sendAndReceiveSerial('SHUTTER=0');
             pause(0.75) %Because it takes the laser about a second to register the change
             if success
@@ -283,8 +268,8 @@ classdef chameleon < laser & loghandler
         end
 
 
-        function wavelength = readWavelength(obj) 
-            [success,wavelength]=obj.sendAndReceiveSerial('?VW'); 
+        function wavelength = readWavelength(obj)
+            [success,wavelength]=obj.sendAndReceiveSerial('?VW');
             if ~success
                 wavelength=[];
                 return
@@ -300,11 +285,15 @@ classdef chameleon < laser & loghandler
 
         function success = setWavelength(obj,wavelengthInNM)
 
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=false;
             if length(wavelengthInNM)>1
                 fprintf('wavelength should be a scalar')
                 return
             end
+
             if ~obj.isTargetWavelengthInRange(wavelengthInNM)
                 return
             end
@@ -317,7 +306,7 @@ classdef chameleon < laser & loghandler
             obj.targetWavelength=wavelengthInNM;
 
         end
-   
+
 
         function tuning = isTuning(obj)
             [success,reply]=obj.sendAndReceiveSerial('?TS');
@@ -327,13 +316,13 @@ classdef chameleon < laser & loghandler
             end
 
             reply = str2double(reply);
-            
+
             if reply>0
                 tuning=true;
             else
                tuning=false;
             end
-            
+
         end
 
 
@@ -344,6 +333,8 @@ classdef chameleon < laser & loghandler
                 return
             end
             laserPower = str2double(laserPower);
+            laserPower = round(laserPower);
+            obj.currentPower_mW = laserPower;
         end
 
 
@@ -366,7 +357,12 @@ classdef chameleon < laser & loghandler
                 lambda,outputPower,humidity,basePlate);
         end
 
+
         function success=setWatchDogTimer(obj,value)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             if value <= 0
                 [success,~] = obj.sendAndReceiveSerial('HB=0');
                 return
@@ -385,7 +381,7 @@ classdef chameleon < laser & loghandler
             end
         end
 
-        
+
         % Chameleon specific
         function laserHumidity = readHumidity(obj)
             % I think some lasers don't have sensor and just return 0
@@ -406,7 +402,7 @@ classdef chameleon < laser & loghandler
                 warmedUpValue=[];
                 return
             end
-            
+
             if strfind(warmedUpValue,'OK')
                 warmedUpValue=true;
             else
@@ -414,7 +410,7 @@ classdef chameleon < laser & loghandler
             end
         end
 
-        
+
         function keyState = readKeySwitch(obj)
             % Is the key set to enable or disable?
             [success,reply] = obj.sendAndReceiveSerial('?K');
@@ -434,30 +430,31 @@ classdef chameleon < laser & loghandler
             end
             baseplateTemp = str2double(reply);
         end
-        
+
+
         function [faultNumbers,faultStateString] = readFaultState(obj)
-            % Return the laser fault state(s) as an integer code and a string. 
+            % Return the laser fault state(s) as an integer code and a string.
             % If there is no fault, it returns the integer "0"
             % Returns empty if the state could not be read
-            
+
             [success,faultNumbers]=obj.sendAndReceiveSerial('?F');
-            
+
             if ~success
                 faultNumbers=[];
                 faultStateString = '';
                 return
             end
-            
+
             % Multiple fault states are separated by the character "&" so
             % we make an array of fault state numbers
             faultNumbers = cellfun(@str2double, strsplit(faultNumbers, '&'));
-            
+
             % If the laser returns "0" there is no current fault state
             if length(faultNumbers)==1 && faultNumbers(1) == 0
                 faultStateString = 'no faults';
                 return
             end
-            
+
             % Build a cell array of laser fault messages
             faultMSG = cell(1,length(faultNumbers)); % Error strings will go here
             for ii=1:length(faultNumbers)
@@ -469,20 +466,20 @@ classdef chameleon < laser & loghandler
                         faultNumbers(ii), obj.faultMessage{faultNumbers(ii)});
                 end
             end
-            
+
             % Report these to screen and return as an output
-            
+
             % Otherwise we have one or more faults. Report these:
             if length(faultNumbers) == 1
                 fprintf('Laser reports 1 error:\n')
             elseif length(faultNumbers) > 1
                 fprintf('Laser reports %d errors:\n', length(faultNumbers))
             end
-            
-            cellfun(@(x) fprintf('%s\n',x), faultMSG) % Display on CMD line          
-            
+
+            cellfun(@(x) fprintf('%s\n',x), faultMSG) % Display on CMD line
+
             faultStateString = [faultMSG{:}]; % Output of this method
-            
+
         end
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -511,7 +508,7 @@ classdef chameleon < laser & loghandler
             end
 
             reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do. 
+            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
             if obj.hC.BytesAvailable>0
                 if doFlush
                     fprintf('Read in from the Chameleon buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
@@ -531,7 +528,7 @@ classdef chameleon < laser & loghandler
                 obj.logMessage(inputname(1),dbstack,6,msg)
                 return
             end
-            
+
             % If the laser is echoing back the command string, remove it
             reply = strrep(reply,commandString,'');
 
@@ -540,4 +537,4 @@ classdef chameleon < laser & loghandler
 
     end %close methods
 
-end %close classdef 
+end %close classdef

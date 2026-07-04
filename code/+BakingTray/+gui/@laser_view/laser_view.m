@@ -20,11 +20,7 @@ classdef laser_view < BakingTray.gui.child_view
     end
 
     properties(Hidden)
-        wavelengthWatcherUpdateInterval=0.5 %If the laser is tuning, the GUI is updated with this period (in seconds)
-        currentWavelengthTimer %Regularly reads wavelength until settled
         currentWavelengthString='Current Wavelength: %d nm' %Used in the sprintf for the current wavelength
-        laserViewUpdateInterval=2 %Update select GUI elements every this many seconds (e.g. modelock state)
-        laserViewUpdateTimer
         setWavelengthLabel
     end
 
@@ -65,36 +61,18 @@ classdef laser_view < BakingTray.gui.child_view
                 set(obj.hFig, 'Position',pos, 'Name', obj.model.laser.friendlyName)
             end
 
-            %This timer runs when the wavelength is changed and updates the screen until the reading stabilizes
-            fprintf('Setting up laser GUI timers\n')
-            obj.currentWavelengthTimer = timer;
-            obj.currentWavelengthTimer.Name = 'update current wavelength updater';
-            obj.currentWavelengthTimer.StartDelay = obj.wavelengthWatcherUpdateInterval;
-            obj.currentWavelengthTimer.TimerFcn = @(~,~) [] ;
-            obj.currentWavelengthTimer.StopFcn = @(~,~) obj.updateCurrentWavelength;
-            obj.currentWavelengthTimer.ExecutionMode = 'singleShot';
-
-
-            %This timer updates select GUI elements
-            obj.laserViewUpdateTimer = timer;
-            obj.laserViewUpdateTimer.Name = 'laser view regular updater';
-            obj.laserViewUpdateTimer.Period = obj.laserViewUpdateInterval;
-            obj.laserViewUpdateTimer.TimerFcn = @(~,~) obj.regularGUIupdater;
-            obj.laserViewUpdateTimer.StopFcn = @(~,~) [];
-            obj.laserViewUpdateTimer.ExecutionMode = 'fixedDelay';
-
-
             %Add some listeners to monitor properties on the laser component
             fprintf('Setting up laser GUI listeners\n')
             obj.listeners{1}=addlistener(obj.model.laser, 'targetWavelength', 'PostSet', @obj.setWavelengthEditPanelToNewTargetWaveLength);
-            obj.listeners{2}=addlistener(obj.model.laser, 'currentWavelength','PostSet', @obj.setReadWavelengthTextPanel);
+            obj.listeners{2}=addlistener(obj.model.laser, 'currentPower_mW','PostSet', @obj.updatePowerText);
             obj.listeners{3}=addlistener(obj.model.laser, 'isLaserShutterOpen','PostSet', @obj.updateGUI);
             obj.listeners{4}=addlistener(obj.model.laser, 'isLaserModeLocked','PostSet', @obj.updateGUI);
             obj.listeners{5}=addlistener(obj.model.laser, 'isLaserConnected','PostSet', @obj.updateGUI);
             obj.listeners{6}=addlistener(obj.model.laser, 'isLaserOn','PostSet', @obj.updateGUI);
+            obj.listeners{7}=addlistener(obj.model.laser, 'currentWavelength','PostSet', @obj.updateCurrentWavelength);
 
-            %Disable pontentially dangerous operations during acquisition
-            obj.listeners{7}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateAcqMode);
+            %Disable potentially dangerous operations during acquisition
+            obj.listeners{8}=addlistener(obj.model, 'acquisitionInProgress', 'PostSet', @obj.updateAcqMode);
 
 
 
@@ -171,8 +149,6 @@ classdef laser_view < BakingTray.gui.child_view
             obj.model.laser.targetWavelength=obj.model.laser.currentWavelength;
 
 
-            start(obj.laserViewUpdateTimer)
-
         end %constructor
 
         function delete(obj)
@@ -184,15 +160,6 @@ classdef laser_view < BakingTray.gui.child_view
                 else
                     flush(hLaserComms) % serialport (e.g. maitai)
                 end
-            end
-
-            if isa(obj.laserViewUpdateTimer,'timer')
-                stop(obj.laserViewUpdateTimer)
-                delete(obj.laserViewUpdateTimer)
-            end
-            if isa(obj.currentWavelengthTimer,'timer')
-                stop(obj.currentWavelengthTimer)
-                delete(obj.currentWavelengthTimer)
             end
 
             cellfun(@delete,obj.listeners)
@@ -227,7 +194,7 @@ classdef laser_view < BakingTray.gui.child_view
 
             %Will trigger setWavelengthEditPanelToNewTargetWaveLength
             obj.model.laser.setWavelength(newValue);
-            obj.model.laser.isModeLocked; %TODO: maybe this should be run by a timer every so often
+            obj.model.laser.isModeLocked; %TODO: should this still be here? RAAC 26/07/04
         end
 
 
@@ -235,7 +202,6 @@ classdef laser_view < BakingTray.gui.child_view
         function setWavelengthEditPanelToNewTargetWaveLength(obj,~,~)
             %Called when the laser's target wavelength property changes
             set(obj.editWavelength,'String',obj.model.laser.targetWavelength)
-            obj.setReadWavelengthTextPanel;
 
             % The wavelength has now stabilised so we can apply laser calibration to the scanner.
             % If the user has created calibration files to convert laser analog voltage to
@@ -243,19 +209,6 @@ classdef laser_view < BakingTray.gui.child_view
             obj.model.applyLaserCalibrationToScanner;
         end
 
-
-        function setReadWavelengthTextPanel(obj,~,~)
-            set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(obj.model.laser.readWavelength)))
-            %Now start a timer that will keep updating the wavelength text box until the laser has settled
-            %It does this because readWavelength updates the property that fires this callback.
-            %This callback then calls readWavelength with a delay via the timer and so there is a
-            %while loop.
-            if isa(obj.currentWavelengthTimer,'timer') && ...
-                strcmp(obj.currentWavelengthTimer.Running,'off')
-                start(obj.currentWavelengthTimer)
-            end
-
-        end
 
         function h = makeRectangle(~,parentObj,pos)
             h = annotation(...
@@ -265,6 +218,7 @@ classdef laser_view < BakingTray.gui.child_view
                 'Color',[1,1,1]*0.8, ...
                 'FaceColor','r');
         end
+
 
         function h = makeTextLabel(obj,parentObj,pos,txt)
             h = annotation(...
@@ -282,10 +236,8 @@ classdef laser_view < BakingTray.gui.child_view
 
 
     methods (Hidden)
-        %This function restarts the timer and updates the GUI until the wavelength has settled
-        %see also: obj.setReadWavelengthTextPanel
-        function updateCurrentWavelength(obj)
-            W=obj.model.laser.readWavelength; %updates obj.model.laser.currentWavelength
+        function updateCurrentWavelength(obj,~,~)
+            W=obj.model.laser.currentWavelength;
             set(obj.currentWavelengthText,'String',sprintf(obj.currentWavelengthString,round(W)))
         end % updateCurrentWavelength
 
@@ -320,11 +272,11 @@ classdef laser_view < BakingTray.gui.child_view
 
 
         function updateShutterElements(obj,~,~)
-            if obj.model.laser.isShutterOpen==true
+            if obj.model.laser.isLaserShutterOpen==true
                 set(obj.buttonShutter, 'String', 'Close Shutter')
                 set(obj.shutterText, 'String', 'Shutter Opened')
                 set(obj.shutterIndicator, 'FaceColor', 'g')
-            elseif obj.model.laser.isShutterOpen==false
+            elseif obj.model.laser.isLaserShutterOpen==false
                 set(obj.buttonShutter, 'String', 'Open Shutter')
                 set(obj.shutterText, 'String', 'Shutter Closed')
                 set(obj.shutterIndicator, 'FaceColor', 'r')
@@ -379,8 +331,8 @@ classdef laser_view < BakingTray.gui.child_view
         end %updateLaserOnElements
 
 
-        function updatePowerText(obj)
-            powerIn_mW = round(obj.model.laser.readPower);
+        function updatePowerText(obj,~,~)
+            powerIn_mW = round(obj.model.laser.currentPower_mW);
             set(obj.laserPowerText,'String', sprintf('Output Power: %d mW',powerIn_mW))
         end %updatePowerText
 
@@ -391,27 +343,6 @@ classdef laser_view < BakingTray.gui.child_view
             obj.updateLaserConnectedElements;
             obj.updateLaserOnElements;
         end %updateGUI
-
-
-        function regularGUIupdater(obj,~,~)
-            if ~isvalid(obj.model.laser)
-                return
-            end
-
-            if obj.model.laser.portBusy
-                return
-            end
-
-            obj.model.laser.isModeLocked; % poll here
-
-            try
-                obj.updateModeLockElements % read properties here not polling
-                obj.updatePowerText
-                obj.updateCurrentWavelength
-            catch ME
-                fprintf('Failed to update laser GUI with error: %s\n', ME.message)
-            end
-        end % regularGUIupdater
 
 
         function updateAcqMode(obj,~,~)

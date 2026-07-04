@@ -5,9 +5,9 @@ classdef tiberius < laser & loghandler
 % Example
 % M = tiberius('COM1');
 %
-% Laser control component for Tiberius lasers from ThorLabs. 
+% Laser control component for Tiberius lasers from ThorLabs.
 %
-% For docs, please see the laser abstract class. 
+% For docs, please see the laser abstract class.
 %
 %
 % Rob Campbell - SWC 2021
@@ -52,7 +52,9 @@ classdef tiberius < laser & loghandler
             % Must call these here to make sure Pockels is turned on
             obj.isPoweredOn;
             obj.isModeLocked;
-            obj.switchPockelsCell;           
+            obj.switchPockelsCell;
+
+            obj.startPollingSerialPort
         end %constructor
 
 
@@ -60,13 +62,14 @@ classdef tiberius < laser & loghandler
         %destructor
         function delete(obj)
             fprintf('Disconnecting from tiberius laser\n')
+            delete@laser(obj);
             if ~isempty(obj.hC) && isa(obj.hC,'serial') && isvalid(obj.hC)
                 fprintf('Closing serial communications with tiberius laser\n')
                 flushinput(obj.hC) %There may be characters left in the buffer because of the timers used to poll the laser
                 fclose(obj.hC);
                 delete(obj.hC);
                 delete(obj.hDO)
-            end  
+            end
         end %destructor
 
 
@@ -76,7 +79,7 @@ classdef tiberius < laser & loghandler
                 'FlowControl','software',...
                 'Terminator','CR/LF', ...
                 'TimeOut',5);
-            try 
+            try
                 fopen(obj.hC); %TODO: could test the output to determine if the port was opened
             catch ME
                 fprintf(' * ERROR: Failed to connect to tiberius:\n%s\n\n', ME.message)
@@ -85,7 +88,7 @@ classdef tiberius < laser & loghandler
             end
 
             flushinput(obj.hC) % Just in case
-            if isempty(obj.hC) 
+            if isempty(obj.hC)
                 success=false;
             else
                 [~,s] = obj.isShutterOpen;
@@ -112,6 +115,10 @@ classdef tiberius < laser & loghandler
 
         function success = turnOn(obj)
             fprintf('Trying to turn on Tiberius\n')
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             obj.sendAndReceiveSerial('LASER=1',false);
             obj.isLaserOn = true;
             success=true;
@@ -120,7 +127,10 @@ classdef tiberius < laser & loghandler
 
 
         function success = turnOff(obj)
-            obj.closeShutter; % Older tiberius lasers seem not to do this by default 
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
+            obj.closeShutter; % Older tiberius lasers seem not to do this by default
             obj.sendAndReceiveSerial('LASER=0',false);
             obj.isLaserOn = false;
             success=true;
@@ -131,36 +141,6 @@ classdef tiberius < laser & loghandler
             % Just return true. It has no way to get this info
             powerOnState = obj.isLaserOn;
             details='';
-        end
-
-
-        function [laserReady,msg] = isReady(obj)
-            laserReady = false;
-            msg='';
-            [shutterState,success] = obj.isShutterOpen;
-            if ~success
-                msg='No connection to laser';
-                obj.isLaserReady=false;
-                return
-            end
-            if ~obj.isPoweredOn
-                msg='Laser seems not to be powered on. Pump power is very low';
-                obj.isLaserReady=false;
-                return
-            end
-            if shutterState==0
-                msg='Laser shutter is closed';
-                obj.isLaserReady=false;
-                return
-            end
-            if ~obj.isModeLocked
-                msg='Laser not modelocked';
-                obj.isLaserReady=false;
-                return
-            end
-
-            laserReady=true;
-            obj.isLaserReady=laserReady;
         end
 
 
@@ -177,16 +157,20 @@ classdef tiberius < laser & loghandler
                 modelockState = true;
             elseif strcmp(reply,'N')
                 modelockState = false;
-            else 
+            else
                 fprintf('Unknown reply for modelock state: "%s"\n', reply)
                 modelockState = false;
             end
-                
+
             obj.isLaserModeLocked=modelockState;
         end
 
 
         function success = openShutter(obj)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=obj.sendAndReceiveSerial('S=1',false);
             %%pause(0.75) %Because it takes the laser about a second to register the change
             if success
@@ -196,6 +180,10 @@ classdef tiberius < laser & loghandler
 
 
         function success = closeShutter(obj)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=obj.sendAndReceiveSerial('S=0',false);
             %%pause(0.75) %Because it takes the laser about a second to register the change
             if success
@@ -215,8 +203,8 @@ classdef tiberius < laser & loghandler
         end
 
 
-        function wavelength = readWavelength(obj) 
-            [success,wavelength]=obj.sendAndReceiveSerial('W?'); 
+        function wavelength = readWavelength(obj)
+            [success,wavelength]=obj.sendAndReceiveSerial('W?');
             if ~success
                 wavelength=[];
                 return
@@ -227,6 +215,10 @@ classdef tiberius < laser & loghandler
 
 
         function success = setWavelength(obj,wavelengthInNM)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
             success=false;
             if length(wavelengthInNM)>1
                 fprintf('wavelength should be a scalar')
@@ -244,7 +236,7 @@ classdef tiberius < laser & loghandler
             obj.targetWavelength=wavelengthInNM;
 
         end
-   
+
 
         function tuning = isTuning(obj)
             %First get the desired (setpoint) wavelength
@@ -266,9 +258,10 @@ classdef tiberius < laser & loghandler
         end
 
 
-        function laserPower = readPower(~)
+        function laserPower = readPower(obj)
             % The Tiberius seems not to return laser power
             laserPower = nan;
+            obj.currentPower_mW = laserPower;
         end
 
 
@@ -283,7 +276,7 @@ classdef tiberius < laser & loghandler
             modelockState = obj.isLaserModeLocked;
             if modelockState == true
                 modelockState = 'yes';
-            else 
+            else
                 modelockState = 'no';
             end
 
@@ -295,7 +288,7 @@ classdef tiberius < laser & loghandler
             % There seems to be no watchdog on the Tiberius
             success = true;
         end
-        
+
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -324,7 +317,7 @@ classdef tiberius < laser & loghandler
             end
 
             reply=fgets(obj.hC);
-            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do. 
+            doFlush=1; %TODO: not clear right now if flushing the buffer is even the correct thing to do.
             if obj.hC.BytesAvailable>0
                 if doFlush
                     fprintf('Read in from the tiberius buffer using command "%s" but there are still %d BytesAvailable. Flushing.\n', ...
@@ -350,4 +343,4 @@ classdef tiberius < laser & loghandler
 
     end %close methods
 
-end %close classdef 
+end %close classdef
