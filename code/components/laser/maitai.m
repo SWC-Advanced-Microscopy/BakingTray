@@ -14,6 +14,14 @@ classdef maitai < laser & loghandler
 %
 % Rob Campbell - Basel 2016
 
+
+    properties (Hidden)
+        % Implement a "grace period" between the pump power ramping up and down
+        % and the user having issued a turn/on off
+        powerCommandTime = NaT
+        powerStateGraceSeconds = 20
+    end
+
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -125,9 +133,8 @@ classdef maitai < laser & loghandler
             successB = obj.setWatchDogTimer(0);  %otherwise it will turn off again
             success = successA & successB;
             if success
-                % isLaserOn is deliberately NOT set here. The poller's isPoweredOn
-                % (pump power) sets it once the laser is actually lasing, which avoids
-                % the on/off indicator flashing while pump power ramps past threshold.
+                obj.isLaserOn=true;
+                obj.powerCommandTime = datetime('now'); % for grace period
                 obj.turnOnPockelsCell %Gate Pockels mains power
             end
 
@@ -151,8 +158,8 @@ classdef maitai < laser & loghandler
 
             if success
                 obj.turnOffPockelsCell;
-                % isLaserOn is deliberately NOT set here (see turnOn): the poller
-                % updates it as pump power decays past threshold.
+                obj.isLaserOn=false;
+                obj.powerCommandTime = datetime('now'); % for grace period
             else
                 fprintf('Reported laser still on\n')
             end
@@ -168,6 +175,13 @@ classdef maitai < laser & loghandler
             %
             % Behavior
             % When run this method sets the isLaserOn property
+
+            % Bail out if we are within the grace period
+            if ~isnat(obj.powerCommandTime) && ...
+                    seconds(datetime('now') - obj.powerCommandTime) < obj.powerStateGraceSeconds
+                powerOnState = obj.isLaserOn;   % trust the recent command; don't clobber
+                return
+            end
 
             pPower=obj.readPumpPower;
 
