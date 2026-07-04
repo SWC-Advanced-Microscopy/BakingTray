@@ -10,6 +10,13 @@ For more information on major releases merged into master from pre-release.
 
 
 4th July 2026
+** Significant laser changes **
+The implementation of the laser serial comms and the laser GUI were fundamentally broken
+in various ways. In particular, the laser could report it was powered off when it was not.
+This could make acquisitions stop for no reason, although mostly it affected user only
+during setup. All these issues have been fixed and tested with the maitai class. The
+tiberius and chameleon classes are expected to also work, but have not been tested yet.
+
 - USER: The laser GUI is now much less likely to block the start of an acquisition because of serial port command clashes.
 - DEVELOPER: Reworked how the laser classes talk to the serial port. A single timer, owned by the laser class, now polls the hardware and stores the results in cached properties. The GUI and the acquisition readiness check (`isReady`) read these cached properties instead of each issuing their own serial reads. This removes the contention at the serial port that caused the pauses and command clashes.
 - DEVELOPER: Laser commands (turn on/off, shutter, set wavelength) pause the poller while they run so their multi-step serial exchanges cannot be interrupted by a poll.

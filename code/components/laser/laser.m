@@ -52,12 +52,14 @@ classdef (Abstract) laser < handle
         pockelsDAQ='' % DAQ device ID for gating pockels power. e.g. "Dev1"
         pockelsDigitalLine='' % e.g. 'port0/line2' DO line for pockels cell.
         hDO % Handle to the digital output task
+        pollPeriodInSeconds % will be set to defaultPollPeriodInSeconds
+
     end %close public properties
 
     properties (Hidden)
         parent    %A reference of the parent object (likely BakingTray) to which this component is attached
         pollTimer % Handles regular serial reads
-        pollPeriodInSeconds = 1.0 % Serial port polling interval
+        defaultPollPeriodInSeconds = 1.0 % Serial port polling interval
         pollPauseDepth = 0  % >0 while a command is running; pollSerial skips
     end %close hidden properties
 
@@ -489,6 +491,7 @@ classdef (Abstract) laser < handle
 
             % If the timer does not exist we make it
             if isempty(obj.pollTimer)
+                obj.pollPeriodInSeconds = obj.defaultPollPeriodInSeconds;
                 obj.pollTimer = timer;
                 obj.pollTimer.Name = 'Regular laser serial port poller';
                 obj.pollTimer.Period  = obj.pollPeriodInSeconds;
@@ -511,6 +514,32 @@ classdef (Abstract) laser < handle
                 stop(obj.pollTimer)
             end
         end % stopPollingSerialPort
+
+
+        function set.pollPeriodInSeconds(obj,newPeriod)
+            % Setter for changing the polling period of the regular laser serial serial
+            % port poller.
+
+            if newPeriod<0.1
+                newPeriod = 0.1;
+            end
+
+            obj.pollPeriodInSeconds = newPeriod;   % store (does not recurse)
+
+            % Period can only be changed on a stopped timer, so cycle it if needed
+            if isa(obj.pollTimer,'timer') && isvalid(obj.pollTimer)
+                wasRunning = strcmp(obj.pollTimer.Running,'on');
+                if wasRunning
+                    stop(obj.pollTimer)
+                end
+
+                obj.pollTimer.Period = newPeriod;
+                if wasRunning
+                    start(obj.pollTimer)
+                end
+            end
+        end % set.pollPeriodInSeconds
+
 
         function pausePolling(obj)
             obj.pollPauseDepth = obj.pollPauseDepth + 1;

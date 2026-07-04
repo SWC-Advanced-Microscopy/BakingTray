@@ -36,7 +36,6 @@ classdef laser_view < BakingTray.gui.child_view
             obj = obj@BakingTray.gui.child_view;
 
             if nargin>0
-                %TODO: all the obvious checks needed
                 obj.model = hBT;
             else
                 fprintf('Can''t build laser_view: please supply hBT as an input argument\n');
@@ -194,8 +193,7 @@ classdef laser_view < BakingTray.gui.child_view
 
             %Will trigger setWavelengthEditPanelToNewTargetWaveLength
             obj.model.laser.setWavelength(newValue);
-            obj.model.laser.isModeLocked; %TODO: should this still be here? RAAC 26/07/04
-        end
+        end % setWavelengthEditPanel
 
 
         % API-triggered callbacks
@@ -207,7 +205,7 @@ classdef laser_view < BakingTray.gui.child_view
             % If the user has created calibration files to convert laser analog voltage to
             % mW at the objective, these are now loaded and applied to the scanner.
             obj.model.applyLaserCalibrationToScanner;
-        end
+        end % setWavelengthEditPanelToNewTargetWaveLength
 
 
         function h = makeRectangle(~,parentObj,pos)

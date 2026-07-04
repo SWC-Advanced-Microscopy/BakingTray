@@ -8,6 +8,9 @@ function bakeCleanupFun(obj)
         obj.leaveLaserOn=true;
     end
 
+    % Return laser polling to faster rate
+    obj.laser.pollPeriodInSeconds = obj.laser.defaultPollPeriodInSeconds;
+
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
     obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
     obj.scanner.disarmScanner;

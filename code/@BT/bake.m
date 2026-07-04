@@ -126,6 +126,8 @@ function sectionInd = bake(obj,varargin)
         obj.laser.setWatchDogTimer(wDogSeconds);
     end
 
+    % Poll the laser less often now that we are not interactive
+    obj.laser.pollPeriodInSeconds = 5; % every 5 seconds.
 
     %Log the current time to the recipe
     obj.recipe.Acquisition.acqStartTime = currentTimeStr();
