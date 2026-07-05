@@ -77,6 +77,9 @@ classdef maitai < laser & loghandler
             obj.isModeLocked;
             obj.switchPockelsCell;
 
+            % Then force a power read and wavelength read before starting the polling
+            obj.readWavelength
+            obj.readPower
             obj.startPollingSerialPort
         end %constructor
 
