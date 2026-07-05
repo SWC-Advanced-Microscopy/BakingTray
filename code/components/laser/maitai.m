@@ -20,6 +20,8 @@ classdef maitai < laser & loghandler
         % and the user having issued a turn/on off
         powerCommandTime = NaT
         powerStateGraceSeconds = 20
+
+        tuningPollTimer % Polls the wavelength faster while the laser is tuning
     end
 
     methods
@@ -73,6 +75,10 @@ classdef maitai < laser & loghandler
         %destructor
         function delete(obj)
             fprintf('Disconnecting from MaiTai laser\n')
+            if isa(obj.tuningPollTimer,'timer')
+                stop(obj.tuningPollTimer)
+                delete(obj.tuningPollTimer)
+            end
             delete@laser(obj);
             if ~isempty(obj.hC) && isvalid(obj.hC)
                 fprintf('Closing serial communications with MaiTai laser\n')
@@ -222,6 +228,12 @@ classdef maitai < laser & loghandler
             modelockState=obj.isLaserModeLocked;
         end
 
+        function handleModelockReply(obj,reply)
+            %modelock state embedded in the second bit of this 8 bit number
+            bits = fliplr(dec2bin(str2double(reply),8));
+            obj.isLaserModeLocked = strcmp(bits(2),'1');
+        end % handleModelockReply
+
 
         function success = openShutter(obj)
 
@@ -253,7 +265,7 @@ classdef maitai < laser & loghandler
             if success
                 obj.isLaserShutterOpen=false;
             end
-        end
+        end % closeShutter
 
 
         function [shutterState,success] = isShutterOpen(obj)
@@ -268,7 +280,12 @@ classdef maitai < laser & loghandler
             end
             obj.handleShutterReply(reply);
             shutterState=obj.isLaserShutterOpen;
-        end
+        end % isShutterOpen
+
+
+        function handleShutterReply(obj,reply)
+            obj.isLaserShutterOpen = str2double(reply); %if open the command returns 1
+        end % handleShutterReply
 
 
         function wavelength = readWavelength(obj)
@@ -280,6 +297,11 @@ classdef maitai < laser & loghandler
             obj.handleWavelengthReply(reply);
             wavelength = obj.currentWavelength;
         end
+
+
+        function handleWavelengthReply(obj,reply)
+            obj.currentWavelength = str2double(reply(1:end-2));
+        end % handleWavelengthReply
 
 
         function success = setWavelength(obj,wavelengthInNM)
@@ -302,7 +324,44 @@ classdef maitai < laser & loghandler
             end
             obj.targetWavelength=wavelengthInNM;
 
+            % Poll the wavelength faster until the laser reaches the new setpoint.
+            obj.startTuningPoll
         end % setWavelength
+
+
+        function startTuningPoll(obj)
+            % Start (or keep running) a timer that polls the wavelength at twice the
+            % base poll rate while the laser is tuning. It stops itself once the current
+            % wavelength reaches the target (see tuningPollFcn).
+            if isempty(obj.tuningPollTimer)
+                obj.tuningPollTimer = timer;
+                obj.tuningPollTimer.Name = 'MaiTai tuning wavelength poller';
+                obj.tuningPollTimer.TimerFcn = @(~,~) obj.tuningPollFcn;
+                obj.tuningPollTimer.ExecutionMode = 'fixedDelay';
+            end
+
+            if strcmp(obj.tuningPollTimer.Running,'off')
+                obj.tuningPollTimer.Period = max(obj.pollPeriodInSeconds/2, 0.1);
+                start(obj.tuningPollTimer)
+            end
+        end % startTuningPoll
+
+
+        function tuningPollFcn(obj)
+            % Fire-and-forget wavelength read used only while tuning. Stops the tuning
+            % timer once we reach the target so we settle back to the base poll rate.
+            if round(obj.currentWavelength) == round(obj.targetWavelength)
+                stop(obj.tuningPollTimer)
+                return
+            end
+
+            % Don't pile onto the queue if a command or a previous read is in progress.
+            if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)
+                return
+            end
+
+            obj.enqueueRead('READ:WAVELENGTH??', @obj.handleWavelengthReply);
+        end % tuningPollFcn
 
 
         function tuning = isTuning(obj)
@@ -333,7 +392,12 @@ classdef maitai < laser & loghandler
             end
             obj.handlePowerReply(reply);
             laserPower = obj.currentPower_mW;
-        end
+        end % readPower
+
+
+        function handlePowerReply(obj,reply)
+            obj.currentPower_mW = round(str2double(reply(1:end-1))*1E3);
+        end % handlePowerReply
 
 
         function laserID = readLaserID(obj)
@@ -405,11 +469,6 @@ classdef maitai < laser & loghandler
         end % pollSerial
 
 
-        function handleShutterReply(obj,reply)
-            obj.isLaserShutterOpen = str2double(reply); %if open the command returns 1
-        end % handleShutterReply
-
-
         function handlePumpPowerReply(obj,reply)
             % Parse pump power and update the on/off state (see isPoweredOn).
             pPower = round(str2double(reply(1:end-1))*1E3);
@@ -428,22 +487,6 @@ classdef maitai < laser & loghandler
             obj.isLaserOn = pPower>15;
         end % handlePumpPowerReply
 
-
-        function handlePowerReply(obj,reply)
-            obj.currentPower_mW = round(str2double(reply(1:end-1))*1E3);
-        end % handlePowerReply
-
-
-        function handleWavelengthReply(obj,reply)
-            obj.currentWavelength = str2double(reply(1:end-2));
-        end % handleWavelengthReply
-
-
-        function handleModelockReply(obj,reply)
-            %modelock state embedded in the second bit of this 8 bit number
-            bits = fliplr(dec2bin(str2double(reply),8));
-            obj.isLaserModeLocked = strcmp(bits(2),'1');
-        end % handleModelockReply
 
 
         % MaiTai specific

@@ -522,8 +522,8 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             % port poller.
 
             % Avoid polling too quickly.
-            if newPeriod<1.0
-                newPeriod = 1.0;
+            if newPeriod<0.5
+                newPeriod = 0.5;
             end
 
             obj.pollPeriodInSeconds = newPeriod;   % store (does not recurse)
