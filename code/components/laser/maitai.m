@@ -62,7 +62,6 @@ classdef maitai < laser & loghandler
             if ~success
                 fprintf('Component maitai failed to connect to laser over the serial port.\n')
                 return
-                %TODO: is it possible to delete it here?
             end
 
             %Set the target wavelength to equal the current wavelength
@@ -476,7 +475,7 @@ classdef maitai < laser & loghandler
             obj.enqueueRead(obj.CMD_QUERY_PUMP_POWER, @obj.handlePumpPowerReply);
             obj.enqueueRead(obj.CMD_QUERY_POWER,      @obj.handlePowerReply);
             obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
-            obj.enqueueRead(obj.CMD_QUERY_MODELOCK,   @obj.handleModelockReply);
+            obj.enqueueRead(obj.CMD_QUERY_STATEBITS,  @obj.handleModelockReply);
         end % pollSerial
 
 
