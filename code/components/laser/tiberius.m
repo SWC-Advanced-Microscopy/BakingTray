@@ -12,6 +12,12 @@ classdef tiberius < laser & loghandler
 %
 % Rob Campbell - SWC 2021
 
+
+    properties (Constant,Hidden)
+
+    end
+
+
     methods
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

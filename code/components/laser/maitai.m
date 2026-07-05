@@ -21,8 +21,19 @@ classdef maitai < laser & loghandler
         powerCommandTime = NaT
         powerStateGraceSeconds = 20
 
+        % TODO -- move the tuningPollTimer and all it's bits and pieces to the laser class
         tuningPollTimer % Polls the wavelength faster while the laser is tuning
     end
+
+    properties (Constant, Hidden)
+        % MaiTai serial commands — single-sourced so each string appears once
+        CMD_QUERY_SHUTTER    = 'SHUTTER?'
+        CMD_QUERY_STATEBITS   = '*STB?'
+        CMD_QUERY_PUMP_POWER = 'READ:PLASER:POWER?'
+        CMD_QUERY_POWER      = 'POWER?'
+        CMD_QUERY_WAVELENGTH = 'WAVELENGTH?'
+    end
+
 
     methods
 
@@ -217,7 +228,8 @@ classdef maitai < laser & loghandler
 
         function modelockState = isModeLocked(obj)
 
-            [success,reply]=obj.sendAndReceiveSerial('*STB?'); %modelock state embedded in the second bit of this 8 bit number
+            %modelock state embedded in the second bit of this 8 bit number
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_STATEBITS);
             if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
                 modelockState=0;
                 obj.isLaserModeLocked=modelockState;
@@ -270,7 +282,7 @@ classdef maitai < laser & loghandler
 
         function [shutterState,success] = isShutterOpen(obj)
 
-            [success,reply]=obj.sendAndReceiveSerial('SHUTTER?');
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_SHUTTER );
 
             % If it fails to read, return whatever was the last state
             if ~success
@@ -289,7 +301,7 @@ classdef maitai < laser & loghandler
 
 
         function wavelength = readWavelength(obj)
-            [success,reply]=obj.sendAndReceiveSerial('READ:WAVELENGTH??');
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_WAVELENGTH);
             if ~success
                 wavelength=[];
                 return
@@ -360,13 +372,13 @@ classdef maitai < laser & loghandler
                 return
             end
 
-            obj.enqueueRead('READ:WAVELENGTH??', @obj.handleWavelengthReply);
+            obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
         end % tuningPollFcn
 
 
         function tuning = isTuning(obj)
             %First get the desired (setpoint) wavelength
-            [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
+            [success,wavelengthDesired]=obj.sendAndReceiveSerial(obj.CMD_QUERY_WAVELENGTH);
             if ~success
                 return
             end
@@ -383,9 +395,8 @@ classdef maitai < laser & loghandler
 
         end
 
-
         function laserPower = readPower(obj)
-            [success,reply]=obj.sendAndReceiveSerial('READ:POWER?');
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_POWER);
             if ~success
                 laserPower=[];
                 return
@@ -461,11 +472,11 @@ classdef maitai < laser & loghandler
                 return
             end
 
-            obj.enqueueRead('SHUTTER?',           @obj.handleShutterReply);
-            obj.enqueueRead('READ:PLASER:POWER?', @obj.handlePumpPowerReply);
-            obj.enqueueRead('READ:POWER?',        @obj.handlePowerReply);
-            obj.enqueueRead('READ:WAVELENGTH??',  @obj.handleWavelengthReply);
-            obj.enqueueRead('*STB?',              @obj.handleModelockReply);
+            obj.enqueueRead(obj.CMD_QUERY_SHUTTER,    @obj.handleShutterReply);
+            obj.enqueueRead(obj.CMD_QUERY_PUMP_POWER, @obj.handlePumpPowerReply);
+            obj.enqueueRead(obj.CMD_QUERY_POWER,      @obj.handlePowerReply);
+            obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
+            obj.enqueueRead(obj.CMD_QUERY_MODELOCK,   @obj.handleModelockReply);
         end % pollSerial
 
 
@@ -492,7 +503,7 @@ classdef maitai < laser & loghandler
         % MaiTai specific
         function laserPower = readPumpPower(obj)
             % Return pump power as a scalar
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:PLASER:POWER?');
+            [success,laserPower]=obj.sendAndReceiveSerial(obj.CMD_QUERY_PUMP_POWER);
             if ~success
                 laserPower=[];
                 return
@@ -532,7 +543,8 @@ classdef maitai < laser & loghandler
         end
 
         function emission = emissionPossible(obj)
-            [success,reply]=obj.sendAndReceiveSerial('*STB?'); %emission state embedded in the first bit of this 8 bit number
+            %emission state embedded in the first bit of this 8 bit number
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_STATEBITS);
             if ~success %If we can't talk to it, we assume it's also not emitting (maybe questionable, but let's go with this for now)
                 emission=false;
                 return

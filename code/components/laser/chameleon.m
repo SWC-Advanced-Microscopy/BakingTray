@@ -13,7 +13,7 @@ classdef chameleon < laser & loghandler
 %
 % Rob Campbell - Basel 2017
 
-    properties
+    properties (Constant,Hidden)
        % The following is a list of Chemeleon fault states taken from the
        % Chameleon Ultra and Chameleon Vision operatpr manual page 5-8.
        faultMessage = ...
