@@ -30,8 +30,8 @@ classdef maitai < laser & loghandler
         CMD_QUERY_SHUTTER    = 'SHUTTER?'
         CMD_QUERY_STATEBITS   = '*STB?'
         CMD_QUERY_PUMP_POWER = 'READ:PLASER:POWER?'
-        CMD_QUERY_POWER      = 'POWER?'
-        CMD_QUERY_WAVELENGTH = 'WAVELENGTH?'
+        CMD_QUERY_POWER      = 'READ:POWER?'
+        CMD_QUERY_WAVELENGTH = 'READ:WAVELENGTH?'
     end
 
 
@@ -378,7 +378,7 @@ classdef maitai < laser & loghandler
 
         function tuning = isTuning(obj)
             %First get the desired (setpoint) wavelength
-            [success,wavelengthDesired]=obj.sendAndReceiveSerial(obj.CMD_QUERY_WAVELENGTH);
+            [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
             if ~success
                 return
             end
