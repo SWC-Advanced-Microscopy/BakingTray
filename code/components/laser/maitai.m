@@ -388,6 +388,9 @@ classdef maitai < laser & loghandler
         % queue). Each reply is parsed by its handler in asyncSerial.onSerialData.
         function pollSerial(obj)
 
+            % Recover if a previous fire-and-forget read stalled without a reply.
+            obj.resyncStaleInFlight
+
             % Skip if a command is holding the poller off, or the previous burst hasn't
             % drained yet (don't pile reads onto the queue).
             if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)

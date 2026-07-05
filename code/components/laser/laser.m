@@ -521,8 +521,9 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             % Setter for changing the polling period of the regular laser serial serial
             % port poller.
 
-            if newPeriod<0.5
-                newPeriod = 0.5;
+            % Avoid polling too quickly.
+            if newPeriod<1.0
+                newPeriod = 1.0;
             end
 
             obj.pollPeriodInSeconds = newPeriod;   % store (does not recurse)

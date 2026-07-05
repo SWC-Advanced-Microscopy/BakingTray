@@ -30,6 +30,7 @@ classdef asyncSerial < handle
         serialInFlight = false           % true while a command awaits its reply
         inFlightId = []                  % id of the in-flight command
         inFlightHandler = []             % handler for the in-flight command (fire-and-forget), or []
+        inFlightSince = NaT              % when the in-flight command was sent (for the stale watchdog)
         nextCmdId = 1                    % monotonic command id
         serialReplyTimeoutSeconds = 5    % bounded wait for a reply before resync
     end %close hidden properties
@@ -46,6 +47,7 @@ classdef asyncSerial < handle
             obj.serialInFlight = false;
             obj.inFlightId = [];
             obj.inFlightHandler = [];
+            obj.inFlightSince = NaT;
             obj.nextCmdId = 1;
             configureCallback(obj.hC,"terminator",@(~,~) obj.onSerialData);
         end % setupAsyncSerial
@@ -83,18 +85,26 @@ classdef asyncSerial < handle
             % Wait for this command's reply. pause() yields so onSerialData can run.
             % NB: pause() flushes MATLAB's whole callback queue (incl. other software's
             % timers, e.g. ScanImage's AsyncSerialQueue), so keep the interval coarse to
-            % minimise how often we perturb other subsystems. The real fix is to make the
-            % background poller fire-and-forget so it doesn't spin-wait at all.
-            t0 = tic;
-            while ~isKey(obj.serialReplies,id) && toc(t0) < obj.serialReplyTimeoutSeconds
-                pause(0.05)
+            % minimise how often we perturb other subsystems.
+            % If a stalled command ahead of us is blocking the queue, the first wait
+            % times out; resyncSerial then drops the stall, flushes, and advances the
+            % queue, so we wait once more and our command still gets its reply.
+            gotReply = false;
+            for attempt = 1:2
+                t0 = tic;
+                while ~isKey(obj.serialReplies,id) && toc(t0) < obj.serialReplyTimeoutSeconds
+                    pause(0.05)
+                end
+                if isKey(obj.serialReplies,id)
+                    gotReply = true;
+                    break
+                end
+                obj.resyncSerial
             end
 
-            if ~isKey(obj.serialReplies,id)
-                % Timed out. Drop the stuck transaction and resync the stream.
+            if ~gotReply
                 msg = sprintf('%s serial command %s did not return a reply\n', class(obj), commandString);
                 obj.logMessage(inputname(1),dbstack,6,msg)
-                obj.resyncSerial
                 return
             end
 
@@ -127,6 +137,7 @@ classdef asyncSerial < handle
                 obj.serialInFlight = true;
                 obj.inFlightId = item.id;
                 obj.inFlightHandler = item.handler;
+                obj.inFlightSince = datetime('now');
             else
                 % No reply expected: command complete, send the next one.
                 obj.pumpSerialQueue
@@ -144,8 +155,8 @@ classdef asyncSerial < handle
             end
             line = readline(obj.hC);
 
-            if ~obj.serialInFlight || strlength(line)==0
-                % Orphan/late reply with nothing awaiting it, or empty line. Discard.
+            if ~obj.serialInFlight
+                % Orphan/late reply with nothing awaiting it. Discard.
                 return
             end
 
@@ -154,6 +165,14 @@ classdef asyncSerial < handle
             obj.serialInFlight = false;
             obj.inFlightId = [];
             obj.inFlightHandler = [];
+            obj.inFlightSince = NaT;
+
+            if strlength(line)==0
+                % Empty/stray line: a failed read for this command. Don't update the
+                % cache, but DO advance so the queue can't stall on empty frames.
+                obj.pumpSerialQueue
+                return
+            end
 
             if isempty(handler)
                 obj.serialReplies(id) = char(line); % sync path: hand to the waiter
@@ -186,11 +205,25 @@ classdef asyncSerial < handle
             % command, flush the input buffer, and continue with anything still queued.
             obj.serialInFlight = false;
             obj.inFlightId = [];
+            obj.inFlightHandler = [];
+            obj.inFlightSince = NaT;
             if ~isempty(obj.hC) && isvalid(obj.hC)
                 flush(obj.hC,"input")
             end
             obj.pumpSerialQueue
         end % resyncSerial
+
+
+        function resyncStaleInFlight(obj)
+            % Watchdog for fire-and-forget reads: if a command has been awaiting its
+            % reply for longer than the timeout (a lost reply, with no spin-waiter to
+            % recover it), drop it and resync so the queue can advance. Intended to be
+            % called periodically, e.g. from a status poll.
+            if obj.serialInFlight && ~isnat(obj.inFlightSince) && ...
+                    seconds(datetime('now') - obj.inFlightSince) > obj.serialReplyTimeoutSeconds
+                obj.resyncSerial
+            end
+        end % resyncStaleInFlight
 
     end %close methods
 
