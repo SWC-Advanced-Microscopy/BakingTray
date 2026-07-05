@@ -218,14 +218,8 @@ classdef maitai < laser & loghandler
                 return
             end
 
-            %extract modelock state
-            bits = fliplr(dec2bin(str2double(reply),8));
-            if strcmp(bits(2),'1')
-                modelockState=true;
-            else
-                modelockState=false;
-            end
-            obj.isLaserModeLocked=modelockState;
+            obj.handleModelockReply(reply);
+            modelockState=obj.isLaserModeLocked;
         end
 
 
@@ -272,19 +266,19 @@ classdef maitai < laser & loghandler
                 shutterState=obj.isLaserShutterOpen;
                 return
             end
-            shutterState = str2double(reply); %if open the command returns 1
-            obj.isLaserShutterOpen=shutterState;
+            obj.handleShutterReply(reply);
+            shutterState=obj.isLaserShutterOpen;
         end
 
 
         function wavelength = readWavelength(obj)
-            [success,wavelength]=obj.sendAndReceiveSerial('READ:WAVELENGTH??');
+            [success,reply]=obj.sendAndReceiveSerial('READ:WAVELENGTH??');
             if ~success
                 wavelength=[];
                 return
             end
-            wavelength = str2double(wavelength(1:end-2));
-            obj.currentWavelength=wavelength;
+            obj.handleWavelengthReply(reply);
+            wavelength = obj.currentWavelength;
         end
 
 
@@ -332,14 +326,13 @@ classdef maitai < laser & loghandler
 
 
         function laserPower = readPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('READ:POWER?');
+            [success,reply]=obj.sendAndReceiveSerial('READ:POWER?');
             if ~success
                 laserPower=[];
                 return
             end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
-            obj.currentPower_mW = laserPower;
+            obj.handlePowerReply(reply);
+            laserPower = obj.currentPower_mW;
         end
 
 
@@ -386,6 +379,68 @@ classdef maitai < laser & loghandler
                 success=false;
             end
         end
+
+
+        % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        % Fire-and-forget status poll and its reply handlers.
+        % pollSerial overrides laser.pollSerial: it queues the status reads and returns
+        % immediately, so the poller never spin-waits (and hence never pumps the event
+        % queue). Each reply is parsed by its handler in asyncSerial.onSerialData.
+        function pollSerial(obj)
+
+            % Skip if a command is holding the poller off, or the previous burst hasn't
+            % drained yet (don't pile reads onto the queue).
+            if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)
+                return
+            end
+
+            obj.enqueueRead('SHUTTER?',           @obj.handleShutterReply);
+            obj.enqueueRead('READ:PLASER:POWER?', @obj.handlePumpPowerReply);
+            obj.enqueueRead('READ:POWER?',        @obj.handlePowerReply);
+            obj.enqueueRead('READ:WAVELENGTH??',  @obj.handleWavelengthReply);
+            obj.enqueueRead('*STB?',              @obj.handleModelockReply);
+        end % pollSerial
+
+
+        function handleShutterReply(obj,reply)
+            obj.isLaserShutterOpen = str2double(reply); %if open the command returns 1
+        end % handleShutterReply
+
+
+        function handlePumpPowerReply(obj,reply)
+            % Parse pump power and update the on/off state (see isPoweredOn).
+            pPower = round(str2double(reply(1:end-1))*1E3);
+            obj.currentPumpPower_mW = pPower;
+
+            % Within the grace period after a turn on/off, trust the command, don't clobber.
+            if ~isnat(obj.powerCommandTime) && ...
+                    seconds(datetime('now') - obj.powerCommandTime) < obj.powerStateGraceSeconds
+                return
+            end
+
+            if isnan(pPower)
+                return
+            end
+
+            obj.isLaserOn = pPower>15;
+        end % handlePumpPowerReply
+
+
+        function handlePowerReply(obj,reply)
+            obj.currentPower_mW = round(str2double(reply(1:end-1))*1E3);
+        end % handlePowerReply
+
+
+        function handleWavelengthReply(obj,reply)
+            obj.currentWavelength = str2double(reply(1:end-2));
+        end % handleWavelengthReply
+
+
+        function handleModelockReply(obj,reply)
+            %modelock state embedded in the second bit of this 8 bit number
+            bits = fliplr(dec2bin(str2double(reply),8));
+            obj.isLaserModeLocked = strcmp(bits(2),'1');
+        end % handleModelockReply
 
 
         % MaiTai specific

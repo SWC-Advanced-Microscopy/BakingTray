@@ -29,6 +29,7 @@ classdef asyncSerial < handle
         serialReplies                    % containers.Map(id -> reply); made in setupAsyncSerial
         serialInFlight = false           % true while a command awaits its reply
         inFlightId = []                  % id of the in-flight command
+        inFlightHandler = []             % handler for the in-flight command (fire-and-forget), or []
         nextCmdId = 1                    % monotonic command id
         serialReplyTimeoutSeconds = 5    % bounded wait for a reply before resync
     end %close hidden properties
@@ -44,6 +45,7 @@ classdef asyncSerial < handle
             obj.serialReplies = containers.Map('KeyType','double','ValueType','char');
             obj.serialInFlight = false;
             obj.inFlightId = [];
+            obj.inFlightHandler = [];
             obj.nextCmdId = 1;
             configureCallback(obj.hC,"terminator",@(~,~) obj.onSerialData);
         end % setupAsyncSerial
@@ -68,7 +70,7 @@ classdef asyncSerial < handle
             % Enqueue with a unique id so a (possibly nested) waiter can find its reply.
             id = obj.nextCmdId;
             obj.nextCmdId = obj.nextCmdId + 1;
-            obj.cmdQueue{end+1} = struct('id',id, 'command',commandString, 'awaitReply',waitForReply);
+            obj.cmdQueue{end+1} = struct('id',id, 'command',commandString, 'awaitReply',waitForReply, 'handler',[]);
 
             obj.pumpSerialQueue % send the head of the queue if the port is free
 
@@ -124,6 +126,7 @@ classdef asyncSerial < handle
             if item.awaitReply
                 obj.serialInFlight = true;
                 obj.inFlightId = item.id;
+                obj.inFlightHandler = item.handler;
             else
                 % No reply expected: command complete, send the next one.
                 obj.pumpSerialQueue
@@ -133,7 +136,9 @@ classdef asyncSerial < handle
 
         function onSerialData(obj)
             % Terminator callback: a complete line has arrived. Match it to the
-            % in-flight command, hand it to the waiter, then send the next command.
+            % in-flight command. If that command supplied a handler (fire-and-forget)
+            % we call it to parse the reply; otherwise we store the reply for the
+            % spin-waiter in sendAndReceiveSerial. Then send the next command.
             if isempty(obj.hC) || ~isvalid(obj.hC) || obj.hC.NumBytesAvailable==0
                 return
             end
@@ -144,12 +149,36 @@ classdef asyncSerial < handle
                 return
             end
 
-            obj.serialReplies(obj.inFlightId) = char(line);
+            handler = obj.inFlightHandler;
+            id = obj.inFlightId;
             obj.serialInFlight = false;
             obj.inFlightId = [];
+            obj.inFlightHandler = [];
+
+            if isempty(handler)
+                obj.serialReplies(id) = char(line); % sync path: hand to the waiter
+            else
+                try
+                    handler(char(line));            % fire-and-forget path: parse+cache
+                catch ME
+                    fprintf('%s serial reply handler failed: %s\n', class(obj), ME.message)
+                end
+            end
 
             obj.pumpSerialQueue % send the next queued command
         end % onSerialData
+
+
+        function enqueueRead(obj,command,handler)
+            % Fire-and-forget read: queue a command whose reply is parsed by 'handler'
+            % in onSerialData. Returns immediately -- nothing spin-waits -- so the
+            % background poller does not pump the event queue.
+            id = obj.nextCmdId;
+            obj.nextCmdId = obj.nextCmdId + 1;
+            obj.cmdQueue{end+1} = struct('id',id, 'command',command, 'awaitReply',true, 'handler',handler);
+
+            obj.pumpSerialQueue % send the head of the queue if the port is free
+        end % enqueueRead
 
 
         function resyncSerial(obj)
