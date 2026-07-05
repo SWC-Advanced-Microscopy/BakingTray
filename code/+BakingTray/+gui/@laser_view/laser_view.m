@@ -147,7 +147,7 @@ classdef laser_view < BakingTray.gui.child_view
             %Set the target wavelength to equal the current wavelength
             obj.model.laser.targetWavelength=obj.model.laser.currentWavelength;
 
-
+            obj.updatePowerText;
         end %constructor
 
         function delete(obj)
