@@ -20,9 +20,6 @@ classdef maitai < laser & loghandler
         % and the user having issued a turn/on off
         powerCommandTime = NaT
         powerStateGraceSeconds = 20
-
-        % TODO -- move the tuningPollTimer and all it's bits and pieces to the laser class
-        tuningPollTimer % Polls the wavelength faster while the laser is tuning
     end
 
     properties (Constant, Hidden)
@@ -86,10 +83,6 @@ classdef maitai < laser & loghandler
         %destructor
         function delete(obj)
             fprintf('Disconnecting from MaiTai laser\n')
-            if isa(obj.tuningPollTimer,'timer')
-                stop(obj.tuningPollTimer)
-                delete(obj.tuningPollTimer)
-            end
             delete@laser(obj);
             if ~isempty(obj.hC) && isvalid(obj.hC)
                 fprintf('Closing serial communications with MaiTai laser\n')
@@ -436,39 +429,11 @@ classdef maitai < laser & loghandler
 
         %%
         % Polling methods
-        function startTuningPoll(obj)
-            % Start (or keep running) a timer that polls the wavelength at twice the
-            % base poll rate while the laser is tuning. It stops itself once the current
-            % wavelength reaches the target (see tuningPollFcn).
-            if isempty(obj.tuningPollTimer)
-                obj.tuningPollTimer = timer;
-                obj.tuningPollTimer.Name = 'MaiTai tuning wavelength poller';
-                obj.tuningPollTimer.TimerFcn = @(~,~) obj.tuningPollFcn;
-                obj.tuningPollTimer.ExecutionMode = 'fixedDelay';
-            end
-
-            if strcmp(obj.tuningPollTimer.Running,'off')
-                obj.tuningPollTimer.Period = max(obj.pollPeriodInSeconds/2, 0.1);
-                start(obj.tuningPollTimer)
-            end
-        end % startTuningPoll
-
-
-        function tuningPollFcn(obj)
-            % Fire-and-forget wavelength read used only while tuning. Stops the tuning
-            % timer once we reach the target so we settle back to the base poll rate.
-            if round(obj.currentWavelength) == round(obj.targetWavelength)
-                stop(obj.tuningPollTimer)
-                return
-            end
-
-            % Don't pile onto the queue if a command or a previous read is in progress.
-            if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)
-                return
-            end
-
+        function readWavelengthDuringTuning(obj)
+            % Override: queue the read (fire-and-forget) rather than block, so the
+            % tuning poll doesn't pump the event queue while the laser tunes.
             obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
-        end % tuningPollFcn
+        end % readWavelengthDuringTuning
 
 
 
