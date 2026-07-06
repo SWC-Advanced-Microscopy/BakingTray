@@ -30,6 +30,7 @@ classdef asyncSerial < handle
         serialInFlight = false           % true while a command awaits its reply
         inFlightId = []                  % id of the in-flight command
         inFlightHandler = []             % handler for the in-flight command (fire-and-forget), or []
+        inFlightCommand = ''             % command string of the in-flight command (used to strip echoes)
         inFlightSince = NaT              % when the in-flight command was sent (for the stale watchdog)
         nextCmdId = 1                    % monotonic command id
         serialReplyTimeoutSeconds = 5    % bounded wait for a reply before resync
@@ -47,6 +48,7 @@ classdef asyncSerial < handle
             obj.serialInFlight = false;
             obj.inFlightId = [];
             obj.inFlightHandler = [];
+            obj.inFlightCommand = '';
             obj.inFlightSince = NaT;
             obj.nextCmdId = 1;
             configureCallback(obj.hC,"terminator",@(~,~) obj.onSerialData);
@@ -108,11 +110,9 @@ classdef asyncSerial < handle
                 return
             end
 
+            % The reply has already had any command echo stripped in onSerialData.
             reply = obj.serialReplies(id);
             remove(obj.serialReplies,id);
-
-            % If the device echoes the command back, remove it (no-op for non-echoers).
-            reply = strrep(reply,commandString,'');
             success = true;
         end % sendAndReceiveSerial
 
@@ -137,6 +137,7 @@ classdef asyncSerial < handle
                 obj.serialInFlight = true;
                 obj.inFlightId = item.id;
                 obj.inFlightHandler = item.handler;
+                obj.inFlightCommand = item.command;
                 obj.inFlightSince = datetime('now');
             else
                 % No reply expected: command complete, send the next one.
@@ -162,9 +163,11 @@ classdef asyncSerial < handle
 
             handler = obj.inFlightHandler;
             id = obj.inFlightId;
+            command = obj.inFlightCommand;
             obj.serialInFlight = false;
             obj.inFlightId = [];
             obj.inFlightHandler = [];
+            obj.inFlightCommand = '';
             obj.inFlightSince = NaT;
 
             if strlength(line)==0
@@ -174,11 +177,17 @@ classdef asyncSerial < handle
                 return
             end
 
+            % Some devices (e.g. the Coherent Chameleon) echo the command back before
+            % (or instead of) their reply. Strip any echo of THIS command from the line
+            % so the handler / waiter sees only the reply. This is a no-op for devices
+            % that don't echo (their reply never contains the command as a substring).
+            reply = strrep(char(line),command,'');
+
             if isempty(handler)
-                obj.serialReplies(id) = char(line); % sync path: hand to the waiter
+                obj.serialReplies(id) = reply; % sync path: hand to the waiter
             else
                 try
-                    handler(char(line));            % fire-and-forget path: parse+cache
+                    handler(reply);            % fire-and-forget path: parse+cache
                 catch ME
                     fprintf('%s serial reply handler failed: %s\n', class(obj), ME.message)
                 end
@@ -206,6 +215,7 @@ classdef asyncSerial < handle
             obj.serialInFlight = false;
             obj.inFlightId = [];
             obj.inFlightHandler = [];
+            obj.inFlightCommand = '';
             obj.inFlightSince = NaT;
             if ~isempty(obj.hC) && isvalid(obj.hC)
                 flush(obj.hC,"input")

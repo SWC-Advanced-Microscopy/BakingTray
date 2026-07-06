@@ -8,8 +8,12 @@ classdef chameleon < laser & loghandler
 % Laser control component for Chameleon lasers from Coherent.
 % Tested with Chameleon Vision S
 %
-% For docs, please see the laser abstract class.
-%
+% chameleon inherits the laser abstract class. For the API documentation (what each
+% of the shared methods is meant to do) see the doc text in laser.m. The methods
+% below that implement that API carry only a short note plus a pointer to the
+% matching laser method. Methods that are specific to the Chameleon (humidity,
+% warm-up state, key switch, baseplate temperature, fault state, the async reply
+% handlers, etc.) carry their own full doc text.
 %
 % Rob Campbell - Basel 2017
 
@@ -41,6 +45,13 @@ classdef chameleon < laser & loghandler
               'Modelock slit stepper motor homing', 'Chameleon-verdi EEPROM', ...
               'Chameleon precompensator homing', 'Chameleon curve EEPROM'};
 
+       % Chameleon serial queries — single-sourced so each string appears once. These
+       % are the queries issued by the status poll (see pollSerial).
+       CMD_QUERY_SHUTTER    = '?S'    % shutter state (1 = open)
+       CMD_QUERY_POWERSTATE = '?L'    % laser on/off state (1 = on)
+       CMD_QUERY_POWER      = '?UF'   % output power in mW
+       CMD_QUERY_WAVELENGTH = '?VW'   % current wavelength in nm
+       CMD_QUERY_MODELOCK   = '?MDLK' % modelock state (1 = modelocked, 2 = CW, 0 = off)
     end % close properties
 
     methods
@@ -48,7 +59,15 @@ classdef chameleon < laser & loghandler
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %constructor
         function obj = chameleon(serialComms,logObject)
-        % function obj = chameleon(serialComms,logObject)
+            % chameleon
+            %
+            % Purpose
+            % Constructor. Connect to a Chameleon laser on the specified serial port and
+            % start the background status poller.
+            %
+            % Inputs
+            % serialComms - [string] the serial port to connect to. e.g. 'COM1'
+            % logObject   - [optional] a loghandler-derived object used for logging
 
             if nargin<1
                 error('chameleon requires at least one input argument: you must supply the laser COM port as a string')
@@ -92,6 +111,12 @@ classdef chameleon < laser & loghandler
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %destructor
         function delete(obj)
+            % chameleon.delete
+            %
+            % Purpose
+            % Destructor. Stops the timers (via laser.delete) and then closes the
+            % serial connection to the laser.
+
             fprintf('Disconnecting from Chameleon laser\n')
             delete@laser(obj);
             if ~isempty(obj.hC) && isvalid(obj.hC)
@@ -104,6 +129,14 @@ classdef chameleon < laser & loghandler
 
 
         function success = connect(obj)
+            % chameleon.connect
+            %
+            % Purpose
+            % Open the serial port to the Chameleon, attach the async serial callback,
+            % and disable the laser's command echo and prompt so replies are clean.
+            %
+            % Note: for detailed documentation see laser.connect
+
             try
                 obj.hC=serialport(obj.controllerID,19200,'Timeout',5);
             catch ME
@@ -142,6 +175,14 @@ classdef chameleon < laser & loghandler
 
 
         function success = isControllerConnected(obj)
+            % chameleon.isControllerConnected
+            %
+            % Purpose
+            % Return true if we can communicate with the laser. Probes the shutter
+            % state as the communication test.
+            %
+            % Note: for detailed documentation see laser.isControllerConnected
+
             if isempty(obj.hC) || ~isvalid(obj.hC)
                 success=false;
             else
@@ -152,8 +193,14 @@ classdef chameleon < laser & loghandler
 
 
         function success = turnOn(obj)
-            % The Chameleon can't be turned on remotely unless the key
-            % is set to the active position.
+            % chameleon.turnOn
+            %
+            % Purpose
+            % Switch the laser on. The Chameleon can only be turned on remotely if its
+            % key switch is in the active position and there is no fault state.
+            %
+            % Note: for detailed documentation see laser.turnOn
+
             success=false;
 
             obj.pausePolling
@@ -181,7 +228,13 @@ classdef chameleon < laser & loghandler
 
 
         function success = turnOff(obj)
-            % Even the keyswitch is set to "ENABLE" the laser can be turned off remotely
+            % chameleon.turnOff
+            %
+            % Purpose
+            % Switch the laser off (possible even with the key switch at "ENABLE") and
+            % close the shutter, which the laser does not do automatically.
+            %
+            % Note: for detailed documentation see laser.turnOff
 
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
@@ -197,35 +250,84 @@ classdef chameleon < laser & loghandler
             obj.switchPockelsCell %Gate Pockels mains power
         end % turnOff
 
-        function [powerOnState,reply] = isPoweredOn(obj)
-           	[success,reply]=obj.sendAndReceiveSerial('?L');
+
+        function [powerOnState,details] = isPoweredOn(obj)
+            % chameleon.isPoweredOn
+            %
+            % Purpose
+            % Return true if the laser is powered on. Read directly from the laser
+            % (?L query), so there is no lag and no grace period is needed.
+            %
+            % Note: for detailed documentation see laser.isPoweredOn
+
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_POWERSTATE);
             if ~success
                 powerOnState=0;
+                details='read failed';
                 return
             end
 
-            powerOnState = (str2double(reply)==1);
-
-            obj.isLaserOn=powerOnState;
+            obj.handlePowerStateReply(reply);
+            powerOnState = obj.isLaserOn;
+            details = reply;
         end % isPoweredOn
+
+        function handlePowerStateReply(obj,reply)
+            % chameleon.handlePowerStateReply
+            %
+            % Purpose
+            % Parse the reply to a power-state query (?L) and cache the on/off state in
+            % isLaserOn (the laser returns 1 when on). Called from the poll queue.
+            %
+            % Inputs
+            % reply - the raw reply string from the laser
+
+            obj.isLaserOn = (str2double(reply)==1);
+        end % handlePowerStateReply
 
 
         function modelockState = isModeLocked(obj)
-            [success,reply]=obj.sendAndReceiveSerial('?MDLK');
+            % chameleon.isModeLocked
+            %
+            % Purpose
+            % Returns true if the laser is modelocked. False otherwise.
+            %
+            % Note: for detailed documentation see laser.isModeLocked
+
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_MODELOCK);
             if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
                 modelockState=false;
                 obj.isLaserModeLocked=modelockState;
                 return
             end
 
-            % Determine modelock state
-            modelockState = str2double(reply);
-            modelockState = (modelockState==1); %Because it can equal 2 (CW) or 0 (Off)
-            obj.isLaserModeLocked=modelockState;
+            obj.handleModelockReply(reply);
+            modelockState=obj.isLaserModeLocked;
         end % isModeLocked
+
+        function handleModelockReply(obj,reply)
+            % chameleon.handleModelockReply
+            %
+            % Purpose
+            % Parse the reply to a modelock query (?MDLK) and cache the state in
+            % isLaserModeLocked. The laser returns 1 for modelocked, 2 for CW and 0 for
+            % off, so only 1 counts as modelocked. Called from the poll queue.
+            %
+            % Inputs
+            % reply - the raw reply string from the laser
+
+            modelockState = str2double(reply);
+            obj.isLaserModeLocked = (modelockState==1); %Because it can equal 2 (CW) or 0 (Off)
+        end % handleModelockReply
 
 
         function success = openShutter(obj)
+            % chameleon.openShutter
+            %
+            % Purpose
+            % Open the laser's shutter and gate the Pockels cell on.
+            %
+            % Note: for detailed documentation see laser.openShutter
 
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
@@ -242,6 +344,12 @@ classdef chameleon < laser & loghandler
 
 
         function success = closeShutter(obj)
+            % chameleon.closeShutter
+            %
+            % Purpose
+            % Close the laser's shutter.
+            %
+            % Note: for detailed documentation see laser.closeShutter
 
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
@@ -255,32 +363,83 @@ classdef chameleon < laser & loghandler
 
 
         function [shutterState,success] = isShutterOpen(obj)
-            [success,reply]=obj.sendAndReceiveSerial('?S');
+            % chameleon.isShutterOpen
+            %
+            % Purpose
+            % Return true if the shutter is open (?S query returns 1). Returns empty on
+            % a failed read.
+            %
+            % Note: for detailed documentation see laser.isShutterOpen
+
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_SHUTTER);
             if ~success
                 shutterState=[];
                 return
             end
-            shutterState = str2double(reply); %if open the command returns 1
-            obj.isLaserShutterOpen=shutterState;
+            obj.handleShutterReply(reply);
+            shutterState=obj.isLaserShutterOpen;
         end % isShutterOpen
+
+        function handleShutterReply(obj,reply)
+            % chameleon.handleShutterReply
+            %
+            % Purpose
+            % Parse the reply to a shutter query (?S) and cache the state in
+            % isLaserShutterOpen (the laser returns 1 when open). Called from the poll
+            % queue.
+            %
+            % Inputs
+            % reply - the raw reply string from the laser
+
+            obj.isLaserShutterOpen = str2double(reply); %if open the command returns 1
+        end % handleShutterReply
 
 
         function wavelength = readWavelength(obj)
-            [success,wavelength]=obj.sendAndReceiveSerial('?VW');
+            % chameleon.readWavelength
+            %
+            % Purpose
+            % Read the current wavelength in nm and cache it in currentWavelength. The
+            % Chameleon returns a non-numeric value while tuning, in which case
+            % currentWavelength is left unchanged.
+            %
+            % Note: for detailed documentation see laser.readWavelength
+
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_WAVELENGTH);
             if ~success
                 wavelength=[];
                 return
             end
-            wavelength = str2double(wavelength);
+            obj.handleWavelengthReply(reply);
+            wavelength = obj.currentWavelength;
+        end % readWavelength
+
+        function handleWavelengthReply(obj,reply)
+            % chameleon.handleWavelengthReply
+            %
+            % Purpose
+            % Parse the reply to a wavelength query (?VW) and cache the value in
+            % currentWavelength. While the laser is tuning the reply is not numeric, so
+            % currentWavelength is left unchanged. Called from the poll queue.
+            %
+            % Inputs
+            % reply - the raw reply string from the laser
+
+            wavelength = str2double(reply);
             if ~isnan(wavelength)
                 obj.currentWavelength=wavelength;
-            else
-                fprintf('Failed to read wavelength from Chameleon. Likely laser is tuning.\n')
             end
-        end % readWavelength
+        end % handleWavelengthReply
 
 
         function success = setWavelength(obj,wavelengthInNM)
+            % chameleon.setWavelength
+            %
+            % Purpose
+            % Tune the laser to a new wavelength and start the fast tuning poll so the
+            % GUI tracks the wavelength as it settles.
+            %
+            % Note: for detailed documentation see laser.setWavelength
 
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
@@ -301,10 +460,19 @@ classdef chameleon < laser & loghandler
             end
             obj.targetWavelength=wavelengthInNM;
 
+            % Poll the wavelength faster until the laser reaches the new setpoint.
+            obj.startTuningPoll
         end % setWavelength
 
 
         function tuning = isTuning(obj)
+            % chameleon.isTuning
+            %
+            % Purpose
+            % Return true if the laser is currently tuning (?TS query returns > 0).
+            %
+            % Note: for detailed documentation see laser.isTuning
+
             [success,reply]=obj.sendAndReceiveSerial('?TS');
             if ~success
                 tuning=nan;
@@ -323,18 +491,44 @@ classdef chameleon < laser & loghandler
 
 
         function laserPower = readPower(obj)
-            [success,laserPower]=obj.sendAndReceiveSerial('?UF');
+            % chameleon.readPower
+            %
+            % Purpose
+            % Read the laser output power in mW and cache it in currentPower_mW.
+            %
+            % Note: for detailed documentation see laser.readPower
+
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_POWER);
             if ~success
                 laserPower=[];
                 return
             end
-            laserPower = str2double(laserPower);
-            laserPower = round(laserPower);
-            obj.currentPower_mW = laserPower;
+            obj.handlePowerReply(reply);
+            laserPower = obj.currentPower_mW;
         end % readPower
+
+        function handlePowerReply(obj,reply)
+            % chameleon.handlePowerReply
+            %
+            % Purpose
+            % Parse the reply to an output-power query (?UF) and cache it in
+            % currentPower_mW. Called from the poll queue.
+            %
+            % Inputs
+            % reply - the raw reply string from the laser
+
+            obj.currentPower_mW = round(str2double(reply));
+        end % handlePowerReply
 
 
         function laserID = readLaserID(obj)
+            % chameleon.readLaserID
+            %
+            % Purpose
+            % Return the laser identification string (serial number, ?SN query).
+            %
+            % Note: for detailed documentation see laser.readLaserID
+
             [success,laserID]=obj.sendAndReceiveSerial('?SN');
             if ~success
                 laserID=[];
@@ -345,6 +539,14 @@ classdef chameleon < laser & loghandler
 
 
         function laserStats = returnLaserStats(obj)
+            % chameleon.returnLaserStats
+            %
+            % Purpose
+            % Return a one-line string of laser status (wavelength, output power,
+            % humidity, baseplate temperature) for logging during acquisition.
+            %
+            % Note: for detailed documentation see laser.returnLaserStats
+
             lambda = obj.readWavelength;
             outputPower = obj.readPower;
             humidity = obj.readHumidity;
@@ -355,6 +557,14 @@ classdef chameleon < laser & loghandler
 
 
         function success=setWatchDogTimer(obj,value)
+            % chameleon.setWatchDogTimer
+            %
+            % Purpose
+            % Set the laser's heartbeat watchdog. Zero or less disables it (HB=0);
+            % otherwise the watchdog is enabled (HB=1) and the time-out is set (HBR),
+            % clamped to the laser's 1..100 second range.
+            %
+            % Note: for detailed documentation see laser.setWatchDogTimer
 
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
@@ -378,9 +588,61 @@ classdef chameleon < laser & loghandler
         end % setWatchDogTimer
 
 
+        %%
+        % Polling methods
+        function readWavelengthDuringTuning(obj)
+            % chameleon.readWavelengthDuringTuning
+            %
+            % Purpose
+            % Override of laser.readWavelengthDuringTuning. Queues the wavelength read
+            % (fire-and-forget) rather than blocking, so the tuning poll does not pump
+            % the event queue while the laser tunes.
+            %
+            % Note: for detailed documentation see laser.readWavelengthDuringTuning
+
+            obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
+        end % readWavelengthDuringTuning
+
+
+        function pollSerial(obj)
+            % chameleon.pollSerial
+            %
+            % Purpose
+            % Override of laser.pollSerial. Queues the status reads (fire-and-forget)
+            % and returns immediately, so the poller never spin-waits and hence never
+            % pumps the event queue. Each reply is parsed by its handler in
+            % asyncSerial.onSerialData.
+            %
+            % Note: for detailed documentation see laser.pollSerial
+
+            % Recover if a previous fire-and-forget read stalled without a reply.
+            obj.resyncStaleInFlight
+
+            % Skip if a command is holding the poller off, or the previous burst hasn't
+            % drained yet (don't pile reads onto the queue).
+            if obj.pollPauseDepth > 0 || obj.serialInFlight || ~isempty(obj.cmdQueue)
+                return
+            end
+
+            obj.enqueueRead(obj.CMD_QUERY_SHUTTER,    @obj.handleShutterReply);
+            obj.enqueueRead(obj.CMD_QUERY_POWERSTATE, @obj.handlePowerStateReply);
+            obj.enqueueRead(obj.CMD_QUERY_POWER,      @obj.handlePowerReply);
+            obj.enqueueRead(obj.CMD_QUERY_WAVELENGTH, @obj.handleWavelengthReply);
+            obj.enqueueRead(obj.CMD_QUERY_MODELOCK,   @obj.handleModelockReply);
+        end % pollSerial
+
+
         % Chameleon specific
         function laserHumidity = readHumidity(obj)
-            % I think some lasers don't have sensor and just return 0
+            % chameleon.readHumidity
+            %
+            % Purpose
+            % Return the laser relative humidity as a percentage (?RH query). Chameleon
+            % specific. Some lasers lack the sensor and just return 0.
+            %
+            % Outputs
+            % laserHumidity - humidity in %. Empty if the read failed.
+
             [success,laserHumidity]=obj.sendAndReceiveSerial('?RH');
             if ~success
                 laserHumidity=[];
@@ -390,9 +652,17 @@ classdef chameleon < laser & loghandler
         end % readHumidity
 
         function warmedUpValue = readWarmedUp(obj)
-            % Return a bool that defines whether the laser is warmed up and
-            % ready emit. To determin this we querthe operating status
-            % text which returns "Starting" or "OK"
+            % chameleon.readWarmedUp
+            %
+            % Purpose
+            % Return true if the laser is warmed up and ready to emit. Determined from
+            % the operating status text (?ST query), which returns "Starting" or "OK".
+            % Chameleon specific.
+            %
+            % Outputs
+            % warmedUpValue - true if warmed up (status contains "OK"). Empty if the
+            %                 read failed.
+
             [success,warmedUpValue]=obj.sendAndReceiveSerial('?ST');
             if ~success
                 warmedUpValue=[];
@@ -408,7 +678,15 @@ classdef chameleon < laser & loghandler
 
 
         function keyState = readKeySwitch(obj)
-            % Is the key set to enable or disable?
+            % chameleon.readKeySwitch
+            %
+            % Purpose
+            % Return the key switch state (?K query). Chameleon specific. The laser can
+            % only be turned on remotely when the key is in the enable position.
+            %
+            % Outputs
+            % keyState - scalar key switch state. Empty if the read failed.
+
             [success,reply] = obj.sendAndReceiveSerial('?K');
             if ~success
                 keyState=[];
@@ -418,7 +696,14 @@ classdef chameleon < laser & loghandler
         end % readKeySwitch
 
         function baseplateTemp = readBaseplateTemp(obj)
-            % return baseplate temp
+            % chameleon.readBaseplateTemp
+            %
+            % Purpose
+            % Return the laser baseplate temperature (?BT query). Chameleon specific.
+            %
+            % Outputs
+            % baseplateTemp - baseplate temperature. Empty if the read failed.
+
             [success,reply] = obj.sendAndReceiveSerial('?BT');
             if ~success
                 baseplateTemp=[];
@@ -429,9 +714,17 @@ classdef chameleon < laser & loghandler
 
 
         function [faultNumbers,faultStateString] = readFaultState(obj)
-            % Return the laser fault state(s) as an integer code and a string.
-            % If there is no fault, it returns the integer "0"
-            % Returns empty if the state could not be read
+            % chameleon.readFaultState
+            %
+            % Purpose
+            % Return the laser fault state(s) as integer code(s) and a human-readable
+            % string, and print any faults to screen. Chameleon specific. Used by turnOn
+            % to decide whether it is safe to switch the laser on.
+            %
+            % Outputs
+            % faultNumbers     - array of fault code integers (0 means no fault). Empty
+            %                    if the state could not be read.
+            % faultStateString - a string describing the fault(s), or 'no faults'.
 
             [success,faultNumbers]=obj.sendAndReceiveSerial('?F');
 
