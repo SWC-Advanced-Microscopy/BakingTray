@@ -48,6 +48,8 @@ switch componentName
         component = maitai(COMPORT);
     case 'chameleon'
         component = chameleon(COMPORT);
+    case 'axon'
+        component = axon(COMPORT);
     otherwise
         fprintf('ERROR: unknown laser component "%s" SKIPPING BUILDING\n', componentName)
         component=[];
