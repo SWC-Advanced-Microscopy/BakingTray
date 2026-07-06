@@ -5,16 +5,20 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 % laser that is used to scan the sample.
 %
 % The laser abstract class declares methods and properties that are used by the
-% BakingTray class to check the laser state (is the laser modelocked? is it switched
+% BakingTray class to check the laser state (Is the laser modelocked? Is it switched
 % on?). The user also interacts with the laser to set and check wavelength and to
 % change the shutter state, etc. Classes the control the laser must inherit laser.
 % Objects that inherit laser are "attached" to instances of BakingTray using
 % BakingTray.attachLaser. This method adds an instance of a class that inherits
 % laser to the BakingTray.laser property.
 %
-% An example of a class that inherits laser is MaiTai.
+% An example of a class that inherits laser is "maitai".
 %
 % Rob Campbell - Basel 2016
+%
+% Overhauled to handle async serial writes with serialport interface. Refactored.
+% Rob Campbell - SWC 2027
+
 
 
     properties
@@ -24,7 +28,7 @@ classdef (Abstract) laser < BakingTray.asyncSerial
                      % way is most suitable for the hardware at hand.
                      % e.g. COM port ID string
         maxWavelength=0 %The longest wavelength the laser can be tuned to in nm
-        minWavelength=0 %The longest wavelength the laser can be tuned to in nm
+        minWavelength=0 %The shortest wavelength the laser can be tuned to in nm
 
         % A cell array of wavelengths that are not allowed. Use if the laser has problems
         % in certain ranges. Can be defined in the startup_bt.m file which you can place in your
@@ -53,26 +57,29 @@ classdef (Abstract) laser < BakingTray.asyncSerial
     end %close public properties
 
     properties (Hidden)
-        parent    %A reference of the parent object (likely BakingTray) to which this component is attached
+        parent % A reference of the parent object (likely the "hBT" BakingTray object)
+               % to which this component is attached
         pollTimer % Handles regular serial reads
         defaultPollPeriodInSeconds = 1.5 % Serial port polling interval
         pollPauseDepth = 0  % >0 while a command is running; pollSerial skips
         tuningPollTimer % Polls the wavelength faster while the laser is tuning
-    end %close hidden properties
+    end % close hidden properties
 
 
     % These are GUI-related properties. The view class that comprises the GUI listens to changes in these
     % properties to know when to update the GUI. It is therefore necessary for these to be updated as
     % appropriate by classes which inherit laser. e.g. If the shutter is opened then the shutterOpen
     % property must be set to true. Failing to do this will cause the GUI to fail to update. All
-    % properties in this section should be updated in the constructor once the laser is connected
+    % properties in this section should be updated in the constructor once the laser is connected.
+    % This class implements a serial port poller to handle this. Polling does not need to be done
+    % by the GUI.
     properties (SetObservable, AbortSet)
-        isLaserOn=false  % Must be updated by turnOn, turnOff, and isLaserOn
-        isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpenerOpen
-        isLaserConnected=false % Set by isControllerConnected
-        currentPower_mW = 0      % Must be updated by readPower last read output power in mW; set by the poller
-        currentPumpPower_mW = 0  % last read pump power. Not all lasers have this. Not critical.
-        isLaserModeLocked=false  % Muste be updated by isModelocked
+        isLaserOn=false          % Must be updated by turnOn, turnOff, and isPoweredOn
+        isLaserShutterOpen=false % True if open. Must be updated by closeShutter, openShutter, and isShutterOpen
+        isLaserConnected=false   % Set by isControllerConnected
+        currentPower_mW = 0      % Last read output power in mW. Must be updated by readPower (and the poller)
+        currentPumpPower_mW = 0  % Last read pump power in mW. Not all lasers have this. Not critical.
+        isLaserModeLocked=false  % Must be updated by isModeLocked
         isLaserReady=false       % Must be updated by isReady
         currentWavelength=-1     % This must be updated whenever readWavelength runs
         targetWavelength=0       % Must be updated by setWavelength
@@ -146,8 +153,8 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         % Behavior
         % This function returns true if the laser is powered on or is in the process of
         % powering up. Some lasers will need to warm up for a period of time. The warm
-        % up period is classified as powered on. This method should update the hidden
-        % property isLaserPoweredOn
+        % up period is classified as powered on. This method must update the observable
+        % property isLaserOn.
         %
         % Outputs
         % powerOnState - true/false. If powered on, set to true.
@@ -206,13 +213,13 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         % readWavelength
         %
         % Behavior
-        % Reads the currently set wavelength of the laser and returns the value as a scalar integer in nm.
-        % It should discard the decimal point. Returns zero if the laser is switched off.
-        % Returns empty if it fails. Updates the hidden property currentWavelength.
-        % On failing to read the wavelength, set currentWavelength to zero.
+        % Reads the currently set wavelength of the laser and returns the value as a
+        % scalar in nm. Updates the observable property currentWavelength on a
+        % successful read. Returns empty if the read fails, in which case
+        % currentWavelength is left unchanged.
         %
         % Outputs
-        % wavelength - a scalar defining the laser's current wavelength.
+        % wavelength - a scalar defining the laser's current wavelength in nm.
 
 
         success = setWavelength(obj, wavelengthInNM)
@@ -313,7 +320,19 @@ classdef (Abstract) laser < BakingTray.asyncSerial
     methods
 
         function delete(obj)
-            % laser superclass delete method
+            % laser.delete
+            %
+            % Purpose
+            % Destructor for the laser superclass. Stops the polling and tuning timers
+            % and detaches the serial callback. Subclasses call this (delete@laser)
+            % before they close the serial port.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             obj.stopPollingSerialPort
             delete(obj.pollTimer)
             if isa(obj.tuningPollTimer,'timer')
@@ -330,8 +349,15 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % delete
 
         function emission = emissionPossible(obj)
+            % laser.emissionPossible
+            %
+            % Purpose
             % maitai returns this and it's needed for the readiness check but other lasers
             % lack it. So they just inherit this method that returns true.
+            %
+            % Outputs
+            % emission - is always true
+
             emission = true;
         end % emissionPossible
 
@@ -339,7 +365,7 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         function [laserReady,msg] = isReady(obj)
             % laser.isReady
             %
-            % Behavior
+            % Purpose
             % Returns true if the laser is currently in a state in which it is able to
             % excite the sample. So it should be, for example, turned on, modelocked,
             % with the shutter open, etc, etc. This command will be called at least
@@ -390,9 +416,16 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
 
         function [inRange,msg] = isTargetWavelengthInRange(obj,targetWavelength)
-            %Return false if the target wavelength supplied by the user is
-            %out of the allowed range. True otherwise. targetWavelength is
-            %defined in nm.
+            % laser.isTargetWavelengthInRange(targetWavelength)
+            %
+            % Purpose
+            % Return false if the target wavelength supplied by the user is
+            % out of the allowed range. True otherwise. targetWavelength is
+            % defined in nm.
+            %
+            % Outputs
+            % inRange - true/false
+
             if targetWavelength<obj.minWavelength || targetWavelength>obj.maxWavelength
                 msg=sprintf('Wavelength %d nm is out of range -- max=%d nm, min=%d nm\n', ...
                     targetWavelength, obj.maxWavelength, obj.minWavelength);
@@ -418,8 +451,21 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             inRange=true;
         end % isTargetWavelengthInRange
 
+
+        %%
+        % Pockels control methods follow
         function connectToPockelsControlDAQ(obj)
+            % laser.connectToPockelsControlDAQ
+            %
+            % Purpose
             % Connect to NI DAQ that will control Pockels power
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             if ~isempty(obj.pockelsDAQ) && ischar(obj.pockelsDAQ) && ...
                 ~isempty(obj.pockelsDigitalLine) && ischar(obj.pockelsDigitalLine)
                 % Try to connect to the Pockels cell DAQ
@@ -439,9 +485,18 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % connectToPockelsControlDAQ
 
         function switchPockelsCell(obj)
+            % laser.switchPockelsCell
+            %
+            % Purpose
             % Turn pockels cell on or off based on the reported power state of the laser
             % This method should be called from methods that turn on or turn off the
             % laser and also at the end of the constructor. It is not a callback.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
 
             if obj.doPockelsPowerControl && isempty(obj.hDO)
                 fprintf('\nAuto-switch on of Pockels cell requested by DAQ not connected!\n')
@@ -459,9 +514,18 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % switchPockelsCell
 
         function turnOffPockelsCell(obj)
+            % laser.turnOffPockelsCell
+            %
+            % Purpose
             % Send DIO signal to turn pockels cell off.
             % This method should be called from methods that turn on or turn off the
             % laser and also at the end of the constructor. It is not a callback.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
 
             if obj.doPockelsPowerControl && isempty(obj.hDO)
                 fprintf('\nSwitch on of Pockels cell requested by DAQ not connected!\n')
@@ -475,11 +539,19 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             obj.hDO.writeDigitalData(0);
         end % turnOffPockelsCell
 
-
         function turnOnPockelsCell(obj)
-            % Send DIO signal to turn pockels cell n.
+            % laser.turnOnPockelsCell
+            %
+            % Purpose
+            % Send DIO signal to turn pockels cell on.
             % This method should be called from methods that turn on or turn off the
             % laser and also at the end of the constructor. It is not a callback.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
 
             if obj.doPockelsPowerControl && isempty(obj.hDO)
                 fprintf('\nSwitch on of Pockels cell requested by DAQ not connected!\n')
@@ -491,11 +563,24 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
             %Set line high to turn on Pockels cell
             obj.hDO.writeDigitalData(1);
+
         end % turnOnPockelsCell
 
+
+        %%
+        % Serial port polling methods follow
         function startPollingSerialPort(obj)
-            % Create timer if needed and start it.
-            % If already created and not running, start it
+            % laser.startPollingSerialPort
+            %
+            % Purpose
+            % Create the serial-port poll timer if it does not exist and start it. The
+            % timer periodically calls pollSerial to refresh the cached laser state.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
 
             % If the timer does not exist we make it
             if isempty(obj.pollTimer)
@@ -515,16 +600,35 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % startPollingSerialPort
 
         function stopPollingSerialPort(obj)
-            % If timer exists and is running, stop it
+            % laser.stopPollingSerialPort
+            %
+            % Purpose
+            % Stop the serial-port poll timer if it exists and is running.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             if isa(obj.pollTimer,'timer') && strcmp(obj.pollTimer.Running,'on')
                 stop(obj.pollTimer)
             end
         end % stopPollingSerialPort
 
-
         function set.pollPeriodInSeconds(obj,newPeriod)
-            % Setter for changing the polling period of the regular laser serial serial
-            % port poller.
+            % laser.set.pollPeriodInSeconds
+            %
+            % Purpose
+            % Setter for the poll period of the regular laser serial port poller. Clamps
+            % to a minimum of 1 s and, because a timer's Period can only be changed while
+            % it is stopped, cycles the poll timer if it is currently running.
+            %
+            % Inputs
+            % newPeriod - the requested poll period in seconds
+            %
+            % Outputs
+            % none
 
             % Avoid polling too quickly.
             if newPeriod<1.0
@@ -547,17 +651,53 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             end
         end % set.pollPeriodInSeconds
 
-
         function pausePolling(obj)
+            % laser.pausePolling
+            %
+            % Purpose
+            % Increment the pause counter so pollSerial skips its next tick(s). Commands
+            % wrap themselves with pausePolling / resumePolling so a background poll can
+            % not interleave with a multi-step command.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             obj.pollPauseDepth = obj.pollPauseDepth + 1;
         end % pausePolling
 
         function resumePolling(obj)
+            % laser.resumePolling
+            %
+            % Purpose
+            % Decrement the pause counter (see pausePolling). Polling resumes once the
+            % counter returns to zero.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             obj.pollPauseDepth = max(obj.pollPauseDepth - 1, 0);
         end % resumePolling
 
         function pollSerial(obj)
-            % Update all cached properties of the laser
+            % laser.pollSerial
+            %
+            % Purpose
+            % Refresh all cached laser state (shutter, power, wavelength, modelock) by
+            % reading them from the hardware. Runs on the poll timer. Skips if a command
+            % is holding the poller off or the previous read burst has not drained.
+            % Subclasses may override this (e.g. maitai uses a fire-and-forget version).
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
 
             % Skip if a command is holding the poller off, or the previous burst
             % hasn't drained yet (don't pile reads onto the queue).
@@ -577,11 +717,24 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % pollSerial
 
 
+
+        %%
+        % Methods associated with timer for higher rate polling during wavelength tuning
         function startTuningPoll(obj)
-            % Start (or keep running) a timer that polls the wavelength at twice the
-            % base poll rate while the laser is tuning. It stops itself once the current
+            % laser.startTuningPoll
+            %
+            % Purpose
+            % Start (or keep running) a timer that polls the wavelength at twice the base
+            % poll rate while the laser is tuning. It stops itself once the current
             % wavelength reaches the target (see tuningPollFcn). Call this from
             % setWavelength. Useful mainly for slow-tuning lasers (e.g. MaiTai).
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             if isempty(obj.tuningPollTimer)
                 obj.tuningPollTimer = timer;
                 obj.tuningPollTimer.Name = 'laser tuning wavelength poller';
@@ -597,8 +750,19 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
 
         function tuningPollFcn(obj)
-            % Poll the wavelength while tuning. Stops the tuning timer once we reach the
-            % target so we settle back to the base poll rate.
+            % laser.tuningPollFcn
+            %
+            % Purpose
+            % Timer callback that polls the wavelength while the laser is tuning and
+            % stops the tuning timer once the target is reached, so polling settles back
+            % to the base rate. Reads via readWavelengthDuringTuning.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             if round(obj.currentWavelength) == round(obj.targetWavelength)
                 stop(obj.tuningPollTimer)
                 return
@@ -614,9 +778,19 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
 
         function readWavelengthDuringTuning(obj)
-            % How the tuning poll reads the wavelength. Default is the standard
-            % (blocking) read. Lasers with a fire-and-forget poll (e.g. MaiTai) override
-            % this to queue the read instead of blocking while the laser tunes.
+            % laser.readWavelengthDuringTuning
+            %
+            % Purpose
+            % How the tuning poll reads the wavelength. Default is the standard (blocking)
+            % read. Lasers with a fire-and-forget poll (e.g. MaiTai) override this to
+            % queue the read instead of blocking while the laser tunes.
+            %
+            % Inputs
+            % none
+            %
+            % Outputs
+            % none
+
             obj.readWavelength;
         end % readWavelengthDuringTuning
 
