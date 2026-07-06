@@ -9,6 +9,13 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+6th July 2026
+** Significant laser changes **
+Laser comms is now via a pause-free queue system. This removes the possibility of command
+clashes and missed reads. It also removes the pausing on laser serial comms that was
+visible in the ScanImage focus window. Major refactor of all the laser classes.
+
+
 4th July 2026
 ** Significant laser changes **
 The implementation of the laser serial comms and the laser GUI were fundamentally broken
