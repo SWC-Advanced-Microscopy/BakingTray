@@ -60,7 +60,7 @@ classdef tiberius < laser & loghandler
             obj.switchPockelsCell;
 
             obj.startPollingSerialPort
-        end %constructor
+        end % tiberius
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -74,7 +74,7 @@ classdef tiberius < laser & loghandler
                 delete(obj.hC);
                 delete(obj.hDO)
             end
-        end %destructor
+        end % delete
 
 
         function success = connect(obj)
@@ -102,7 +102,7 @@ classdef tiberius < laser & loghandler
                 end
             end
             obj.isLaserConnected=success;
-        end %connect
+        end % connect
 
 
         function success = isControllerConnected(obj)
@@ -112,7 +112,7 @@ classdef tiberius < laser & loghandler
                 [~,success] = obj.isShutterOpen;
             end
             obj.isLaserConnected=success;
-        end
+        end % isControllerConnected
 
 
         function success = turnOn(obj)
@@ -125,7 +125,7 @@ classdef tiberius < laser & loghandler
             obj.isLaserOn = true;
             success=true;
             obj.switchPockelsCell %Gate Pockels mains power
-        end
+        end % turnOn
 
 
         function success = turnOff(obj)
@@ -137,13 +137,13 @@ classdef tiberius < laser & loghandler
             obj.isLaserOn = false;
             success=true;
             obj.switchPockelsCell %Gate Pockels mains power
-        end
+        end % turnOff
 
         function [powerOnState,details] = isPoweredOn(obj)
             % Just return true. It has no way to get this info
             powerOnState = obj.isLaserOn;
             details='';
-        end
+        end % isPoweredOn
 
 
         function modelockState = isModeLocked(obj)
@@ -165,7 +165,7 @@ classdef tiberius < laser & loghandler
             end
 
             obj.isLaserModeLocked=modelockState;
-        end
+        end % isModeLocked
 
 
         function success = openShutter(obj)
@@ -178,7 +178,7 @@ classdef tiberius < laser & loghandler
             if success
                 obj.isLaserShutterOpen=true;
             end
-        end
+        end % openShutter
 
 
         function success = closeShutter(obj)
@@ -191,7 +191,7 @@ classdef tiberius < laser & loghandler
             if success
                 obj.isLaserShutterOpen=false;
             end
-        end
+        end % closeShutter
 
 
         function [shutterState,success] = isShutterOpen(obj)
@@ -202,7 +202,7 @@ classdef tiberius < laser & loghandler
             end
             shutterState = str2double(reply(3)); %if open the command returns 1
             obj.isLaserShutterOpen=shutterState;
-        end
+        end % isShutterOpen
 
 
         function wavelength = readWavelength(obj)
@@ -213,7 +213,7 @@ classdef tiberius < laser & loghandler
             end
             wavelength = str2double(wavelength(1:end));
             obj.currentWavelength=wavelength;
-        end
+        end % readWavelength
 
 
         function success = setWavelength(obj,wavelengthInNM)
@@ -256,20 +256,20 @@ classdef tiberius < laser & loghandler
                 tuning=true;
             end
 
-        end
+        end % isTuning
 
 
         function laserPower = readPower(obj)
             % The Tiberius seems not to return laser power
             laserPower = nan;
             obj.currentPower_mW = laserPower;
-        end
+        end % readPower
 
 
         function laserID = readLaserID(~)
             % there is no Tiberius command for returning detailed information
             laserID = 'tiberius';
-        end
+        end % readLaserID
 
 
         function laserStats = returnLaserStats(obj)
@@ -283,12 +283,12 @@ classdef tiberius < laser & loghandler
 
             laserStats=sprintf('wavelength=%dnm,modelocked=%s', ...
                 lambda, modelockState);
-        end
+        end % returnLaserStats
 
         function success=setWatchDogTimer(~,~)
             % There seems to be no watchdog on the Tiberius
             success = true;
-        end
+        end % setWatchDogTimer
 
 
 

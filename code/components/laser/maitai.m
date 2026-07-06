@@ -1,18 +1,18 @@
 classdef maitai < laser & loghandler
-%%  maitai - control class for maitai lasers
-%
-%
-% Example
-% M = maitai('COM1');
-%
-% Laser control component for MaiTai lasers from SpectraPhysics.
-% IMPORTANT: In the SpectraPhysics GUI you should set the baudrate
-% switch to "9600".
-%
-% For docs, please see the laser abstract class.
-%
-%
-% Rob Campbell - Basel 2016
+    %%  maitai - control class for maitai lasers
+    %
+    %
+    % Example
+    % M = maitai('COM1');
+    %
+    % Laser control component for MaiTai lasers from SpectraPhysics.
+    % IMPORTANT: In the SpectraPhysics GUI you should set the baudrate
+    % switch to "9600".
+    %
+    % For docs, please see the laser abstract class.
+    %
+    %
+    % Rob Campbell - Basel 2016
 
 
     properties (Hidden)
@@ -79,7 +79,7 @@ classdef maitai < laser & loghandler
 
             % Then force a power read and wavelength read before starting the polling
             obj.startPollingSerialPort;
-        end %constructor
+        end % maitai
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -97,7 +97,7 @@ classdef maitai < laser & loghandler
                 delete(obj.hC);
                 delete(obj.hDO)
             end
-        end %destructor
+        end % delete
 
 
         function success = connect(obj)
@@ -125,7 +125,7 @@ classdef maitai < laser & loghandler
                 end
             end
             obj.isLaserConnected=success;
-        end %connect
+        end % connect
 
 
         function success = isControllerConnected(obj)
@@ -135,9 +135,12 @@ classdef maitai < laser & loghandler
                 [~,success] = obj.isShutterOpen;
             end
             obj.isLaserConnected=success;
-        end
+        end % isControllerConnected
 
 
+
+        %%
+        % Turn on and turn off methods
         function success = turnOn(obj)
 
             obj.pausePolling
@@ -156,7 +159,7 @@ classdef maitai < laser & loghandler
                 obj.turnOnPockelsCell %Gate Pockels mains power
             end
 
-        end
+        end % turnOn
 
 
         function success = turnOff(obj)
@@ -182,7 +185,8 @@ classdef maitai < laser & loghandler
                 fprintf('Reported laser still on\n')
             end
 
-        end %turnOff
+        end % turnOff
+
 
         function [powerOnState,details] = isPoweredOn(obj)
             % Is the laser powered on?
@@ -223,30 +227,11 @@ classdef maitai < laser & loghandler
 
             details=num2str(pPower);
 
-        end
+        end % isPoweredOn
 
 
-        function modelockState = isModeLocked(obj)
-
-            %modelock state embedded in the second bit of this 8 bit number
-            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_STATEBITS);
-            if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
-                modelockState=0;
-                obj.isLaserModeLocked=modelockState;
-                return
-            end
-
-            obj.handleModelockReply(reply);
-            modelockState=obj.isLaserModeLocked;
-        end
-
-        function handleModelockReply(obj,reply)
-            %modelock state embedded in the second bit of this 8 bit number
-            bits = fliplr(dec2bin(str2double(reply),8));
-            obj.isLaserModeLocked = strcmp(bits(2),'1');
-        end % handleModelockReply
-
-
+        %%
+        % Shutter open ad close methods
         function success = openShutter(obj)
 
             obj.pausePolling
@@ -264,7 +249,7 @@ classdef maitai < laser & loghandler
             if obj.isLaserShutterOpen
                 obj.switchPockelsCell %Gate Pockels mains power
             end
-        end
+        end % openShutter
 
 
         function success = closeShutter(obj)
@@ -278,6 +263,46 @@ classdef maitai < laser & loghandler
                 obj.isLaserShutterOpen=false;
             end
         end % closeShutter
+
+
+
+        %%
+        % Query methods with handlers for queuing commands.
+
+        function laserPower = readPower(obj)
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_POWER);
+            if ~success
+                laserPower=[];
+                return
+            end
+            obj.handlePowerReply(reply);
+            laserPower = obj.currentPower_mW;
+        end % readPower
+
+        function handlePowerReply(obj,reply)
+            obj.currentPower_mW = round(str2double(reply(1:end-1))*1E3);
+        end % handlePowerReply
+
+
+        function modelockState = isModeLocked(obj)
+
+            %modelock state embedded in the second bit of this 8 bit number
+            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_STATEBITS);
+            if ~success %If we can't talk to it, we assume it's also not modelocked (maybe questionable, but let's go with this for now)
+                modelockState=0;
+                obj.isLaserModeLocked=modelockState;
+                return
+            end
+
+            obj.handleModelockReply(reply);
+            modelockState=obj.isLaserModeLocked;
+        end % isModeLocked
+
+        function handleModelockReply(obj,reply)
+            %modelock state embedded in the second bit of this 8 bit number
+            bits = fliplr(dec2bin(str2double(reply),8));
+            obj.isLaserModeLocked = strcmp(bits(2),'1');
+        end % handleModelockReply
 
 
         function [shutterState,success] = isShutterOpen(obj)
@@ -294,7 +319,6 @@ classdef maitai < laser & loghandler
             shutterState=obj.isLaserShutterOpen;
         end % isShutterOpen
 
-
         function handleShutterReply(obj,reply)
             obj.isLaserShutterOpen = str2double(reply); %if open the command returns 1
         end % handleShutterReply
@@ -308,16 +332,17 @@ classdef maitai < laser & loghandler
             end
             obj.handleWavelengthReply(reply);
             wavelength = obj.currentWavelength;
-        end
-
+        end % readWavelength
 
         function handleWavelengthReply(obj,reply)
             obj.currentWavelength = str2double(reply(1:end-2));
         end % handleWavelengthReply
 
 
-        function success = setWavelength(obj,wavelengthInNM)
 
+        %%
+        % Methods associated with tuning the laser wavelength
+        function success = setWavelength(obj,wavelengthInNM)
             obj.pausePolling
             c = onCleanup(@() obj.resumePolling);
 
@@ -341,6 +366,76 @@ classdef maitai < laser & loghandler
         end % setWavelength
 
 
+        function tuning = isTuning(obj)
+            %First get the desired (setpoint) wavelength
+            [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
+            if ~success
+                return
+            end
+
+            wavelengthDesired = str2double(wavelengthDesired(1:end-2));
+            pause(0.33)
+            currentWavelength = obj.readWavelength;
+
+            if round(currentWavelength) == wavelengthDesired
+                tuning=false;
+            else
+                tuning=true;
+            end
+
+        end % isTuning
+
+
+        %%
+        % Other laser query methods
+        function laserID = readLaserID(obj)
+            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');
+            if ~success
+                laserID=[];
+                return
+            end
+        end % readLaserID
+
+
+        function laserStats = returnLaserStats(obj)
+            lambda = obj.readWavelength;
+            outputPower = obj.readPower;
+            pumpPower = obj.readPumpPower;
+            pumpCurrent = obj.readPumpLaserCurrent;
+            humidity = obj.readHumidity;
+
+            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,pumpPower=%dmW,pumpCurrent=%0.1f,humidity=%0.1f', ...
+                lambda,outputPower,pumpPower,pumpCurrent,humidity);
+        end % returnLaserStats
+
+        function success=setWatchDogTimer(obj,value)
+
+            obj.pausePolling
+            c = onCleanup(@() obj.resumePolling);
+
+
+            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
+            success=obj.sendAndReceiveSerial(cmd,false);
+            if ~success
+                return
+            end
+            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
+            if ~success
+                return
+            end
+
+            currentValue = round(str2double(currentValue));
+            if currentValue ~= value
+                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
+                    value,currentValue)
+                success=false;
+            end
+        end % setWatchDogTimer
+
+
+
+        %%
+        % Polling methods
         function startTuningPoll(obj)
             % Start (or keep running) a timer that polls the wavelength at twice the
             % base poll rate while the laser is tuning. It stops itself once the current
@@ -376,85 +471,6 @@ classdef maitai < laser & loghandler
         end % tuningPollFcn
 
 
-        function tuning = isTuning(obj)
-            %First get the desired (setpoint) wavelength
-            [success,wavelengthDesired]=obj.sendAndReceiveSerial('WAVELENGTH?');
-            if ~success
-                return
-            end
-
-            wavelengthDesired = str2double(wavelengthDesired(1:end-2));
-            pause(0.33)
-            currentWavelength = obj.readWavelength;
-
-            if round(currentWavelength) == wavelengthDesired
-                tuning=false;
-            else
-                tuning=true;
-            end
-
-        end
-
-        function laserPower = readPower(obj)
-            [success,reply]=obj.sendAndReceiveSerial(obj.CMD_QUERY_POWER);
-            if ~success
-                laserPower=[];
-                return
-            end
-            obj.handlePowerReply(reply);
-            laserPower = obj.currentPower_mW;
-        end % readPower
-
-
-        function handlePowerReply(obj,reply)
-            obj.currentPower_mW = round(str2double(reply(1:end-1))*1E3);
-        end % handlePowerReply
-
-
-        function laserID = readLaserID(obj)
-            [success,laserID]=obj.sendAndReceiveSerial('*IDN?');
-            if ~success
-                laserID=[];
-                return
-            end
-        end
-
-
-        function laserStats = returnLaserStats(obj)
-            lambda = obj.readWavelength;
-            outputPower = obj.readPower;
-            pumpPower = obj.readPumpPower;
-            pumpCurrent = obj.readPumpLaserCurrent;
-            humidity = obj.readHumidity;
-
-            laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,pumpPower=%dmW,pumpCurrent=%0.1f,humidity=%0.1f', ...
-                lambda,outputPower,pumpPower,pumpCurrent,humidity);
-        end
-
-        function success=setWatchDogTimer(obj,value)
-
-            obj.pausePolling
-            c = onCleanup(@() obj.resumePolling);
-
-
-            cmd=sprintf('TIMER:WATCHDOG %d',round(value));
-            success=obj.sendAndReceiveSerial(cmd,false);
-            if ~success
-                return
-            end
-            [success,currentValue]=obj.sendAndReceiveSerial('TIMER:WATCHDOG?');
-            if ~success
-                return
-            end
-
-            currentValue = round(str2double(currentValue));
-            if currentValue ~= value
-                fprintf('You asked for a MaiTai watchdog timer value %d seconds but the set value is reported as being %d seconds\n',...
-                    value,currentValue)
-                success=false;
-            end
-        end
-
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % Fire-and-forget status poll and its reply handlers.
@@ -480,6 +496,20 @@ classdef maitai < laser & loghandler
         end % pollSerial
 
 
+
+        % MaiTai specific
+        function laserPower = readPumpPower(obj)
+            % Return pump power as a scalar
+            [success,laserPower]=obj.sendAndReceiveSerial(obj.CMD_QUERY_PUMP_POWER);
+            if ~success
+                laserPower=[];
+                return
+            end
+            laserPower = str2double(laserPower(1:end-1))*1E3;
+            laserPower = round(laserPower);
+            obj.currentPumpPower_mW = laserPower;
+        end % readPumpPower
+
         function handlePumpPowerReply(obj,reply)
             % Parse pump power and update the on/off state (see isPoweredOn).
             pPower = round(str2double(reply(1:end-1))*1E3);
@@ -499,20 +529,6 @@ classdef maitai < laser & loghandler
         end % handlePumpPowerReply
 
 
-
-        % MaiTai specific
-        function laserPower = readPumpPower(obj)
-            % Return pump power as a scalar
-            [success,laserPower]=obj.sendAndReceiveSerial(obj.CMD_QUERY_PUMP_POWER);
-            if ~success
-                laserPower=[];
-                return
-            end
-            laserPower = str2double(laserPower(1:end-1))*1E3;
-            laserPower = round(laserPower);
-            obj.currentPumpPower_mW = laserPower;
-        end
-
         function pLasI = readPumpLaserCurrent(obj)
             [success,pLasI]=obj.sendAndReceiveSerial('READ:PLASER:PCURRENT?');
             if ~success
@@ -520,7 +536,8 @@ classdef maitai < laser & loghandler
                 return
             end
             pLasI = str2double(pLasI(1:end-1));
-        end
+        end % readPumpLaserCurrent
+
 
         function laserHumidity = readHumidity(obj)
             [success,laserHumidity]=obj.sendAndReceiveSerial('READ:HUM?');
@@ -529,7 +546,8 @@ classdef maitai < laser & loghandler
                 return
             end
             laserHumidity = str2double(laserHumidity(1:end-3));
-        end
+        end % readHumidity
+
 
         function warmedUpValue = readWarmedUp(obj)
             %Return a scalar that defines whether the laser is warmed up
@@ -540,7 +558,8 @@ classdef maitai < laser & loghandler
                 return
             end
             warmedUpValue = str2double(warmedUpValue(1:end-1));
-        end
+        end % readWarmedUp
+
 
         function emission = emissionPossible(obj)
             %emission state embedded in the first bit of this 8 bit number
@@ -557,21 +576,23 @@ classdef maitai < laser & loghandler
             else
                 emission=0;
             end
-        end
+        end % emissionPossible
+
 
         function readErrorCodeHistory(obj)
             % Print to screen Mai Tai error codes
             [success,reply]=obj.sendAndReceiveSerial('PLAS:AHIS?');
             disp(reply)
 
-        end
+        end % readErrorCodeHistory
+
 
         function readLastErrorCode(obj)
             % Print to screen Mai Tai error codes
             [~,reply]=obj.sendAndReceiveSerial('PLAS:ERRC?');
             disp(reply)
 
-        end
+        end % readLastErrorCode
 
 
     end %close methods

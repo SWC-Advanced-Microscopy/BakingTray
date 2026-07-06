@@ -50,7 +50,7 @@ classdef dummyLaser < laser %& loghandler
             %Set the target wavelength to equal the current wavelength
             obj.targetWavelength=obj.currentWavelength;
             obj.friendlyName = 'Dummy Laser';
-        end %constructor
+        end % dummyLaser
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         %destructor
@@ -60,65 +60,65 @@ classdef dummyLaser < laser %& loghandler
                 stop(obj.wavelengthTimer)
             end
             delete(obj.wavelengthTimer);
-        end %destructor
+        end % delete
 
         function success = connect(obj)
             success=true;
             obj.isLaserConnected=success;
-        end %connect
+        end % connect
 
 
         function success = isControllerConnected(obj)
             success=true;
             obj.isLaserConnected=success;
-        end
+        end % isControllerConnected
 
         function success = turnOn(obj)
             success=true;
             obj.isLaserModeLocked=true;
             obj.isLaserOn=true;
-        end
+        end % turnOn
 
         function success = turnOff(obj)
             success=true;
             obj.isLaserModeLocked=false;
             obj.isLaserOn=false;
-        end
+        end % turnOff
 
         function laserOn = isPoweredOn(obj)
             laserOn=obj.isLaserOn;
-        end
+        end % isPoweredOn
 
         function [laserReady,msg] = isReady(obj)
             msg='dummy laser is ready';
             laserReady=true;
             obj.isLaserReady=true;
-        end
+        end % isReady
 
         function modelockState = isModeLocked(obj)
             modelockState=obj.isLaserModeLocked;
-        end
+        end % isModeLocked
 
         function success = openShutter(obj)
             obj.isLaserShutterOpen=true;
             success=true;
-        end
+        end % openShutter
 
         function success = closeShutter(obj)
             obj.isLaserShutterOpen=false;
             success=true;
-        end
+        end % closeShutter
 
         function [shutterState,success] = isShutterOpen(obj)
             shutterState = obj.isLaserShutterOpen;
             success = true;
-        end
+        end % isShutterOpen
 
         function wavelength = readWavelength(obj)
             %Get the wavelength from the dummy laser's "internal" state
             wavelength=obj.hiddenCurrentWavelength;
             obj.currentWavelength = wavelength;
-        end
+        end % readWavelength
 
         function success = setWavelength(obj,wavelengthInNM)
             success=false;
@@ -140,7 +140,7 @@ classdef dummyLaser < laser %& loghandler
             obj.targetWavelength = wavelengthInNM;
             start(obj.wavelengthTimer) %Starts the dummy wavelength tunner
             success=true;
-        end
+        end % setWavelength
 
         function tuning = isTuning(obj)
 
@@ -154,23 +154,23 @@ classdef dummyLaser < laser %& loghandler
                 tuning=true;
             end
 
-        end
+        end % isTuning
 
         function laserPower = readPower(~)
             laserPower = 1;
-        end
+        end % readPower
 
         function laserID = readLaserID(~)
             laserID='dummy_laser'; %Do not edit this line
-        end
+        end % readLaserID
 
         function laserStats = returnLaserStats(obj)
             laserStats = sprintf('dummyLaser. Nominal wavelength: %dnm', obj.currentWavelength);
-        end
+        end % returnLaserStats
 
         function success = setWatchDogTimer(~,~)
             success=true;
-        end
+        end % setWatchDogTimer
 
 
         % dummy laser specific stuff
@@ -190,7 +190,7 @@ classdef dummyLaser < laser %& loghandler
             elseif strcmp(obj.wavelengthTimer.Running,'off')
                 start(obj.wavelengthTimer)
             end
-        end
+        end % updateWavelength
 
 
     end %close methods

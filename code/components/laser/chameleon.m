@@ -86,7 +86,7 @@ classdef chameleon < laser & loghandler
             obj.switchPockelsCell;
 
             obj.startPollingSerialPort
-        end %constructor
+        end % chameleon
 
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -100,7 +100,7 @@ classdef chameleon < laser & loghandler
                 delete(obj.hC);
                 delete(obj.hDO)
             end
-        end %destructor
+        end % delete
 
 
         function success = connect(obj)
@@ -138,7 +138,7 @@ classdef chameleon < laser & loghandler
             end
 
             obj.isLaserConnected=success;
-        end %connect
+        end % connect
 
 
         function success = isControllerConnected(obj)
@@ -148,7 +148,7 @@ classdef chameleon < laser & loghandler
                 [~,success] = obj.isShutterOpen;
             end
             obj.isLaserConnected=success;
-        end
+        end % isControllerConnected
 
 
         function success = turnOn(obj)
@@ -177,7 +177,7 @@ classdef chameleon < laser & loghandler
 
             obj.isLaserOn=success;
             obj.switchPockelsCell; %Gate Pockels mains power
-        end
+        end % turnOn
 
 
         function success = turnOff(obj)
@@ -195,7 +195,7 @@ classdef chameleon < laser & loghandler
                 obj.isLaserOn=false;
             end
             obj.switchPockelsCell %Gate Pockels mains power
-        end
+        end % turnOff
 
         function [powerOnState,reply] = isPoweredOn(obj)
            	[success,reply]=obj.sendAndReceiveSerial('?L');
@@ -207,7 +207,7 @@ classdef chameleon < laser & loghandler
             powerOnState = (str2double(reply)==1);
 
             obj.isLaserOn=powerOnState;
-        end
+        end % isPoweredOn
 
 
         function modelockState = isModeLocked(obj)
@@ -222,7 +222,7 @@ classdef chameleon < laser & loghandler
             modelockState = str2double(reply);
             modelockState = (modelockState==1); %Because it can equal 2 (CW) or 0 (Off)
             obj.isLaserModeLocked=modelockState;
-        end
+        end % isModeLocked
 
 
         function success = openShutter(obj)
@@ -238,7 +238,7 @@ classdef chameleon < laser & loghandler
 
             % Add this here just in case the turn off/turn on commands behaved weirdly and the Pockels cells is off
             obj.switchPockelsCell %Gate Pockels mains power
-        end
+        end % openShutter
 
 
         function success = closeShutter(obj)
@@ -251,7 +251,7 @@ classdef chameleon < laser & loghandler
             if success
                 obj.isLaserShutterOpen=false;
             end
-        end
+        end % closeShutter
 
 
         function [shutterState,success] = isShutterOpen(obj)
@@ -262,7 +262,7 @@ classdef chameleon < laser & loghandler
             end
             shutterState = str2double(reply); %if open the command returns 1
             obj.isLaserShutterOpen=shutterState;
-        end
+        end % isShutterOpen
 
 
         function wavelength = readWavelength(obj)
@@ -277,7 +277,7 @@ classdef chameleon < laser & loghandler
             else
                 fprintf('Failed to read wavelength from Chameleon. Likely laser is tuning.\n')
             end
-        end
+        end % readWavelength
 
 
         function success = setWavelength(obj,wavelengthInNM)
@@ -319,7 +319,7 @@ classdef chameleon < laser & loghandler
                tuning=false;
             end
 
-        end
+        end % isTuning
 
 
         function laserPower = readPower(obj)
@@ -331,7 +331,7 @@ classdef chameleon < laser & loghandler
             laserPower = str2double(laserPower);
             laserPower = round(laserPower);
             obj.currentPower_mW = laserPower;
-        end
+        end % readPower
 
 
         function laserID = readLaserID(obj)
@@ -341,7 +341,7 @@ classdef chameleon < laser & loghandler
                 return
             end
             laserID = ['Chameleon, Serial Number: ', laserID];
-        end
+        end % readLaserID
 
 
         function laserStats = returnLaserStats(obj)
@@ -351,7 +351,7 @@ classdef chameleon < laser & loghandler
             basePlate = obj.readBaseplateTemp;
             laserStats=sprintf('wavelength=%dnm,outputPower=%dmW,humidity=%0.1f,baseplate temp=%0.3f', ...
                 lambda,outputPower,humidity,basePlate);
-        end
+        end % returnLaserStats
 
 
         function success=setWatchDogTimer(obj,value)
@@ -375,7 +375,7 @@ classdef chameleon < laser & loghandler
                 value = num2str(round(value));
                 [success,~] = obj.sendAndReceiveSerial(['HBR=',value]);
             end
-        end
+        end % setWatchDogTimer
 
 
         % Chameleon specific
@@ -387,7 +387,7 @@ classdef chameleon < laser & loghandler
                 return
             end
             laserHumidity = str2double(laserHumidity);
-        end
+        end % readHumidity
 
         function warmedUpValue = readWarmedUp(obj)
             % Return a bool that defines whether the laser is warmed up and
@@ -404,7 +404,7 @@ classdef chameleon < laser & loghandler
             else
                 warmedUpValue=false;
             end
-        end
+        end % readWarmedUp
 
 
         function keyState = readKeySwitch(obj)
@@ -415,7 +415,7 @@ classdef chameleon < laser & loghandler
                 return
             end
             keyState = str2double(reply);
-        end
+        end % readKeySwitch
 
         function baseplateTemp = readBaseplateTemp(obj)
             % return baseplate temp
@@ -425,7 +425,7 @@ classdef chameleon < laser & loghandler
                 return
             end
             baseplateTemp = str2double(reply);
-        end
+        end % readBaseplateTemp
 
 
         function [faultNumbers,faultStateString] = readFaultState(obj)
@@ -476,7 +476,7 @@ classdef chameleon < laser & loghandler
 
             faultStateString = [faultMSG{:}]; % Output of this method
 
-        end
+        end % readFaultState
 
     end %close methods
 
