@@ -470,7 +470,9 @@ classdef (Abstract) laser < BakingTray.asyncSerial
                 ~isempty(obj.pockelsDigitalLine) && ischar(obj.pockelsDigitalLine)
                 % Try to connect to the Pockels cell DAQ
                 try
-                    obj.hDO = dabs.ni.daqmx.Task('laserpockelspower');
+                    % Do not name the task because there is no need and we might have multiple
+                    % laser classes making such a connection.
+                    obj.hDO = dabs.ni.daqmx.Task;
                     obj.hDO(1).createDOChan(obj.pockelsDAQ, obj.pockelsDigitalLine); %Open one digital line
                 catch ME
                     if obj.doPockelsPowerControl
