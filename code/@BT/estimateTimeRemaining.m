@@ -28,7 +28,16 @@ function out = estimateTimeRemaining(obj,scnSet,numTilesPerOpticalSection)
     if ~isempty(obj.sectionCompletionTimes) && obj.acquisitionInProgress
         %If we determine how long the acquisition will take using observed section times.
         mu=mean(obj.sectionCompletionTimes);
-        sectionsRemaining = obj.recipe.mosaic.numSections-obj.currentSectionNumber;
+
+        % currentSectionNumber is the physical section index (e.g. 35 when resuming from
+        % section 35). numSections is a count of sections to acquire, not an index.
+        % Subtracting one from the other only works when sectionStartNum==1.
+        % Convert currentSectionNumber to a loop index first, then count how many
+        % sections remain including the one currently being acquired (sectionCompletionTimes
+        % does not yet contain an entry for it).
+        sectionInd = obj.currentSectionNumber - obj.recipe.mosaic.sectionStartNum + 1;
+        sectionsRemaining = obj.recipe.mosaic.numSections - sectionInd + 1;
+
         out.timePerSectionInSeconds = mu;
         out.timeLeftInSeconds = sectionsRemaining * mu;
 

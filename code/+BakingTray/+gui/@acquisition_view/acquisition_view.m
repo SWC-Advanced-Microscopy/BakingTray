@@ -137,7 +137,7 @@ classdef acquisition_view < BakingTray.gui.child_view
         function delete(obj)
             %obj.parentView.enableDisableThisView('on'); %TODO: remove if all works
             obj.parentView.updateStatusText; %Resets the approx time for sample indicator
-            cellfun(@delete,obj.listeners)            
+            cellfun(@delete,obj.listeners)
             delete@BakingTray.gui.child_view(obj);
         end
 
@@ -272,11 +272,8 @@ classdef acquisition_view < BakingTray.gui.child_view
             % This is called when currentSectionNumber updates
             if obj.verbose, fprintf('In acquisition_view.updateStatusText callback\n'), end
 
-            % We only want to run this on the first tile of each section. Faster this way.
-            if obj.model.currentTilePosition==1 || isempty(obj.cachedEndTimeStructure)
-                if obj.verbose, fprintf('Caching end time in acquisition_view object\n'), end
-                obj.cachedEndTimeStructure=obj.model.estimateTimeRemaining;
-            end
+            % Re-calculate the estimated finish time
+            obj.cachedEndTimeStructure=obj.model.estimateTimeRemaining;
 
             obj.statusText.String = sprintf(['Finish time: %s\nSection=%03d/%03d'], ...
                     obj.cachedEndTimeStructure.expectedFinishTimeString, ...

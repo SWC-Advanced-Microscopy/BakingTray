@@ -9,6 +9,10 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+7th July 2026
+BUGFIX: Estimated finish time should now update correctly and match much more closely to
+        that shown by StitchIt.
+
 6th July 2026
 ** Significant laser changes **
 Laser comms is now via a pause-free queue system. This removes the possibility of command
