@@ -586,7 +586,7 @@ classdef (Abstract) laser < BakingTray.asyncSerial
             if isempty(obj.pollTimer)
                 obj.pollPeriodInSeconds = obj.defaultPollPeriodInSeconds;
                 obj.pollTimer = timer;
-                obj.pollTimer.Name = 'Regular laser serial port poller';
+                obj.pollTimer.Name = [obj.controllerID, ' Regular laser serial port poller'];
                 obj.pollTimer.Period  = obj.pollPeriodInSeconds;
                 obj.pollTimer.TimerFcn = @(~,~) obj.pollSerial;
                 obj.pollTimer.StopFcn =  @(~,~) [];
@@ -737,7 +737,7 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
             if isempty(obj.tuningPollTimer)
                 obj.tuningPollTimer = timer;
-                obj.tuningPollTimer.Name = 'laser tuning wavelength poller';
+                obj.tuningPollTimer.Name = [obj.controllerID, ' laser tuning wavelength poller'];
                 obj.tuningPollTimer.TimerFcn = @(~,~) obj.tuningPollFcn;
                 obj.tuningPollTimer.ExecutionMode = 'fixedDelay';
             end

@@ -44,6 +44,12 @@ classdef tiberius < laser & loghandler
             if nargin<1
                 error('tiberius requires at least one input argument: you must supply the laser COM port as a string')
             end
+
+            if ~ischar(serialComms)
+                fprintf('Input argument "serialComms" to tiberius class should be a string\n')
+                return
+            end
+
             %Attach log object if it is supplied
             if nargin>1
                 obj.attachLogObject(logObject);

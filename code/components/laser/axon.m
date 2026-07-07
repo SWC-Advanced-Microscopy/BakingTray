@@ -73,6 +73,10 @@ classdef axon < laser & loghandler
                 error('axon requires at least one input argument: you must supply the laser COM port as a string')
             end
 
+            if ~ischar(serialComms)
+                error('Input argument "serialComms" to axon class should be a string\n')
+            end
+
             %Attach log object if it is supplied
             if nargin>1
                 obj.attachLogObject(logObject);
