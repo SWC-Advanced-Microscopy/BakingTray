@@ -11,6 +11,7 @@ mosaic:
   overlapProportion: 0.1
   sampleSize: {X: 17.98, Y: 13.11}
   scanmode: tile
+  tilesToRemove: 0
 CuttingStartPoint: {X: 25.799999, Y: 0.0}
 FrontLeft: {X: 18.6548150176, Y: 11.364716618666664}
 StitchingParameters:

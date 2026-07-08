@@ -354,12 +354,16 @@ classdef recipe < handle
                     switch field2check
                         case 'ID'
                             sampleNameStem = obj.SYSTEM.ID; %The sample name will always start with the system name
+
+                            % If the user never changed the system name we
+                            % change it to something sensible
                             if strcmp(sampleNameStem,'SYSTEM_NAME')
                                 sampleNameStem = 'BrainSawSample';
                             end
                             if ~endsWith(sampleNameStem,'_')
                                 sampleNameStem = [sampleNameStem,'_'];
                             end
+
                             if ischar(fieldValue)
                                 if length(fieldValue)>0
                                     if regexp(fieldValue(1),'\d')
@@ -370,13 +374,21 @@ classdef recipe < handle
                                         fieldValue = [sampleNameStem,fieldValue(2:end)];
                                     end
                                 end
+
+
+                                % Remove characters that are not supposed to be here
+                                fieldValue = BakingTray.utils.sanitiseFileName(fieldValue);
+
                             end
+
 
                             % If the sample name is not a string or empty then we just make one up
                             if ~ischar(fieldValue) || length(fieldValue)==0
                                 fieldValue=[sampleNameStem,datestr(now,'yymmdd_HHMMSS')];
                                 fprintf('Setting sample name to: %s\n',fieldValue)
                             end
+
+                            % Now set the sample ID
                             obj.sample.(field2check) = fieldValue;
 
                           case 'objectiveName'

@@ -9,11 +9,12 @@ classdef BT_build_tests < matlab.unittest.TestCase
     methods(TestMethodSetup)
         function buildBT(obj)
             % Does BT build with dummy parameters?
+            evalin('base','clear hBT')
             obj.hBT = BT('componentSettings',BakingTray.settings.dummy);
             obj.verifyClass(obj.hBT,'BT');
         end
     end
- 
+
     methods(TestMethodTeardown)
         function closeBT(obj)
             delete(obj.hBT);
@@ -84,7 +85,7 @@ classdef BT_build_tests < matlab.unittest.TestCase
         end
 
         function attachGoodRecipe(obj)
-            %Read a recipe that is supposed to work 
+            %Read a recipe that is supposed to work
             obj.verifyTrue(obj.hBT.attachRecipe('recipes/workingRecipe.yml'))
             obj.verifyTrue(obj.hBT.attachRecipe([]))
             obj.verifyTrue(obj.hBT.attachRecipe)

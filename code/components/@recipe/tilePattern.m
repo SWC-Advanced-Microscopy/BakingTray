@@ -107,7 +107,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         end
         if max(tilePosArray(:,2)) > obj.parent.yAxis.getMaxPos
             msg=sprintf('%sMaximum allowed Y position is %0.2f but tile position array will extend to %0.2f\n',...
-                msg, obj.parent.yAxis.getMinPos, max(tilePosArray(:,2)) );
+                msg, obj.parent.yAxis.getMaxPos, max(tilePosArray(:,2)) );
         end
     else
 
@@ -124,6 +124,7 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         end
         % Make certain the outputs are empty
         if ~returnEvenIfOutOfBounds
+            disp('WIPING THE TILE INDEX ARRAY')
             tilePosArray=[];
             tileIndexArray=[];
         end

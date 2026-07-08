@@ -14,6 +14,7 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
 
     methods(TestMethodSetup)
         function buildBT(obj)
+            evalin('base','clear hBT')
             BakingTray('dummymode',true);
             W = evalin('base','whos');
             if ~ismember('hBT',{W.name}) || ~ismember('hBTview',{W.name})
@@ -41,7 +42,7 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
 
     methods (Test)
 
-        % - - - - - - - - 
+        % - - - - - - - -
         % Confirm we can write to the recipe and our changes are made
         function simple_write_API(obj)
 
@@ -62,8 +63,8 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
             end
         end
 
-        % - - - - - - - - 
-        % The following confirms that the changes made in the recipe are reflected 
+        % - - - - - - - -
+        % The following confirms that the changes made in the recipe are reflected
         % in the GUI so the user will see them
         function simple_write_API_check_in_GUI(obj)
             % Check strings
@@ -87,8 +88,8 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
             end
         end
 
-        % - - - - - - - - 
-        % The following two tests confirm that recipe attachment works as expected, both in the 
+        % - - - - - - - -
+        % The following two tests confirm that recipe attachment works as expected, both in the
         % API and also in the GUI
         function testAttach_API(obj)
             % Test that the recipe attached correctly
@@ -101,15 +102,23 @@ classdef BT_recipe_tests < matlab.unittest.TestCase
 
         function testAttach_API_check_in_GUI(obj)
             % Test that the attached recipe produces changes that are visible in the GUI
+            obj.hBTview.detachRecipeListeners; %must do this before updating the recipe via the API
             obj.hBT.attachRecipe(obj.testRecipeFname);
+
+            % Now update the GUI
+            obj.hBTview.updateStatusText
+            obj.hBTview.connectRecipeListeners
+            obj.hBTview.updateAllRecipeEditBoxesAndStatusText
+            obj.hBTview.updateRecipeFname
+
             GUIvals = obj.hBTview.recipeEntryBoxes;
             % Test a string
             fprintf('GUI: %s; recipe: %s\n', GUIvals.sample.ID.String, obj.testRecipe.sample.ID)
             obj.verifyTrue(strcmp(GUIvals.sample.ID.String,obj.testRecipe.sample.ID))
 
             % Test a number
-            fprintf('GUI: %0.4f; recipe: %0.4f\n', str2double(GUIvals.mosaic.sampleSizeX.String), obj.testRecipe.mosaic.sampleSize.X)
-            obj.verifyTrue(str2double(GUIvals.mosaic.sampleSizeX.String)==obj.testRecipe.mosaic.sampleSize.X)
+            fprintf('GUI: %0.4f; recipe: %0.4f\n', str2double(GUIvals.mosaic.numOpticalPlanes.String), obj.testRecipe.mosaic.numOpticalPlanes)
+            obj.verifyTrue(str2double(GUIvals.mosaic.numOpticalPlanes.String)==obj.testRecipe.mosaic.numOpticalPlanes)
         end
 
     end %methods (Test)

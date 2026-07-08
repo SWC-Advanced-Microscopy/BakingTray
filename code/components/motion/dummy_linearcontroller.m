@@ -1,9 +1,9 @@
-classdef dummy_linearcontroller < linearcontroller 
+classdef dummy_linearcontroller < linearcontroller
 
     properties
         instantMotions = true  %If true, the stages move instantly to target position. If false,
                                %the max speed and update interval are used by the positionTimer to execute
-                               %a simple gradual motion. This is used for testing the GUI. 
+                               %a simple gradual motion. This is used for testing the GUI.
         updateInterval = 0.05  %every 10 ms update the currentPosition property during a motion
         verbose=false;
     end
@@ -13,7 +13,7 @@ classdef dummy_linearcontroller < linearcontroller
         positionTimer %to simulate the non-instantaneous motion of the stage
 
 
-        isStageMoving = false 
+        isStageMoving = false
         hiddenCurrentPosition % Used to implement a gradual motion with a timer: see obj.updatePosition
         targetPosition
         speed
@@ -23,7 +23,7 @@ classdef dummy_linearcontroller < linearcontroller
     methods
 
       % Constructor
-      function obj=dummy_linearcontroller(stageObject,logObject) 
+      function obj=dummy_linearcontroller(stageObject,logObject)
 
         if nargin<1
           stageObject=[];
@@ -42,12 +42,13 @@ classdef dummy_linearcontroller < linearcontroller
 
         %This timer is used to simulate the gradual motion of the stage
         obj.positionTimer = timer;
+        obj.positionTimer.Name = 'dummylinear';
         obj.positionTimer.StartDelay = obj.updateInterval;
         obj.positionTimer.TimerFcn = @(~,~) [] ;
         obj.positionTimer.StopFcn = @(~,~) obj.updatePosition;
         obj.positionTimer.ExecutionMode = 'singleShot';
 
-        obj.setMaxVelocity(25); %Hard-code a fast speed 
+        obj.setMaxVelocity(25); %Hard-code a fast speed
         obj.hiddenCurrentPosition=obj.attachedStage.currentPosition;
       end % Constructor
 
@@ -57,10 +58,12 @@ classdef dummy_linearcontroller < linearcontroller
           obj.hC=[];
         end
 
-        if isa(obj.positionTimer,'timer')
-            stop(obj.positionTimer)
+        if isa(obj.positionTimer,'timer') && isvalid(obj.positionTimer)
+          obj.positionTimer.StopFcn = '';
+          obj.positionTimer.TimerFcn = '';
+          stop(obj.positionTimer)
+          delete(obj.positionTimer)
         end
-        delete(obj.positionTimer)
       end % Destructor
 
 
@@ -178,13 +181,13 @@ classdef dummy_linearcontroller < linearcontroller
         stop(obj.positionTimer)
         obj.targetPosition=obj.hiddenCurrentPosition;
 
-        success=true; 
+        success=true;
       end %stopAxis
 
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       function pos = getPositionUnits(~,~)
-          pos='mm'; 
+          pos='mm';
       end
       function success=setPositionUnits(~,~,~)
         success=true;
@@ -221,7 +224,7 @@ classdef dummy_linearcontroller < linearcontroller
 
       % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       % get or set speed and acceleration settings
-      % None of these are relevant to the dummer_linearcontroller. 
+      % None of these are relevant to the dummer_linearcontroller.
       function speed = getMaxVelocity(obj,~)
           speed=obj.attachedStage.speed;
       end
@@ -244,7 +247,7 @@ classdef dummy_linearcontroller < linearcontroller
 
       function success=enableAxis(~,~)
         success=true;
-      end 
+      end
       function success=disableAxis(~,~)
         success=true;
       end

@@ -1,11 +1,14 @@
-This directory contains code for unit testing BakingTray. 
-You do not need to add this directory to your path. 
+# BakingTray Tests
 
+This directory contains code for unit testing BakingTray.
+You do not need to add this directory to your path.
+
+## Running tests
 To run the unit tests:
 
 >> runtests
 
-or 
+or
 
 >> table(runtests)
 
@@ -14,6 +17,7 @@ To run specific tests:
 >> run(recipe_tests);
 
 
+## If there are failures?
 What if there are failures? For example, say we see:
 
 Failure Summary:
@@ -27,6 +31,13 @@ Failure Summary:
 
 
 Run just one test:
- T=recipe_tests 
- T.checkTilePositions
+
+runtests('recipe_tests','ProcedureName','checkTilePositions')
+
+or
+
+T = recipe_tests;
+run(T, 'checkTilePositions')
+
+**NOTE**: You must run the tests using the above wrappers or the set up and tear down methods will not run.
 

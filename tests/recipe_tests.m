@@ -4,6 +4,7 @@ classdef recipe_tests < matlab.unittest.TestCase
 
     properties
         hR
+        SysSet
     end %properties
 
 
@@ -12,8 +13,14 @@ classdef recipe_tests < matlab.unittest.TestCase
             % Build the recipe with default parameters
             obj.hR = recipe;
             obj.verifyClass(obj.hR,'recipe');
-            %Set up reasonable blade and front/left positions
-            obj.hR.CuttingStartPoint.X=18;
+
+            % Set up reasonable blade and front/left positions
+            obj.hR.CuttingStartPoint.X=20;
+            obj.hR.FrontLeft.X=0;
+            obj.hR.FrontLeft.Y=-10;
+
+            % Read the system settings, which we will need for some tests
+            obj.SysSet = BakingTray.settings.readSystemSettings;
         end
     end
 
@@ -33,6 +40,9 @@ classdef recipe_tests < matlab.unittest.TestCase
             hBT = BT('componentSettings',BakingTray.settings.dummy);
             hBT.recipe.CuttingStartPoint.X=18;
 
+            hBT.recipe.FrontLeft.X=0;
+            hBT.recipe.FrontLeft.Y=-5;
+
             %Ensure that tile positions which exceed the allowed motion area can not be produced
             obj.verifyNotEmpty(hBT.recipe.tilePattern)
 
@@ -41,10 +51,11 @@ classdef recipe_tests < matlab.unittest.TestCase
             if isempty(tilePosArray)
                 return
             end
+
             minX=min(tilePosArray(:,1));
             maxX=max(tilePosArray(:,1));
             minY=min(tilePosArray(:,2));
-            maxY=max(tilePosArray(:,1));
+            maxY=max(tilePosArray(:,2));
 
 
             %Min X
@@ -78,15 +89,23 @@ classdef recipe_tests < matlab.unittest.TestCase
 
 
         function sampleID_valid(obj)
-            IDs={'mySample', 'my_Sample', 'my_sample_123'};
+            verbose=false;
+
+            IDs={'samplesample','mySample', 'my_Sample', 'my_sample-123'};
+
             for ii=1:length(IDs)
-                fprintf('Testing sampleID: %s\n', IDs{ii})
+                if verbose
+                    fprintf('Testing sampleID: %s\n', IDs{ii})
+                end
                 obj.hR.sample.ID=IDs{ii};
                 obj.verifyTrue(strcmp(obj.hR.sample.ID,IDs{ii}));
             end
         end
 
         function sampleID_invalid(obj)
+
+            verbose=false;
+
             % Confirm that bad sample names get changed
             IDs={'01_mySample', 'my sample','1mysample', ...
                 '_mySample', '!mySample', 'my()Sample',...
@@ -94,18 +113,23 @@ classdef recipe_tests < matlab.unittest.TestCase
                 123, [],{},struct};
 
             for ii=1:length(IDs)
-                if ischar(IDs{ii})
-                    fprintf('Testing sampleID: %s\n', IDs{ii})
-                else
-                    %fprintf('Testing sampleID with class %s\n', class(IDs{ii}))
+
+                if verbose
+                    if ischar(IDs{ii})
+                        fprintf('Testing sampleID: %s\n', IDs{ii})
+                    else
+                        fprintf('Testing sampleID with class %s\n', class(IDs{ii}))
+                    end
                 end
 
                 obj.hR.sample.ID=IDs{ii};
+
                 if ischar(IDs{ii})
                     obj.verifyFalse(strcmp(obj.hR.sample.ID,IDs{ii}));
                 else
-                    %If the ID wasn't a string the returned name should start with "sample_"
-                    obj.verifyTrue(strcmp(obj.hR.sample.ID(1:7),'sample_'));
+                    % If the ID wasn't a string the returned name should start with the
+                    % system name from the system settings file "sample_"
+                    obj.verifyTrue(startsWith(obj.hR.sample.ID,obj.SysSet.SYSTEM.ID));
                 end
             end
         end

@@ -108,7 +108,7 @@ classdef dummyScanner < scanner
             delete(obj.hCurrentImFig)
             obj.hC=[];
 
-            if isa(obj.focusTimer,'timer')
+            if isa(obj.focusTimer,'timer') && isvalid(obj.focusTimer)
                 stop(obj.focusTimer)
                 delete(obj.focusTimer)
             end

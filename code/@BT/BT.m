@@ -949,6 +949,8 @@ classdef BT < loghandler
             isConnected=false;
             if ~isempty(obj.(componentName)) && isa(obj.(componentName),componentClass) && isvalid(obj.(componentName))
                 isConnected=true;
+            elseif isa(obj.(componentName), 'dummy_linearcontroller') || isa(obj.(componentName), 'dummyLaser')
+                isConnected=true;
             else
                 isConnected=false;
             end
