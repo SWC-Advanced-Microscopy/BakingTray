@@ -476,9 +476,8 @@ classdef SIBT < scanner
             % verToTest - should be in the format '5.6' or '5.6.1' or
             % '2020.0'
             %
-            % Note: this method does not know what to do with the update
-            % mumber from SI Basic. So 2020.1 is OK but 2020.1.4 won't
-            % produce correct results
+            % Note: This method ignores the patch number from SI Basic. 
+            % So 2020.1  and 2020.1.1 are treated as the same thing.
 
             isGreater = nan;
             if ~ischar(verToTest)
@@ -490,6 +489,14 @@ classdef SIBT < scanner
                 verToTest = [verToTest,'.0'];
             end
 
+            % If the user entered a patch version, remove it
+            [a,b]=regexp(verToTest,'^\d+\.\d');
+            verToTest = verToTest(a:b);
+
+            if length(verToTest)~=6
+                error('Unable to test MATLAB version. Expected a string of length 6')
+            end
+            
             % Turn string into a number
             verToTestAsNum = str2num(strrep(verToTest,'.',''));
 
