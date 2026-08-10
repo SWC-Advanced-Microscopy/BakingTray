@@ -493,7 +493,7 @@ classdef SIBT < scanner
             [a,b]=regexp(verToTest,'^\d+\.\d');
             verToTest = verToTest(a:b);
 
-            if length(verToTest)~=6
+            if ~startsWith(verToTest,'5') && length(verToTest)~=6
                 error('Unable to test MATLAB version. Expected a string of length 6')
             end
             
