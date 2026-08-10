@@ -19,9 +19,11 @@ classdef BT < loghandler
     properties (Transient)
         scanner % The object that handles the scanning (e.g. SIBT, our scanImage wrapper)
         cutter  % The vibrotome motor
-        laser   % An object providing control of the laser goes here. If present, BakingTray can
-                % can turn off the laser at the end of the experiment and stop acquisition if the
-                % laser fails. If it's missing, these features just aren't available.
+        lasers = {} % A cell array of objects providing control of the lasers. If at least one is
+                    % present, BakingTray can turn off the lasers at the end of the experiment and
+                    % stop acquisition if a laser fails. If it's empty, these features just aren't
+                    % available. Element 1 is the primary laser: it is what BT.laser returns and
+                    % what anything not yet multi-laser aware will use. See also BT.attachLaser.
         recipe  % The details for the experiment go here
 
         % These properties control the three axis sample stage.
@@ -138,6 +140,13 @@ classdef BT < loghandler
         thisSectionDir % Path to the current section directory based on the current section number and sample ID in recipe
     end
 
+    properties (Transient,Dependent)
+        % The primary laser: an alias for BT.lasers{1} which is empty if no lasers are attached.
+        % Most of BakingTray is not multi-laser aware and uses this. There is deliberately no
+        % setter: lasers are attached with BT.attachLaser and nothing else may write to them.
+        laser
+    end
+
     % These properties are used by GUIs and general broadcasting
     properties (SetObservable, AbortSet)
         acquisitionState='idle'     % Can be "idle", "bake", or "preview"
@@ -196,6 +205,7 @@ classdef BT < loghandler
 
         % Other
         applyLaserCalibrationToScanner(obj)
+        [success,msg] = turnOffAllLasers(obj)
     end % Declare methods in separate files
 
 
@@ -318,8 +328,10 @@ classdef BT < loghandler
             if obj.isCutterConnected
                 obj.cutter.delete
             end
-            if obj.isLaserConnected
-                obj.laser.delete
+            for ii=1:length(obj.lasers)
+                if obj.isThisLaserConnected(obj.lasers{ii})
+                    obj.lasers{ii}.delete
+                end
             end
             if obj.isScannerConnected
                 obj.scanner.delete
@@ -906,8 +918,35 @@ classdef BT < loghandler
         end
 
         function isConnected=isLaserConnected(obj)
-            isConnected=obj.isComponentConnected('laser');
+            % True if at least one of the attached lasers is connected
+            isConnected=false;
+            for ii=1:length(obj.lasers)
+                if obj.isThisLaserConnected(obj.lasers{ii})
+                    isConnected=true;
+                    return
+                end
+            end
         end %isLaserConnected
+
+        function isConnected=isThisLaserConnected(~,thisLaser)
+            % True if the supplied single laser object is connected. This is the per-laser
+            % equivalent of BT.isComponentConnected, which can not be used here because the
+            % lasers do not each live in their own BT property.
+            isConnected = ~isempty(thisLaser) && isa(thisLaser,'laser') && isvalid(thisLaser);
+        end %isThisLaserConnected
+
+        function name=laserName(~,thisLaser)
+            % Return a string naming the supplied laser for log messages. On a system with
+            % one laser this is just the friendly name, as it always was. With more than one
+            % we add the beam name, since that is what tells the lasers apart.
+            name = thisLaser.friendlyName;
+            if isempty(name)
+                name = class(thisLaser);
+            end
+            if ~isempty(thisLaser.beamName)
+                name = sprintf('%s (%s)', name, thisLaser.beamName);
+            end
+        end %laserName
 
         function isConnected=isScannerConnected(obj)
             % TODO: consider whether the hC check needs to be added to isComponentConnected, since all
@@ -964,6 +1003,15 @@ classdef BT < loghandler
             % This is the full path to the sample directory
             out = fullfile(obj.sampleSavePath, obj.rawDataSubDirName);
         end %get.pathToSectionDirs
+
+        function out = get.laser(obj)
+            % Return the primary laser: the first in BT.lasers, or empty if there are none
+            if isempty(obj.lasers)
+                out = [];
+            else
+                out = obj.lasers{1};
+            end
+        end %get.laser
 
         function out = get.thisSectionDir(obj)
             % This is the directory into which we will place data for this section

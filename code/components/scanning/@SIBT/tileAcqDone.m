@@ -166,7 +166,12 @@ function tileAcqDone(obj,~,~)
         nPauses = nPauses+1;
         if nPauses>100
             nPauses=0;
-            [isReady,msg]=obj.parent.laser.isReady; % Ping laser so it doesn't power-off if we are paused a long time
+            % Ping all lasers so none powers-off if we are paused a long time. Every laser
+            % has a watchdog timer set by BT.bake, so pinging only the primary would allow a
+            % second laser to switch itself off part-way through an acquisition.
+            for ii=1:length(obj.parent.lasers)
+                [isReady,msg]=obj.parent.lasers{ii}.isReady;
+            end
             continue
         end
         pause(0.25)

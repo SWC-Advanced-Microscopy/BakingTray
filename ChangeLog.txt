@@ -9,6 +9,29 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+10th August 2026
+** Multiple lasers **
+USER: BakingTray can now be configured with more than one laser. Add each extra laser as a
+        further element of the laser structure array in componentSettings.m. With more than
+        one laser, every laser must have a non-empty and unique beamName so that it can be
+        matched to a beam in ScanImage: a laser without one is not attached and a warning is
+        issued, but BakingTray still starts. Existing single-laser settings files need no
+        changes at all.
+        All attached lasers now get a watchdog timer, are pinged during a pause, have their
+        ID, wavelength and per-section status written to the acquisition log, and are turned
+        off when acquisition finishes. Log and Slack messages now name the laser they refer
+        to.
+        NOT yet done: only the primary laser is monitored for modelock and only it can block
+        or stop an acquisition. The laser GUI still shows the primary laser only. Laser power
+        is handled by ScanImage.
+DEVELOPER: BT.lasers is a cell array which is now the source of truth for attached lasers.
+        BT.laser is a read-only dependent alias for BT.lasers{1}, the primary laser, so the
+        many parts of BakingTray that are not multi-laser aware are unchanged. BT.attachLaser
+        is the only thing that may write to BT.lasers. New method BT.turnOffAllLasers is the
+        seam used by bakeCleanupFun. New per-laser property laser.doMonitor is present but
+        not yet read by anything. New tests in tests/BT_laser_multi_tests.m.
+
+
 7th July 2026
 BUGFIX: Estimated finish time should now update correctly and match much more closely to
         that shown by StitchIt.

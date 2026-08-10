@@ -32,7 +32,17 @@ function settings=componentSettings
     laser.pockels.doPockelsPowerControl=true;
     laser.pockels.pockelsDAQ='beam';
     laser.pockels.pockelsDigitalLine='port0/line0';
-    laser.beamName=''; % Enter the name of the "Beam" in ScanImage. This is the string that appears in the widget title. Only needed if you have multiple beams
+    laser.beamName=''; % Enter the name of the "Beam" in ScanImage. It must match! This is the string that appears in the widget title. Only needed if you have multiple beams
+
+    % If you have more than one laser, add each as a further element of the laser structure
+    % array, as below. Laser 1 is the PRIMARY laser: it is the one the laser GUI controls and
+    % the one that anything in BakingTray which is not multi-laser aware will use. All lasers
+    % are turned off when acquisition finishes.
+    % With more than one laser, EVERY laser must have a non-empty and unique beamName so that
+    % it can be matched to a beam in ScanImage. A laser that does not have one is not attached.
+    % laser(2).type='axon';
+    % laser(2).COM=14;
+    % laser(2).beamName='Axon-1064';
 
 
 

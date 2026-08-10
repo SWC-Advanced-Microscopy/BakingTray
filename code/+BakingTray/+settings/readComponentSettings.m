@@ -51,8 +51,17 @@ function [settings,pathToFile] = readComponentSettings
     cd(CWD)
 
     %TODO: complete error checks
-    if isempty(settings.laser.type)
-        fprintf('** Laser not defined in component settings file\n')
+    % The laser field is a structure array with one element per laser. A settings file
+    % describing a single laser produces a 1x1 structure array, so it is handled here too.
+    for ii=1:length(settings.laser)
+        if ~isempty(settings.laser(ii).type)
+            continue
+        end
+        if length(settings.laser)==1
+            fprintf('** Laser not defined in component settings file\n')
+        else
+            fprintf('** Laser %d not defined in component settings file\n', ii)
+        end
     end
 
     if isempty(settings.cutter.type)

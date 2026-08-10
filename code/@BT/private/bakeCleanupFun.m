@@ -9,7 +9,9 @@ function bakeCleanupFun(obj)
     end
 
     % Return laser polling to faster rate
-    obj.laser.pollPeriodInSeconds = obj.laser.defaultPollPeriodInSeconds;
+    for ii=1:length(obj.lasers)
+        obj.lasers{ii}.pollPeriodInSeconds = obj.lasers{ii}.defaultPollPeriodInSeconds;
+    end
 
     %TODO: these three lines also appear in BakingTray.gui.acquisition_view
     obj.detachLogObject; % Run this again here (as well as in acq loop, above, just in case)
@@ -39,19 +41,11 @@ function bakeCleanupFun(obj)
                 obj.currentSectionNumber, minSections)
         end
 
-        obj.acqLogWriteLine(sprintf('Attempting to turn off laser\n'));
-        success=obj.laser.turnOff;
-        if ~success
-            obj.acqLogWriteLine(sprintf('Laser turn off command reports it did not work\n'));
-        else
-            if ~isa(obj.laser,'dummyLaser')
-                pause(10) %it takes a little while for the laser to turn off
-            end
-            laser_msg=sprintf('Laser reports it turned off: %s\n',obj.laser.returnLaserStats);
-            if obj.currentSectionNumber>minSections
-                slack_msg = [slack_msg, laser_msg];
-            end
-            obj.acqLogWriteLine(laser_msg);
+        obj.acqLogWriteLine(sprintf('Attempting to turn off all lasers\n'));
+        [success,laser_msg]=obj.turnOffAllLasers;
+        obj.acqLogWriteLine(laser_msg);
+        if success && obj.currentSectionNumber>minSections
+            slack_msg = [slack_msg, laser_msg];
         end
     else
         % So we can report to screen if this is reset

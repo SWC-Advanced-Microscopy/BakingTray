@@ -95,8 +95,8 @@ function sectionInd = bake(obj,varargin)
     msg = obj.reportAcquisitionSize;
     obj.acqLogWriteLine(msg);
 
-    if ~isempty(obj.laser)
-        obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.laser.readLaserID));
+    for ii=1:length(obj.lasers)
+        obj.acqLogWriteLine(sprintf('Using laser: %s\n', obj.lasers{ii}.readLaserID));
     end
 
     % Print the version number and name of the scanning software
@@ -110,7 +110,10 @@ function sectionInd = bake(obj,varargin)
     end
 
     % Report laser settings and power in mW (if this is possible to do)
-    obj.acqLogWriteLine(sprintf('Acquiring sample with laser tuned to %d nm\n', obj.laser.readWavelength));
+    for ii=1:length(obj.lasers)
+        obj.acqLogWriteLine(sprintf('Acquiring sample with %s tuned to %d nm\n', ...
+            obj.laserName(obj.lasers{ii}), obj.lasers{ii}.readWavelength));
+    end
     [laserPowerStruct,laserPowerStr] = obj.scanner.returnLaserPowerInmW;
     if isempty(laserPowerStruct)
         obj.acqLogWriteLine(sprintf('Unable to get laser power value in mW from ScanImage.\n\n'))
@@ -121,13 +124,13 @@ function sectionInd = bake(obj,varargin)
     % Set the watchdog timer on the laser to 40 minutes. The laser
     % will switch off after this time if it heard nothing back from bake.
     % e.g. if the computer reboots spontaneously, the laser will turn off 40 minutes later.
-    if ~isempty(obj.laser)
-        wDogSeconds = 40*60;
-        obj.laser.setWatchDogTimer(wDogSeconds);
-    end
+    wDogSeconds = 40*60;
+    for ii=1:length(obj.lasers)
+        obj.lasers{ii}.setWatchDogTimer(wDogSeconds);
 
-    % Poll the laser less often now that we are not interactive
-    obj.laser.pollPeriodInSeconds = 5; % every 5 seconds.
+        % Poll the laser less often now that we are not interactive
+        obj.lasers{ii}.pollPeriodInSeconds = 5; % every 5 seconds.
+    end
 
     %Log the current time to the recipe
     obj.recipe.Acquisition.acqStartTime = currentTimeStr();
@@ -180,9 +183,9 @@ function sectionInd = bake(obj,varargin)
         obj.acqLogWriteLine(tLine)
         startAcq=now;
 
-        if ~isempty(obj.laser)
+        for ii=1:length(obj.lasers)
             % Record laser status before section
-            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats))
+            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.lasers{ii}.returnLaserStats))
         end
 
 
@@ -420,9 +423,9 @@ function sectionInd = bake(obj,varargin)
         obj.detachLogObject %Close the log file that writes to the section directory
 
 
-        if ~isempty(obj.laser)
+        for ii=1:length(obj.lasers)
             % Record laser status after section
-            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.laser.returnLaserStats))
+            obj.acqLogWriteLine(sprintf('laser status: %s\n', obj.lasers{ii}.returnLaserStats))
         end
 
         elapsedTimeInSeconds=(now-startAcq)*24*60^2;
