@@ -32,6 +32,7 @@ function settings=componentSettings
     laser.pockels.doPockelsPowerControl=true;
     laser.pockels.pockelsDAQ='beam';
     laser.pockels.pockelsDigitalLine='port0/line0';
+    laser.beamName=''; % Enter the name of the "Beam" in ScanImage. This is the string that appears in the widget title. Only needed if you have multiple beams
 
 
 
