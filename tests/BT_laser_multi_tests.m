@@ -156,6 +156,26 @@ classdef BT_laser_multi_tests < matlab.unittest.TestCase
             obj.verifyEmpty(obj.hBT.lasers)
         end
 
+        function attach_worksWithNoWavelengthField(obj)
+            %The wavelength field is optional: settings files written before it existed must
+            %still attach. Only fixed-wavelength lasers such as the Axon need it.
+            obj.detachAllLasers
+            settings = obj.laserSettings({''});
+            obj.verifyFalse(isfield(settings,'wavelength'))
+            obj.verifyTrue(obj.hBT.attachLaser(settings))
+            obj.verifyNumElements(obj.hBT.lasers,1)
+        end
+
+        function attach_wavelengthFieldIsHarmlessOnATunableLaser(obj)
+            %A tunable laser reads its wavelength from the hardware and must ignore the
+            %field rather than error or have its wavelength overwritten
+            obj.detachAllLasers
+            settings = obj.laserSettings({''});
+            settings.wavelength = 1064;
+            obj.verifyTrue(obj.hBT.attachLaser(settings))
+            obj.verifyNotEqual(obj.hBT.laser.currentWavelength,1064)
+        end
+
 
         % - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         % BT.turnOffAllLasers

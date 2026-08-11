@@ -33,6 +33,7 @@ function settings=componentSettings
     laser.pockels.pockelsDAQ='beam';
     laser.pockels.pockelsDigitalLine='port0/line0';
     laser.beamName=''; % Enter the name of the "Beam" in ScanImage. It must match! This is the string that appears in the widget title. Only needed if you have multiple beams
+    laser.wavelength=[]; % Leave empty for a tunable laser: it reads its wavelength from the hardware. Only fixed-wavelength lasers, such as the Axon, need this. e.g. 1064
 
     % If you have more than one laser, add each as a further element of the laser structure
     % array, as below. Laser 1 is the PRIMARY laser: it is the one the laser GUI controls and
@@ -40,9 +41,13 @@ function settings=componentSettings
     % are turned off when acquisition finishes.
     % With more than one laser, EVERY laser must have a non-empty and unique beamName so that
     % it can be matched to a beam in ScanImage. A laser that does not have one is not attached.
+    % A fixed-wavelength laser such as the Axon can not report its wavelength over serial,
+    % so you must state it with the "wavelength" field or it reports 0 nm everywhere. The
+    % field is ignored by tunable lasers, which read their wavelength from the hardware.
     % laser(2).type='axon';
     % laser(2).COM=14;
     % laser(2).beamName='Axon-1064';
+    % laser(2).wavelength=1064;
 
 
 

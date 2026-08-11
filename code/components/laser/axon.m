@@ -17,18 +17,31 @@ classdef axon < laser & loghandler
 % doc text.
 %
 % Notes on the Axon relative to the other lasers:
-% * It is single-wavelength, so readWavelength returns a cached value (there is no
-%   serial query for it) and setWavelength / isTuning are effectively no-ops.
+% * This is a single-wavelength (non-tunable) fibre laser. The laser does not return its
+%   wavelength when queried so readWavelength returns a cached value and setWavelength
+%   and isTuning do nothing. The cached value comes from the component settings file
+%   (laser(n).wavelength) and is applied by buildLaserComponent as the laser is built. If
+%   you build an axon at the command line you should do the same yourself:
+%   A = axon('COM1');
+%   A.setFixedWavelength(1064);
+%   Otherwise the laser reports a wavelength of 0 nm. See axon.setFixedWavelength.
 % * It has no software shutter (the head shutter is a manual lever). The shutter is
 %   therefore always reported as open and openShutter / closeShutter do nothing.
 % * On/off is done with the software key: SKEY=1 (on) and SKEY=0 (off). The hardware
 %   key switch must be in the ENABLE position for SKEY=1 to take effect.
-% * Power is controlled from the external analog modulation input (AOM:EXT=1), so
-%   BakingTray does not set power over serial.
 % * Replies are framed "<reply><ETX><CR><LF>". The terminator strips the CR/LF; the
 %   trailing ETX (0x03) is removed locally by cleanReply.
 %
+%
 % Rob Campbell - SWC 2026
+
+
+    properties (Constant,Hidden)
+        LASER_NAME = 'Axon' % Base of the friendlyName. setFixedWavelength appends the
+                            % wavelength to this, e.g. "Axon-1064", since a system may
+                            % have more than one Axon and only the wavelength tells
+                            % them apart.
+    end % close constant properties
 
 
     properties (Constant,Hidden)
@@ -82,11 +95,13 @@ classdef axon < laser & loghandler
                 obj.attachLogObject(logObject);
             end
 
-            % The Axon is a single fixed-wavelength laser and cannot be tuned. There is
-            % no serial query for the emitted wavelength, so it is set here. You should
-            % set this to be correct for your model during construction.
-            obj.currentWavelength = 1064;
-            obj.friendlyName = 'Axon'; % Should ideally be set at construction to Axon XXXnm
+            % The Axon is a single fixed-wavelength laser and cannot be tuned. There is no
+            % serial query for the emitted wavelength, so these are placeholders only. The
+            % real values are applied by setFixedWavelength, which buildLaserComponent calls
+            % with laser(n).wavelength from the component settings file before this object is
+            % handed to BT.attachLaser.
+            obj.currentWavelength = 0;
+            obj.friendlyName = obj.LASER_NAME;
 
             fprintf('\nSetting up Axon laser communication on serial port %s\n', serialComms);
             obj.controllerID=serialComms;
@@ -494,6 +509,56 @@ classdef axon < laser & loghandler
 
 
         % Axon specific
+        function success = setFixedWavelength(obj,wavelengthInNM)
+            % axon.setFixedWavelength
+            %
+            % Purpose
+            % Tell the class what wavelength this Axon emits. Axon specific. The Axon is
+            % a single fixed-wavelength laser (780 / 920 / 1064 nm) with no serial query
+            % for the emitted wavelength, so the value has to be stated in the component
+            % settings file:
+            %   laser(n).wavelength=1064;
+            % buildLaserComponent applies it as the laser is built. If it is never applied
+            % the laser reports 0 nm in the GUI, in the acquisition log, and in
+            % returnLaserStats.
+            %
+            % The friendlyName is updated at the same time (e.g. "Axon-1064") because a
+            % system may have more than one Axon and the wavelength is what tells them
+            % apart in the GUI title and the log messages.
+            %
+            % Inputs
+            % wavelengthInNM - [scalar] the wavelength this laser emits, in nm.
+            %
+            % Outputs
+            % success - true if the wavelength was applied. If it was not, the laser is
+            %           left exactly as it was and a message explains why.
+
+            success=false;
+
+            if nargin<2 || isempty(wavelengthInNM)
+                fprintf(['\n ** The wavelength of this %s is not defined, so it will report %d nm.\n', ...
+                    '    Add "laser(n).wavelength=1064;" (or whatever your model emits) to your\n', ...
+                    '    component settings file.\n\n'], obj.LASER_NAME, round(obj.currentWavelength))
+                return
+            end
+
+            % Sanity check rather than a model check: the Axon comes at 780, 920, or 1064 nm
+            % but we do not want to refuse a model we have not heard of.
+            if ~isnumeric(wavelengthInNM) || ~isscalar(wavelengthInNM) || ...
+                wavelengthInNM<600 || wavelengthInNM>1400
+                fprintf(['\n ** "%s" is not a plausible wavelength in nm for a %s. Ignoring it.\n', ...
+                    '    This %s will report %d nm.\n\n'], ...
+                    mat2str(wavelengthInNM), obj.LASER_NAME, obj.LASER_NAME, round(obj.currentWavelength))
+                return
+            end
+
+            obj.currentWavelength = round(wavelengthInNM);
+            obj.targetWavelength = obj.currentWavelength; % The Axon does not tune
+            obj.friendlyName = sprintf('%s-%d', obj.LASER_NAME, obj.currentWavelength);
+            success=true;
+        end % setFixedWavelength
+
+
         function keyState = readHardwareKey(obj)
             % axon.readHardwareKey
             %

@@ -31,6 +31,9 @@ function settings=componentSettings
     laser.COM=[];  % COM port number on which the laser is attached. e.g. the scalar 1
     laser.beamName=''; % Enter the name of the "Beam" in ScanImage. This is the string that appears in the widget title. Only needed if you have multiple beams
 
+    % laser.wavelength=[]; % Only needed for fixed-wavelength lasers, such as the Axon, which
+                           % can not report their wavelength over serial. e.g. 1064
+
     % If you have more than one laser, add each as a further element of the laser structure
     % array: laser(2).type, laser(2).COM, and so on. Laser 1 is the PRIMARY laser. With more
     % than one laser, every laser must have a non-empty and unique beamName. See the example

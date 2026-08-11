@@ -38,6 +38,13 @@ validComponentSuperClassName = 'laser'; %The name of the abstract class that all
 laserSettings = varargin{1};
 COMPORT = BakingTray.settings.parseComPort(laserSettings.COM);
 
+% The wavelength field is new (2026/08/11) and optional. It is only used by lasers which
+% can not report their own wavelength over serial, such as the Axon. Tunable lasers read
+% the wavelength from the hardware and ignore it.
+if ~isfield(laserSettings,'wavelength')
+    laserSettings.wavelength=[];
+end
+
 %Build the correct object based on "componentName"
 switch componentName
     case 'dummyLaser'
@@ -50,13 +57,24 @@ switch componentName
         component = chameleon(COMPORT);
     case 'axon'
         component = axon(COMPORT);
+        % The Axon is fixed-wavelength and can not report its wavelength, so the settings
+        % file has to state it. This also sets the friendlyName. e.g. "Axon-1064"
+        component.setFixedWavelength(laserSettings.wavelength);
     otherwise
         fprintf('ERROR: unknown laser component "%s" SKIPPING BUILDING\n', componentName)
         component=[];
         return
 end
 
-% Do not return component if it's not of the correct class. 
+% Say so if a wavelength was defined for a laser which reads its wavelength from the
+% hardware, so the user is not left wondering why it had no effect.
+if ~isempty(laserSettings.wavelength) && ~strcmp(componentName,'axon')
+    fprintf(['NOTE: the laser "%s" reads its wavelength from the hardware, so the wavelength\n', ...
+        'defined for it in the component settings file is ignored.\n'], componentName)
+end
+
+
+% Do not return component if it's not of the correct class.
 % e.g. this can happen if the class doesn't inherit the correct abstract class
 if ~isa(component,validComponentSuperClassName)
     fprintf('ERROR: constructed component %s is not of class %s. SKIPPING BUILDING.\n', ...

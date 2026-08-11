@@ -9,6 +9,19 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+11th August 2026
+USER: Fixed-wavelength lasers (the Axon) now report their wavelength correctly instead of
+        0 nm. The hardware has no serial query for its wavelength, so it must be stated in
+        componentSettings.m with the new optional field: laser(n).wavelength=1064; The
+        friendlyName of the laser is derived from it, e.g. "Axon-1064", so that a system
+        with more than one Axon can tell them apart in the GUI title and in the logs. The
+        field is ignored by tunable lasers and is not needed in existing settings files.
+DEVELOPER: New method axon.setFixedWavelength, called by buildLaserComponent as the laser
+        is built. It sets currentWavelength, targetWavelength and friendlyName together and
+        refuses implausible values. buildLaserComponent defaults the new settings field so
+        settings files written before it existed are unaffected.
+
+
 10th August 2026
 ** Multiple lasers **
 USER: BakingTray can now be configured with more than one laser. Add each extra laser as a
