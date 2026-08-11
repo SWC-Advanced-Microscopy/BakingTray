@@ -85,7 +85,7 @@ classdef axon < laser & loghandler
             % The Axon is a single fixed-wavelength laser and cannot be tuned. There is
             % no serial query for the emitted wavelength, so it is set here. You should
             % set this to be correct for your model during construction.
-            obj.currentWavelength = 0;
+            obj.currentWavelength = 1064;
             obj.friendlyName = 'Axon'; % Should ideally be set at construction to Axon XXXnm
 
             fprintf('\nSetting up Axon laser communication on serial port %s\n', serialComms);
