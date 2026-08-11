@@ -288,7 +288,7 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
 
         laserStats = returnLaserStats(obj)
-        % returnLaserStats
+        % laserStats = returnLaserStats
         %
         % Behavior
         % It's probably not a bad idea to monitor the status of the laser over time.
@@ -299,12 +299,15 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         % acquisition progress data. If you don't care about logging laser status
         % information, you just return an empty string. If you wish to log laser
         % information then it makes sense to return it in a consistent and machine
-        % readble way. e.g. your string could be:
+        % readable way. e.g. your string could be:
         % 'outputPower=1700mw,pumpPower=12000mw,wavelength=900nm,humidity=2\n'
         %
         % Avoid "%" signs in your string. They screw up subsequent sprintf lines.
         % You should ensure this method does something. It could be important for the
         % bake cycle.
+        %
+        % Returns
+        % laserStats - a string
 
 
         laserID = readLaserID(obj)
