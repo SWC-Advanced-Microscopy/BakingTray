@@ -23,13 +23,13 @@ if length(hBT.lasers)==1
     return
 end
 
-if ~strcmp(hBT.lasers(2).type,'Axon')
+if ~strcmp(hBT.lasers{2}.friendlyName,'Axon')
     fprintf('Second laser is not an Axon\n')
     return
 end
 
 
-msg=hBT.lasers(2).returnLaserStats;
+msg=hBT.lasers{2}.returnLaserStats;
 
 fprintf('%s\n',msg)
 
