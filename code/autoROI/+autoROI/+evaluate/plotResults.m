@@ -5,13 +5,13 @@ function plotResults(testDir,varargin)
 %
 % Purpose
 % This function helps to highlight which samples still need more work. If
-% run with no input argument, it works in the current directory. 
+% run with no input argument, it works in the current directory.
 %
 % Inputs
 % testDir - path test directory. Optional. If missing or empty, current directory.
 %
 % Inputs (param/val pairs)
-% excludeIndex - vector of acquisition idexes to exclude from plotting.
+% excludeIndex - vector of acquisition indexes to exclude from plotting.
 %
 %
 % Outputs
@@ -35,7 +35,7 @@ excludeIndex = params.Results.excludeIndex;
 
 summaryTable = autoROI.evaluate.getSummaryTable(testDir);
 if isempty(summaryTable)
-    return 
+    return
 end
 
 % Sort by sqmm missed
@@ -91,10 +91,10 @@ x=1:length(summaryTable.totalNonImagedSqMM);
 plot(x,summaryTable.totalNonImagedSqMM, pS.basePlotStyle{:})
 
 % Overlay circles onto problem cases
-hold on 
+hold on
 plot(x(summaryTable.isProblemCase), ...
     summaryTable.totalNonImagedSqMM(summaryTable.isProblemCase), ...
-    pS.highlightProblemCases{:}) 
+    pS.highlightProblemCases{:})
 hold off
 ylabel('Square mm missed')
 
@@ -117,7 +117,7 @@ xlim([1,size(summaryTable,1)])
 
 subplot(nRows,nCols,2)
 plot(summaryTable.maxNonImagedSqMM, pS.basePlotStyle{:})
-hold on 
+hold on
 plot(xlim,[0,0],'k:')
 grid on
 hold off
@@ -130,18 +130,18 @@ xlim([1,size(summaryTable,1)])
 
 subplot(nRows,nCols,3)
 plot(summaryTable.totalExtraSqMM, pS.basePlotStyle{:})
-hold on 
+hold on
 
 % Highlight problem cases
 plot(x(summaryTable.isProblemCase), ...
     summaryTable.totalExtraSqMM(summaryTable.isProblemCase), ...
-    pS.highlightProblemCases{:}) 
+    pS.highlightProblemCases{:})
 
 % Highlight cases with many sections having high coverage
 f = find(summaryTable.numSectionsWithOverFlowingCoverage>0);
 plot(x(f), ...
     summaryTable.totalExtraSqMM(f), ...
-    pS.highlightHighCoverage{:}) 
+    pS.highlightHighCoverage{:})
 
 plot(xlim,[0,0],'k:')
 grid on
@@ -164,7 +164,7 @@ end
 
 subplot(nRows,nCols,4)
 plot(summaryTable.maxExtraSqMM, pS.basePlotStyle{:})
-hold on 
+hold on
 plot(xlim,[0,0],'k:')
 grid on
 hold off
@@ -206,7 +206,7 @@ mu=mean(summaryTable.propImagedArea);
 hold on
 plot(x(summaryTable.isProblemCase), ...
     summaryTable.propImagedArea(summaryTable.isProblemCase), ...
-    pS.highlightProblemCases{:}) 
+    pS.highlightProblemCases{:})
 plot([xlim],[mu,mu],'--b')
 hold off
 xlabel('Acquisition #')

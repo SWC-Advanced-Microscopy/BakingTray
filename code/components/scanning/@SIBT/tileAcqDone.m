@@ -5,15 +5,15 @@ function tileAcqDone(obj,~,~)
     %
     % Purpose
     % This callback function is VERY IMPORTANT it constitutes part of the implicit loop
-    % that performs the tile scanning. It is an "implicit" loop, since it is called 
-    % repeatedly until all tiles have been acquired. There is no for loop anywhere. 
-    % 
-    % This function records runs aftet each x/y tile position has finished acquiring and
+    % that performs the tile scanning. It is an "implicit" loop, since it is called
+    % repeatedly until all tiles have been acquired. There is no for loop anywhere.
+    %
+    % This function records runs after each x/y tile position has finished acquiring and
     % gets the stage positions, moves to the *next* stage position, and whilst that is happening
     % extracts image data from the ScanImage API. Finally, it runs
     % hSI.hScan2D.trigIssueSoftwareAcq to soft-trigger another tile position to be acquired.
-    % That causes us to re-enter this callback once the frames in that tile position have been 
-    % completed. 
+    % That causes us to re-enter this callback once the frames in that tile position have been
+    % completed.
 
     %Log the X and Y stage positions of the current tile in the grid associated with the tile data
     curTilePos = obj.parent.currentTilePosition; %Current tile position
@@ -38,7 +38,7 @@ function tileAcqDone(obj,~,~)
     else
         blockingMotion = true;
     end
-    
+
     %Initiate move to the next X/Y position (blocking motion)
     %the if statement stops us from attempting a move once this callback is
     %called for the final time (a self-call, see below)
@@ -46,7 +46,7 @@ function tileAcqDone(obj,~,~)
         obj.parent.moveXYto(obj.parent.currentTilePattern(curTilePos+1,1), ...
                 obj.parent.currentTilePattern(curTilePos+1,2), blockingMotion);
     end
-    
+
     % Import the last frames and downsample them
     debugMessages=false;
 
@@ -105,9 +105,9 @@ function tileAcqDone(obj,~,~)
                         int16(imresize(rot90(lastStripe.roiData{1}.imageData{ii}{1},obj.settings.tileAcq.tileRotate),...
                             [size(obj.parent.downSampledTileBuffer,1),size(obj.parent.downSampledTileBuffer,2)],'bilinear'));
                 end
-                % Note that each time the stages move to the next position, a listener in BT places the 
-                % data in obj.parent.downSampledTileBuffer into a preview image of the whole section. 
-                % Once it is done this, it replaces obj.parent.downSampledTileBuffer with zeros. 
+                % Note that each time the stages move to the next position, a listener in BT places the
+                % data in obj.parent.downSampledTileBuffer into a preview image of the whole section.
+                % Once it is done this, it replaces obj.parent.downSampledTileBuffer with zeros.
 
             end
 
@@ -134,25 +134,25 @@ function tileAcqDone(obj,~,~)
         save(fullfile(obj.parent.currentTileSavePath,'tilePositions.mat'),'positionArray')
     end
 
- 
+
     % If we are not doing blocking motions then we must have a short pause.
-    % Determine here how long to wait. During a tile scan with one ROI all 
-    % motions will be the same size. With multiple ROIs this is not the case. 
-    % So figure out here what is the longest distance moved so we know how 
-    % long to wait at the end. 
+    % Determine here how long to wait. During a tile scan with one ROI all
+    % motions will be the same size. With multiple ROIs this is not the case.
+    % So figure out here what is the longest distance moved so we know how
+    % long to wait at the end.
     if blockingMotion == false
         dX = diff(obj.parent.positionArray(curTilePos:curTilePos+1,3));
         dY = diff(obj.parent.positionArray(curTilePos:curTilePos+1,4));
         dMax = max(abs([dX,dY]));
         timeToWaitInSeconds = fixedWait * dMax;
     end
-    
-    
+
+
     % Increment the counter and make the new position the current one
     obj.parent.currentTilePosition = curTilePos+1;
 
     % Store stage positions. this is done after all tiles in the z-stack have been acquired
-    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages. 
+    doFakeLog=false; % Takes about 50 ms each time it talks to the PI stages.
     % Setting doFakeLog to true will save about 15 minutes over the course of an acquisition but
     % you won't get the real stage positions
     % The first tile was logged in BT.runTileScan.
@@ -181,7 +181,7 @@ function tileAcqDone(obj,~,~)
     if blockingMotion == false
         pause(timeToWaitInSeconds)
     end
-    
+
     % Write message to the log file using the logger class
     obj.logMessage('acqDone',dbstack,2,'->Completed acqDone and initiating next tile acquisition<-');
 
