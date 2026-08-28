@@ -162,15 +162,19 @@ classdef chameleon < laser & loghandler
                 if s1==1 && s2==1 && s3==1
                     success=true;
                 else
-                    %double-check we can talk to the laser
-                    [~,s] = obj.isShutterOpen;
-                    if s==true
-                        success=true;
-                    else
+                    % One of the setup commands went unanswered. Before condemning the
+                    % laser, retry a plain query: a single lost reply must not condemn a
+                    % laser which is in fact there. See laser.verifyCommsWithLaser.
+                    success = obj.verifyCommsWithLaser(obj.CMD_QUERY_SHUTTER);
+                    if ~success
                         fprintf('Failed to communicate with Chameleon laser\n')
-                        success=false;
                     end
+                end
 
+                if success
+                    % Cache the shutter state now so the GUI shows it correctly as
+                    % soon as it opens rather than only after the first poll.
+                    obj.isShutterOpen;
                 end
             end
 

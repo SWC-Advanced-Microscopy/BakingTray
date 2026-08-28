@@ -580,6 +580,55 @@ classdef (Abstract) laser < BakingTray.asyncSerial
 
 
         %%
+        % Connection verification
+        function success = verifyCommsWithLaser(obj, probeCommand, nAttempts)
+            % laser.verifyCommsWithLaser
+            %
+            % Purpose
+            % Confirm that the laser is answering on an already-open serial port by
+            % sending a harmless query, retrying it a few times before giving up.
+            % Call this from connect rather than testing with a single query. An open
+            % port does not guarantee that the first reply is not lost: the laser may
+            % be slow to talk after the port opens, or a reply may be dropped. The
+            % cost of getting this wrong is high, because a laser wrongly declared
+            % unconnected at construction time stays dead for the whole session --
+            % its constructor returns early, so the status poller is never started --
+            % even though the port is open and the laser can still be driven by hand.
+            %
+            % Inputs
+            % probeCommand - [string] a query which the laser answers and which
+            %                changes nothing. e.g. obj.CMD_QUERY_SHUTTER
+            % nAttempts - [optional scalar. 3 by default] how many times to try
+            %
+            % Outputs
+            % success - true if the laser replied to the probe
+
+            if nargin<3
+                nAttempts = 3;
+            end
+
+            % Each probe attempt is bounded more tightly than a normal read so that a
+            % laser which really is absent does not hold up startup for long. A laser
+            % which is present replies in milliseconds.
+            origTimeout = obj.serialReplyTimeoutSeconds;
+            obj.serialReplyTimeoutSeconds = 2;
+
+            success = false;
+            for ii = 1:nAttempts
+                success = obj.sendAndReceiveSerial(probeCommand);
+                if success
+                    break
+                end
+                fprintf('%s: no reply to "%s" from laser on %s (attempt %d of %d)\n', ...
+                    class(obj), probeCommand, obj.controllerID, ii, nAttempts)
+                pause(0.5)
+            end
+
+            obj.serialReplyTimeoutSeconds = origTimeout;
+        end % verifyCommsWithLaser
+
+
+        %%
         % Serial port polling methods follow
         function startPollingSerialPort(obj)
             % laser.startPollingSerialPort

@@ -127,12 +127,15 @@ classdef tiberius < laser & loghandler
             if isempty(obj.hC)
                 success=false;
             else
-                [~,s] = obj.isShutterOpen;
-                if s==true
-                    success=true;
+                % Retry the probe: a single lost reply must not condemn a laser which
+                % is in fact there. See laser.verifyCommsWithLaser.
+                success = obj.verifyCommsWithLaser(obj.CMD_QUERY_SHUTTER);
+                if success
+                    % Cache the shutter state now so the GUI shows it correctly as
+                    % soon as it opens rather than only after the first poll.
+                    obj.isShutterOpen;
                 else
                     fprintf('Failed to communicate with tiberius laser\n');
-                    success=false;
                 end
             end
             obj.isLaserConnected=success;

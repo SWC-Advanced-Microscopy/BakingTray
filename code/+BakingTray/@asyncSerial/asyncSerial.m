@@ -131,16 +131,39 @@ classdef asyncSerial < handle
                 flush(obj.hC,"input")
             end
 
-            writeline(obj.hC,item.command);
-
+            % Publish the in-flight state BEFORE the write. MATLAB can service the
+            % port's terminator callback from inside writeline, and onSerialData
+            % discards as an orphan any reply that arrives while serialInFlight is
+            % still false. A reply landing in that window was therefore thrown away
+            % and the command could only time out.
             if item.awaitReply
                 obj.serialInFlight = true;
                 obj.inFlightId = item.id;
                 obj.inFlightHandler = item.handler;
                 obj.inFlightCommand = item.command;
                 obj.inFlightSince = datetime('now');
-            else
+            end
+
+            try
+                writeline(obj.hC,item.command);
+            catch ME
+                % The command never went out. Clear the in-flight state we just set
+                % so the queue can not stall waiting for a reply to it.
+                if item.awaitReply
+                    obj.serialInFlight = false;
+                    obj.inFlightId = [];
+                    obj.inFlightHandler = [];
+                    obj.inFlightCommand = '';
+                    obj.inFlightSince = NaT;
+                end
+                rethrow(ME)
+            end
+
+            if ~item.awaitReply
                 % No reply expected: command complete, send the next one.
+                % NB: if a reply arrived during writeline above, onSerialData has
+                % already run and pumped the queue itself, so there is nothing to do
+                % here for the awaitReply case.
                 obj.pumpSerialQueue
             end
         end % pumpSerialQueue

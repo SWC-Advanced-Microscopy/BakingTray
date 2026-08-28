@@ -186,13 +186,12 @@ classdef axon < laser & loghandler
                 if s1==1 && s2==1
                     success=true;
                 else
-                    % Double-check we can talk to the laser
-                    [chk,~] = obj.sendAndReceiveSerial(obj.CMD_QUERY_STATE);
-                    if chk==true
-                        success=true;
-                    else
+                    % One of the setup commands went unanswered. Before condemning the
+                    % laser, retry a plain query: a single lost reply must not condemn a
+                    % laser which is in fact there. See laser.verifyCommsWithLaser.
+                    success = obj.verifyCommsWithLaser(obj.CMD_QUERY_STATE);
+                    if ~success
                         fprintf('Failed to communicate with Axon laser\n')
-                        success=false;
                     end
                 end
             end
