@@ -91,11 +91,30 @@ function [acquisitionPossible,msg] = checkIfAcquisitionIsPossible(obj,isBake)
         msgNumber=msgNumber+1;
     end
 
-    %If a laser is connected, check it is ready
-    if obj.isLaserConnected
-        [isReady,msgLaser]=obj.laser.isReady;
+    % Every laser taking part in the acquisition must be there and ready. A laser with
+    % doMonitor false is excluded: the user has said it is not part of this acquisition.
+    % NB: doMonitor is currently only settable from the command line for lasers other
+    % than the first (lasers{n}.doMonitor=false), as the laser GUI is not yet per-laser.
+    for ii=1:length(obj.lasers)
+        thisLaser = obj.lasers{ii};
+
+        if ~thisLaser.doMonitor
+            continue
+        end
+
+        if ~obj.isThisLaserConnected(thisLaser)
+            msg = sprintf(['%s%d) %s is not connected. Reconnect it with ', ...
+                'hBT.lasers{%d}.connect or set hBT.lasers{%d}.doMonitor=false if it ', ...
+                'is not needed for this acquisition.\n'], ...
+                msg, msgNumber, obj.laserName(thisLaser), ii, ii);
+            msgNumber=msgNumber+1;
+            continue
+        end
+
+        [isReady,msgLaser]=thisLaser.isReady;
         if ~isReady
-            msg = sprintf('%s%d) The laser is not ready: %s\n', msg, msgNumber, msgLaser);
+            msg = sprintf('%s%d) %s is not ready: %s\n', ...
+                msg, msgNumber, obj.laserName(thisLaser), msgLaser);
             msgNumber=msgNumber+1;
         end
     end

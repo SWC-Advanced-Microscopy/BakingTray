@@ -26,7 +26,11 @@ function bakeCleanupFun(obj)
 
     slack_msg = ''; % So by default no Slack message is sent unless one is assigned, below.
 
-    if obj.isLaserConnected && ~obj.leaveLaserOn
+    % NB: the test is "are there lasers", not BT.isLaserConnected. Lasers whose serial
+    % ports have died are not connected, and gating on that would silently skip the
+    % turn-off and report it as though the user had asked to leave the laser on.
+    % turnOffAllLasers reports per-laser what actually happened.
+    if ~isempty(obj.lasers) && ~obj.leaveLaserOn
         % If the laser was tasked to turn off and we've done more than 25 sections then it's very likely
         % this was a full-on acquisition and nobody is present at the machine. If so, we send a Slack message
         % to indicate that acquisition is done.

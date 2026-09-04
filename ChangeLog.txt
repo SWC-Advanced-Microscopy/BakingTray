@@ -10,6 +10,25 @@ For more information on major releases merged into master from pre-release.
 
 
 4th September 2026
+USER: An acquisition now refuses to start if any laser taking part in it is not connected
+        or not ready, naming the laser in question. Previously only the first laser was
+        checked, so a second laser that was off or unreachable let the acquisition start
+        anyway. A laser that is not needed for a given acquisition is excluded by setting
+        hBT.lasers{n}.doMonitor=false, which for lasers other than the first is currently
+        only possible at the command line as the laser GUI is not yet per-laser.
+DEVELOPER: BT.isThisLaserConnected now also requires the laser's own isLaserConnected
+        flag, since a MATLAB serialport object stays valid after its COM port has gone
+        away and the object test alone could not tell the difference. The three call
+        sites that ask a different question were changed to ask it explicitly: the BT
+        destructor and BT.attachLaser test object validity (a laser with a dead port
+        still has a destructor to run, and a laser that failed its connect probe is still
+        kept so it can be recovered with lasers{n}.connect), and the guards in BT.bake
+        and bakeCleanupFun test whether any laser is attached, so that a dead port can
+        not switch off the mid-bake laser check or the end-of-acquisition turn-off.
+        BT.checkIfAcquisitionIsPossible now loops over the monitored lasers.
+
+
+4th September 2026
 USER: A laser whose serial port disappears mid-session (e.g. a USB serial adapter that
         re-enumerates, or the laser being switched off) no longer takes the whole
         acquisition down with a raw MATLAB error when Bake is pressed. The loss is now

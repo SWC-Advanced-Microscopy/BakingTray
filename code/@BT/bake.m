@@ -302,7 +302,10 @@ function sectionInd = bake(obj,varargin)
 
         % If the laser is off-line for some reason (e.g. lack of modelock, we quit
         % so we don't cut and the sample is safe.
-        if obj.isLaserConnected
+        % NB: the test is "is there a laser", not BT.isLaserConnected. A laser whose
+        % serial port has died is not connected, and gating on that would skip this
+        % check entirely and carry on cutting with a laser we can not talk to.
+        if ~isempty(obj.laser)
 
             [isReady,msg]=obj.laser.isReady;
             if ~isReady

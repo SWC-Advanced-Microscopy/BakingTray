@@ -46,7 +46,11 @@ function success=attachLaser(obj,settings)
     for ii=1:length(settings)
         thisLaser=buildLaserComponent(settings(ii).type, settings(ii));
 
-        if ~obj.isThisLaserConnected(thisLaser)
+        % Deliberately not isThisLaserConnected: the question here is whether we got a
+        % laser object back at all, not whether it is currently talking. A laser whose
+        % connect probe failed is still kept, so that it can be recovered by hand with
+        % lasers{n}.connect without restarting BakingTray.
+        if isempty(thisLaser) || ~isa(thisLaser,'laser') || ~isvalid(thisLaser)
             fprintf('Failed to build laser %d of %d.\n', ii, length(settings))
             continue
         end

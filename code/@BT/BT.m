@@ -329,7 +329,10 @@ classdef BT < loghandler
                 obj.cutter.delete
             end
             for ii=1:length(obj.lasers)
-                if obj.isThisLaserConnected(obj.lasers{ii})
+                % Deliberately not isThisLaserConnected: a laser whose serial port has
+                % died is not connected but still owns a poll timer and a port object,
+                % and so still needs its destructor to run.
+                if ~isempty(obj.lasers{ii}) && isvalid(obj.lasers{ii})
                     obj.lasers{ii}.delete
                 end
             end
@@ -929,10 +932,17 @@ classdef BT < loghandler
         end %isLaserConnected
 
         function isConnected=isThisLaserConnected(~,thisLaser)
-            % True if the supplied single laser object is connected. This is the per-laser
-            % equivalent of BT.isComponentConnected, which can not be used here because the
-            % lasers do not each live in their own BT property.
-            isConnected = ~isempty(thisLaser) && isa(thisLaser,'laser') && isvalid(thisLaser);
+            % True if the supplied single laser object exists and we can currently talk to
+            % it. This is the per-laser equivalent of BT.isComponentConnected, which can not
+            % be used here because the lasers do not each live in their own BT property.
+            %
+            % The laser's own isLaserConnected flag has to be part of the test: a MATLAB
+            % serialport object stays *valid* after its COM port has gone away, so an object
+            % test alone reports a laser we can no longer reach as connected. The flag is
+            % set by laser.connect and laser.isControllerConnected, and cleared by
+            % laser.serialTransportFailed when the port dies mid-session.
+            isConnected = ~isempty(thisLaser) && isa(thisLaser,'laser') && ...
+                            isvalid(thisLaser) && thisLaser.isLaserConnected;
         end %isThisLaserConnected
 
         function name=laserName(~,thisLaser)
