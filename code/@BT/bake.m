@@ -300,42 +300,22 @@ function sectionInd = bake(obj,varargin)
 
 
 
-        % If the laser is off-line for some reason (e.g. lack of modelock, we quit
-        % so we don't cut and the sample is safe.
-        % NB: the test is "is there a laser", not BT.isLaserConnected. A laser whose
-        % serial port has died is not connected, and gating on that would skip this
-        % check entirely and carry on cutting with a laser we can not talk to.
-        if ~isempty(obj.laser)
+        % If a laser taking part in the acquisition is off-line for some reason (e.g. lack
+        % of modelock) we quit so we don't cut and the sample is safe. Every monitored
+        % laser is checked. A laser with doMonitor false is skipped and doMonitor is set
+        % true/false by turning the laser on/off. All lasers are checked.
+        for laserInd = 1:length(obj.lasers)
+            if ~obj.lasers{laserInd}.doMonitor
+                continue
+            end
 
-            [isReady,msg]=obj.laser.isReady;
-            if ~isReady
-                % Otherwise pause and check it's really down before carrying on
-                pause(3)
-                [isReady,msg]=obj.laser.isReady;
-            end
-            if ~isReady
-                msg = sprintf('LASER NOT RUNNING (Section %d): %s\n', obj.currentSectionNumber, msg);
-                obj.acqLogWriteLine(msg);
-                msg = sprintf('%s\BakingTray trying to recover it.\n',msg);
-                obj.slack(msg);
-                obj.laser.turnOn
-                pause(3)
-                obj.laser.openShutter
-                pause(2)
-                for ii=1:15
-                    if obj.laser.isReady
-                        obj.acqLogWriteLine('LASER RECOVERED\n');
-                        obj.slack('BakingTray managed to recover the laser.');
-                        break
-                    end
-                    pause(10)
-                end
-            end
-            if ~isReady
-                msg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',msg);
-                obj.slack(msg)
-                fprintf(msg)
-                obj.acqLogWriteLine(msg)
+            [laserIsReady,laserMsg] = obj.checkAndRecoverLaser(obj.lasers{laserInd});
+
+            if ~laserIsReady
+                laserMsg = sprintf('*** STOPPING ACQUISITION DUE TO LASER: %s ***\n',laserMsg);
+                obj.slack(laserMsg)
+                fprintf(laserMsg)
+                obj.acqLogWriteLine(laserMsg)
                 return
             end
         end

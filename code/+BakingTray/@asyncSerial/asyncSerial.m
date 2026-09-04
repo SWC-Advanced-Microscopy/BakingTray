@@ -78,6 +78,8 @@ classdef asyncSerial < handle
             obj.nextCmdId = obj.nextCmdId + 1;
             obj.cmdQueue{end+1} = struct('id',id, 'command',commandString, 'awaitReply',waitForReply, 'handler',[]);
 
+
+            % Send the next queued command
             if ~obj.pumpSerialQueue
                 % The transport is gone, so the command was never sent and nothing
                 % can ever reply to it. Fail now rather than spin-waiting out the
@@ -132,6 +134,8 @@ classdef asyncSerial < handle
             %      therefore not be sent. True otherwise, including when there was
             %      nothing to send or the queue is held up behind an in-flight command.
             %
+
+
             % Nothing here may assume the port is usable: MATLAB leaves a serialport
             % object valid after the underlying COM port disappears (a USB serial
             % adapter that re-enumerated, the device switched off) and every access
