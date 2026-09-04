@@ -34,6 +34,7 @@ classdef asyncSerial < handle
         inFlightSince = NaT              % when the in-flight command was sent (for the stale watchdog)
         nextCmdId = 1                    % monotonic command id
         serialReplyTimeoutSeconds = 5    % bounded wait for a reply before resync
+        serialTransportOK = true         % false once the port has gone away (see serialTransportFailed)
     end %close hidden properties
 
 
@@ -51,6 +52,7 @@ classdef asyncSerial < handle
             obj.inFlightCommand = '';
             obj.inFlightSince = NaT;
             obj.nextCmdId = 1;
+            obj.serialTransportOK = true; % a fresh port: forget any earlier failure
             configureCallback(obj.hC,"terminator",@(~,~) obj.onSerialData);
         end % setupAsyncSerial
 
@@ -76,7 +78,12 @@ classdef asyncSerial < handle
             obj.nextCmdId = obj.nextCmdId + 1;
             obj.cmdQueue{end+1} = struct('id',id, 'command',commandString, 'awaitReply',waitForReply, 'handler',[]);
 
-            obj.pumpSerialQueue % send the head of the queue if the port is free
+            if ~obj.pumpSerialQueue
+                % The transport is gone, so the command was never sent and nothing
+                % can ever reply to it. Fail now rather than spin-waiting out the
+                % full timeout twice for a reply that can not come.
+                return
+            end
 
             if ~waitForReply
                 reply=[];
@@ -117,8 +124,28 @@ classdef asyncSerial < handle
         end % sendAndReceiveSerial
 
 
-        function pumpSerialQueue(obj)
+        function ok = pumpSerialQueue(obj)
             % Send the next queued command if nothing is currently awaiting a reply.
+            %
+            % Outputs
+            % ok - false if the serial transport has gone away and the command could
+            %      therefore not be sent. True otherwise, including when there was
+            %      nothing to send or the queue is held up behind an in-flight command.
+            %
+            % Nothing here may assume the port is usable: MATLAB leaves a serialport
+            % object valid after the underlying COM port disappears (a USB serial
+            % adapter that re-enumerated, the device switched off) and every access
+            % then throws "Object must be connected to the serial port". That must not
+            % escape into a poll timer (which MATLAB then stops) or into bake.
+
+            ok = true;
+
+            if isempty(obj.hC) || ~isvalid(obj.hC)
+                obj.serialTransportFailed('the serial port object no longer exists')
+                ok = false;
+                return
+            end
+
             if obj.serialInFlight || isempty(obj.cmdQueue)
                 return
             end
@@ -126,9 +153,15 @@ classdef asyncSerial < handle
             item = obj.cmdQueue{1};
             obj.cmdQueue(1) = [];
 
-            % Flush stale bytes so the next reply we read is the reply to THIS command.
-            if obj.hC.NumBytesAvailable>0
-                flush(obj.hC,"input")
+            try
+                % Flush stale bytes so the next reply we read is the reply to THIS command.
+                if obj.hC.NumBytesAvailable>0
+                    flush(obj.hC,"input")
+                end
+            catch ME
+                obj.serialTransportFailed(ME.message)
+                ok = false;
+                return
             end
 
             % Publish the in-flight state BEFORE the write. MATLAB can service the
@@ -156,7 +189,9 @@ classdef asyncSerial < handle
                     obj.inFlightCommand = '';
                     obj.inFlightSince = NaT;
                 end
-                rethrow(ME)
+                obj.serialTransportFailed(ME.message)
+                ok = false;
+                return
             end
 
             if ~item.awaitReply
@@ -164,9 +199,59 @@ classdef asyncSerial < handle
                 % NB: if a reply arrived during writeline above, onSerialData has
                 % already run and pumped the queue itself, so there is nothing to do
                 % here for the awaitReply case.
-                obj.pumpSerialQueue
+                ok = obj.pumpSerialQueue;
             end
         end % pumpSerialQueue
+
+
+        function serialTransportFailed(obj,reason)
+            % The serial transport has failed: the port object is gone, or the COM
+            % port itself has disappeared. Only a reconnect can fix either, so drop
+            % everything queued (none of it can be sent) and clear the in-flight
+            % state so the queue is not left stalled.
+            %
+            % The failure is reported once per episode. A dead port fails on every
+            % poll tick, and one line every poll period would bury everything else in
+            % the console.
+            %
+            % Subclasses override this to also mark the component as disconnected,
+            % and must call this superclass method. See laser.serialTransportFailed.
+            %
+            % Inputs
+            % reason - [string] why the transport is considered dead. Usually the
+            %          message of the exception that was caught.
+
+            obj.serialInFlight = false;
+            obj.inFlightId = [];
+            obj.inFlightHandler = [];
+            obj.inFlightCommand = '';
+            obj.inFlightSince = NaT;
+            obj.cmdQueue = {};
+
+            if obj.serialTransportOK
+                fprintf('\n *** %s has lost serial comms with %s: %s\n', ...
+                    class(obj), obj.serialPortName, reason)
+                fprintf(' *** Reconnect the device to restore communication.\n\n')
+            end
+
+            % Only a successful reconnect (which calls setupAsyncSerial) clears this.
+            obj.serialTransportOK = false;
+        end % serialTransportFailed
+
+
+        function portName = serialPortName(obj)
+            % Name of the port we are (or were) talking to, for error messages.
+            % Returns '<unknown port>' if it can not be read back, which is possible
+            % because we ask precisely when the port has gone wrong.
+            portName = '<unknown port>';
+            if isempty(obj.hC) || ~isvalid(obj.hC)
+                return
+            end
+            try
+                portName = obj.hC.Port;
+            catch
+            end
+        end % serialPortName
 
 
         function onSerialData(obj)
@@ -174,10 +259,17 @@ classdef asyncSerial < handle
             % in-flight command. If that command supplied a handler (fire-and-forget)
             % we call it to parse the reply; otherwise we store the reply for the
             % spin-waiter in sendAndReceiveSerial. Then send the next command.
-            if isempty(obj.hC) || ~isvalid(obj.hC) || obj.hC.NumBytesAvailable==0
+            try
+                if isempty(obj.hC) || ~isvalid(obj.hC) || obj.hC.NumBytesAvailable==0
+                    return
+                end
+                line = readline(obj.hC);
+            catch ME
+                % This is a callback, so an error here escapes into MATLAB's event
+                % queue rather than to any caller of ours. Handle it locally.
+                obj.serialTransportFailed(ME.message)
                 return
             end
-            line = readline(obj.hC);
 
             if ~obj.serialInFlight
                 % Orphan/late reply with nothing awaiting it. Discard.
@@ -240,8 +332,17 @@ classdef asyncSerial < handle
             obj.inFlightHandler = [];
             obj.inFlightCommand = '';
             obj.inFlightSince = NaT;
-            if ~isempty(obj.hC) && isvalid(obj.hC)
+            if isempty(obj.hC) || ~isvalid(obj.hC)
+                obj.serialTransportFailed('the serial port object no longer exists')
+                return
+            end
+            try
                 flush(obj.hC,"input")
+            catch ME
+                % A reply timeout on a port that has gone away lands here, so this is
+                % the second place the dead transport must not be allowed to throw.
+                obj.serialTransportFailed(ME.message)
+                return
             end
             obj.pumpSerialQueue
         end % resyncSerial

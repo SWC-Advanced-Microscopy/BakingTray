@@ -628,6 +628,32 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         end % verifyCommsWithLaser
 
 
+        function serialTransportFailed(obj, reason)
+            % laser.serialTransportFailed
+            %
+            % Purpose
+            % Override of asyncSerial.serialTransportFailed. As well as dropping the
+            % command queue (done by the superclass method) mark the laser as
+            % disconnected, so that callers testing isLaserConnected stop believing in
+            % a laser whose COM port has gone away. Without this the flag stays true
+            % for the rest of the session, because it is otherwise written only by
+            % connect and isControllerConnected. isLaserConnected is SetObservable, so
+            % the GUI updates too.
+            %
+            % Only a successful laser.connect sets the flag true again.
+            %
+            % Inputs
+            % reason - [string] why the transport is considered dead. Passed to the
+            %          superclass method, which reports it.
+            %
+            % Outputs
+            % none
+
+            serialTransportFailed@BakingTray.asyncSerial(obj, reason)
+            obj.isLaserConnected = false;
+        end % serialTransportFailed
+
+
         %%
         % Serial port polling methods follow
         function startPollingSerialPort(obj)

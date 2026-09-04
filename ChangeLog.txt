@@ -9,6 +9,27 @@ The tag "DEVELOPER" indicates a change that significantly impacts the code but i
 For more information on major releases merged into master from pre-release.
 
 
+4th September 2026
+USER: A laser whose serial port disappears mid-session (e.g. a USB serial adapter that
+        re-enumerates, or the laser being switched off) no longer takes the whole
+        acquisition down with a raw MATLAB error when Bake is pressed. The loss is now
+        reported once, the laser is marked as not connected, and its GUI connection
+        indicator turns red. Note that only a reconnect (laser.connect) restores comms.
+DEVELOPER: MATLAB leaves a serialport object *valid* after the underlying COM port has
+        gone away, and every access to it then throws "Object must be connected to the
+        serial port". asyncSerial touched obj.hC unguarded in three places
+        (pumpSerialQueue, onSerialData and resyncSerial), so that error escaped into
+        whatever was calling: into BT.bake, or into a poll timer, which MATLAB then
+        stops -- killing the status poller silently for the rest of the session. All
+        three are now guarded and route to the new asyncSerial.serialTransportFailed,
+        which clears the in-flight state and command queue and reports once per failure
+        episode rather than once per poll tick. pumpSerialQueue returns a success flag
+        so sendAndReceiveSerial fails immediately instead of spin-waiting out two full
+        timeouts for a reply that can not come. laser overrides serialTransportFailed to
+        also set isLaserConnected false, which was previously written only by connect and
+        isControllerConnected and so stayed true for a dead port.
+
+
 11th August 2026
 USER: Fixed-wavelength lasers (the Axon) now report their wavelength correctly instead of
         0 nm. The hardware has no serial query for its wavelength, so it must be stated in
