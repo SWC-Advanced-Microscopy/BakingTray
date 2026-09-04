@@ -87,8 +87,13 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         % True if this laser takes part in the current acquisition. A monitored laser has its
         % modelock checked and will block or stop an acquisition if it is not ready. A laser with
         % doMonitor false is never modelock-checked and never blocks acquisition, but is still
-        % given a watchdog and is still turned off when acquisition finishes. Set by the user via
-        % the laser GUI. Default true so single-laser systems behave as they always have.
+        % given a watchdog and is still turned off when acquisition finishes.
+        %
+        % The flag follows the last deliberate switching of the laser: turnOn sets it true and
+        % turnOff sets it false, in both cases only if the command succeeded.
+        %
+        % Default true, so a laser is monitored until someone switches it off through
+        % BakingTray. Single-laser systems behave as they always have.
         doMonitor=true
     end %close GUI-related properties
 

@@ -197,6 +197,7 @@ classdef maitai < laser & loghandler
             success = successA & successB;
             if success
                 obj.isLaserOn=true;
+                obj.doMonitor=true; % See laser.doMonitor
                 obj.powerCommandTime = datetime('now'); % for grace period
                 obj.turnOnPockelsCell %Gate Pockels mains power
             end
@@ -229,6 +230,7 @@ classdef maitai < laser & loghandler
             if success
                 obj.turnOffPockelsCell;
                 obj.isLaserOn=false;
+                obj.doMonitor=false; % See laser.doMonitor
                 obj.powerCommandTime = datetime('now'); % for grace period
             else
                 fprintf('Reported laser still on\n')

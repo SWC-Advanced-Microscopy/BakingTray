@@ -231,6 +231,9 @@ classdef chameleon < laser & loghandler
             end
 
             obj.isLaserOn=success;
+            if success
+                obj.doMonitor=true; % See laser.doMonitor
+            end
             obj.switchPockelsCell; %Gate Pockels mains power
         end % turnOn
 
@@ -254,6 +257,7 @@ classdef chameleon < laser & loghandler
 
             if success
                 obj.isLaserOn=false;
+                obj.doMonitor=false; % See laser.doMonitor
             end
             obj.switchPockelsCell %Gate Pockels mains power
         end % turnOff

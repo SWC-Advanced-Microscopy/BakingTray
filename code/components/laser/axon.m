@@ -240,6 +240,9 @@ classdef axon < laser & loghandler
 
             success=obj.sendAndReceiveSerial(obj.CMD_ENABLE);
             obj.isLaserOn=success;
+            if success
+                obj.doMonitor=true; % See laser.doMonitor
+            end
             obj.switchPockelsCell; %Gate Pockels mains power
         end % turnOn
 
@@ -258,6 +261,7 @@ classdef axon < laser & loghandler
             success=obj.sendAndReceiveSerial(obj.CMD_DISABLE);
             if success
                 obj.isLaserOn=false;
+                obj.doMonitor=false; % See laser.doMonitor
             end
             obj.switchPockelsCell %Gate Pockels mains power
         end % turnOff

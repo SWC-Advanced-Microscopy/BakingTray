@@ -175,6 +175,7 @@ classdef tiberius < laser & loghandler
 
             obj.sendAndReceiveSerial('LASER=1',false);
             obj.isLaserOn = true;
+            obj.doMonitor = true; % See laser.doMonitor
             success=true;
             obj.switchPockelsCell %Gate Pockels mains power
         end % turnOn
@@ -195,6 +196,7 @@ classdef tiberius < laser & loghandler
             obj.closeShutter; % Older tiberius lasers seem not to do this by default
             obj.sendAndReceiveSerial('LASER=0',false);
             obj.isLaserOn = false;
+            obj.doMonitor = false; % See laser.doMonitor
             success=true;
             obj.switchPockelsCell %Gate Pockels mains power
         end % turnOff

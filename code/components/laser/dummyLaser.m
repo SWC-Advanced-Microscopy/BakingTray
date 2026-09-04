@@ -77,12 +77,14 @@ classdef dummyLaser < laser %& loghandler
             success=true;
             obj.isLaserModeLocked=true;
             obj.isLaserOn=true;
+            obj.doMonitor=true; % See laser.doMonitor
         end % turnOn
 
         function success = turnOff(obj)
             success=true;
             obj.isLaserModeLocked=false;
             obj.isLaserOn=false;
+            obj.doMonitor=false; % See laser.doMonitor
         end % turnOff
 
         function laserOn = isPoweredOn(obj)

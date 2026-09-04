@@ -10,6 +10,20 @@ For more information on major releases merged into master from pre-release.
 
 
 4th September 2026
+USER: Switching a laser on or off through BakingTray now also decides whether that laser
+        takes part in the next acquisition. Turning a laser on marks it as in use, so it
+        is checked before and during a bake; turning it off marks it as not in use, so it
+        no longer blocks one. On a rig with a second laser that is not being used today,
+        switching it off is therefore all that is needed. A laser that goes off by itself
+        -- a fault, a lost modelock, a serial port that has died -- stays marked as in
+        use and is still caught, which is the point of the check.
+DEVELOPER: laser.doMonitor is now set by turnOn (true) and turnOff (false) in each laser
+        class, on the success path only, alongside the existing isLaserOn update. It is
+        deliberately not derived from the polled power state: doing that would make a
+        laser that drops out exclude itself from the very checks meant to catch it.
+
+
+4th September 2026
 USER: An acquisition now refuses to start if any laser taking part in it is not connected
         or not ready, naming the laser in question. Previously only the first laser was
         checked, so a second laser that was off or unreachable let the acquisition start
