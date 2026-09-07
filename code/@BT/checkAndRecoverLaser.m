@@ -60,9 +60,9 @@ function [laserIsReady,msg] = checkAndRecoverLaser(obj,thisLaser)
     obj.acqLogWriteLine(msg);
     obj.slack(sprintf('%sBakingTray trying to recover it.\n', msg));
 
-    thisLaser.turnOn
+    thisLaser.turnOn;
     pause(3)
-    thisLaser.openShutter
+    thisLaser.openShutter;
     pause(2)
 
 

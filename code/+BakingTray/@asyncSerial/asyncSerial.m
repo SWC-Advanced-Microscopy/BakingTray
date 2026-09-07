@@ -292,7 +292,7 @@ classdef asyncSerial < handle
             if strlength(line)==0
                 % Empty/stray line: a failed read for this command. Don't update the
                 % cache, but DO advance so the queue can't stall on empty frames.
-                obj.pumpSerialQueue
+                obj.pumpSerialQueue;
                 return
             end
 
@@ -312,7 +312,7 @@ classdef asyncSerial < handle
                 end
             end
 
-            obj.pumpSerialQueue % send the next queued command
+            obj.pumpSerialQueue; % send the next queued command
         end % onSerialData
 
 
@@ -324,7 +324,7 @@ classdef asyncSerial < handle
             obj.nextCmdId = obj.nextCmdId + 1;
             obj.cmdQueue{end+1} = struct('id',id, 'command',command, 'awaitReply',true, 'handler',handler);
 
-            obj.pumpSerialQueue % send the head of the queue if the port is free
+            obj.pumpSerialQueue; % send the head of the queue if the port is free
         end % enqueueRead
 
 
@@ -348,7 +348,7 @@ classdef asyncSerial < handle
                 obj.serialTransportFailed(ME.message)
                 return
             end
-            obj.pumpSerialQueue
+            obj.pumpSerialQueue;
         end % resyncSerial
 
 
