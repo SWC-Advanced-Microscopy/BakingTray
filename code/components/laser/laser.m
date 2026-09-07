@@ -92,9 +92,8 @@ classdef (Abstract) laser < BakingTray.asyncSerial
         % The flag follows the last deliberate switching of the laser: turnOn sets it true and
         % turnOff sets it false, in both cases only if the command succeeded.
         %
-        % Default true, so a laser is monitored until someone switches it off through
-        % BakingTray. Single-laser systems behave as they always have.
-        doMonitor=true
+        % Default false, so a laser is not monitored unless someone switches it on.
+        doMonitor=false
     end %close GUI-related properties
 
 
