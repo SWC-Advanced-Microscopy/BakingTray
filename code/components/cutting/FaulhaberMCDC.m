@@ -7,7 +7,7 @@ classdef FaulhaberMCDC < cutter & loghandler
     %
     % This class can drive the vibratome too hard if not properly configured. Therefore,
     % **BEFORE RUNNING IT**, first see the instructions for setting up the vibratome:
-    % https://bakingtray.mouse.vision/getting-started/hardware-setup/setting_up_vt1000
+    % https://bakingtray.swcmicroscopy.com/getting-started/hardware-setup/setting_up_vt1000
     %
     %
     % For more information, see also the abstract class (cutter).

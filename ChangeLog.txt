@@ -90,7 +90,7 @@ USER/POWERUSER: Multi-laser works, in BakingTray. You must add the empty field `
 
 3rd June 2024
 The following changes have been made over the last few months. There may be other minor changes too.
-For information on adding new settings to the settings file(s) see: https://bakingtray.mouse.vision/getting-started/finishing-the-install/the-settings-files
+For information on adding new settings to the settings file(s) see: https://bakingtray.swcmicroscopy.com/getting-started/finishing-the-install/the-settings-files
 
 - USER: Histogram windows close when acquisition saving is initiated.
 - USER: remove "zoom" from the drop-down for resolution and convert "u" to Greek "mu".
@@ -296,7 +296,7 @@ Minor bug fixes and doc changes
 
 3rd December 2020
 - User MAJOR CHANGES:
-BakingTray now has an "Auto-ROI" feature. This is documented at https://bakingtray.mouse.vision.
+BakingTray now has an "Auto-ROI" feature. This is documented at https://bakingtray.swcmicroscopy.com.
 You will need to make changes to settings files for this to work! These are described here:
 - In MATLAB R2019b. Start with softwareOpenGl mode if you notice rare random crashes
 
