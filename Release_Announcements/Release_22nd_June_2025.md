@@ -1,0 +1,29 @@
+# Release 22nd June 2025
+
+This release encapsulates changes made between 22nd September 2022 and June 2025.
+
+## Highlights
+- **Power calibration for multiple laser lines.**
+- **Power reporting from multiple lasers.**
+
+
+## New features
+
+### Calibration of multiple laser lines
+BakingTray now handles multiple laser lines for power calibration. The Laser GUI still handles only one laser. The idea is that one or more single line lasers might also be under the control of ScanImage. If they are present, BakingTray will detect this and the power calibration tools will work. See `BakingTray.utils.addLaserCalib` for instructions on how to calibrate the beam power if you have multiple beams. Further integration of multi-beam acquisition is an ongoing project.
+
+If you have multiple beams, enter into your component settings file the widget name of the beam being controlled by BakingTray. For example, you might have a MaiTai and an Axon 1064. The MaiTai is being controlled by BakingTray in the GUI. You will edit your `componentSettings.m` file in the `SETTINGS` folder of BakingTray such that it says:
+
+```matlab
+laser.beamName='NAME_OF_WIDGET_IN_SCANIMAGE'
+```
+
+BakingTray acquisitions **do not** yet know about multiple beams. They will not be able to turn off other laser lines and you can only acquire with multiple beams if they are all on simultaneously. You can set this up in ScanImage. The logs that this was done will be present in the TIF metadata but not in the BakingTray metadata.
+
+> [!IMPORTANT]
+> You will need to re-generate your laser calibrations when you update to this release.
+
+### Reports power values from multiple lasers
+
+
+Other small changes: see the ChangeLog file.
