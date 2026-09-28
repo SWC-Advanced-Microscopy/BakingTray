@@ -1,27 +1,26 @@
-# BakingTray #
+# BakingTray
 
-<a href="https://raw.githubusercontent.com/wiki/SWC-Advanced-Microscopy/images/example_acq.jpg">
-<img src="https://raw.githubusercontent.com/wiki/BaselLaserMouse/BakingTray/images/example_acq_thumb.jpg">
+<a href="https://www.youtube.com/watch?v=3-nLt7j6tMM">
+<img src="./BakingTrayScreenshot.png">
 </a>
 
+
 ### What is it?
-BakingTray is an open source [MATLAB](http://www.mathworks.com/)-based  serial section 2-photon imaging system inspired by the [TeraVoxel](https://github.com/TeravoxelTwoPhotonTomography) ([Economo, et al](https://elifesciences.org/articles/10566)) and [MouseLight](https://github.com/MouseLightPipeline) ([Winnubst, et al](https://www.sciencedirect.com/science/article/pii/S0092867419308426?via%3Dihub)) projects.
-The software is for research and development purposes. 
-BakingTray is not scanning software: it is a wrapper around the [ScanImage](https://www.mbfbioscience.com/products/scanimage/) [API](https://github.com/SWC-Advanced-Microscopy/ScanImageAPI_Examples).
+BakingTray is a complete software platform for 2-photon serial tomography STPT. 
+It plugs into [ScanImage](https://www.mbfbioscience.com/products/scanimage/) and runs within [MATLAB](http://www.mathworks.com/).
+For more information see the SWC AMF [BrainSaw project page](https://swcmicroscopy.com/brainsaw/).
 
 ### Who is it for?
-This software is aimed at technically-minded people who want to experiment with serial-section imaging and have full control over all aspects of the process. 
+This software is aimed at technically-minded people who want to build their own STPT system and have full control over all aspects of the process. 
 Setting up BakingTray from scratch on your rig requires _significant effort_, good MATLAB programming skills, knowledge of ScanImage, and the know-how to set up and run a 2-photon microscope. 
-_This is not a turn-key solution_.
 BakingTray will run on any hardware [supported by ScanImage](http://scanimage.vidriotechnologies.com/display/SI2017/Supported+Microscope+Hardware).
 
 ### How does it work?
-BakingTray is based upon an [existing tile-scanner extension for ScanImage](https://github.com/SWC-Advanced-Microscopy/ScanImageTileScan).
 BakingTray simply slices off the top of the sample after each tile-scan is complete, exposing fresh tissue for imaging. 
 Imaging itself is performed via ScanImage, which is freely available MATLAB-based software for running 2-photon microscopes. 
 
 ### Current features
-This software has been thoroughly stress-tested and is capable of generating production-quality data.
+This software has been thoroughly stress-tested and is being run in several labs and facilities worldwide.
 The current feature set is as follows:
 
 * Easy sample set up: take a fast preview image of the sample, draw a box around the area to be imaged, "auto-ROI" feature for [imaging only the sample](https://www.youtube.com/watch?v=yHEkR3nZsOw).
@@ -38,19 +37,10 @@ The current feature set is as follows:
 * Slack messages on acquisition completion.
 
 
-### Getting started ###
+### Getting started
 The software has been tested on MATLAB R2019b to R2021a. 
-It runs on ScanImage 5.6.x and Basic 2020 and 2021. 
+It runs on ScanImage 5.6.x but the latest version of Basic is preferred.
 See the documentation at [bakingtray.swcmicroscopy.com](https://bakingtray.swcmicroscopy.com)
 
 Please do get in touch if use the software: especially if you are publishing with it!
 
-
-### Related work
-* Winnubst *et al*. Reconstruction of 1,000 Projection Neurons Reveals New Cell Types and Organization of Long-Range Connectivity in the Mouse Brain. Cell 2019
-* Economo *et al*. A New Platform for Brain-Wide Imaging and Reconstruction of Neurons. eLife 2016
-* Li *et al*. Micro-Optical Sectioning Tomography to Obtain a High-Resolution Atlas of the Mouse Brain. Science. 2010
-* Mayerich *et al*. Knife-edge scanning microscopy for imaging and reconstruction of three-dimensional anatomical structures… J. Microscopy. 2008
-* Ragan *et al*. Serial two-photon tomography for automated ex-vivo mouse brain imaging. Nat. Meth. 2012
-* Seiriki, *et al*. High-Speed and Scalable Whole-Brain Imaging in Rodents and Primates. Neuron 2017
-* Zheng *et al*. Visualization of brain circuits using two-photon fluorescence micro-optical sectioning tomography. Opt. Express. 2013
