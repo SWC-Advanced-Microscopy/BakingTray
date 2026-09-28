@@ -276,13 +276,9 @@ function [success,msg]=resumeAcquisition(obj,recipeFname,varargin)
 
 
     % %TODO -- this code is dead right now as we don't give the user the option to continue.
-    if strcmp(existing,'complete')
-        if simulate
-            fprintf('Resuming acquisition at tile position %d section %d\n', ...
-                details.sections(end).lastImagedPosition+1, details.sections(end).sectionNumber)
-        else
-            disp('NOTHING HAPPENS')
-        end
+    if strcmp(existing,'complete') && simulate
+        fprintf('Resuming acquisition at tile position %d section %d\n', ...
+            details.sections(end).lastImagedPosition+1, details.sections(end).sectionNumber)
     end
 
     % If this is an autoROI acquisition, populate the autoROI variables.

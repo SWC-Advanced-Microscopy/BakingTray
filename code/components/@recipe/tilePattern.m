@@ -124,7 +124,6 @@ function [tilePosArray,tileIndexArray] = tilePattern(obj,quiet,returnEvenIfOutOf
         end
         % Make certain the outputs are empty
         if ~returnEvenIfOutOfBounds
-            disp('WIPING THE TILE INDEX ARRAY')
             tilePosArray=[];
             tileIndexArray=[];
         end
