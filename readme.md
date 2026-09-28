@@ -1,6 +1,9 @@
 # BakingTray #
 
+<a href="https://www.youtube.com/watch?v=3-nLt7j6tMM">
 <img src="./BakingTrayScreenshot.png">
+</a>
+
 
 ### What is it?
 BakingTray is a complete software platform for 2-photon serial-section microscopy. 
