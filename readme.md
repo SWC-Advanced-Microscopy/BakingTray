@@ -1,8 +1,6 @@
 # BakingTray #
 
-<a href="https://raw.githubusercontent.com/wiki/SWC-Advanced-Microscopy/images/example_acq.jpg">
-<img src="https://raw.githubusercontent.com/wiki/BaselLaserMouse/BakingTray/images/example_acq_thumb.jpg">
-</a>
+<img src="./BakingTrayScreenshot.png">
 
 ### What is it?
 BakingTray is a complete software platform for 2-photon serial-section microscopy. 
