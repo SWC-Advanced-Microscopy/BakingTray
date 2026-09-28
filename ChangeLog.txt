@@ -10,6 +10,9 @@ For more information on major releases merged into master from pre-release.
 
 
 
+28th September 2026
+USER: A laser is now monitored during acquisition only if it was turned on through BakingTray.
+
 4th September 2026
 USER: More gracefully handles the case of a laser losing serial comms after it has been connected.
 USER: An acquisition now refuses to start if any laser taking part in it is not connected
@@ -18,6 +21,14 @@ acquisition is excluded from this check.
 USER: All connected lasers that are being used for an acquisition are checked during Bake.
 DEVELOPER: The check-and-recover sequence moved out of BT.bake into the new method
 BT.checkAndRecoverLaser.
+
+August 2026
+USER: New axon class for the Coherent Axon fixed-wavelength laser. The Axon can not report
+its wavelength, so set it with laser(n).wavelength in componentSettings.m (e.g. 1064).
+BUGFIX: A laser could be reported as not connected at startup when it was. Comms are now
+verified with a few retries during connect.
+- The ScanImage version check now handles patch numbers (e.g. 2023.1.2).
+- Removed the unused JaneliaLeicaController placeholder class.
 
 10th August 2026
 ** Multiple lasers **
@@ -29,6 +40,10 @@ this is monitored during acquisition.
 
 DEVELOPER: BT.lasers is a cell array which contains all attached lasers. New method
 BT.turnOffAllLasers is the seam used by bakeCleanupFun.
+
+8th July 2026
+USER: Spaces in the sample ID are replaced with underscores and other illegal characters removed.
+DEVELOPER: Existing unit tests pass again. Laser timers all have unique names.
 
 7th July 2026
 BUGFIX: Estimated finish time should now update correctly and match much more closely to
@@ -56,11 +71,33 @@ tiberius and chameleon classes are expected to also work, but have not been test
 - DEVELOPER: `sendAndReceiveSerial` moved into `laser` and all classes migrated from the legacy `serial` interface to the modern `serialport` interface.
 
 
+12th June 2026
+BUGFIX: Resuming an acquisition failed on systems with a single laser.
+- Various fixes to laser power on/off state reporting (superseded by the July changes).
+
+16th April 2026
+BUGFIX: Laser calibration files were not being used due to a file naming issue. Calibration
+files in the old naming format (no beam name) are still used, but a warning is printed.
+
+March 2026
+- Recipe loads scanner settings as arrays rather than cell arrays.
+- listLaserCalib handles older calibration files with no beam name.
+
 12th Feb 2026
 - USER: by default Slack messages are now errors only
 
+January 2026
+BUGFIX: Resume correctly restores the power/Z adjust type on systems with multiple beams.
+- Laser calibration works on the first beam of multi-beam setups.
+
 Q4 2025
 USER/POWERUSER: Multi-laser works, in BakingTray. You must add the empty field `laser.beamName='';` to your component settings file even if you don't use this feature.
+
+July/August 2025
+- POWERUSER: Add `SWCserialCutter` class for the basic DC motor controller from SWC FabLabs.
+- BUGFIX: singleAxisPriorController can now connect.
+- Example code for auto-resuming acquisitions after SI buffer under-runs (work in progress).
+  See ExampleCodeSnippets/AcquisitionAutoResume
 
 19th June 2025
 - USER: Reports power values from multiple lasers (ScanImage beams).
