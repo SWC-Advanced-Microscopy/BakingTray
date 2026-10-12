@@ -8,7 +8,7 @@
 ### What is it?
 BakingTray is a complete software platform for 2-photon serial tomography STPT. 
 It plugs into [ScanImage](https://www.mbfbioscience.com/products/scanimage/) and runs within [MATLAB](http://www.mathworks.com/).
-For more information see the SWC AMF [BrainSaw project page](https://brainsaw.org).
+For more information see the [BrainSaw project site](https://brainsaw.org).
 
 ### Who is it for?
 This software is aimed at technically-minded people who want to build their own STPT system and have full control over all aspects of the process. 
