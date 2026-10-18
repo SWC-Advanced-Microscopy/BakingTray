@@ -109,7 +109,7 @@ function OUT=buildStack(dirPath,sampleName)
 
     fprintf('Loading %d planes in parallel for sample %s...', length(d), sampleName)
     D = {};
-    parfor ii=1:length(d)
+    for ii=1:length(d)
         L=load(d(ii).name); %load
 
         if isempty(L.imData), continue, end

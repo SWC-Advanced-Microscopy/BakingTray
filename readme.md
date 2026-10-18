@@ -42,5 +42,11 @@ The software has been tested on MATLAB R2019b to R2021a.
 It runs on ScanImage 5.6.x but the latest version of Basic is preferred.
 See the documentation at [bakingtray.swcmicroscopy.com](https://bakingtray.swcmicroscopy.com)
 
+#### Required MATLAB toolboxes
+* **Image Processing Toolbox** — required (preview image, auto-ROI, area selection).
+* **Image Acquisition Toolbox** — only for the camera-based stage accuracy test in `diagnostic/measuring_xy_accuracy`.
+
+No other toolboxes are needed.
+
 Please do get in touch if use the software: especially if you are publishing with it!
 
