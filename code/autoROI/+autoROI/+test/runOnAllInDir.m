@@ -89,7 +89,7 @@ fprintf(fid,'Commit %s on %s branch\n', gitinfo.hash, gitinfo.branch);
 fclose(fid);
 t=tic;
 
-parfor ii=1:length(pStack_list)
+for ii=1:length(pStack_list)
     tFile = fullfile(pStack_list(ii).folder,pStack_list(ii).name);
     if ~exist(tFile,'file')
         fprintf('File %s does not exist. Skipping\n', tFile)

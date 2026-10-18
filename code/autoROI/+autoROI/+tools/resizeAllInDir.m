@@ -36,7 +36,7 @@ function resizeAllInDir(runDir,targetMicsPix)
 
 
 
-    parfor ii=1:length(pStack_list)
+    for ii=1:length(pStack_list)
         tFile = fullfile(pStack_list(ii).folder,pStack_list(ii).name);
 
         try
