@@ -10,6 +10,14 @@ For more information on major releases merged into master from pre-release.
 
 
 
+Release 2026.10
+18th October 2026
+- Removed dead code and clarify which toolboxes are needed.
+- Update links on README.md
+- Add Zaber settings file for X-MCA stage that controls the TissueCyte 1000 Z motor
+
+
+Release 2026.09
 28th September 2026
 USER: A laser is now monitored during acquisition only if it was turned on through BakingTray.
 
